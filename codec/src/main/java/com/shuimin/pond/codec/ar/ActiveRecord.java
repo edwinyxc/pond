@@ -1,18 +1,21 @@
 package com.shuimin.pond.codec.ar;
 
-import com.shuimin.pond.codec.db.CompoundRecord;
+import com.shuimin.pond.codec.db.Record;
 
 import java.util.Set;
 
 /**
  * Created by ed on 2014/4/30.
  */
-public class ActiveRecord extends CompoundRecord{
-
+public class ActiveRecord {
+    final Record d;
+    public ActiveRecord(Record r) {
+        this.d = r;
+    }
     private Table table;
 
     public Set<String> colNames() {
-        return fields();
+        return d.fields();
     }
 
     public ActiveRecord save(){
@@ -28,7 +31,7 @@ public class ActiveRecord extends CompoundRecord{
 
         for(Object[] pair : args) {
             if(pair[0] != null)
-            set(pair[0].toString(), pair[1]);
+            d.set(pair[0].toString(), pair[1]);
         }
         return save();
     }

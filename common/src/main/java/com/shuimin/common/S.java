@@ -606,6 +606,14 @@ public class S {
             return array.of(iter);
         }
 
+        public List<E> toList(){
+            return list.one(this.val());
+        }
+
+        public Set<E> toSet(){
+            return collection.set.hashSet(this.val());
+        }
+
     }
 
     public static class file {

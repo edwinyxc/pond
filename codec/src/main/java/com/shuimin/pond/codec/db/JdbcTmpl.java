@@ -126,6 +126,14 @@ public class JdbcTmpl implements Closeable {
         }
     }
 
+    public void drop(String tbName) {
+        exec("DROP TABLE "+ tbName);
+    }
+
+    public void truncate(String tbName) {
+        exec("TRUNCATE TABLE "+tbName);
+    }
+
     public ResultSet query(String sql) {
         return oper.executeQuery(sql);
     }

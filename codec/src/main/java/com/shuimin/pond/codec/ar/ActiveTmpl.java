@@ -10,11 +10,13 @@ import java.util.Arrays;
 /**
  * Created by ed on 2014/4/30.
  */
-public class ActiveTmpl extends JdbcTmpl{
+public class ActiveTmpl extends JdbcTmpl {
 
-    Dialect dialect ;
+    ActiveRecordPlugin config = Server.register(ActiveRecordPlugin.class);
 
-    public ActiveTmpl dialect(Dialect d){
+    Dialect dialect;
+
+    public ActiveTmpl dialect(Dialect d) {
         dialect = d;
         return this;
     }
@@ -27,11 +29,22 @@ public class ActiveTmpl extends JdbcTmpl{
         String idMark = Server.register(ActiveRecordPlugin.class).keyId;
         String create = String.format(
             "CREATE TABLE %s (%s %s, %s, create_time timestamp, update_time timestamp)",
-            name,idMark,dialect.primaryKeyMarkOnCreate(),
+            name, idMark, dialect.primaryKeyMarkOnCreate(),
             String.join(",", Arrays.asList(columns))
         );
+        config.beforeTableCreation.apply(name);
         exec(create);
-       return  null;
+        Table active = active(name);
+        config.afterTableCreation.apply(active);
+        return active;
+    }
+
+    public void dropTable(String name) {
+        drop(name);
+    }
+
+    public Table active(String tableName) {
+        return null;
     }
 
 
