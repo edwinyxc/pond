@@ -17,10 +17,6 @@
 
     <artifactId>pond-common</artifactId>
 
-
-
-
-
     <dependencies>
         <dependency>
             <groupId>cglib</groupId>

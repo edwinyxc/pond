@@ -115,21 +115,30 @@ public class FileUploadServer extends AbstractMiddleware {
         return this;
     }
 
-    private Callback._2<String,InputStream> onFileUpload = (name,in) -> {
+    private Function._2<File,String,InputStream> onFileUpload = (name,in) -> {
         debug("Upload filename : " + name);
-        File f;
+        File f = null;
         try (FileOutputStream out = new FileOutputStream((f = new File(uploadDirProvider.apply(), name)))) {
             S.stream.write(in, out);
-            render(text("File[" + name + "] uploaded, location:" + f.getAbsolutePath()));
+            return f;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     };
 
-    public FileUploadServer onFileUpload(Callback._2<String,InputStream> cb ) {
+    private Callback<File> onFileUploadFinished = (file) ->
+        render(text("File[" + file.getName()+ "] uploaded, location:" + file.getAbsolutePath()));
+
+    public FileUploadServer onFileUpload(Function._2<File,String,InputStream> cb ) {
         this.onFileUpload = cb;
+        return this;
+    }
+
+    public FileUploadServer onFileUploadFinished(Callback<File> finishedCb ) {
+        this.onFileUploadFinished = finishedCb;
         return this;
     }
 
@@ -254,7 +263,8 @@ public class FileUploadServer extends AbstractMiddleware {
                         }
 
                         try (InputStream in = item.getInputStream()) {
-                            onFileUpload.apply(fileName, in);
+                            File f = onFileUpload.apply(fileName, in);
+                            onFileUploadFinished.apply(f);
                         } finally {
                             item.delete();
                         }

@@ -2,9 +2,8 @@ package com.shuimin.pond.core;
 
 import com.shuimin.pond.core.exception.HttpException;
 import com.shuimin.pond.core.http.HttpMethod;
-import com.shuimin.pond.core.misc.Attrs;
-import com.shuimin.pond.core.misc.Config;
-import com.shuimin.pond.core.misc.Makeable;
+import com.shuimin.common.abs.Config;
+import com.shuimin.common.abs.Makeable;
 import com.shuimin.pond.core.mw.router.Router;
 
 import static com.shuimin.pond.core.Server.G.debug;
@@ -13,7 +12,7 @@ import static com.shuimin.pond.core.Server.G.debug;
  * @author ed
  */
 public class Dispatcher extends AbstractMiddleware
-    implements Makeable<Dispatcher>, Attrs<Dispatcher> {
+    implements Makeable<Dispatcher> {
 
     final private Router router;
 

@@ -100,7 +100,7 @@ public class JdbcTmpl implements Closeable {
         try{
             oper.transactionStart();
             for(String sql : batch) {;
-                oper.executeUpdate(sql);
+                oper.execute(sql);
             }
             oper.transactionCommit();
             return true;
@@ -112,7 +112,7 @@ public class JdbcTmpl implements Closeable {
 
     public int exec(String sql) {
         try {
-            return oper.executeUpdate(sql);
+            return oper.execute(sql);
         } catch (SQLException e) {
             throw new UnexpectedException(e);
         }
@@ -120,7 +120,7 @@ public class JdbcTmpl implements Closeable {
 
     public int exec(String sql, Object... x) {
         try {
-            return oper.executeUpdate(sql, x);
+            return oper.execute(sql, x);
         } catch (SQLException e) {
             throw new UnexpectedException(e);
         }
@@ -159,7 +159,7 @@ public class JdbcTmpl implements Closeable {
         String sql = all.toString();
 
         try {
-            oper.executeUpdate(sql, valuesObjs);
+            oper.execute(sql, valuesObjs);
             return true;
         } catch (SQLException e) {
             _throw(e);
@@ -192,7 +192,7 @@ public class JdbcTmpl implements Closeable {
         String sql = all.toString();
 
         try {
-            oper.executeUpdate(sql, valuesObjs);
+            oper.execute(sql, valuesObjs);
             return true;
         } catch (SQLException e) {
             _throw(e);
@@ -241,7 +241,7 @@ public class JdbcTmpl implements Closeable {
 
 
         try {
-            oper.executeUpdate(sql, valuesObjs.toArray());
+            oper.execute(sql, valuesObjs.toArray());
             return true;
         } catch (SQLException e) {
             _throw(e);

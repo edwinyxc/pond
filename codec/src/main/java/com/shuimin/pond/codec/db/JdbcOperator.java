@@ -7,6 +7,7 @@ import java.io.Closeable;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.sql.*;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -106,7 +107,7 @@ public class JdbcOperator implements Closeable {
         try {
             DatabaseMetaData dbMeta = conn.getMetaData();
             ResultSet rs = dbMeta.getTables(
-                null, null, "%", new String[]{"TABLE","View"}
+                null, null, "%", new String[]{"TABLE","VIEW"}
             );
             while (rs.next()) {
                 tables.add(rs.getString("table_name"));
@@ -117,15 +118,28 @@ public class JdbcOperator implements Closeable {
         return tables;
     }
 
+    public void dropTable (String name) throws SQLException{
+        execute(String.format("DROP TABLE IF EXISTS %s", name));
+    }
 
+    public void createIndex(String name, String table, String... columns)
+        throws SQLException {
+        //TODO not tested
+        execute(String.format("CREATE INDEX %s ON %s(%s)", name, table,
+            String.join(", ", Arrays.asList(columns))));
+    }
 
+    public void dropIndex(String name, String table) throws SQLException {
+        //TODO not tested
+        execute(String.format("DROP INDEX %s", name));
+    }
 
     /**
      * @param sql
      * @param params 对象数组，用于按顺序放置到sql模板中,支持InputStream 和 基本数据类型
      * @return
      */
-    public int executeUpdate(String sql, Object[] params) throws SQLException {
+    public int execute(String sql, Object[] params) throws SQLException {
         if (pstmt != null) {
             _closeStmt();
         }
@@ -177,14 +191,14 @@ public class JdbcOperator implements Closeable {
         return null;
     }
 
-    public int executeUpdate(String sql) throws SQLException {
-        return executeUpdate(sql, null);
+    public int execute (String sql) throws SQLException {
+        return execute(sql, null);
     }
 
     //	/**
 //	 * execute SQL statements to Update,Modify or Delete
 //	 */
-//	public int executeUpdate(String sql, String[] params) throws SQLException {
+//	public int execute(String sql, String[] params) throws SQLException {
 //		int num = 0;
 //		if (pstmt != null) {
 //			_closeStmt();
@@ -198,7 +212,7 @@ public class JdbcOperator implements Closeable {
 //		}
 //
 //		_debug(pstmt);
-//		num = pstmt.executeUpdate();
+//		num = pstmt.execute();
 //		return num;
 //	}
     public void transactionStart() {

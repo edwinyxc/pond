@@ -12,7 +12,7 @@ import com.shuimin.pond.core.exception.YException;
 import com.shuimin.pond.core.http.HttpMethod;
 import com.shuimin.pond.core.http.Request;
 import com.shuimin.pond.core.http.Response;
-import com.shuimin.pond.core.misc.Makeable;
+import com.shuimin.common.abs.Makeable;
 
 import java.io.File;
 import java.text.ParseException;

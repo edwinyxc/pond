@@ -1,5 +1,7 @@
 package com.shuimin.common.struc;
 
+import com.shuimin.common.f.Function;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,14 +31,25 @@ public class MatrixO {
 		this.cols = cols;
 		this.rows = rows;
 		this.data = new Object[rows * cols];
-		init_with_zero();
+		init_with_null();
 	}
 
-	private void init_with_zero()
+    public MatrixO(int rows, int cols, Function._2 provider){
+        this.cols = cols;
+        this.rows = rows;
+        this.data = new Object[rows * cols];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                data[i * cols + j] = provider.apply(i,j);
+            }
+        }
+    }
+
+	private void init_with_null()
 	{
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < cols; j++) {
-				data[i * cols + j] = (0);
+				data[i * cols + j] = null;
 			}
 		}
 	}
@@ -67,7 +80,7 @@ public class MatrixO {
 		return data[row * cols + col];
 	}
 
-	public void set(int row, int col, int value)
+	public void set(int row, int col, Object value)
 	{
 		this.data[row * cols + col] = value;
 	}

@@ -1,8 +1,8 @@
 package com.shuimin.pond.core;
 
+import com.shuimin.common.abs.Attrs;
 import com.shuimin.pond.core.http.Request;
 import com.shuimin.pond.core.http.Response;
-import com.shuimin.pond.core.misc.Attrs;
 
 /**
  * @author ed

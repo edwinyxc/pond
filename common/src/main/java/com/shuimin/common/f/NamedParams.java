@@ -1,13 +1,11 @@
 package com.shuimin.common.f;
 
 import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Created by ed on 2014/4/30.
  */
-public class NamedParams {
-    final Set<Object[]> params = new HashSet<>();
+public class NamedParams extends HashSet<Object[]>{
 
     public NamedParams(Object[]...namedArgs) {
         for(Object[] a : namedArgs) {
@@ -18,17 +16,15 @@ public class NamedParams {
                 throw new RuntimeException(
                     "invalid named-parameter type, first must be String."
                 );
-            params.add(a);
+            this.add(a);
         }
     }
 
     public <E> E get(String name){
-        for(Object[] a : params){
+        for(Object[] a : this){
             if(a[0].equals(name)) return (E)a[1];
         }
         return null;
     }
-
-
 
 }

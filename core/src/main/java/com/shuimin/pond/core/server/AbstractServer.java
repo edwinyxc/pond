@@ -6,8 +6,8 @@ import com.shuimin.pond.core.exception.HttpException;
 import com.shuimin.pond.core.exception.YException;
 import com.shuimin.pond.core.http.Request;
 import com.shuimin.pond.core.http.Response;
-import com.shuimin.pond.core.misc.Config;
-import com.shuimin.pond.core.misc.Makeable;
+import com.shuimin.common.abs.Config;
+import com.shuimin.common.abs.Makeable;
 
 import java.util.LinkedList;
 import java.util.List;

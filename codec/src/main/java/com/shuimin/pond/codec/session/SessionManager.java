@@ -2,7 +2,7 @@ package com.shuimin.pond.codec.session;
 
 import com.shuimin.common.f.Function;
 import com.shuimin.pond.core.Server;
-import com.shuimin.pond.core.misc.Makeable;
+import com.shuimin.common.abs.Makeable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -69,7 +69,7 @@ public class SessionManager implements Makeable<SessionManager> {
      * @return 当前的session
      */
     public static Session get() {
-        return get(CUR().attr(SessionInstaller.JSESSIONID));
+        return get((String) CUR().attr(SessionInstaller.JSESSIONID));
     }
 
     public static SessionInstaller installer() {

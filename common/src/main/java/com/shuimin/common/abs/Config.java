@@ -1,4 +1,4 @@
-package com.shuimin.pond.core.misc;
+package com.shuimin.common.abs;
 
 /**
  * @author ed

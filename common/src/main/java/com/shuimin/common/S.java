@@ -699,6 +699,11 @@ public class S {
     /**
      * ******************* L **********************
      */
+    @SafeVarargs
+    public static <E> list.FList<E> list(E... e){
+        return list.one(e);
+    }
+
     final static public class list {
 
         @SuppressWarnings("serial")
@@ -770,7 +775,7 @@ public class S {
             return new FList<>(iterable);
         }
 
-        public static <E> FList<E> one(E[] arr) {
+        public static <E> FList<E> one(E... arr) {
             return new FList<>(arr);
         }
 

@@ -6,7 +6,7 @@ import com.shuimin.pond.core.ExecutionContext;
 import com.shuimin.pond.core.Server;
 import com.shuimin.pond.core.http.Request;
 import com.shuimin.pond.core.http.Response;
-import com.shuimin.pond.core.misc.Makeable;
+import com.shuimin.common.abs.Makeable;
 
 import javax.servlet.http.Cookie;
 

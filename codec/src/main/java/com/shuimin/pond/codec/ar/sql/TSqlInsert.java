@@ -37,7 +37,7 @@ public class TSqlInsert implements SqlInsert {
             .append(String.join(", ",fields))
             .append(") VALUES (")
             .append(String.join(", ",_for(fields).map( i -> "?").val()))
-            .append(") ");
+            .append(")");
         return sql.toString();
     }
 }

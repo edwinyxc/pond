@@ -5,7 +5,7 @@ import com.shuimin.common.util.logger.Logger;
 import com.shuimin.pond.codec.connpool.ConnectionConfig;
 import com.shuimin.pond.codec.connpool.ConnectionPool;
 import com.shuimin.pond.core.exception.UnexpectedException;
-import com.shuimin.pond.core.misc.Makeable;
+import com.shuimin.common.abs.Makeable;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class DB implements Makeable<DB>, Closeable {
      * <pre>
      *     快速的执行一个db操作
      * </pre>
-     * @param connection 数据库连接
+     * @param connectionProvider 数据库连接
      * @param process 数据库链接打开之后执行的操作，参数为 JdbcTmpl
      * @see com.shuimin.pond.codec.db.JdbcTmpl
      * @return 执行后的结果

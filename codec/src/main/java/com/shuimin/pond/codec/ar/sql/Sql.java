@@ -20,4 +20,5 @@ public interface Sql {
     public static SqlDelete delete(){
         return new TSqlDelete();
     }
+
 }

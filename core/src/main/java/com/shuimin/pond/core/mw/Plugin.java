@@ -7,7 +7,6 @@ import com.shuimin.pond.core.Server;
 /**
  * Created by ed on 2014/4/30.
  * <p>Plugin is a kind of special Middleware that represent
- * a
  * </p>
  */
 public abstract class Plugin extends AbstractMiddleware {

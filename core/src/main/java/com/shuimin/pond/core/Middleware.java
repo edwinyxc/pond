@@ -1,6 +1,7 @@
 package com.shuimin.pond.core;
 
-import com.shuimin.pond.core.misc.Attrs;
+
+import com.shuimin.common.abs.Attrs;
 
 import java.util.List;
 
