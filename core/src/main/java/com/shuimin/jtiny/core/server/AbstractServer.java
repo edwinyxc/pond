@@ -16,6 +16,7 @@ public abstract class AbstractServer implements Server {
 
     @Override
     public Server use(Middleware handler) {
+        handler.init();
         execChain.add(handler);
         return this;
     }

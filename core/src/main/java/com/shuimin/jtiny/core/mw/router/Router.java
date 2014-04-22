@@ -6,9 +6,10 @@ import com.shuimin.jtiny.core.Middleware;
 import com.shuimin.jtiny.core.http.HttpMethod;
 import com.shuimin.jtiny.core.mw.RouteNode;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+
+import static com.shuimin.base.S._for;
 
 /**
  * @author ed
@@ -44,7 +45,8 @@ public interface Router {
             for (HttpMethod m : methods) {
                 List<RouteNode> routes = Routes.get(m);
                 S._assert(routes, "routes of method[" + methods.toString() + "] not found");
-                routes.add(RouteNode.regexRouteNode(path, Middleware.string(Arrays.asList(wares))));
+                routes.add(RouteNode.regexRouteNode(path, Middleware.string(
+                    S.list.one(_for(wares).each(ware->ware.init()).val()))));
             }
             return this;
         }

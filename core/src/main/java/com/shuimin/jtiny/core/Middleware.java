@@ -12,6 +12,10 @@ public interface Middleware {
 
     public ExecutionContext handle(ExecutionContext ctx);
 
+    public default void init(){
+
+    }
+
     public Middleware next();
 
     /**

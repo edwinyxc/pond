@@ -128,4 +128,10 @@ public class NettyRequest extends AbstractRequest {
         return cookies;
     }
 
+    @Override
+    public String characterEncoding() {
+        //FIXME:
+        return null;
+    }
+
 }

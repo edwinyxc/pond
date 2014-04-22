@@ -42,4 +42,7 @@ public interface Request {
     Iterable<Cookie> cookies();
 
     Cookie cookie(String s);
+
+//    HttpServletRequest raw();
+    String characterEncoding();
 }

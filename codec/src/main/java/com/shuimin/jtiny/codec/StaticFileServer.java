@@ -4,9 +4,7 @@ import com.shuimin.base.S;
 import com.shuimin.base.f.Callback;
 import com.shuimin.base.f.Function;
 import com.shuimin.jtiny.codec.mime.MimeTypes;
-import com.shuimin.jtiny.core.AbstractMiddleware;
-import com.shuimin.jtiny.core.ExecutionContext;
-import com.shuimin.jtiny.core.RequestHandler;
+import com.shuimin.jtiny.core.*;
 import com.shuimin.jtiny.core.exception.YException;
 import com.shuimin.jtiny.core.http.HttpMethod;
 import com.shuimin.jtiny.core.http.Request;
@@ -86,6 +84,12 @@ public class StaticFileServer extends AbstractMiddleware implements RequestHandl
             };
         }
     }
+
+    @Override
+    public void init() {
+        Server.config(Global.ROOT, publicDir);
+    }
+
 
     private String findDefaultPage(File dir) {
         File[] files = dir.listFiles();

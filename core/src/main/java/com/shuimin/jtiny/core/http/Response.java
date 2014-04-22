@@ -1,6 +1,7 @@
 package com.shuimin.jtiny.core.http;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -85,4 +86,6 @@ public interface Response {
      * @return this
      */
     Response contentType(String type);
+
+    HttpServletResponse raw();
 }

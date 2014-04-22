@@ -604,6 +604,23 @@ public class S {
 
     public static class file {
 
+        public static String fileNameFromPath(String path){
+            return path.substring(path.lastIndexOf("\\") +1 );
+        }
+
+        public static String fileExt(String fileName) {
+            String[] filenames = splitFileName(fileName);
+            return filenames[filenames.length-1];
+        }
+
+        public static String[] splitFileName(String filename) {
+            int idx_dot = filename.lastIndexOf('.');
+            if (idx_dot <= 0 || idx_dot == filename.length()) {
+                return new String[]{filename, null};
+            }
+            return new String[]{filename.substring(0, idx_dot), filename.substring(idx_dot + 1)};
+        }
+
         /**
          * abc.txt => [abc, txt] abc.def.txt => [abc.def, txt] abc. =>
          * [abc.,null] .abc => [.abc,null] abc => [abc,null]
@@ -611,14 +628,8 @@ public class S {
          * @param file file
          * @return string array with size of 2, first is the filename, remain the suffix;
          */
-        public static String[] splitSuffixName(File file) {
-            S._assert(file);
-            String file_name = file.getName();
-            int idx_dot = file_name.lastIndexOf('.');
-            if (idx_dot <= 0 || idx_dot == file_name.length()) {
-                return new String[]{file_name, null};
-            }
-            return new String[]{file_name.substring(0, idx_dot), file_name.substring(idx_dot + 1)};
+        public static String[] splitFileName(File file) {
+            return splitFileName(file.getName());
         }
 
         public static File mkdir(File par, String name) throws IOException {

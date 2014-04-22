@@ -20,28 +20,23 @@ public interface Server extends Makeable {
         }
 
         private G init() {
-            put(G_MODE, RunningMode.debug);
-            put(G_LOGGER, S.logger());
+            put(Global.MODE, RunningMode.debug);
+            put(Global.LOGGER, S.logger());
+            put(Global.ROOT,S.path.webRoot());
             return this;
         }
 
         private static class holder {
-
             final static G ins = new G().init();
         }
 
-        public final static String G_SERVER = "g.server";
-
-        public final static String G_LOGGER = "g.logger";
-
-        public final static String G_MODE = "g.mode";
 
         public static Server server() {
-            return (Server) instance().get(G_SERVER);
+            return (Server) instance().get(Global.SERVER);
         }
 
         public static G server(Server server) {
-            instance().put(G_SERVER, server);
+            instance().put(Global.SERVER, server);
             return instance();
         }
 
@@ -50,7 +45,7 @@ public interface Server extends Makeable {
         }
 
         public static G mode(RunningMode mode) {
-            instance().put(G_MODE, mode);
+            instance().put(Global.MODE, mode);
             if (mode.equals(RunningMode.debug)) {
                 logger().config("default", Logger.DEBUG);
             }
@@ -58,11 +53,11 @@ public interface Server extends Makeable {
         }
 
         public static RunningMode mode() {
-            return (RunningMode) instance().get(G_MODE);
+            return (RunningMode) instance().get(Global.MODE);
         }
 
         public static Logger logger() {
-            return (Logger) instance().get(G_LOGGER);
+            return (Logger) instance().get(Global.LOGGER);
         }
 
         public static void debug(Object o) {

@@ -81,4 +81,13 @@ public class HSRequestWrapper extends AbstractRequest {
         return S._for(_req.getCookies()).val();
     }
 
+//    @Override
+//    public HttpServletRequest raw() {
+//        return _req;
+//    }
+
+    @Override
+    public String characterEncoding() {
+        return _req.getCharacterEncoding();
+    }
 }

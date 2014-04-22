@@ -92,6 +92,11 @@ public class HSResponseWrapper implements Response {
     }
 
     @Override
+    public HttpServletResponse raw() {
+        return _resp;
+    }
+
+    @Override
     public OutputStream out() {
         try {
             return _resp.getOutputStream();

@@ -10,6 +10,7 @@ import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.netty.handler.stream.ChunkedFile;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 
 /**
@@ -101,6 +102,12 @@ public class NettyResponse implements Response {
     public Response contentType(String type) {
         httpResponse.headers().add(HttpHeaders.Names.CONTENT_TYPE, type);
         return this;
+    }
+
+    @Override
+    public HttpServletResponse raw() {
+        //FIXME: 选择之一是加一层HSR
+        throw new UnsupportedOperationException("not finished yet.");
     }
 
     @Override
