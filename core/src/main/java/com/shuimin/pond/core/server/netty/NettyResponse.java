@@ -26,6 +26,8 @@ public class NettyResponse implements Response {
 
     private final PrintWriter pw;
 
+    private boolean hasSend = false;
+
     public NettyResponse(
         FullHttpResponse httpResponse,
         ChannelHandlerContext ctx) {
@@ -39,26 +41,30 @@ public class NettyResponse implements Response {
     public Response header(String k, String v) {
         httpResponse.headers().add(k, v);
         return this;
-    }
+}
 
     @Override
     public void send(int code) {
+        if(hasSend) return;
         HttpResponseStatus status = HttpResponseStatus.valueOf(code);
         httpResponse.setStatus(status);
+        hasSend = true;
         Interrupt.jump(this);//throw a signal
     }
 
     @Override
     public void sendError(int code, String msg) {
+        if(hasSend) return;
         HttpResponseStatus status = HttpResponseStatus.valueOf(code);
         httpResponse.setStatus(status);
         writer().print(msg);
+        hasSend = true;
         Interrupt.jump(this);//throw a signal
-
     }
 
     @Override
     public void sendFile(File file) {
+        if(hasSend) return ;
         RandomAccessFile raf ;
         long fileLength ;
         try {
@@ -74,7 +80,9 @@ public class NettyResponse implements Response {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        hasSend = true;
         Interrupt.jump(this);
+
     }
 
     @Override
@@ -102,7 +110,7 @@ public class NettyResponse implements Response {
     public Response contentType(String type) {
         httpResponse.headers().add(HttpHeaders.Names.CONTENT_TYPE, type);
         return this;
-    }
+   }
 
     @Override
     public HttpServletResponse raw() {

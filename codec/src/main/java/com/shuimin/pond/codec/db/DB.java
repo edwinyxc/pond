@@ -1,7 +1,5 @@
 package com.shuimin.pond.codec.db;
 
-import com.shuimin.common.S;
-import com.shuimin.common.f.Callback;
 import com.shuimin.common.f.Function;
 import com.shuimin.common.util.logger.Logger;
 import com.shuimin.pond.codec.connpool.ConnectionPool;
@@ -29,6 +27,13 @@ public class DB implements Makeable<DB>, Closeable {
     private JdbcTmpl tmpl;
 
     public DB() {
+    }
+
+    public static <R> R fire(Connection connection,
+                           Function<R,JdbcTmpl> process) {
+        try(DB b = new DB().open(()->connection)) {
+            return  b.exec(process);
+        }
     }
 
     public static <R, M> R fire(Connection connection,
@@ -61,9 +66,8 @@ public class DB implements Makeable<DB>, Closeable {
         return mapper.apply(queryFunc.apply(tmpl));
     }
 
-    public <T> void exec(Function<T, JdbcTmpl> execFunc,
-                         Callback<T> cb) {
-        cb.apply(execFunc.apply(tmpl));
+    public <R> R exec(Function<R,JdbcTmpl> process) {
+       return process.apply(tmpl);
     }
 
     public <R, T> R exec(Function<T, JdbcTmpl> process,
@@ -114,7 +118,4 @@ public class DB implements Makeable<DB>, Closeable {
         }
     }
 
-    public static String tableName(Class<?> clazz) {
-        return S.str.underscore(clazz.getSimpleName());
-    }
 }

@@ -52,6 +52,8 @@ public abstract class AbstractServer implements Server {
                     }
                 }
             }
+            //default
+            ctx.resp().send(200);
         } catch (HttpException e) {
             resp.sendError(e.code(), e.getMessage());
         } catch (YException e) {

@@ -43,15 +43,11 @@ public class DbTest {
     public static void main(String[] args) {
         ConnectionPool pool = createPool();
         Dispatcher app = new Dispatcher(Router.regex());
-        app.get("/db", Action.fly(() -> {
-            DB.fire(pool.getConnection(), (tmpl) ->
-                    tmpl.find("SELECT * FROM t_crm_delivery_detail limit 0 ,10"),
-                (recordList) -> {
-                    render(text(dump(recordList)));
-                    return recordList;
-                }
-            );
-        }));
+        app.get("/db", Action.fly(() ->
+            render(text(dump(DB.fire(pool.getConnection(), tmpl ->
+                    tmpl.find("SELECT * FROM t_crm_delivery_detail limit 0 ,10")
+            ))))
+        ));
         app.get("/blob", Action.fly(() -> {
             DB.fire(pool.getConnection(), (tmpl) ->
                     tmpl.find("SELECT * from t_attachment limit 0,1"),

@@ -15,6 +15,7 @@ import static com.shuimin.common.S._throw;
 public class HSResponseWrapper implements Response {
 
     HttpServletResponse _resp;
+    private boolean hasSend = false;
 
     public HSResponseWrapper(HttpServletResponse hsr) {
         _resp = hsr;
@@ -28,30 +29,43 @@ public class HSResponseWrapper implements Response {
 
     @Override
     public void send(int code) {
+        if(hasSend){
+            return;
+        }
         _resp.setStatus(code);
         try {
             _resp.flushBuffer();
         } catch (IOException e) {
             _throw(e);
         }
+        finally {
+            hasSend = true;
+        }
     }
 
     @Override
     public void sendError(int code, String msg) {
+        if(hasSend) return;
         try {
             _resp.sendError(code,msg);
         } catch (IOException e) {
             _throw(e);
+        } finally {
+            hasSend = true;
         }
     }
 
     @Override
     public void sendFile(File file) {
+        if(hasSend)return;
         _resp.setStatus(200);
         try(FileInputStream in = new FileInputStream(file)){
             S.stream.write(in,_resp.getOutputStream());
         } catch (IOException e) {
            _throw(e);
+        }
+        finally {
+            hasSend = true;
         }
     }
 

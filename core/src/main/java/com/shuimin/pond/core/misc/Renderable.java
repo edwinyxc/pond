@@ -19,6 +19,11 @@ public interface Renderable {
         };
     }
 
+    public static Renderable dump(Object o) {
+        return resp ->
+            resp.write(S.dump(o));
+    }
+
     public static Renderable stream(InputStream in) {
         return (resp) -> {
             try (InputStream _in = in) {
