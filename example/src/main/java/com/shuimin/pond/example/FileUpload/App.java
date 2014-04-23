@@ -17,6 +17,7 @@ import static com.shuimin.pond.core.misc.Renderable.text;
  * Created by ed on 2014/4/22.
  */
 public class App {
+
     public static void main(String[] args) {
         Dispatcher app = new Dispatcher(Router.regex());
         app.get("/index",index);

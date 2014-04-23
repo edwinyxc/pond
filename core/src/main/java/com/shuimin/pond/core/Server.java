@@ -13,7 +13,7 @@ import static com.shuimin.pond.core.Server.G.debug;
 /**
  * @author ed
  */
-public interface Server extends Makeable {
+public interface Server extends Makeable<Server> {
 
     public static class G extends HashMap<String,Object> {
 
@@ -84,6 +84,15 @@ public interface Server extends Makeable {
         return G.instance();
     }
 
+    /**
+     * <p>快捷调用:开启调试模式</p>
+     * @return
+     */
+    public default Server debug() {
+        G.mode(RunningMode.debug);
+        return this;
+    }
+
     public void stop();
 
     public Server use(Middleware handler);
@@ -101,12 +110,10 @@ public interface Server extends Makeable {
     }
 
     static enum RunningMode {
-
         normal, debug
     }
 
     static enum BasicServer {
-
         netty, jetty
     }
 }

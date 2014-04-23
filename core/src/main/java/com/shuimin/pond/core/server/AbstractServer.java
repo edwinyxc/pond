@@ -27,6 +27,8 @@ public abstract class AbstractServer implements Server {
     protected final Callback._2<Request,Response> chainedHandler = (req, resp) -> {
 
         try {
+//            resp.contentType((String)
+//                Server.config(Global.DEFAULT_CONTENT_TYPE));
             ExecutionContext ctx = ExecutionContext.init(req, resp);
             ExecutionManager.ExecutionContexts.set(ctx);
             for (int i = 0; i < execChain.size(); i++) {
