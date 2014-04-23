@@ -8,8 +8,6 @@ import com.shuimin.pond.core.server.netty.NettyServer;
 
 import java.util.HashMap;
 
-import static com.shuimin.pond.core.Server.G.debug;
-
 /**
  * @author ed
  */
@@ -70,7 +68,7 @@ public interface Server extends Makeable<Server> {
     }
 
     public static void config(String name, Object o) {
-        debug("set global: "+name+" = "+o);
+        G.debug("set global: "+name+" = "+o);
         G.instance().put(name,o);
     }
 
