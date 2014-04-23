@@ -17,10 +17,12 @@ import static com.shuimin.common.S._throw;
 
 /**
  * Created by ed on 2014/4/15.
- * <p>数据库抽象，使用自定义名称（逻辑名称）来区分，
- * 每一个db之间可以是同一个物理实现（例如在mysql中，就是同一个 database）
- * ，也可以是多个。具体采用连接池还是单个连接（on the fly）取决于构造，
- * 单个DB对象持有一个打开的connection，显示调用的关闭不一定会真的释放connection</p>
+ * <pre>
+ *     面向Connection的数据库连接抽象
+ *     try(DB b = new DB().....){
+ *         //do your job
+ *     }
+ * </pre>
  */
 public class DB implements Makeable<DB>, Closeable {
     private static final Logger logger = Logger.get();
@@ -29,6 +31,15 @@ public class DB implements Makeable<DB>, Closeable {
     public DB() {
     }
 
+    /**
+     * <pre>
+     *     快速的执行一个db操作
+     * </pre>
+     * @param connection 数据库连接
+     * @param process 数据库链接打开之后执行的操作，参数为 JdbcTmpl
+     * @see com.shuimin.pond.codec.db.JdbcTmpl
+     * @return 执行后的结果
+     */
     public static <R> R fire(Connection connection,
                            Function<R,JdbcTmpl> process) {
         try(DB b = new DB().open(()->connection)) {
@@ -36,6 +47,18 @@ public class DB implements Makeable<DB>, Closeable {
         }
     }
 
+    /**
+     * @see com.shuimin.pond.codec.db.DB
+     *  #fire(java.sql.Connection, com.shuimin.common.f.Function, com.shuimin.common.f.Function)
+     * @param connection 数据库链接
+     * @param process  处理JdbcTmpl
+     * @param finisher 二次处理
+     *
+     * @param <R> 最终结果类型
+     * @param <M> 中间结果类型
+     *
+     * @return 最终计算结果
+     */
     public static <R, M> R fire(Connection connection,
                                 Function<M, JdbcTmpl> process,
                                 Function<R, M> finisher) {
@@ -46,6 +69,14 @@ public class DB implements Makeable<DB>, Closeable {
 
     }
 
+    /**
+     * <p>打开一个jdbc数据库链接</p>
+     * @param driverClass
+     * @param connUrl
+     * @param username
+     * @param password
+     * @return this
+     */
     public DB open(String driverClass,
                    String connUrl,
                    String username,
@@ -56,20 +87,40 @@ public class DB implements Makeable<DB>, Closeable {
         return this;
     }
 
+    /**
+     * <p>得到当前DB对象的jdbcTmpl值</p>
+     * @return JdbcTmpl
+     */
     public JdbcTmpl tmpl() {
         return tmpl;
     }
 
 
+    /**
+     * <p>做一次查询,并映射到结果集，然后返回结果集</p>
+     * @param queryFunc 查询方法
+     * @param mapper 映射方法
+     * @param <T> 返回类型
+     * @return 类型为 T 的返回结果
+     */
     public <T> T query(Function<ResultSet, JdbcTmpl> queryFunc,
                        Function<T, ResultSet> mapper) {
         return mapper.apply(queryFunc.apply(tmpl));
     }
 
+    /**
+     * <p>执行</p>
+     * @param process
+     * @param <R>
+     * @return
+     */
     public <R> R exec(Function<R,JdbcTmpl> process) {
        return process.apply(tmpl);
     }
 
+    /**
+     * @see com.shuimin.pond.codec.db.DB#exec(com.shuimin.common.f.Function)
+     */
     public <R, T> R exec(Function<T, JdbcTmpl> process,
                          Function<R, T> finisher) {
         return finisher.apply(process.apply(tmpl));
