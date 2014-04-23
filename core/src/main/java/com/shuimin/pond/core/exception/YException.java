@@ -30,9 +30,4 @@ public abstract class YException extends RuntimeException {
     public String toString() {
         return G.debug() ? detail() : brief();
     }
-
-    @Override
-    public String getMessage() {
-        return toString();
-    }
 }
