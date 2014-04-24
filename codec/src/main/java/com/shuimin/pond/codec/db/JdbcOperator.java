@@ -1,14 +1,15 @@
 package com.shuimin.pond.codec.db;
 
-import com.shuimin.common.S;
 import com.shuimin.common.util.logger.Logger;
 import com.shuimin.pond.core.Server;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.io.InputStream;
-import java.sql.*;
-import java.util.Date;
+import java.lang.reflect.Type;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import static com.shuimin.common.S._throw;
 
@@ -24,7 +25,6 @@ public class JdbcOperator implements Closeable{
     private ResultSet rs = null;
     Logger logger = Server.G.logger();
 
-    final JdbcOperator outer = this;
 
 //	//use under jdk -1.4
 //	@SuppressWarnings("unused")
@@ -100,22 +100,7 @@ public class JdbcOperator implements Closeable{
         Object o;
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
-                o = params[i];
-                if (o instanceof String) {
-                    pstmt.setString(i + 1, (String) o);
-                } else if (o instanceof InputStream) {
-                    try {
-                        pstmt.setBinaryStream(i + 1,
-                            (InputStream) o, ((InputStream) o).available());
-                    } catch (IOException ex) {
-                        S._lazyThrow(ex);
-                    }
-                }
-                else {
-                    _debug("not supported type input " + o);
-                   pstmt.setString(i + 1, o.toString());
-                }
-
+                setParam(pstmt,i+1,params[i]);
             }
         }
         _debug(pstmt);
@@ -234,10 +219,17 @@ public class JdbcOperator implements Closeable{
             logger.debug(o);
         }
     }
+    private static final Type[] SUPPORTED_TYPES = new Type[]{
+      Byte.TYPE,Character.TYPE,Short.TYPE,Integer.TYPE,Long.TYPE,
+        Float.TYPE, Double.TYPE, Boolean.TYPE,String.class,InputStream.class
+    };
 
     private void setParam(PreparedStatement pstmt, int idx, Object val)
         throws SQLException {
-        if(setParam_try_primitive(pstmt,idx,val)) return;
+        if(setParam_try_primitive(pstmt,idx,val)
+           || setParam_try_common(pstmt,idx,val)) return;
+
+        throw new UnsupportedTypeException(val.getClass(),SUPPORTED_TYPES);
     }
 
     private boolean setParam_try_common(PreparedStatement pstmt,
@@ -247,12 +239,17 @@ public class JdbcOperator implements Closeable{
             pstmt.setString(idx, (String) o);
             return true;
         }
-        //TODO: test this
-        else if (o instanceof Date) {
-            pstmt.setTimestamp(idx,new Timestamp(((Date) o).getTime()));
+//        //TODO: test this
+//        else if (o instanceof Date) {
+//            pstmt.setTimestamp(idx,new Timestamp(((Date) o).getTime()));
+//            return true;
+//        }
+
+        if( o instanceof InputStream ) {
+            pstmt.setBinaryStream(idx, (InputStream) o);
             return true;
         }
-        //FIXME : unfinished
+
         return false;
     }
 

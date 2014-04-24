@@ -10,6 +10,8 @@ import com.shuimin.pond.core.mw.router.Router;
 
 import static com.shuimin.common.S._notNullElse;
 import static com.shuimin.pond.core.ExecutionContext.CUR;
+import static com.shuimin.pond.core.ExecutionContext.RESP;
+import static com.shuimin.pond.core.Interrupt.redirect;
 import static com.shuimin.pond.core.Interrupt.render;
 import static com.shuimin.pond.core.Server.G.debug;
 import static com.shuimin.pond.core.misc.Renderable.text;
@@ -35,16 +37,19 @@ public class App {
         ));
         app.get("/session", Action.fly(() ->
             render(text("session id :" +CUR().attr(SessionInstaller.JSESSIONID)))));
+        app.get("/baidu", Action.fly(() ->
+            redirect("http://baidu.com")
+        ));
+        app.get(".*", new StaticFileServer("C:\\var\\www"));
 
-
-        Server.G.mode(Server.RunningMode.debug);
 
 
         debug("welcome");
 
-        Server.basis(Server.BasicServer.jetty).use(SessionManager
-            .installer())
-            .use(app).use(new StaticFileServer("C:\\var\\www")).listen(8080);
+        Server.basis(Server.BasicServer.jetty).debug()
+            .use(SessionManager.installer())
+            .use(Action.fly(()-> RESP().contentType("text/html;charset=utf-8")))
+            .use(app).listen(8080);
 
     }
 
