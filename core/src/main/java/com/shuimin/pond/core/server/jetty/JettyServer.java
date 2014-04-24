@@ -2,6 +2,7 @@ package com.shuimin.pond.core.server.jetty;
 
 import com.shuimin.common.S;
 import com.shuimin.pond.core.server.AbstractServer;
+import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
@@ -36,6 +37,11 @@ public class JettyServer extends AbstractServer {
         try {
             server.start();
         } catch (Exception e) {
+            // Jetty throw EofE when client close the connection
+            if( e instanceof EofException){
+                G.debug("Jetty throw an EOF exception");
+                return;
+            }
             S._lazyThrow(e);
         }
     }
