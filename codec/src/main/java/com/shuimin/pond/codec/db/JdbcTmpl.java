@@ -15,7 +15,6 @@ import static com.shuimin.pond.core.Server.G.debug;
  * Created by ed on 2014/4/18.
  */
 public class JdbcTmpl implements Closeable{
-
     RowMapper rm = (rs)-> {
         Record ret = new Record();
         ResultSetMetaData metaData = rs.getMetaData();
@@ -44,10 +43,16 @@ public class JdbcTmpl implements Closeable{
         return ret;
     };
 
+    /**
+     * <p>开始一个事务</p>
+     */
     public void txStart() {
         oper.transactionStart();
     }
 
+    /**
+     * 结束一个事务
+     */
     public void txEnd() {
         oper.transactionCommit();
     }
@@ -58,6 +63,13 @@ public class JdbcTmpl implements Closeable{
         this.oper = oper;
     }
 
+    /**
+     * <pre>
+     *     按sql查询
+     * </pre>
+     * @param sql
+     * @return
+     */
     public List<Record> find(String sql) {
         ResultSet rs = oper.executeQuery(sql);
         List<Record> list = new ArrayList<>();

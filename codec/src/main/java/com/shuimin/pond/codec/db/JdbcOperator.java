@@ -7,30 +7,21 @@ import com.shuimin.pond.core.Server;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.Date;
 
 import static com.shuimin.common.S._throw;
 
 /**
- * <a DAO common Class>
- * encapsoluate some basic method to operate database connection
- *
- * @author edwin
- *         <p/>
- *         <pre>
- *          ?????? ?? conn??????
- *          date:2010-4-2;
- *          modified :2013/7/2 --?? ? connection ?????
- *         </pre>
+ * <pre>
+ *     jdbc operator
+ * </pre>
  */
 public class JdbcOperator implements Closeable{
 
     public final Connection conn;
-    public PreparedStatement pstmt = null;
-    public ResultSet rs = null;
+    private PreparedStatement pstmt = null;
+    private ResultSet rs = null;
     Logger logger = Server.G.logger();
 
     final JdbcOperator outer = this;
@@ -244,4 +235,57 @@ public class JdbcOperator implements Closeable{
         }
     }
 
-}
+    private void setParam(PreparedStatement pstmt, int idx, Object val)
+        throws SQLException {
+        if(setParam_try_primitive(pstmt,idx,val)) return;
+    }
+
+    private boolean setParam_try_common(PreparedStatement pstmt,
+                                        int idx,
+                                        Object o) throws SQLException {
+        if( o instanceof String ) {
+            pstmt.setString(idx, (String) o);
+            return true;
+        }
+        //TODO: test this
+        else if (o instanceof Date) {
+            pstmt.setTimestamp(idx,new Timestamp(((Date) o).getTime()));
+            return true;
+        }
+        //FIXME : unfinished
+        return false;
+    }
+
+    private boolean setParam_try_primitive(PreparedStatement pstmt,
+                                    int idx,
+                                    Object o ) throws SQLException {
+       if ( o instanceof Integer ) {
+           pstmt.setInt(idx,(Integer)o);
+           return true;
+       }else if (o instanceof Long) {
+           pstmt.setLong(idx, (Long)o);
+           return true;
+       }else if ( o instanceof Short){
+           pstmt.setShort(idx, (Short)o);
+           return true;
+       }else if ( o instanceof Character) {
+           pstmt.setString(idx,String.valueOf(o));
+           return true;
+       }else if ( o instanceof Float) {
+           pstmt.setFloat(idx,(Float) o);
+           return true;
+       }else if ( o instanceof Double) {
+           pstmt.setDouble(idx,(Double) o);
+           return true;
+       }else if (o instanceof Byte) {
+           pstmt.setByte(idx,(Byte) o);
+           return true;
+       }else if (o instanceof Boolean) {
+           pstmt.setBoolean(idx,(Boolean) o);
+           return true;
+       }
+       return false;
+    }
+
+
+ }

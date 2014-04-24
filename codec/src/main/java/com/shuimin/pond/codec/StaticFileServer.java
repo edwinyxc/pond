@@ -20,7 +20,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static com.shuimin.common.S.dump;
 import static com.shuimin.pond.core.Interrupt.kill;
+import static com.shuimin.pond.core.Server.G.debug;
 
 /**
  * Created by ed on 2014/4/10.
@@ -37,6 +39,13 @@ public class StaticFileServer extends AbstractMiddleware
         () -> Pattern.compile("[A-Za-z0-9][-_A-Za-z0-9\\.]*");
 
     private String[] defaultPages = {"index.html"};
+
+    private String charset = "utf-8";
+
+    public StaticFileServer charset(String charset) {
+        this.charset = charset;
+        return this;
+    }
 
     private Callback._2<Response, File> listDir = this::defaultListFiles;
 
@@ -145,7 +154,9 @@ public class StaticFileServer extends AbstractMiddleware
             return;
         }
 
-        //cache
+        setContentLength(resp, file.length());
+
+        setContentType(resp, file);        //cache
 
         // Cache Validation
         String[] strings = req.headers().get("If-Modified-Since");
@@ -166,9 +177,7 @@ public class StaticFileServer extends AbstractMiddleware
             }
         }
 
-        setContentLength(resp, file.length());
 
-        setContentType(resp, file);
 
         setDateAndCacheHeaders(resp, file);
 
@@ -244,12 +253,12 @@ public class StaticFileServer extends AbstractMiddleware
     }
 
 
-    private static void setContentLength(Response resp, long length) {
+    private void setContentLength(Response resp, long length) {
         resp.header("Content-Length", String.valueOf(length));
     }
 
 
-    private static void setDateAndCacheHeaders(Response resp, File toCache) {
+    private void setDateAndCacheHeaders(Response resp, File toCache) {
         SimpleDateFormat dateFormat = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
 
@@ -263,10 +272,11 @@ public class StaticFileServer extends AbstractMiddleware
     }
 
 
-    private static void setContentType(Response resp, File file) {
+    private void setContentType(Response resp, File file) {
         String[] fullName = file.getName().split("\\.");
+        debug(file.getAbsolutePath()+" suffix "+ dump(fullName));
         String ext = fullName[fullName.length-1];
-        resp.header("Content-Type", MimeTypes.getMimeType(ext));
+        resp.contentType(MimeTypes.getMimeType(ext) + ";charset=" + charset);
     }
 
     @Override

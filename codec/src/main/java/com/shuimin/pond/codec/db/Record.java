@@ -12,10 +12,15 @@ public class Record extends HashMap<String,Object> {
 
     public static Logger logger = Logger.get();
 
-    public String tableName;
+    private String tableName;
 
-    public String tableName() {
+    public String table() {
         return tableName;
+    }
+
+    public Record table(String name) {
+        this.tableName = name;
+        return this;
     }
 
     @Override
