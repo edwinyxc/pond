@@ -6,6 +6,8 @@ import com.shuimin.pond.core.exception.HttpException;
 import com.shuimin.pond.core.exception.YException;
 import com.shuimin.pond.core.http.Request;
 import com.shuimin.pond.core.http.Response;
+import com.shuimin.pond.core.misc.Config;
+import com.shuimin.pond.core.misc.Makeable;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -24,6 +26,12 @@ public abstract class AbstractServer implements Server {
         return this;
     }
 
+    @Override
+    public Makeable make(Config<Server> y) {
+        y.config(this);
+        return this;
+    }
+
     protected final Callback._2<Request,Response> chainedHandler = (req, resp) -> {
 
         try {
@@ -31,8 +39,10 @@ public abstract class AbstractServer implements Server {
 //                Server.config(Global.DEFAULT_CONTENT_TYPE));
             ExecutionContext ctx = ExecutionContext.init(req, resp);
             ExecutionManager.ExecutionContexts.set(ctx);
+            G.debug("request path : " + req.path());
             for (int i = 0; i < execChain.size(); i++) {
                 Middleware m = execChain.get(i);
+                G.debug("executing mid :" + m);
                 try {
                     m.handle(ctx);
                 } catch (Interrupt.JumpInterruption jump) {

@@ -1,6 +1,5 @@
 package com.shuimin.pond.core.server.netty;
 
-import com.shuimin.pond.core.Interrupt;
 import com.shuimin.pond.core.http.Response;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -48,8 +47,12 @@ public class NettyResponse implements Response {
         if(hasSend) return;
         HttpResponseStatus status = HttpResponseStatus.valueOf(code);
         httpResponse.setStatus(status);
+        try {
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         hasSend = true;
-        Interrupt.jump(this);//throw a signal
     }
 
     @Override
@@ -59,7 +62,11 @@ public class NettyResponse implements Response {
         httpResponse.setStatus(status);
         writer().print(msg);
         hasSend = true;
-        Interrupt.jump(this);//throw a signal
+        try {
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -81,8 +88,11 @@ public class NettyResponse implements Response {
             e.printStackTrace();
         }
         hasSend = true;
-        Interrupt.jump(this);
-
+        try {
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -103,7 +113,12 @@ public class NettyResponse implements Response {
     public void redirect(String url) {
         httpResponse.setStatus(HttpResponseStatus.MOVED_PERMANENTLY);
         httpResponse.headers().add(HttpHeaders.Names.LOCATION, url);
-        Interrupt.jump(this);//throw a signal
+
+        try {
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

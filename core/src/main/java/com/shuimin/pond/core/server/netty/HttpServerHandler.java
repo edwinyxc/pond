@@ -1,8 +1,7 @@
 package com.shuimin.pond.core.server.netty;
 
+import com.shuimin.common.S;
 import com.shuimin.common.f.Callback;
-import com.shuimin.pond.core.Interrupt;
-import com.shuimin.pond.core.Server.G;
 import com.shuimin.pond.core.http.Request;
 import com.shuimin.pond.core.http.Response;
 import io.netty.buffer.Unpooled;
@@ -51,23 +50,19 @@ public class HttpServerHandler
                 //length
                 f_resp.headers().set(
                     CONTENT_LENGTH, f_resp.content().readableBytes());
+                S.echo(f_resp.content());
                 f_resp.headers().set(CONNECTION, KEEP_ALIVE);
             }
-            ChannelFuture last = ctx.write(f_resp);
+            ChannelFuture last = ctx.writeAndFlush(f_resp);
             // Write the end marker
             if (!isKeepAlive(msg)) {
                 // Close the connection when the whole content is written out.
                 last.addListener(ChannelFutureListener.CLOSE);
             }
 
-        } catch (Interrupt.JumpInterruption jump) {
-            //catch jump 
-            G.debug(jump);
-            G.debug(f_resp.getStatus());
-            G.debug(f_resp.headers());
-            ctx.writeAndFlush(f_resp).addListener(ChannelFutureListener.CLOSE);
         } finally {
             // Write the end marker
+            ctx.channel().flush();
             ctx.flush();
         }
     }

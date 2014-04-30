@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.shuimin.pond.core.Server.G.debug;
-
 /**
  * Created by ed interrupt 2014/4/2.
  */
@@ -30,7 +28,6 @@ public class RegexPathMatcher implements  PathMather {
             matcher.appendReplacement(buffer, "([^/]+)");
         }
         matcher.appendTail(buffer);
-        debug("bind pattern: " + buffer);
         pattern = Pattern.compile(buffer.toString());
     }
 

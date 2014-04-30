@@ -324,6 +324,13 @@ public class S {
         }
     }
 
+
+    public static void _assertNotNull(Object... x) {
+        for(Object o : x){
+            if(o == null) throw new NullPointerException();
+        }
+    }
+
     /**
      * ***************** B ********************
      */
@@ -512,9 +519,7 @@ public class S {
         }
 
         public ForMap<K, V> each(Callback<Entry<K, V>> eachFunc) {
-            for (Entry<K, V> entry : map.entrySet()) {
-                eachFunc.apply(entry);
-            }
+            map.entrySet().forEach(eachFunc::apply);
             return this;
         }
 
@@ -538,7 +543,8 @@ public class S {
 
         private <R> Collection<R> _initCollection(Class<?> itClass) {
             if (Collection.class.isAssignableFrom(itClass)
-                && !itClass.getSimpleName().startsWith("Unmodifiable")) {
+                && !itClass.getSimpleName().startsWith("Unmodifiable")
+                && !itClass.getSimpleName().startsWith("Empty")) {
                 try {
                     return S._one(itClass);
                 } catch (InstantiationException | IllegalAccessException e) {

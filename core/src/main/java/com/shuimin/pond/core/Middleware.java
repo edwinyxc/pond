@@ -1,5 +1,7 @@
 package com.shuimin.pond.core;
 
+import com.shuimin.pond.core.misc.Attrs;
+
 import java.util.List;
 
 /**
@@ -8,7 +10,7 @@ import java.util.List;
  *
  * @author ed
  */
-public interface Middleware {
+public interface Middleware extends Attrs<Middleware> {
 
     public ExecutionContext handle(ExecutionContext ctx);
 

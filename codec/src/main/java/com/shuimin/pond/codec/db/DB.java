@@ -2,6 +2,7 @@ package com.shuimin.pond.codec.db;
 
 import com.shuimin.common.f.Function;
 import com.shuimin.common.util.logger.Logger;
+import com.shuimin.pond.codec.connpool.ConnectionConfig;
 import com.shuimin.pond.codec.connpool.ConnectionPool;
 import com.shuimin.pond.core.exception.UnexpectedException;
 import com.shuimin.pond.core.misc.Makeable;
@@ -40,9 +41,9 @@ public class DB implements Makeable<DB>, Closeable {
      * @see com.shuimin.pond.codec.db.JdbcTmpl
      * @return 执行后的结果
      */
-    public static <R> R fire(Connection connection,
+    public static <R> R fire(Function._0<Connection> connectionProvider,
                            Function<R,JdbcTmpl> process) {
-        try(DB b = new DB().open(()->connection)) {
+        try(DB b = new DB().open(connectionProvider)) {
             return  b.exec(process);
         }
     }
@@ -50,7 +51,7 @@ public class DB implements Makeable<DB>, Closeable {
     /**
      * @see com.shuimin.pond.codec.db.DB
      *  #fire(java.sql.Connection, com.shuimin.common.f.Function, com.shuimin.common.f.Function)
-     * @param connection 数据库链接
+     * @param connectionProvider 数据库链接提供者
      * @param process  处理JdbcTmpl
      * @param finisher 二次处理
      *
@@ -59,11 +60,11 @@ public class DB implements Makeable<DB>, Closeable {
      *
      * @return 最终计算结果
      */
-    public static <R, M> R fire(Connection connection,
+    public static <R, M> R fire(Function._0<Connection> connectionProvider,
                                 Function<M, JdbcTmpl> process,
                                 Function<R, M> finisher) {
 
-        try (DB b = new DB().open(() -> connection)) {
+        try (DB b = new DB().open(connectionProvider)) {
             return b.exec(process, finisher);
         }
 
@@ -136,7 +137,12 @@ public class DB implements Makeable<DB>, Closeable {
         return this;
     }
 
-    protected static Connection newConnection(String driverClass,
+    public static Connection newConnection(ConnectionConfig config) {
+        return newConnection(config.driverClass,
+            config.connectionUrl,config.username,config.password);
+    }
+
+    public static Connection newConnection(String driverClass,
                                               String connUrl,
                                               String username,
                                               String password) {

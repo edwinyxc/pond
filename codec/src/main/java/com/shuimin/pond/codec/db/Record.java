@@ -1,32 +1,42 @@
 package com.shuimin.pond.codec.db;
 
+import com.shuimin.common.f.Holder;
 
-import com.shuimin.common.util.logger.Logger;
-
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
- * <p>数据记录抽象</p>
+ * Created by ed on 2014/4/24.
  */
-public class Record extends HashMap<String,Object> {
+public interface Record{
 
-    public static Logger logger = Logger.get();
+    Holder<String> _tableName = new Holder<>();
 
-    private String tableName;
+    Set<String> _priKeys = new HashSet<>();
 
-    public String table() {
-        return tableName;
+    public Set<String> fields = new HashSet<>();
+
+    default public Set<String> fields() {
+        return fields;
     }
 
-    public Record table(String name) {
-        this.tableName = name;
+    default public Set<String> primaryFields() {
+        return _priKeys;
+    }
+
+    public default String table() {
+        return _tableName.t;
+    }
+
+    public default Record table(String s) {
+        _tableName.t = s;
         return this;
     }
 
-    @Override
-    public Record put(String key, Object val) {
-        super.put(key,val);
-        return this;
-    }
+    Object get(String s);
 
+    Record set(String s, Object val) ;
+
+    List<Record> innerRecords();
 }

@@ -56,7 +56,6 @@ public class NettyRequest extends AbstractRequest {
 
         S._for(httpRequest.headers().names()).each((name) -> {
             String[] head = S._for(httpRequest.headers().getAll(name)).join();
-            S.echo(head);
             headers.put(name, head);
         });
 
@@ -86,6 +85,14 @@ public class NettyRequest extends AbstractRequest {
         String protocol = HttpVersion.HTTP_1_1.protocolName();
 
         String hostName = ((InetSocketAddress) channel.localAddress()).getHostName();
+
+        //Fuck IPv6 according javaDoc
+        // ipv6 string should contained between '[]'
+        // fuck java fuck me
+        if(hostName.contains(":")){ /*an ipv6*/
+            hostName = "["+hostName+"]";
+        }
+
         String port = String.valueOf(
             ((InetSocketAddress) channel.localAddress()).getPort());
         return protocol + "://" + hostName + ":" + port + httpRequest.getUri();
@@ -107,7 +114,7 @@ public class NettyRequest extends AbstractRequest {
         return headers;
     }
 
-    @Override
+   @Override
     public Map<String, String[]> params() {
         return parameterMap;
     }

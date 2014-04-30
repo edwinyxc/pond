@@ -2,6 +2,7 @@ package com.shuimin.pond.core;
 
 import com.shuimin.common.S;
 import com.shuimin.common.util.logger.Logger;
+import com.shuimin.pond.core.misc.Config;
 import com.shuimin.pond.core.misc.Makeable;
 import com.shuimin.pond.core.server.jetty.JettyServer;
 import com.shuimin.pond.core.server.netty.NettyServer;
@@ -67,6 +68,19 @@ public interface Server extends Makeable<Server> {
         }
     }
 
+
+    public static void register(Class<?> clazz, Object single ) {
+        S._assertNotNull(clazz,single);
+        String name = clazz.getCanonicalName();
+        G.debug("set global: "+name+" = "+single.toString());
+        G.instance().put(name,single);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <E> E register(Class<E> clazz) {
+        return (E) G.instance().get(clazz.getCanonicalName());
+    }
+
     public static void config(String name, Object o) {
         G.debug("set global: "+name+" = "+o);
         G.instance().put(name,o);
@@ -94,6 +108,9 @@ public interface Server extends Makeable<Server> {
     public void stop();
 
     public Server use(Middleware handler);
+
+    @Override
+    Makeable make(Config<Server> y);
 
     public static Server basis(BasicServer server) {
         switch (server) {

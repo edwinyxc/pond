@@ -43,6 +43,7 @@
       <module name="pond-common" target="1.8" />
       <module name="pond-core" target="1.8" />
       <module name="pond-example" target="1.8" />
+      <module name="server" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

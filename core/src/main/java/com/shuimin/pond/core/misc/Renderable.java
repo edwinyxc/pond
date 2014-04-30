@@ -14,7 +14,7 @@ public interface Renderable {
 
     public static Renderable text(String text) {
         return (resp) -> {
-            resp.writer().print(text);
+            resp.write(text);
             resp.send(200);
         };
     }

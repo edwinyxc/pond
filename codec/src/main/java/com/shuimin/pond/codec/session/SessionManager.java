@@ -17,7 +17,7 @@ public class SessionManager implements Makeable<SessionManager> {
 
     private final static Map<String, Session> sessions = new HashMap<>();
 
-    public static final String SESSION_LIFETIME = "SessionManager.session_lifetime";
+    public static final String SESSION_LIFETIME = "session_lifetime";
 
     public static Session get(String sessionId) {
         return get(sessionId, true);
@@ -57,7 +57,8 @@ public class SessionManager implements Makeable<SessionManager> {
     };
 
     private static int sessionLifeTime(){
-        return (Integer) Server.config(SESSION_LIFETIME) * 1000;
+        return (Integer) Server.config(
+            SESSION_LIFETIME) * 1000;
     }
 
 //    public static
