@@ -1,14 +1,15 @@
 package com.shuimin.pond.codec.session;
 
-import com.shuimin.common.f.Function;
-import com.shuimin.pond.core.Server;
 import com.shuimin.common.abs.Makeable;
+import com.shuimin.common.f.Function;
+import com.shuimin.pond.core.Pond;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.shuimin.pond.core.ExecutionContext.CUR;
-import static com.shuimin.pond.core.Server.G.debug;
+import static com.shuimin.pond.core.Pond.CUR;
+import static com.shuimin.pond.core.Pond.debug;
+
 
 /**
  * Created by ed on 2014/4/18.
@@ -57,7 +58,7 @@ public class SessionManager implements Makeable<SessionManager> {
     };
 
     private static int sessionLifeTime(){
-        return (Integer) Server.config(
+        return (Integer) Pond.get().attr(
             SESSION_LIFETIME) * 1000;
     }
 
@@ -71,6 +72,8 @@ public class SessionManager implements Makeable<SessionManager> {
     public static Session get() {
         return get((String) CUR().attr(SessionInstaller.JSESSIONID));
     }
+
+
 
     public static SessionInstaller installer() {
         return new SessionInstaller();

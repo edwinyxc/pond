@@ -9,50 +9,38 @@ import com.shuimin.pond.core.spi.Logger;
 public class SimpleLogger implements Logger {
 
     final com.shuimin.common.util.logger.Logger logger
-        = S.logger();
+        = S.logger().config("default",
+        com.shuimin.common.util.logger.Logger.DEBUG);
+
 
     @Override
     public void debug(String o) {
-
+        if(allowDebug())
+        logger.debug(o);
     }
 
     @Override
     public void debug(Throwable e) {
-
+        if(allowDebug())
+        logger.debug(e.toString());
     }
 
     @Override
     public void info(String o) {
-
+        if(allowInfo())
+        logger.info(o);
     }
 
     @Override
     public void warn(String o) {
-
+        if(allowWarn())
+        logger.err(o);
     }
 
     @Override
     public void fatal(String o) {
-
+        if(allowFatal())
+        logger.fatal(o);
     }
 
-    @Override
-    public boolean allowDebug() {
-        return false;
-    }
-
-    @Override
-    public boolean allowInfo() {
-        return false;
-    }
-
-    @Override
-    public boolean allowfatal() {
-        return false;
-    }
-
-    @Override
-    public boolean allowWarn() {
-        return false;
-    }
 }

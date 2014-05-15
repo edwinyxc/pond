@@ -1,7 +1,7 @@
 package com.shuimin.pond.codec.view;
 
 import com.shuimin.common.S;
-import com.shuimin.pond.core.http.Response;
+import com.shuimin.pond.core.Response;
 
 import java.io.IOException;
 import java.io.InputStream;

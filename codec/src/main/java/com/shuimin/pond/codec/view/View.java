@@ -1,8 +1,8 @@
 package com.shuimin.pond.codec.view;
 
 import com.shuimin.common.f.Callback;
-import com.shuimin.pond.core.http.Response;
-import com.shuimin.pond.core.misc.Renderable;
+import com.shuimin.pond.core.Response;
+import com.shuimin.pond.core.Renderable;
 
 import java.io.InputStream;
 

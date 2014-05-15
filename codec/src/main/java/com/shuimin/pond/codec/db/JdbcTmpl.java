@@ -1,7 +1,9 @@
 package com.shuimin.pond.codec.db;
 
+import com.shuimin.common.S;
 import com.shuimin.common.f.Callback;
 import com.shuimin.common.f.Holder;
+import com.shuimin.pond.codec.sql.Sql;
 import com.shuimin.pond.core.exception.UnexpectedException;
 
 import java.io.Closeable;
@@ -21,8 +23,9 @@ import static com.shuimin.common.S._throw;
  * Created by ed on 2014/4/18.
  */
 public class JdbcTmpl implements Closeable {
+
     RowMapper rm = (rs) -> {
-        CompoundRecord ret = new CompoundRecord();
+        DefaultRecord ret = new DefaultRecord();
         ResultSetMetaData metaData = rs.getMetaData();
         int cnt = metaData.getColumnCount();
         String mainTableName = metaData.getTableName(1);
@@ -38,12 +41,17 @@ public class JdbcTmpl implements Closeable {
             }
             String colName = metaData.getColumnName(i + 1);
             Object val;
+
+            //TODO ugly!
             if (type.equals(byte[].class)
                 || type.equals(Byte[].class)) {
                 val = rs.getBinaryStream(i + 1);
             } else {
                 val = JdbcOperator.normalizeValue(rs.getObject(i + 1, type));
             }
+
+            S.echo(String.format("NAME : %s ,TYPE : %s", colName,
+                val == null ? null : val.getClass()));
 
             if (mainTableName.equals(thisTable))
                 ret.set(colName, val);
@@ -60,7 +68,12 @@ public class JdbcTmpl implements Closeable {
     }
 
     public List<Record> find(String sql) {
+
         return find(sql, new String[]{});
+    }
+
+    public List<Record> find(Sql sql, String... x) {
+        return find(sql.toString(),x);
     }
 
     /**
@@ -116,6 +129,10 @@ public class JdbcTmpl implements Closeable {
         } catch (SQLException e) {
             throw new UnexpectedException(e);
         }
+    }
+
+    public int exec(Sql sql, Object... x) {
+        return exec(sql.toString(),x);
     }
 
     public int exec(String sql, Object... x) {
@@ -208,8 +225,17 @@ public class JdbcTmpl implements Closeable {
         return false;
     }
 
+    public Set<String> fields(String tableName){
+        //FIXME
+        S._fail();
+        return null;
+    }
+
+    public Set<String> tables(){
+        return oper.getTableNames();
+    }
+
     public boolean upd(Record r) {
-        //TODO untested
         StringBuilder update = new StringBuilder(" UPDATE ");
 
         StringBuilder set = new StringBuilder(" SET ");

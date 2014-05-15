@@ -1,6 +1,6 @@
 package com.shuimin.pond.core.spi.server.netty;
 
-import com.shuimin.pond.core.http.Response;
+import com.shuimin.pond.core.Response;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;

@@ -5,12 +5,12 @@ import com.shuimin.common.f.Function;
 import com.shuimin.pond.codec.connpool.ConnectionConfig;
 import com.shuimin.pond.codec.connpool.ConnectionPool;
 import com.shuimin.pond.codec.db.DB;
+import com.shuimin.pond.codec.db.DefaultRecord;
 import com.shuimin.pond.codec.db.Record;
-import com.shuimin.pond.codec.db.SingleRecord;
-import com.shuimin.pond.core.Dispatcher;
-import com.shuimin.pond.core.Server;
-import com.shuimin.pond.core.misc.Renderable;
+import com.shuimin.pond.core.Pond;
+import com.shuimin.pond.core.Renderable;
 import com.shuimin.pond.core.mw.Action;
+import com.shuimin.pond.core.mw.Dispatcher;
 import com.shuimin.pond.core.mw.router.Router;
 
 import java.io.InputStream;
@@ -21,7 +21,7 @@ import java.util.List;
 import static com.shuimin.common.S.dump;
 import static com.shuimin.common.S.echo;
 import static com.shuimin.pond.core.Interrupt.render;
-import static com.shuimin.pond.core.misc.Renderable.text;
+import static com.shuimin.pond.core.Renderable.text;
 
 /**
  * Created by ed on 2014/4/17.
@@ -29,8 +29,8 @@ import static com.shuimin.pond.core.misc.Renderable.text;
 public class DbTest {
 
 
-    public static Server createServer(Dispatcher app) {
-        return Server.basis(Server.BasicServer.jetty).use(app);
+    public static Pond createServer(Dispatcher app) {
+        return Pond.init().use(app);
     }
 
     public static ConnectionPool createPool() {
@@ -123,7 +123,7 @@ public class DbTest {
 
 
         app.get("/insert", Action.fly(() -> {
-            Record r = new SingleRecord();
+            Record r = new DefaultRecord();
 
             r.table("db_test");
             r.set("id", "45_id");
@@ -173,7 +173,7 @@ public class DbTest {
         }));
 
 
-        createServer(app).debug().listen(8080);
+        createServer(app).debug().start(8080);
     }
 
 

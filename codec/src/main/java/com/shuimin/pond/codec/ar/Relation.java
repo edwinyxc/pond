@@ -1,6 +1,7 @@
 package com.shuimin.pond.codec.ar;
 
-import com.shuimin.pond.core.Server;
+
+import com.shuimin.pond.core.Pond;
 
 import java.util.Map;
 
@@ -23,7 +24,7 @@ public class Relation {
 
         this.target = name;
         this.key = name.concat("_"
-            + Server.register(ActiveRecordPlugin.class).keyId);
+            + ((ActiveRecordPlugin)Pond.register(ActiveRecordPlugin.class)).keyId);
 
         this.relation = null;
     }
@@ -60,7 +61,7 @@ public class Relation {
     }
 
     String assoc(String table, String id) {
-        String idMark= Server.register(ActiveRecordPlugin.class).keyId;
+        String idMark = ((ActiveRecordPlugin)Pond.register(ActiveRecordPlugin.class)).keyId;
         String tmpl = isAncestor() ?
             "%1$s on %2$s.%3$s = %1$s." + idMark
             :

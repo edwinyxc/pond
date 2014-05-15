@@ -1,8 +1,6 @@
 package com.shuimin.pond.core;
 
 import com.shuimin.common.abs.Attrs;
-import com.shuimin.pond.core.http.Request;
-import com.shuimin.pond.core.http.Response;
 
 /**
  * @author ed
@@ -64,17 +62,7 @@ public interface ExecutionContext extends Attrs<ExecutionContext> {
         };
     }
 
-    public static ExecutionContext CUR() {
-        return ExecutionManager.ExecutionContexts.get();
-    }
 
-    public static Request REQ() {
-        return CUR().req();
-    }
-
-    public static Response RESP() {
-        return CUR().resp();
-    }
-
+    final static ThreadLocal<ExecutionContext> executionContexts = new ThreadLocal<>();
 }
 

@@ -1,6 +1,8 @@
 package com.shuimin.pond.codec.connpool;
 
 import com.shuimin.common.util.logger.Logger;
+import com.shuimin.pond.codec.db.DB;
+import com.shuimin.pond.core.Pond;
 
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
@@ -73,6 +75,8 @@ public class ConnectionPool {
 			connPool.add(createConnection());
 		}
 
+        //TODO ugly
+        Pond.get().attr(DB.CONNECTION_POOL,this);
 		return this;
 	}
 

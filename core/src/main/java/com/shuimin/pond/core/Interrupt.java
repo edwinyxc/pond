@@ -2,7 +2,6 @@ package com.shuimin.pond.core;
 
 import com.shuimin.common.S;
 import com.shuimin.pond.core.exception.YException;
-import com.shuimin.pond.core.misc.Renderable;
 
 /**
  * @author ed
@@ -40,13 +39,13 @@ public interface Interrupt {
         throw new RenderInterruption(o);
     }
 
-    public static void jump() {
-        throw new JumpInterruption();
-    }
+//    public static void jump() {
+//        throw new JumpInterruption();
+//    }
 
-    public static void jump(Object cause) {
-        throw new JumpInterruption(cause);
-    }
+//    public static void jump(Object cause) {
+//        throw new JumpInterruption(cause);
+//    }
 
     public static void kill() {
         throw new KillInterruption();
@@ -84,9 +83,9 @@ public interface Interrupt {
     @SuppressWarnings("serial")
     public static class KillInterruption extends Interruption {
 
-        public KillInterruption(Object cause) {
-            super(cause);
-        }
+//        public KillInterruption(Object cause) {
+//            super(cause);
+//        }
 
         public KillInterruption() {
             super();

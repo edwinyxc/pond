@@ -31,7 +31,7 @@ public class ActiveRecordPlugin extends Plugin {
     protected Callback<Table> afterTableCreation = table -> {};
 
     protected Callback<String> beforeTableDropping = table -> {};
-    protected Callback<Table> afterTableDropping = table -> {};
+    protected Callback<String> afterTableDropping = table -> {};
 
     public ActiveRecordPlugin keyId(String keyId) {
         this.keyId = keyId;

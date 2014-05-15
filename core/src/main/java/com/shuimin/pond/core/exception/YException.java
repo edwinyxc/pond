@@ -1,6 +1,7 @@
 package com.shuimin.pond.core.exception;
 
-import com.shuimin.pond.core.Server.G;
+
+import com.shuimin.pond.core.kernel.PKernel;
 
 /**
  * @author ed
@@ -27,7 +28,7 @@ public abstract class YException extends RuntimeException {
     }
 
     @Override
-    public String toString() {
-        return G.debug() ? detail() : brief();
+    public String toString(){
+        return PKernel.getLogger().allowDebug()? detail() : brief();
     }
 }

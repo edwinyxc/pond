@@ -1,10 +1,10 @@
 package com.shuimin.pond.example.server;
 
-import com.shuimin.pond.codec.StaticFileServer;
-import com.shuimin.pond.core.Server;
+import com.shuimin.pond.core.Pond;
 import com.shuimin.pond.core.mw.Action;
+import com.shuimin.pond.core.mw.StaticFileServer;
 
-import static com.shuimin.pond.core.ExecutionContext.RESP;
+import static com.shuimin.pond.core.Pond.RESP;
 
 /**
  * Created by ed on 2014/4/11.
@@ -12,11 +12,11 @@ import static com.shuimin.pond.core.ExecutionContext.RESP;
 public class StaticFileServerTest {
 
     public static void main(String[] args) {
-        Server.basis(Server.BasicServer.jetty).debug()
+        Pond.init().debug()
             .use(Action.fly(() -> RESP().contentType("text/html;charset=utf-8")))
             .use(new StaticFileServer("C:\\var\\www")
                     .defaultPages("index.html", "fine.html")
-            ).listen(10000);
+            ).start(10000);
     }
 
 }

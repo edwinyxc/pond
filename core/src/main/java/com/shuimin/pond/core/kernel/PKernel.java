@@ -21,6 +21,7 @@ public final class PKernel {
     public static <E> void register(String name, E o, Config<E> config) {
         if (config != null)
             config.config(o);
+        getLogger().debug(String.format("Set %s = %s", name, o));
         holder.put(name, o);
     }
 

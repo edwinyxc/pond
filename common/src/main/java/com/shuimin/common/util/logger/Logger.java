@@ -11,60 +11,61 @@ import java.util.Date;
  *
  * @author ed
  */
-final class OutWrapper {
 
-    final static Date date = new Date();
-
-    protected Out out;
-
-    public String name() {
-        return out.name();
-    }
-
-    private String _switchLvl(int lvl) {
-        switch (lvl) {
-            case Logger.DEBUG:
-                return "[DEBUG] ";
-            case Logger.ERROR:
-                return "[ERROR] ";
-            case Logger.FATAL:
-                return "[FATAL] ";
-            case Logger.INFO:
-                return "[INFO] ";
-        }
-        return "";
-    }
-
-    final static private SimpleDateFormat _sdf = new SimpleDateFormat(
-            "yyyy-MM-dd hh:mm:ss");
-
-    protected void _echo(String msg, int lvl) {
-        date.setTime(System.currentTimeMillis());
-        final StringBuilder sb = new StringBuilder();
-        sb.append(_switchLvl(lvl));
-        sb.append("[").append(_sdf.format(date));
-        if (lvl >= Logger.ERROR) {
-            sb.append(" ").append(_findCaller());
-        }
-
-        sb.append("] ").append(msg);
-        out.println(sb.toString());
-    }
-
-    protected String _findCaller() {
-        final StackTraceElement[] ste = new Throwable().getStackTrace();
-        // if(ste.length > 0){
-        //
-        // }
-        if (ste.length > 4) {
-            return ste[4].getMethodName() + "@" + ste[4].getClassName();
-        }
-        return null;
-    }
-
-}
 
 public class Logger {
+    static class OutWrapper {
+
+        final static Date date = new Date();
+
+        protected Out out;
+
+        public String name() {
+            return out.name();
+        }
+
+        private String _switchLvl(int lvl) {
+            switch (lvl) {
+                case Logger.DEBUG:
+                    return "[DEBUG] ";
+                case Logger.ERROR:
+                    return "[ERROR] ";
+                case Logger.FATAL:
+                    return "[FATAL] ";
+                case Logger.INFO:
+                    return "[INFO] ";
+            }
+            return "";
+        }
+
+        final static private SimpleDateFormat _sdf = new SimpleDateFormat(
+            "yyyy-MM-dd hh:mm:ss");
+
+        protected void _echo(String msg, int lvl) {
+            date.setTime(System.currentTimeMillis());
+            final StringBuilder sb = new StringBuilder();
+            sb.append(_switchLvl(lvl));
+            sb.append("[").append(_sdf.format(date));
+            if (lvl >= Logger.ERROR) {
+                sb.append(" ").append(_findCaller());
+            }
+
+            sb.append("] ").append(msg);
+            out.println(sb.toString());
+        }
+
+        protected String _findCaller() {
+            final StackTraceElement[] ste = new Throwable().getStackTrace();
+            // if(ste.length > 0){
+            //
+            // }
+            if (ste.length > 4) {
+                return ste[4].getMethodName() + "@" + ste[4].getClassName();
+            }
+            return null;
+        }
+
+    }
 
     public final static int DEBUG = 3;
     public final static int ERROR = 2;
@@ -72,6 +73,8 @@ public class Logger {
     public final static int FATAL = 0;
 
     private OutWrapper[] outs;
+
+    private String name = "shuiminLogger";
 
     // public Logger(PrintStream[] pss, int level)
     // {
@@ -169,12 +172,12 @@ public class Logger {
         }
     }
 
-    private static class holder{
+    private static class holder {
         private final static Logger root = getDefault();
     }
 
 
-    public static Logger create(String name){
+    public static Logger create(String name) {
         return holder.root.addOut(new Out() {
             @Override
             protected void _print(String s) {
@@ -188,7 +191,7 @@ public class Logger {
     }
 
     public static Logger getDefault() {
-        Out defa= new Out() {
+        Out defa = new Out() {
             @Override
             protected void _print(String s) {
                 System.out.print(s);
@@ -200,6 +203,6 @@ public class Logger {
     }
 
     public static Logger getDebug() {
-        return holder.root.config("default",DEBUG);
+        return holder.root.config("default", DEBUG);
     }
 }

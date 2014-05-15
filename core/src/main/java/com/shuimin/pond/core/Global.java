@@ -16,6 +16,8 @@ public class Global {
 
     public final static String ROOT = "g.root";
 
+    public final static String JSON_PROCESSER = "g.json_processer";
+
     static {
 //        Server.config(DEFAULT_CONTENT_TYPE,"text/plain;charset=utf-8");
     }

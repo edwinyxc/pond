@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.shuimin.pond.core.Server.G.debug;
+import static com.shuimin.pond.core.Pond.debug;
+
 
 /**
  * Created by ed on 2014/4/22.

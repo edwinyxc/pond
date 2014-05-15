@@ -21,4 +21,5 @@ public interface Sql {
         return new TSqlDelete();
     }
 
+    public String toString();
 }

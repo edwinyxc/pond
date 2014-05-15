@@ -1,7 +1,10 @@
 package com.shuimin.pond.core.spi.server.netty;
 
 import com.shuimin.common.S;
-import com.shuimin.pond.core.spi.server.AbstractServer;
+import com.shuimin.common.f.Callback;
+import com.shuimin.pond.core.Request;
+import com.shuimin.pond.core.Response;
+import com.shuimin.pond.core.spi.BaseServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -15,7 +18,7 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
-public class NettyServer extends AbstractServer {
+public class NettyServer implements BaseServer {
 
     private ChannelFuture severFuture;
 
@@ -38,7 +41,7 @@ public class NettyServer extends AbstractServer {
                             .addLast(new HttpObjectAggregator(1048576))
                             .addLast(new HttpContentCompressor())
                             .addLast("chunkedWriter", new ChunkedWriteHandler())
-                            .addLast(new HttpServerHandler(chainedHandler));
+                            .addLast(new HttpServerHandler(handler));
                     }
                 })
                 .option(ChannelOption.SO_BACKLOG, 128)
@@ -72,5 +75,13 @@ public class NettyServer extends AbstractServer {
         }
     }
 
+    @Override
+    public void installHandler(Callback._2<Request, Response> handler) {
+        this.handler = handler;
+    }
+
+    private Callback._2<Request,Response> handler = (req,resp)->{
+        S.echo("EMPTY SERVER");
+    };
 
 }

@@ -1,7 +1,7 @@
 package com.shuimin.pond.core.spi.server.jetty;
 
 import com.shuimin.common.S;
-import com.shuimin.pond.core.http.Response;
+import com.shuimin.pond.core.Response;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;

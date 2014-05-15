@@ -1,8 +1,7 @@
 package com.shuimin.pond.core.mw;
 
-import com.shuimin.pond.core.AbstractMiddleware;
 import com.shuimin.pond.core.ExecutionContext;
-import com.shuimin.pond.core.Server;
+import com.shuimin.pond.core.Pond;
 
 /**
  * Created by ed on 2014/4/30.
@@ -21,12 +20,12 @@ public abstract class Plugin extends AbstractMiddleware {
     @Override
     public void init() {
         //register singleton
-        Server.register(this.getClass(), this);
+        Pond.register(this.getClass(), this);
         install();
     }
 
     public static Object param(Class<? extends Plugin> clazz,String name) {
-        Object s = Server.register(clazz);
+        Object s = Pond.register(clazz);
         if(s == null ) return null;
         return ((Plugin) s).attr(name);
     }

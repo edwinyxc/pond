@@ -1,11 +1,10 @@
 package com.shuimin.pond.codec.ar;
 
-import com.shuimin.pond.codec.ar.sql.SqlSelect;
-import com.shuimin.pond.core.Server;
+import com.shuimin.pond.codec.sql.SqlSelect;
+import com.shuimin.pond.core.Pond;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import static com.shuimin.common.S._for;
 
@@ -14,29 +13,25 @@ import static com.shuimin.common.S._for;
  */
 public class Table {
 
-    private ActiveRecordPlugin config = Server.register(ActiveRecordPlugin.class);
+    private ActiveRecordPlugin config = Pond.register(ActiveRecordPlugin.class);
 
     private final ActiveTmpl dbo;
 
     private final String name;
 
-    private final Map<String, Class> cols;
-
     private final String primaryKey;
 
-    public Table(ActiveTmpl dbo, String name, Map<String, Class> cols) {
+    private Set<String> cols;
+
+    public Table(ActiveTmpl dbo, String name, Iterable<String> cols) {
         this.dbo = dbo;
         this.name = name;
-        this.cols = cols;
         this.primaryKey = name.concat(".")
             .concat(config.keyId);
+        _for(cols).each(this.cols::add);
     }
 
-    public Map<String, Class> cols() {
-        return Collections.unmodifiableMap(cols);
-    }
-
-    public ActiveRecord insert(Object... x) {
+    public ActiveRecord create(Object... x) {
         return null;
     }
 
@@ -54,8 +49,8 @@ public class Table {
 
     public List<ActiveRecord> query(SqlSelect sql, String... args) {
 
-        return
-            _for(dbo.find(sql.toString(),args)).map(ActiveRecord::new)
+
+        return _for(dbo.find(sql.toString(), args)).map(ActiveRecord::new)
             .toList();
     }
 

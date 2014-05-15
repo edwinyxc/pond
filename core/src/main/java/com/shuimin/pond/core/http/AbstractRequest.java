@@ -1,6 +1,7 @@
 package com.shuimin.pond.core.http;
 
 import com.shuimin.common.S;
+import com.shuimin.pond.core.Request;
 
 import javax.servlet.http.Cookie;
 import java.net.MalformedURLException;

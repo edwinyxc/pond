@@ -1,10 +1,14 @@
 package com.shuimin.pond.core.spi;
 
-import com.shuimin.pond.core.misc.Renderable;
+import java.io.OutputStream;
+import java.util.Map;
 
 /**
  * Created by ed on 2014/5/8.
  */
 public interface ViewEngine{
-    Renderable resolve(String relativePath);
+
+    void render(OutputStream out,
+                String relativePath,
+                Map<String,Object> map);
 }

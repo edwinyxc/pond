@@ -1,9 +1,12 @@
 package com.shuimin.pond.core;
 
 import com.shuimin.common.S;
+import com.shuimin.pond.core.kernel.PKernel;
+import com.shuimin.pond.core.spi.ViewEngine;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * Created by ed on 2014/4/18.
@@ -38,19 +41,13 @@ public interface Renderable {
         };
     }
 
-    /**
-     * <p>file under ROOT</p>
-     * @param file
-     * @return
-     */
-    public static Renderable view(String file) {
-        return null;
+    public static Renderable view(String path, Map<String,Object> o) {
+        ViewEngine engine = PKernel.getService(ViewEngine.class);
+        return (resp) -> engine.render(resp.out(),path,o);
     }
 
-
-    public static Renderable view(String tmpl, Object o) {
-       //TODO
-        throw new RuntimeException("unfinished");
+    public static Renderable view(String path) {
+        return view(path,null);
     }
 
 

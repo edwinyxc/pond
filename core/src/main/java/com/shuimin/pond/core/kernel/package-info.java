@@ -1,4 +1,8 @@
 /**
- * Created by ed on 2014/5/7.
+ * <p>
+ *     Micro-kernel & plugin systems
+ * </p>
+ *
+ *
  */
 package com.shuimin.pond.core.kernel;

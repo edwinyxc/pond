@@ -3,13 +3,13 @@ package com.shuimin.pond.codec.upload;
 import com.shuimin.common.S;
 import com.shuimin.common.f.Callback;
 import com.shuimin.common.f.Function;
-import com.shuimin.pond.core.AbstractMiddleware;
 import com.shuimin.pond.core.ExecutionContext;
 import com.shuimin.pond.core.Global;
-import com.shuimin.pond.core.Server;
+import com.shuimin.pond.core.Pond;
+import com.shuimin.pond.core.Request;
 import com.shuimin.pond.core.exception.HttpException;
 import com.shuimin.pond.core.exception.UnexpectedException;
-import com.shuimin.pond.core.http.Request;
+import com.shuimin.pond.core.mw.AbstractMiddleware;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.RequestContext;
 import org.apache.commons.fileupload.UploadContext;
@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.Set;
 
 import static com.shuimin.common.S.*;
-import static com.shuimin.pond.core.ExecutionContext.RESP;
 import static com.shuimin.pond.core.Interrupt.kill;
 import static com.shuimin.pond.core.Interrupt.render;
-import static com.shuimin.pond.core.Server.G.debug;
-import static com.shuimin.pond.core.misc.Renderable.text;
+import static com.shuimin.pond.core.Pond.RESP;
+import static com.shuimin.pond.core.Pond.debug;
+import static com.shuimin.pond.core.Renderable.text;
 
 /**
  * Created by ed on 2014/4/22.
@@ -81,7 +81,8 @@ public class FileUploadServer extends AbstractMiddleware {
 
     private Function._0<File> tmpDirProvider = this:: getTmpDir;
 
-    private Function._0<String> webRootProvider = () -> (String)Server.config(Global.ROOT);
+    private Function._0<String> webRootProvider = () ->
+        (String) Pond.config(Global.ROOT);
 
     /**
      * <p>注入root目录的提供器</p>

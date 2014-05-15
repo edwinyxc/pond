@@ -2,10 +2,9 @@ package com.shuimin.pond.core.mw;
 
 import com.shuimin.common.f.Callback;
 import com.shuimin.common.f.Function;
-import com.shuimin.pond.core.AbstractMiddleware;
-import com.shuimin.pond.core.ExecutionContext;
-import com.shuimin.pond.core.http.Request;
-import com.shuimin.pond.core.http.Response;
+import com.shuimin.pond.core.*;
+
+import java.util.Map;
 
 
 /**
@@ -163,4 +162,11 @@ public abstract class Action extends AbstractMiddleware {
         };
     }
 
+    public static Action view(String path, Map map){
+        return fly(()-> Interrupt.render(Renderable.view(path,map)));
+    }
+
+//    public static Action file(String s) {
+//        return fly(()->render(Renderable.file(s)));
+//    }
 }

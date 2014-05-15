@@ -1,18 +1,15 @@
 package com.shuimin.pond.core.mw;
 
 import com.shuimin.common.S;
+import com.shuimin.common.abs.Makeable;
 import com.shuimin.common.f.Callback;
 import com.shuimin.common.f.Function;
-import com.shuimin.pond.core.AbstractMiddleware;
-import com.shuimin.pond.core.ExecutionContext;
-import com.shuimin.pond.core.Global;
-import com.shuimin.pond.core.Server;
-import com.shuimin.pond.core.misc.mime.MimeTypes;
-import com.shuimin.pond.core.exception.YException;
+import com.shuimin.pond.core.*;
+import com.shuimin.pond.core.exception.UnexpectedException;
 import com.shuimin.pond.core.http.HttpMethod;
-import com.shuimin.pond.core.http.Request;
-import com.shuimin.pond.core.http.Response;
-import com.shuimin.common.abs.Makeable;
+import com.shuimin.pond.core.kernel.PKernel;
+import com.shuimin.pond.core.misc.MimeTypes;
+import com.shuimin.pond.core.spi.Logger;
 
 import java.io.File;
 import java.text.ParseException;
@@ -22,14 +19,18 @@ import java.util.regex.Pattern;
 
 import static com.shuimin.common.S.dump;
 import static com.shuimin.pond.core.Interrupt.kill;
-import static com.shuimin.pond.core.Server.G.debug;
+import static com.shuimin.pond.core.Pond.debug;
 
 /**
  * Created by ed on 2014/4/10.
  * <p>A Simple static file server</p>
  */
+
+//TODO make an interface
 public class StaticFileServer extends AbstractMiddleware
     implements  Makeable<StaticFileServer> {
+
+    private Logger logger = PKernel.getLogger();
 
     /***
      * Provider
@@ -46,6 +47,9 @@ public class StaticFileServer extends AbstractMiddleware
         this.charset = charset;
         return this;
     }
+
+    private Function._0<String> webRootProvider = () ->
+        (String) Pond.config(Global.ROOT);
 
     private Callback._2<Response, File> listDir = this::defaultListFiles;
 
@@ -70,23 +74,32 @@ public class StaticFileServer extends AbstractMiddleware
 
     public String publicDir;
 
-    public StaticFileServer(String absDirPath) {
-        if (new File(absDirPath).exists()) {
-            publicDir = absDirPath;
+    public StaticFileServer(String str) {
+        String absPath;
+
+        if (str.startsWith("/") || str.indexOf(":") == 1) {
+            absPath = str;
         } else {
-            publicDir = null;
-            throw new YException(this) {
+            absPath = webRootProvider.apply() + File.separator + str;
+        }
+
+        File f = new File(absPath);
+
+        if (!f.exists() || !f.canWrite()) {
+            throw new UnexpectedException(this) {
                 @Override
                 public String brief() {
-                    return "Path[" + absDirPath + "] not existed ";
+                    return "File[" + absPath + "] not valid";
                 }
             };
         }
+        debug("static server path : "+ absPath);
+        publicDir = absPath;
     }
 
     @Override
     public void init() {
-        Server.config(Global.ROOT, publicDir);
+        Pond.get().attr(Global.ROOT, publicDir);
     }
 
 
@@ -274,7 +287,7 @@ public class StaticFileServer extends AbstractMiddleware
 
     private void setContentType(Response resp, File file) {
         String[] fullName = file.getName().split("\\.");
-        debug(file.getAbsolutePath()+" suffix "+ dump(fullName));
+        logger.debug(file.getAbsolutePath() + " suffix " + dump(fullName));
         String ext = fullName[fullName.length-1];
         resp.contentType(MimeTypes.getMimeType(ext) + ";charset=" + charset);
     }

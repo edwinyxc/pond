@@ -1,17 +1,17 @@
 package com.shuimin.pond.codec.session;
 
 import com.shuimin.common.S;
-import com.shuimin.pond.core.AbstractMiddleware;
-import com.shuimin.pond.core.ExecutionContext;
-import com.shuimin.pond.core.Server;
-import com.shuimin.pond.core.http.Request;
-import com.shuimin.pond.core.http.Response;
 import com.shuimin.common.abs.Makeable;
+import com.shuimin.pond.core.ExecutionContext;
+import com.shuimin.pond.core.Pond;
+import com.shuimin.pond.core.Request;
+import com.shuimin.pond.core.Response;
+import com.shuimin.pond.core.mw.AbstractMiddleware;
 
 import javax.servlet.http.Cookie;
 
-import static com.shuimin.pond.core.ExecutionContext.CUR;
 import static com.shuimin.pond.core.Interrupt.redirect;
+import static com.shuimin.pond.core.Pond.CUR;
 
 /**
  * Created by ed on 2014/4/21.
@@ -51,7 +51,7 @@ public class SessionInstaller extends AbstractMiddleware
     @Override
     public void init() {
 
-        Server.config(SessionManager.SESSION_LIFETIME, life_time);
+        Pond.get().attr(SessionManager.SESSION_LIFETIME, life_time);
     }
 
     @Override

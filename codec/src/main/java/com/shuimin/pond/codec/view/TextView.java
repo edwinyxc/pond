@@ -1,7 +1,7 @@
 package com.shuimin.pond.codec.view;
 
 
-import com.shuimin.pond.core.http.Response;
+import com.shuimin.pond.core.Response;
 
 /**
  * Top abstract View of Text Value

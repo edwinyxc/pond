@@ -8,7 +8,8 @@ import com.shuimin.common.abs.Config;
 import com.shuimin.common.abs.Makeable;
 import com.shuimin.pond.core.mw.router.Router;
 
-import static com.shuimin.pond.core.Server.G.debug;
+import static com.shuimin.pond.core.Pond.debug;
+
 
 /**
  * @author ed

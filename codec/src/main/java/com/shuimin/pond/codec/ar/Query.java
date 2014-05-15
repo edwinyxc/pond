@@ -1,6 +1,6 @@
 package com.shuimin.pond.codec.ar;
 
-import com.shuimin.pond.codec.ar.sql.SqlSelect;
+import com.shuimin.pond.codec.sql.SqlSelect;
 
 import java.util.List;
 

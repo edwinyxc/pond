@@ -2,8 +2,8 @@ package com.shuimin.pond.core.spi.server.netty;
 
 import com.shuimin.common.S;
 import com.shuimin.common.f.Callback;
-import com.shuimin.pond.core.http.Request;
-import com.shuimin.pond.core.http.Response;
+import com.shuimin.pond.core.Request;
+import com.shuimin.pond.core.Response;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;

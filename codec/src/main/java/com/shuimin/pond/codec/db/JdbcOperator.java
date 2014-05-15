@@ -1,7 +1,7 @@
 package com.shuimin.pond.codec.db;
 
-import com.shuimin.common.util.logger.Logger;
-import com.shuimin.pond.core.Server;
+import com.shuimin.pond.core.kernel.PKernel;
+import com.shuimin.pond.core.spi.Logger;
 
 import java.io.Closeable;
 import java.io.InputStream;
@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.shuimin.common.S._throw;
+import static com.shuimin.common.S.dump;
 
 /**
  * <pre>
@@ -24,7 +25,7 @@ public class JdbcOperator implements Closeable {
     public final Connection conn;
     private PreparedStatement pstmt = null;
     private ResultSet rs = null;
-    Logger logger = Server.G.logger();
+    Logger logger = PKernel.getLogger();
 
 
 //	//use under jdk -1.4
@@ -258,7 +259,7 @@ public class JdbcOperator implements Closeable {
 
     private void _debug(Object o) {
         if (logger != null) {
-            logger.debug(o);
+            logger.debug(dump(o));
         }
     }
 
@@ -345,6 +346,7 @@ public class JdbcOperator implements Closeable {
         if (o instanceof Timestamp) {
             return new Date(((Timestamp) o).getTime());
         }
+
         return o;
     }
 
