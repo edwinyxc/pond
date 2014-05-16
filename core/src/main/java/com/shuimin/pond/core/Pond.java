@@ -18,7 +18,7 @@ import static com.shuimin.common.S._for;
 public final class Pond implements Makeable<Pond>, Attrs<Pond> {
 
     private static class holder {
-        final static Pond instance = new Pond();
+        final static Pond instance = new Pond().init();
     }
 
     public static Pond get() {
@@ -31,7 +31,6 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
     private BaseServer server;
     private ContextService service;
     private MiddlewareExecutor executor;
-    private ViewEngine viewEngine;
 
     public static Pond init(Config<Pond>... configs) {
         Pond pond = Pond.get();
@@ -69,7 +68,7 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         return this;
     }
 
-    private void init() {
+    private Pond init() {
 
         this.attr(Global.ROOT,S.path.webRoot());
 
@@ -84,12 +83,11 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
 
         executor = find(MiddlewareExecutor.class);
 
-        viewEngine = find(ViewEngine.class);
-
         logger.info("Installing Handler");
         server.installHandler(handler(service, executor));
         logger.info("... Finished");
 
+        return this;
     }
 
     private <E> E find(Class<E> s) {
@@ -126,13 +124,15 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
     }
 
     public static void debug(String s) {
-        Pond.get().logger.debug(S.dump(s));
+        Logger logger = Pond.get().logger;
+        logger.debug(S.dump(s));
     }
 
     public static void config(String name, Object o) {
         get().attr(name, o);
     }
 
+    @SuppressWarnings("unchecked")
     public static <E> E config(String name) {
         return (E) get().attr(name);
     }
@@ -148,6 +148,7 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         return PKernel.get(name);
     }
 
+    @SuppressWarnings("unchecked")
     public static void register(Class clazz, Object singleton) {
         PKernel.register(clazz, singleton);
     }
