@@ -14,7 +14,7 @@ public abstract class Callables {
 		};
 	}
 
-	public static <X, A> Callable<X> adapt_0(final Function._0<X> func) {
+	public static <X, A> Callable<X> adapt_0(final Function.F0<X> func) {
 		return new Callable<X>() {
 
 			@Override

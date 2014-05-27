@@ -22,12 +22,6 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
-        <module name="all" />
-        <module name="all-in-one" />
-        <module name="codec" />
-        <module name="common" />
-        <module name="core" />
-        <module name="example" />
         <module name="pond-all" />
         <module name="pond-codec" />
         <module name="pond-common" />
@@ -36,14 +30,12 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="common" target="1.8" />
-      <module name="pond" target="1.8" />
       <module name="pond-all" target="1.8" />
       <module name="pond-codec" target="1.8" />
       <module name="pond-common" target="1.8" />
       <module name="pond-core" target="1.8" />
       <module name="pond-example" target="1.8" />
-      <module name="server" target="1.8" />
+      <module name="pond-parent" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

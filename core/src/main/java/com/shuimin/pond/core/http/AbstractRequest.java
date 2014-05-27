@@ -7,7 +7,28 @@ import javax.servlet.http.Cookie;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.Double.parseDouble;
+import static java.lang.Integer.parseInt;
+
 public abstract class AbstractRequest implements Request {
+    @Override
+    public Integer paramInt(String para) {
+        String s = param(para);
+        return s == null? null:parseInt(s);
+    }
+
+    @Override
+    public Boolean paramBool(String para) {
+        String s = param(para);
+        return s == null? null:parseBoolean(s);
+    }
+
+    @Override
+    public Double paramDouble(String para) {
+        String s = param(para);
+        return s == null? null:parseDouble(s);
+    }
 
     @Override
     public String path() {

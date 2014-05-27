@@ -1,5 +1,7 @@
 package com.shuimin.pond.codec.sql;
 
+import com.shuimin.common.f.Tuple;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,10 +11,10 @@ import static com.shuimin.common.S._for;
 /**
  * Created by ed on 2014/4/30.
  */
-public class TSqlUpdate implements SqlUpdate {
+public class TSqlUpdate extends AbstractSql
+        implements SqlUpdate {
 
     String table;
-    List<String> where = new ArrayList<>();
     List<String> fields = new ArrayList<>();
 
     public TSqlUpdate(String table) {
@@ -20,23 +22,26 @@ public class TSqlUpdate implements SqlUpdate {
     }
 
     @Override
-    public SqlUpdate set(String... columns) {
-        fields.addAll(Arrays.asList(columns));
+    public SqlUpdate set(Tuple<String,Object>... columns) {
+        for(Tuple<String,Object> t : columns) {
+            fields.add(t._a);
+            params.add(columns);
+        }
         return this;
     }
 
     @Override
-    public SqlUpdate where(String... conditions) {
-        where.addAll(Arrays.asList(conditions));
+    public SqlUpdate set(String... sets) {
+        fields.addAll(Arrays.asList(sets));
         return this;
     }
 
     @Override
-    public String toString() {
+    public String preparedSql() {
         StringBuilder sql = new StringBuilder("UPDATE ");
         sql.append(table)
-            .append(" SET ")
-            .append(String.join(", ",_for(fields).map( i -> i+" = ?").val()));
+                .append(" SET ")
+                .append(String.join(", ",_for(fields).map( i -> i+" = ?").val()));
         if(! where.isEmpty()) {
             sql.append(" WHERE ").append(String.join(" AND ", where));
         }

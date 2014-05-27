@@ -7,9 +7,13 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+
+import static com.shuimin.common.S._for;
+import static com.shuimin.pond.core.Pond.debug;
 
 /**
  * @author ed
@@ -42,8 +46,10 @@ public class HSRequestWrapper extends AbstractRequest {
     @Override
     public Map<String, String[]> headers() {
         Map<String, String[]> ret = new HashMap<>();
-        S._for(_req.getHeaderNames()).each((name) -> {
-            ret.put(name, S.array.of(_req.getHeaders(name)));
+        _for(_req.getHeaderNames()).each((name) -> {
+            Enumeration<String> s = _req.getHeaders(name);
+            String[] headArr = _for(s).join();
+            ret.put(name, headArr);
         });
         return ret;
     }
@@ -78,7 +84,7 @@ public class HSRequestWrapper extends AbstractRequest {
 
     @Override
     public Iterable<Cookie> cookies() {
-        return S._for(_req.getCookies()).val();
+        return _for(_req.getCookies()).val();
     }
 
 //    @Override

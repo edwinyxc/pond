@@ -30,9 +30,14 @@ public interface Request {
 
     String param(String para);
 
+    Integer paramInt(String para);
+
+    Boolean paramBool(String para);
+
+    Double paramDouble(String para);
+
     Request param(String para, String value);
 
-    @Deprecated
     String[] params(String para);
 
     String method();

@@ -10,5 +10,5 @@ public interface ViewEngine{
 
     void render(OutputStream out,
                 String relativePath,
-                Map<String,Object> map);
+                Object data);
 }

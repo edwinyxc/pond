@@ -2,8 +2,10 @@ package com.shuimin.pond.core;
 
 import com.shuimin.common.S;
 import com.shuimin.pond.core.kernel.PKernel;
+import com.shuimin.pond.core.spi.JsonService;
 import com.shuimin.pond.core.spi.ViewEngine;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -21,13 +23,22 @@ public interface Renderable {
         };
     }
 
-
-//    public static Renderable json(String text) {
+//    public static Renderable xml(Object o) {
+//        //TODO
 //    }
+
+    public static Renderable json(Object o) {
+        JsonService serv = PKernel.getService(JsonService.class);
+        return (resp) -> {
+            resp.contentType("application/json;charset=utf-8");
+            resp.write(serv.toString(o));
+            resp.send(200);
+        };
+    }
 
     public static Renderable dump(Object o) {
         return resp ->
-            resp.write(S.dump(o));
+                resp.write(S.dump(o));
     }
 
     public static Renderable stream(InputStream in) {
@@ -41,15 +52,19 @@ public interface Renderable {
         };
     }
 
-    public static Renderable view(String path, Map<String,Object> o) {
+    public static Renderable view(String path, Object o) {
+        File file = new File((String) Pond.attribute(Global.ROOT)+File.separator+path);
         ViewEngine engine = PKernel.getService(ViewEngine.class);
-        return (resp) -> engine.render(resp.out(),path,o);
+        if(file.exists()) {
+            PKernel.getLogger().warn("File"+ file + "not found");
+            return (resp) -> engine.render(resp.out(), path, o);
+        }
+        return json(o);
     }
 
     public static Renderable view(String path) {
-        return view(path,null);
+        return view(path, null);
     }
-
 
 
 }

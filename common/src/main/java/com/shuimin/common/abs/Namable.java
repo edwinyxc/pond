@@ -8,12 +8,12 @@ public interface Namable<T>
     Holder<String> _name = new Holder<>();
 
 	public default String name(){
-        return _name.t;
+        return _name.val;
     }
 
     @SuppressWarnings("unchecked")
 	public default T name(String name) {
-        _name.t = name;
+        _name.val = name;
         return (T) this;
     }
 }

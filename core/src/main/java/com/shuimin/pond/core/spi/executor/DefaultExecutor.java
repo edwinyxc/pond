@@ -24,8 +24,8 @@ public class DefaultExecutor implements MiddlewareExecutor {
     @Override
     public ExecutionContext execute(
 
-        Function._0<ExecutionContext> executionProvider,
-        Function._0<Iterable<Middleware>> midProvider) {
+        Function.F0<ExecutionContext> executionProvider,
+        Function.F0<Iterable<Middleware>> midProvider) {
 
 
         ExecutionContext ctx = executionProvider.apply();

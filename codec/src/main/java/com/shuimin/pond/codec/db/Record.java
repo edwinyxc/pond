@@ -1,8 +1,10 @@
 package com.shuimin.pond.codec.db;
 
+import com.shuimin.common.S;
+import com.shuimin.common.f.Function;
 import com.shuimin.common.f.Holder;
+import com.shuimin.pond.core.Request;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,30 +14,57 @@ import java.util.Set;
  */
 public interface Record extends Map<String, Object> {
 
-    Holder<String> _tableName = new Holder<>();
+    static Holder<Function<String, Class>> tableNameSupplierHolder =
+            //default as class-name-under-score
+            new Holder<Function<String, Class>>().init(clazz ->
+                    S.str.underscore(clazz.getSimpleName()));
 
-    Set<String> _priKeys = new HashSet<>();
+    static String tableName(Class<? extends Record> recordClass) {
+        return tableNameSupplierHolder.val.apply(recordClass);
+    }
+
+    static void setTableNameStrategy(Function<String, Class> func) {
+        if (func == null) throw new NullPointerException("function can not be null");
+        tableNameSupplierHolder.val = func;
+    }
+
+    final static String DEFAULT_PRI_KEY = "id";
+
+    static Holder<Function.F0<Object>> PK_PROVIDER =
+            new Holder<Function.F0<Object>>().init(S.uuid::vid);
+
+    static void setPriKeyProvider(Function.F0<Object> provider) {
+        PK_PROVIDER.val = provider;
+    }
 
     default public Set<String> fields() {
         return this.keySet();
     }
 
-    default public Set<String> primaryFields() {
-        return _priKeys;
-    }
+    public String PK();
 
-    public default String table() {
-        return _tableName.t;
-    }
+    public String PKLabel();
 
-    public default Record table(String s) {
-        _tableName.t = s;
-        return this;
-    }
+    public Record PK(Object pk);
+
+    public String table();
+
+    public Record table(String s);
 
     <E> E get(String s);
 
     Record set(String s, Object val);
+
+    void PKLabel(String label);
+
+    @SuppressWarnings("unchecked")
+    Record merge(Request req);
+
+    Record merge(Map map);
+
+    <E> RowMapper<E> mapper();
+
+    <E> Record mapper(RowMapper<E> mapper);
 
     List<Record> innerRecords();
 
@@ -50,4 +79,28 @@ public interface Record extends Map<String, Object> {
     default void delete() {
         DB.fire(DB::getConnFromPool, (tmpl) -> tmpl.del(this));
     }
+
+    Record add(Record r);
+
+    Record setInner(String tableName, String colName, Object val);
+
+    Record getInnerRecord(String tableName);
+
+    static <T> T newEntity(Class<T> recordClass) {
+        Record t = (Record) newValue(recordClass);
+        t.PK(PK_PROVIDER.val.apply());
+        return (T) t;
+    }
+
+    static <T> T newValue(Class<T> recordClass) {
+        try {
+            return S._one(recordClass);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

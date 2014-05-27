@@ -1,0 +1,24 @@
+Page.java --fix todos & 
+          --how to set query   ---ok
+            
+
+Record.java -- should settable ava?  --?
+
+ResourceService -- delete queryForPage --- ok
+                -- fix query  ---ok
+
+check debug
+
+template & structure
+
+delete "ROOT_CLASS"
+
+set public & forbidden folders
+
+re-consider logger ?
+
+
+
+
+
+

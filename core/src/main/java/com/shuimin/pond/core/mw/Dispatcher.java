@@ -6,7 +6,8 @@ import com.shuimin.pond.core.exception.HttpException;
 import com.shuimin.pond.core.http.HttpMethod;
 import com.shuimin.common.abs.Config;
 import com.shuimin.common.abs.Makeable;
-import com.shuimin.pond.core.mw.router.Router;
+import com.shuimin.pond.core.kernel.PKernel;
+import com.shuimin.pond.core.spi.Router;
 
 import static com.shuimin.pond.core.Pond.debug;
 
@@ -17,11 +18,8 @@ import static com.shuimin.pond.core.Pond.debug;
 public class Dispatcher extends AbstractMiddleware
     implements Makeable<Dispatcher> {
 
-    final private Router router;
+    final private Router router = PKernel.getService(Router.class);
 
-    public Dispatcher(Router r) {
-        router = r;
-    }
 
     public Dispatcher bind(int mask, String pattern, Middleware... mw) {
         router.add(mask, pattern, mw);

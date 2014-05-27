@@ -37,7 +37,7 @@ public class S {
      */
     private final static Logger logger = Logger.getDefault();
 
-    private final static Unsafe unsafe = ((Function._0<Unsafe>) () -> {
+    private final static Unsafe unsafe = ((Function.F0<Unsafe>) () -> {
         try {
             Field uf = Unsafe.class.getDeclaredField("theUnsafe");
             uf.setAccessible(true);
@@ -68,7 +68,7 @@ public class S {
      * ***************** _ *****************
      */
     /**
-     * @param <T> Type t
+     * @param <T> Type val
      * @param t   value of type T
      */
     public static <T> Some<T> _some(T t) {
@@ -143,7 +143,7 @@ public class S {
 
     @SuppressWarnings("unchecked")
     public static <T> T _one(Class<?> clazz) throws InstantiationException,
-        IllegalAccessException {
+            IllegalAccessException {
         return (T) clazz.newInstance();
     }
 
@@ -275,7 +275,7 @@ public class S {
          */
         public static Object fromList(Class<?> clazz, List<?> list) {
             Object array = Array.
-                newInstance(clazz, list.size());
+                    newInstance(clazz, list.size());
             for (int i = 0; i < list.size(); i++) {
                 Array.set(array, i, list.get(i));
             }
@@ -291,7 +291,7 @@ public class S {
          */
         public static Object convertType(Class<?> clazz, Object[] arr) {
             Object array = Array.
-                newInstance(clazz, arr.length);
+                    newInstance(clazz, arr.length);
             for (int i = 0; i < arr.length; i++) {
                 Array.set(array, i, arr[i]);
             }
@@ -326,8 +326,8 @@ public class S {
 
 
     public static void _assertNotNull(Object... x) {
-        for(Object o : x){
-            if(o == null) throw new NullPointerException();
+        for (Object o : x) {
+            if (o == null) throw new NullPointerException();
         }
     }
 
@@ -369,8 +369,8 @@ public class S {
             public static <E> ArrayList<E> arrayList(E[] arr) {
                 final ArrayList<E> ret = new ArrayList<>();
                 /*
-                 for (E t : arr) {
-                 ret.add(t);
+                 for (E val : arr) {
+                 ret.add(val);
                  }
                  */
                 ret.addAll(Arrays.asList(arr));
@@ -420,6 +420,7 @@ public class S {
     /**
      * ***************** E ********************
      */
+
     /**
      * <p>Print somethings to the default logger</p>
      *
@@ -431,7 +432,7 @@ public class S {
 
     @SuppressWarnings("unchecked")
     public static String dump(Object o) {
-        if(o == null) return "null";
+        if (o == null) return "null";
         Class clazz = o.getClass();
         if (clazz.isPrimitive()) {
             return String.valueOf(o);
@@ -439,18 +440,18 @@ public class S {
             return (String) o;
         } else if (o instanceof Iterable) {
             return "["
-                + String.join(",", _for((Iterable) o).
-                map((i) -> (dump(i))).val())
-                + "]";
+                    + String.join(",", _for((Iterable) o).
+                    map((i) -> (dump(i))).val())
+                    + "]";
         } else if (clazz.isArray()) {
             Object[] oArr = new Object[Array.getLength(o)];
-            for(int i = 0; i< oArr.length; i++){
-                oArr[i] = Array.get(o,i);
+            for (int i = 0; i < oArr.length; i++) {
+                oArr[i] = Array.get(o, i);
             }
             return "["
-                + String.join(",", _for(oArr).
-                <String>map((i) -> (dump(i))).val())
-                + "]";
+                    + String.join(",", _for(oArr).
+                    <String>map((i) -> (dump(i))).val())
+                    + "]";
         } else if (o instanceof Map) {
             return _for((Map) o).map((i) -> (dump(i))).val().toString();
         } else {
@@ -506,7 +507,7 @@ public class S {
             return new ForMap<>(newMap);
         }
 
-        public Entry<K, V> reduce(Function._2<Entry<K, V>, Entry<K, V>, Entry<K, V>> reduceLeft) {
+        public Entry<K, V> reduce(Function.F2<Entry<K, V>, Entry<K, V>, Entry<K, V>> reduceLeft) {
             return list.one(map.entrySet()).reduceLeft(reduceLeft);
         }
 
@@ -543,8 +544,8 @@ public class S {
 
         private <R> Collection<R> _initCollection(Class<?> itClass) {
             if (Collection.class.isAssignableFrom(itClass)
-                && !itClass.getSimpleName().startsWith("Unmodifiable")
-                && !itClass.getSimpleName().startsWith("Empty")) {
+                    && !itClass.getSimpleName().startsWith("Unmodifiable")
+                    && !itClass.getSimpleName().startsWith("Empty")) {
                 try {
                     return S._one(itClass);
                 } catch (InstantiationException | IllegalAccessException e) {
@@ -582,7 +583,7 @@ public class S {
             return new ForIt<>(c);
         }
 
-        public E reduce(final Function._2<E, E, E> reduceLeft) {
+        public E reduce(final Function.F2<E, E, E> reduceLeft) {
             return list.one(iter).reduceLeft(reduceLeft);
         }
 
@@ -606,11 +607,11 @@ public class S {
             return array.of(iter);
         }
 
-        public List<E> toList(){
+        public List<E> toList() {
             return list.one(this.val());
         }
 
-        public Set<E> toSet(){
+        public Set<E> toSet() {
             return collection.set.hashSet(this.val());
         }
 
@@ -618,13 +619,13 @@ public class S {
 
     public static class file {
 
-        public static String fileNameFromPath(String path){
-            return path.substring(path.lastIndexOf("\\") +1 );
+        public static String fileNameFromPath(String path) {
+            return path.substring(path.lastIndexOf("\\") + 1);
         }
 
         public static String fileExt(String fileName) {
             String[] filenames = splitFileName(fileName);
-            return filenames[filenames.length-1];
+            return filenames[filenames.length - 1];
         }
 
         public static String[] splitFileName(String filename) {
@@ -670,7 +671,6 @@ public class S {
          * @param file The dir to delete
          * @return true if the dir was successfully deleted
          */
-        @SuppressWarnings("ResultOfMethodCallIgnored")
         public static boolean rm(File file) {
             if (!file.exists() || !file.isDirectory()) {
                 return false;
@@ -708,7 +708,7 @@ public class S {
      * ******************* L **********************
      */
     @SafeVarargs
-    public static <E> list.FList<E> list(E... e){
+    public static <E> list.FList<E> list(E... e) {
         return list.one(e);
     }
 
@@ -755,7 +755,7 @@ public class S {
                 return ret;
             }
 
-            public T reduceLeft(Function._2<T, T, T> reduceFunc) {
+            public T reduceLeft(Function.F2<T, T, T> reduceFunc) {
                 if (this.size() == 1) {
                     return this.get(0);
                 }
@@ -873,12 +873,12 @@ public class S {
         public static Matrix fromString(String... s) {
             S.echo(s);
             final int maxLen = list.one(array.<String>of(array.compact(s))).reduceLeft(
-                (String a, String b) -> {
-                    if (a == null || b == null) {
-                        return "";
+                    (String a, String b) -> {
+                        if (a == null || b == null) {
+                            return "";
+                        }
+                        return a.length() > b.length() ? a : b;
                     }
-                    return a.length() > b.length() ? a : b;
-                }
             ).length();
 
             int[][] ret = new int[s.length][maxLen];
@@ -906,13 +906,13 @@ public class S {
         public final static Double _double = (double) 0;
 
         final static Cache<Class<?>, Object> _nothingValues = Cache.<Class<?>, Object>defaultCache().onNotFound(
-            a -> Enhancer.create(_notNull(a), (MethodInterceptor) (Object obj, Method method, Object[] args, MethodProxy proxy) -> null));
+                a -> Enhancer.create(_notNull(a), (MethodInterceptor) (Object obj, Method method, Object[] args, MethodProxy proxy) -> null));
 
         static {
             _nothingValues.put(String.class, "")
-                .put(Boolean.class, _boolean).put(Integer.class, _int)
-                .put(Byte.class, _byte).put(Character.class, _char).put(Short.class, _short).put(Long.class, _long)
-                .put(Float.class, _float).put(Double.class, _double).put(Object.class, new Object());
+                    .put(Boolean.class, _boolean).put(Integer.class, _int)
+                    .put(Byte.class, _byte).put(Character.class, _char).put(Short.class, _short).put(Long.class, _long)
+                    .put(Float.class, _float).put(Double.class, _double).put(Object.class, new Object());
         }
 
         final private Class<?> proxyClass;
@@ -976,7 +976,9 @@ public class S {
 
         public T create() {
             return (T) Enhancer.create(_clazz,
-                (MethodInterceptor) (obj, method, args, proxy) -> _avoidNull(_mm.get(method.getName()), Function.class).apply(args));
+                    (MethodInterceptor) (obj, method, args, proxy) ->
+                            _avoidNull(_mm.get(method.getName()), Function.class).apply(args)
+            );
 
         }
     }
@@ -1117,6 +1119,9 @@ public class S {
     }
 
     public static class str {
+
+        public static final String EMPTY = "";
+        public static final String[] EMPTY_STR_ARRAY = new String[]{};
 
         public static final String NEWLINE;
 

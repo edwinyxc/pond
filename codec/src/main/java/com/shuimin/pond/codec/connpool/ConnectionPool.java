@@ -75,8 +75,6 @@ public class ConnectionPool {
 			connPool.add(createConnection());
 		}
 
-        //TODO ugly
-        Pond.get().attr(DB.CONNECTION_POOL,this);
 		return this;
 	}
 

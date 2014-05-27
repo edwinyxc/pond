@@ -8,6 +8,7 @@ import com.shuimin.pond.codec.connpool.ConnectionPool;
 import com.shuimin.pond.core.ExecutionContext;
 import com.shuimin.pond.core.Pond;
 import com.shuimin.pond.core.exception.UnexpectedException;
+import com.shuimin.pond.core.kernel.PKernel;
 import com.shuimin.pond.core.spi.ContextService;
 
 import java.io.Closeable;
@@ -44,7 +45,7 @@ public class DB implements Makeable<DB>, Closeable {
     }
 
     public static Connection getConn() {
-        ContextService service = Pond.register(ContextService.class);
+        ContextService service = PKernel.getService(ContextService.class);
         ExecutionContext ctx = service.get();
         Connection conn = (Connection) ctx.attr("cur_conn");
         try {
@@ -63,6 +64,14 @@ public class DB implements Makeable<DB>, Closeable {
     public DB() {
     }
 
+
+    public static <R> R fire(Function<R, JdbcTmpl> process) {
+        try(DB b = new DB().open(DB::getConn)) {
+            return b.exec(process);
+        }
+    }
+
+
     /**
      * <pre>
      *     快速的执行一个db操作
@@ -73,7 +82,7 @@ public class DB implements Makeable<DB>, Closeable {
      * @return 执行后的结果
      * @see com.shuimin.pond.codec.db.JdbcTmpl
      */
-    public static <R> R fire(Function._0<Connection> connectionProvider,
+    public static <R> R fire(Function.F0<Connection> connectionProvider,
                              Function<R, JdbcTmpl> process) {
         try (DB b = new DB().open(connectionProvider)) {
             return b.exec(process);
@@ -90,7 +99,7 @@ public class DB implements Makeable<DB>, Closeable {
      * @see com.shuimin.pond.codec.db.DB
      * #fire(java.sql.Connection, com.shuimin.common.f.Function, com.shuimin.common.f.Function)
      */
-    public static <R, M> R fire(Function._0<Connection> connectionProvider,
+    public static <R, M> R fire(Function.F0<Connection> connectionProvider,
                                 Function<M, JdbcTmpl> process,
                                 Function<R, M> finisher) {
 
@@ -161,7 +170,7 @@ public class DB implements Makeable<DB>, Closeable {
         return finisher.apply(process.apply(tmpl));
     }
 
-    public DB open(Function._0<Connection> connectionSupplier) {
+    public DB open(Function.F0<Connection> connectionSupplier) {
         tmpl = new JdbcTmpl(new JdbcOperator(connectionSupplier.apply()));
         return this;
     }

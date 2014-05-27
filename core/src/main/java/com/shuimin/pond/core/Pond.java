@@ -38,6 +38,7 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         for (Config<Pond> conf : configs) {
             conf.config(pond);
         }
+        pond.attr(Global.ROOT_CLASSES,S.path.rootClassPath());
         return pond;
     }
 
@@ -61,7 +62,6 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         return this;
     }
 
-
     public Pond use(Middleware... mids) {
         this.mids.addAll(_for(mids)
             .each(Middleware::init).toList());
@@ -71,7 +71,6 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
     private Pond init() {
 
         this.attr(Global.ROOT,S.path.webRoot());
-
 
         logger = PKernel.getLogger();
 
@@ -97,7 +96,7 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         return e;
     }
 
-    private Callback._2<Request, Response> handler(
+    private Callback.C2<Request, Response> handler(
         ContextService service,
         MiddlewareExecutor executor
     ) {
@@ -123,7 +122,7 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         return CUR().resp();
     }
 
-    public static void debug(String s) {
+    public static void debug(Object s) {
         Logger logger = Pond.get().logger;
         logger.debug(S.dump(s));
     }
@@ -155,6 +154,16 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
 
     public static <E> E register(Class clazz) {
         return PKernel.get(clazz.getCanonicalName());
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <E> E attribute(String name) {
+        return (E) Pond.get().attr(name);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void attribute(String name, Object o) {
+        Pond.get().attr(name, o);
     }
 
     @Override

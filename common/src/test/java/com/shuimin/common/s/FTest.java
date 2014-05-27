@@ -11,7 +11,7 @@ import com.shuimin.common.f.Tuple;
  */
 public class FTest {
 	static Tuple<String,Integer> test(){
-		return Tuple._2("a",2);
+		return Tuple.t2("a", 2);
 	}
 	static None avoidNull(){
 		return S._none();

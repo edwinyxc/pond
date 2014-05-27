@@ -4,14 +4,14 @@ import com.shuimin.common.S;
 import com.shuimin.common.f.Function;
 import com.shuimin.pond.codec.connpool.ConnectionConfig;
 import com.shuimin.pond.codec.connpool.ConnectionPool;
+import com.shuimin.pond.codec.db.AbstractRecord;
 import com.shuimin.pond.codec.db.DB;
-import com.shuimin.pond.codec.db.DefaultRecord;
 import com.shuimin.pond.codec.db.Record;
 import com.shuimin.pond.core.Pond;
 import com.shuimin.pond.core.Renderable;
 import com.shuimin.pond.core.mw.Action;
 import com.shuimin.pond.core.mw.Dispatcher;
-import com.shuimin.pond.core.mw.router.Router;
+import com.shuimin.pond.core.spi.Router;
 
 import java.io.InputStream;
 import java.sql.Connection;
@@ -69,7 +69,7 @@ public class DbTest {
     public static void main(String[] args) {
         ConnectionPool pool = createPool();
         ConnectionPool localPool = createLocalPool();
-        Dispatcher app = new Dispatcher(Router.regex());
+        Dispatcher app = new Dispatcher();
         app.get("/db", Action.fly(() ->
                 render(text(dump(DB.fire(pool::getConnection, tmpl ->
                         tmpl.find("SELECT * FROM t_crm_delivery_detail limit 0 ,10")
@@ -123,7 +123,8 @@ public class DbTest {
 
 
         app.get("/insert", Action.fly(() -> {
-            Record r = new DefaultRecord();
+            Record r = new AbstractRecord() {
+            };
 
             r.table("db_test");
             r.set("id", "45_id");
@@ -139,9 +140,9 @@ public class DbTest {
 
         }));
 
-        final Function._0<Record> findR = () -> {
+        final Function.F0<Record> findR = () -> {
             List<Record> rList = DB.fire(localPool::getConnection, tmpl ->
-                    tmpl.find("SELECT * FROM db_test where id = '45_id'")
+                    tmpl.<Record>find("SELECT * FROM db_test where id = '45_id'")
             );
             if(rList.size() == 0) return null;
                 Record r = rList.get(0);
@@ -154,7 +155,7 @@ public class DbTest {
                 echo(r);
                 int val = S.parse.toUnsigned((String) r.get("value"));
                 r.set("value", String.valueOf(val +1));
-                r.primaryFields().add("id");
+                r.PK("id");
                 DB.fire(localPool::getConnection, tmpl ->
                         tmpl.upd(r)
                 );

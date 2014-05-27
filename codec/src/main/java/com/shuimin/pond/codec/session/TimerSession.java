@@ -22,10 +22,10 @@ public class TimerSession extends HashMap<String,Object>
 
     private TimerTask suicide = new Suicide();
 
-    private final Function._0<Integer> lifetimeProvider;
+    private final Function.F0<Integer> lifetimeProvider;
 
     public TimerSession( String id,
-                         Function._0<Integer> lifetimeProvider) {
+                         Function.F0<Integer> lifetimeProvider) {
         this.id = id;
         this.timer = new Timer();
         this.lifetimeProvider = lifetimeProvider;

@@ -46,7 +46,7 @@ public class JdbcOperator implements Closeable {
     }
 
     /**
-     * release resource
+     * release bo
      */
     @Override
     public void close() {
@@ -152,7 +152,8 @@ public class JdbcOperator implements Closeable {
                 setParam(pstmt, i + 1, params[i]);
             }
         }
-        _debug(pstmt);
+        _debug(pstmt.getMetaData());
+        _debug(pstmt.getParameterMetaData());
 
         if (rs != null) {
             _closeRs();
@@ -167,7 +168,7 @@ public class JdbcOperator implements Closeable {
     /**
      * execute SQL statements to Query
      */
-    public ResultSet executeQuery(String sql, String[] params) {
+    public ResultSet executeQuery(String sql, Object[] params) {
         try {
             if (pstmt != null) {
                 _closeStmt();
@@ -176,11 +177,14 @@ public class JdbcOperator implements Closeable {
 
             if (params != null) {
                 for (int i = 0; i < params.length; i++) {
-                    pstmt.setString(i + 1, params[i]);
+                    //untested
+                    pstmt.setObject(i + 1, params[i]);
                 }
             }
 
             _debug(pstmt);
+            _debug(pstmt.getMetaData());
+            _debug(pstmt.getParameterMetaData());
             if (rs != null) {
                 _closeRs();
             }

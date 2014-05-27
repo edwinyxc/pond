@@ -76,11 +76,11 @@ public class NettyServer implements BaseServer {
     }
 
     @Override
-    public void installHandler(Callback._2<Request, Response> handler) {
+    public void installHandler(Callback.C2<Request, Response> handler) {
         this.handler = handler;
     }
 
-    private Callback._2<Request,Response> handler = (req,resp)->{
+    private Callback.C2<Request,Response> handler = (req,resp)->{
         S.echo("EMPTY SERVER");
     };
 

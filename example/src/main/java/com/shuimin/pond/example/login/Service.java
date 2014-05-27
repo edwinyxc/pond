@@ -18,9 +18,9 @@ public class Service{
 
     public static Action checkPass = Action.process((User user)->{
         if (user.pass .equals("123456")){
-            return Tuple._2(user,true);
+            return Tuple.t2(user, true);
         }
-        return Tuple._2(user,false);
+        return Tuple.t2(user, false);
     });
 
     public static Action showResult = Action.consume((Tuple<User,Boolean> last)-> {

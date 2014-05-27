@@ -4,7 +4,7 @@ import com.shuimin.pond.codec.view.View;
 import com.shuimin.pond.core.Pond;
 import com.shuimin.pond.core.mw.Action;
 import com.shuimin.pond.core.mw.Dispatcher;
-import com.shuimin.pond.core.mw.router.Router;
+import com.shuimin.pond.core.spi.Router;
 
 import static com.shuimin.pond.core.Interrupt.render;
 
@@ -14,7 +14,7 @@ import static com.shuimin.pond.core.Interrupt.render;
 public class App {
     public static void main(String[] args) {
         Pond.init().use(
-           new Dispatcher(Router.regex())
+           new Dispatcher()
                .get("/", index)
                .post("/login", Service.parseUser, Service.checkPass, Service.showResult)
        ).start(10000);

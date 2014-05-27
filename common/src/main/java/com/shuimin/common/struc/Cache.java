@@ -53,7 +53,7 @@ public abstract class Cache<K, V> {
 
     public abstract Cache<K, V> onNotFound(Function<V, K> nothingFoundLisener);
 
-    public abstract Cache<K, V> onRemove(Callback._2<K, V> removeListener);
+    public abstract Cache<K, V> onRemove(Callback.C2<K, V> removeListener);
 
     public static <K, V> Cache<K, V> lruCache(int max) {
         return new LRUCache<>(max);

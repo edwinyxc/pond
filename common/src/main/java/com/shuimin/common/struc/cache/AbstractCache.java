@@ -22,12 +22,12 @@ public abstract class AbstractCache<K, V> extends Cache<K, V> {
         return this;
     }
 
-    protected Callback._2<K, V> onRemove = (k, v) -> {
+    protected Callback.C2<K, V> onRemove = (k, v) -> {
         // do nothing
     };
 
     @Override
-    public Cache<K, V> onRemove(Callback._2<K, V> removeListener) {
+    public Cache<K, V> onRemove(Callback.C2<K, V> removeListener) {
         onRemove = S._notNull(removeListener);
         return this;
     }

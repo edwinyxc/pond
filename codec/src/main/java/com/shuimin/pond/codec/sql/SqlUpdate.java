@@ -1,9 +1,11 @@
 package com.shuimin.pond.codec.sql;
 
+import com.shuimin.common.f.Tuple;
+
 /**
  * Created by ed on 2014/4/30.
  */
-public interface SqlUpdate extends Sql{
-    public SqlUpdate set(String... columns);
-    public SqlUpdate where(String... conditions);
+public interface SqlUpdate extends Sql,SqlWhere{
+    public SqlUpdate set(Tuple<String,Object>... sets);
+    public SqlUpdate set(String... sets);
 }

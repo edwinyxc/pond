@@ -5,7 +5,6 @@ package com.shuimin.pond.core;
  */
 public class Global {
 
-
 //    public final static String DEFAULT_CONTENT_TYPE = "g.default_content_type";
 
     public final static String SERVER = "g.server";
@@ -16,9 +15,10 @@ public class Global {
 
     public final static String ROOT = "g.root";
 
-    public final static String JSON_PROCESSER = "g.json_processer";
+    public final static String ROOT_CLASSES = "g.root_classes";
 
-    static {
-//        Server.config(DEFAULT_CONTENT_TYPE,"text/plain;charset=utf-8");
-    }
+    public final static String JSON_PROCESSOR = "g.json_processor";
+
+    public final static String TEMPLATE_PATH = "g.template_path";
+
 }

@@ -1,5 +1,7 @@
 package com.shuimin.pond.codec.sql;
 
+import com.shuimin.common.f.Tuple;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -7,7 +9,8 @@ import java.util.List;
 /**
  * Created by ed on 2014/4/30.
  */
-public class TSqlSelect implements SqlSelect {
+public class TSqlSelect extends AbstractSql
+        implements SqlSelect {
     List<String> tables = new ArrayList<>();
     List<String> where = new ArrayList<>();
     List<String> fields = new ArrayList<>();
@@ -48,20 +51,17 @@ public class TSqlSelect implements SqlSelect {
     }
 
     @Override
-    public SqlSelect where(String... where) {
-        this.where.addAll(Arrays.asList(where));
-        return this;
-    }
-
-    @Override
     public SqlSelect groupBy(String... columns) {
         groups.addAll(Arrays.asList(columns));
         return this;
     }
 
     @Override
-    public SqlSelect having(String... where) {
-        having.addAll(Arrays.asList(where));
+    public SqlSelect having(Tuple.T3<String, Criterion, Object[]>... conditions) {
+        for(Tuple.T3<String,Criterion,Object[]> t : conditions) {
+            having.add(t._b.prepare(t._a,t._c));
+            params.addAll(Arrays.asList(t._c));
+        }
         return this;
     }
 
@@ -83,13 +83,39 @@ public class TSqlSelect implements SqlSelect {
         return this;
     }
 
+    @Override
+    public SqlSelect count() {
+        fields.clear();
+        fields.add("count(*)");
+        return this;
+    }
 
     @Override
-    public String toString() {
+    public SqlSelect copy() {
+        TSqlSelect copy = new TSqlSelect();
+        copy.fields.addAll(this.fields);
+        copy.groups.addAll(this.groups);
+        copy.tables.addAll(this.tables);
+        copy.having.addAll(this.having);
+        copy.orders.addAll(this.orders);
+        copy.where.addAll(this.where);
+        copy.limit = this.limit;
+        copy.offset = this.offset;
+        return copy;
+    }
+
+    @Override
+    public SqlSelect fields(String... fields) {
+        this.fields.addAll(Arrays.asList(fields));
+        return this;
+    }
+
+    @Override
+    public String preparedSql() {
         StringBuilder sql = new StringBuilder("SELECT ");
         sql.append(String.join(", ", fields))
-            .append(" FROM ")
-            .append(String.join(" JOIN ", tables));
+                .append(" FROM ")
+                .append(String.join(" JOIN ", tables));
         if (!where.isEmpty()) {
             sql.append(" WHERE ").append(String.join(" AND ", where));
         }
@@ -110,4 +136,6 @@ public class TSqlSelect implements SqlSelect {
         }
         return sql.toString();
     }
+
+
 }

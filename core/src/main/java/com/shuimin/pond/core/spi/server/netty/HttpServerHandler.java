@@ -23,9 +23,9 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 public class HttpServerHandler
     extends SimpleChannelInboundHandler<FullHttpRequest> {
 
-    final Callback._2<Request,Response> handler; // THE DISPATCHER
+    final Callback.C2<Request,Response> handler; // THE DISPATCHER
 
-    public HttpServerHandler(Callback._2<Request,Response>
+    public HttpServerHandler(Callback.C2<Request,Response>
                                  dispatcher) {
         this.handler = dispatcher;
     }

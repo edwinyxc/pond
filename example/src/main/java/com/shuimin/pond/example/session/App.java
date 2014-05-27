@@ -6,7 +6,7 @@ import com.shuimin.pond.codec.session.SessionInstaller;
 import com.shuimin.pond.codec.session.SessionManager;
 import com.shuimin.pond.core.mw.Dispatcher;
 import com.shuimin.pond.core.mw.Action;
-import com.shuimin.pond.core.mw.router.Router;
+import com.shuimin.pond.core.spi.Router;
 
 import static com.shuimin.common.S._notNullElse;
 import static com.shuimin.pond.core.Interrupt.redirect;
@@ -19,7 +19,7 @@ import static com.shuimin.pond.core.Renderable.text;
 public class App {
     public static void main(String[] args) {
 
-        Dispatcher app = new Dispatcher(Router.regex());
+        Dispatcher app = new Dispatcher();
 
         app.get("/index.html", Action.fly(() -> {
                 SessionManager.get().set("username","hello");

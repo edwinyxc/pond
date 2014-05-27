@@ -5,6 +5,11 @@ import java.util.HashSet;
 /**
  * Created by ed on 2014/4/30.
  */
+
+/**
+ * Use it by caution
+ */
+@Deprecated
 public class NamedParams extends HashSet<Object[]>{
 
     public NamedParams(Object[]...namedArgs) {

@@ -77,11 +77,11 @@ public class FileUploadServer extends AbstractMiddleware {
      * providers
      */
 
-    private Function._0<File> uploadDirProvider = this::getUploadDir;
+    private Function.F0<File> uploadDirProvider = this::getUploadDir;
 
-    private Function._0<File> tmpDirProvider = this:: getTmpDir;
+    private Function.F0<File> tmpDirProvider = this:: getTmpDir;
 
-    private Function._0<String> webRootProvider = () ->
+    private Function.F0<String> webRootProvider = () ->
         (String) Pond.config(Global.ROOT);
 
     /**
@@ -89,7 +89,7 @@ public class FileUploadServer extends AbstractMiddleware {
      * @param provider provider
      * @return root path
      */
-    public FileUploadServer root(Function._0<String> provider) {
+    public FileUploadServer root(Function.F0<String> provider) {
         webRootProvider = provider;
         return this;
     }
@@ -108,15 +108,15 @@ public class FileUploadServer extends AbstractMiddleware {
         return this;
     }
 
-    private Callback._2<String,String> onNormal = (name,value) ->
+    private Callback.C2<String,String> onNormal = (name,value) ->
         debug("you`ve received "+name+" = "+value);
 
-    public FileUploadServer onNormal(Callback._2<String,String> cb) {
+    public FileUploadServer onNormal(Callback.C2<String,String> cb) {
         this.onNormal = cb;
         return this;
     }
 
-    private Function._2<File,String,InputStream> onFileUpload = (name,in) -> {
+    private Function.F2<File,String,InputStream> onFileUpload = (name,in) -> {
         debug("Upload filename : " + name);
         File f = null;
         try (FileOutputStream out = new FileOutputStream((f = new File(uploadDirProvider.apply(), name)))) {
@@ -133,7 +133,7 @@ public class FileUploadServer extends AbstractMiddleware {
     private Callback<File> onFileUploadFinished = (file) ->
         render(text("File[" + file.getName()+ "] uploaded, location:" + file.getAbsolutePath()));
 
-    public FileUploadServer onFileUpload(Function._2<File,String,InputStream> cb ) {
+    public FileUploadServer onFileUpload(Function.F2<File,String,InputStream> cb ) {
         this.onFileUpload = cb;
         return this;
     }

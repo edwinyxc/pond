@@ -2,14 +2,14 @@ package com.shuimin.pond.codec.db;
 
 import com.shuimin.common.S;
 import com.shuimin.common.f.Callback;
+import com.shuimin.common.f.Function;
 import com.shuimin.common.f.Holder;
-import com.shuimin.pond.codec.sql.Sql;
+import com.shuimin.common.f.Tuple;
 import com.shuimin.pond.core.exception.UnexpectedException;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.shuimin.common.S._for;
+import static com.shuimin.common.S._notNullElse;
 import static com.shuimin.common.S._throw;
 
 /**
@@ -24,72 +25,83 @@ import static com.shuimin.common.S._throw;
  */
 public class JdbcTmpl implements Closeable {
 
-    RowMapper rm = (rs) -> {
-        DefaultRecord ret = new DefaultRecord();
-        ResultSetMetaData metaData = rs.getMetaData();
-        int cnt = metaData.getColumnCount();
-        String mainTableName = metaData.getTableName(1);
-        ret.table(mainTableName);
-        for (int i = 0; i < cnt; i++) {
-            String className = metaData.getColumnClassName(i + 1);
-            String thisTable = metaData.getTableName(i + 1);
-            Class<?> type = Object.class;
-            try {
-                type = Class.forName(className);
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            String colName = metaData.getColumnName(i + 1);
-            Object val;
-
-            //TODO ugly!
-            if (type.equals(byte[].class)
-                || type.equals(Byte[].class)) {
-                val = rs.getBinaryStream(i + 1);
-            } else {
-                val = JdbcOperator.normalizeValue(rs.getObject(i + 1, type));
-            }
-
-            S.echo(String.format("NAME : %s ,TYPE : %s", colName,
-                val == null ? null : val.getClass()));
-
-            if (mainTableName.equals(thisTable))
-                ret.set(colName, val);
-            else ret.setInner(thisTable, colName, val);
-        }
-        return ret;
-    };
-
 
     protected JdbcOperator oper;
 
-    public JdbcTmpl(JdbcOperator oper) {
+    public JdbcTmpl(
+            JdbcOperator oper) {
         this.oper = oper;
     }
 
-    public List<Record> find(String sql) {
+    private static RowMapper<AbstractRecord> _default_rm =
+            (RowMapper<AbstractRecord>) new AbstractRecord() {
+            }.rm;
 
-        return find(sql, new String[]{});
-    }
-
-    public List<Record> find(Sql sql, String... x) {
-        return find(sql.toString(),x);
-    }
-
-    /**
-     * <pre>
-     *     按sql查询
-     * </pre>
-     *
-     * @param sql
-     * @return
-     */
     public List<Record> find(String sql, String... x) {
+        return this.map((rs) -> _default_rm.map(rs), sql, x);
+    }
+
+    public List<Record> find(String sql) {
+        return this.map((rs) -> _default_rm.map(rs), sql);
+    }
+
+    public <R> List<R> map(
+            Class<R> clazz,
+            String sql, Object... x
+    ) {
+        try {
+            Record c = S._one(clazz);
+
+            @SuppressWarnings("unchecked")
+            Function<R, ResultSet> rm = (rs) -> (R) c.mapper().map(rs);
+
+            return this.map(rm, sql, x);
+        } catch (InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    final
+    Function<Integer, ResultSet> counter = rs -> {
+        try {
+            return (Integer) rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    };
+
+    public int count(String sql,Object[] params) {
+        return _notNullElse(S.<Integer>_for(map(counter, sql,
+                params)).first(), 0);
+    }
+
+    public int count(Tuple<String,Object[]> mix) {
+        return count(mix._a, mix._b);
+    }
+
+//    public <R> Page<R> page(Function<?, ResultSet> mapper,
+//                            Page<R> page ) {
+//        List<R> r = map(mapper, page.querySql());
+//        int count = (Integer) _for(map(counter,page.querySql())).first();
+//        return page.fulfill(r, count);
+//    }
+
+    public <R> List<R> map(Function<?, ResultSet> mapper,
+                           Tuple<String,Object[]> mix) {
+        return map(mapper,mix._a,mix._b);
+    }
+
+    public <R> List<R> map(Function<?, ResultSet> mapper,
+                           String sql, Object... x) {
+
         ResultSet rs = oper.executeQuery(sql, x);
-        List<Record> list = new ArrayList<>();
+        List<R> list = new ArrayList<>();
         try {
             while (rs.next()) {
-                list.add(rm.map(rs));
+                //check
+                list.add((R)mapper.apply(rs));
             }
         } catch (SQLException e) {
             _throw(e);
@@ -98,29 +110,34 @@ public class JdbcTmpl implements Closeable {
     }
 
     public boolean tx(Callback<JdbcTmpl> callback) {
-        try{
+        try {
             oper.transactionStart();
             callback.apply(this);
             oper.transactionCommit();
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             oper.rollback();
             throw new UnexpectedException(e);
         }
     }
 
     public boolean tx(String... batch) {
-        try{
+        try {
             oper.transactionStart();
-            for(String sql : batch) {;
+            for (String sql : batch) {
+                ;
                 oper.execute(sql);
             }
             oper.transactionCommit();
             return true;
-        }catch (SQLException e){
+        } catch (SQLException e) {
             oper.rollback();
             throw new UnexpectedException(e);
         }
+    }
+
+    public int exec(Tuple<String,Object[]> sql_t) {
+        return exec(sql_t._a,sql_t._b);
     }
 
     public int exec(String sql) {
@@ -129,10 +146,6 @@ public class JdbcTmpl implements Closeable {
         } catch (SQLException e) {
             throw new UnexpectedException(e);
         }
-    }
-
-    public int exec(Sql sql, Object... x) {
-        return exec(sql.toString(),x);
     }
 
     public int exec(String sql, Object... x) {
@@ -144,11 +157,11 @@ public class JdbcTmpl implements Closeable {
     }
 
     public void drop(String tbName) {
-        exec("DROP TABLE "+ tbName);
+        exec("DROP TABLE " + tbName);
     }
 
     public void truncate(String tbName) {
-        exec("TRUNCATE TABLE "+tbName);
+        exec("TRUNCATE TABLE " + tbName);
     }
 
     public ResultSet query(String sql) {
@@ -156,7 +169,7 @@ public class JdbcTmpl implements Closeable {
     }
 
     public ResultSet query(String sql, String... x) {
-        return oper.executeQuery(sql,x);
+        return oper.executeQuery(sql, x);
     }
 
     public boolean add(Record r) {
@@ -171,7 +184,7 @@ public class JdbcTmpl implements Closeable {
         _for(r.fields()).each((f) -> {
             fields.append(f);
             values.append("?");
-            if (i.t != r.fields().size() - 1) {
+            if (i.val != r.fields().size() - 1) {
                 fields.append(", ");
                 values.append(", ");
             }
@@ -179,7 +192,7 @@ public class JdbcTmpl implements Closeable {
         });
 
         all.append(r.table()).append(" ")
-            .append(fields).append(values).append(" ) ");
+                .append(fields).append(values).append(" ) ");
 
         String sql = all.toString();
 
@@ -193,7 +206,7 @@ public class JdbcTmpl implements Closeable {
     }
 
     public boolean del(Record r) {
-        if(r == null) return false;
+        if (r == null) return false;
 
         StringBuilder all = new StringBuilder("DELETE FROM ");
 
@@ -205,14 +218,14 @@ public class JdbcTmpl implements Closeable {
 
         _for(r.fields()).each((f) -> {
             where.append(f).append(" = ? ");
-            if (i.t != r.fields().size() - 1) {
+            if (i.val != r.fields().size() - 1) {
                 where.append("AND ");
             }
             valuesObjs[i.accum()] = r.get(f);
         });
 
         all.append(r.table()).append(" ")
-            .append(where);
+                .append(where);
 
         String sql = all.toString();
 
@@ -225,13 +238,7 @@ public class JdbcTmpl implements Closeable {
         return false;
     }
 
-    public Set<String> fields(String tableName){
-        //FIXME
-        S._fail();
-        return null;
-    }
-
-    public Set<String> tables(){
+    public Set<String> tables() {
         return oper.getTableNames();
     }
 
@@ -246,9 +253,9 @@ public class JdbcTmpl implements Closeable {
 
         List<Object> valuesObjs = new ArrayList<>();
 
-        Set<String> primaryFields = r.primaryFields();
+        String pk = r.PK();
         Iterable<String> nonPrimaryFields =
-            _for(r.fields()).grep(s -> !primaryFields.contains(s)).val();
+                _for(r.fields()).grep(s -> !s.equals(pk)).val();
 
         for (Iterator<String> iterator = nonPrimaryFields.iterator();
              iterator.hasNext(); ) {
@@ -260,14 +267,14 @@ public class JdbcTmpl implements Closeable {
             }
         }
 
-        for(String f : primaryFields ) {
-            where.append(f).append(" = ?");
+        if (pk != null) {
+            where.append(pk).append(" = ?");
             whereCnt++;
-            valuesObjs.add(r.get(f));
+            valuesObjs.add(r.get(pk));
         }
 
         update.append(r.table()).append(set)
-            .append(where);
+                .append(where);
 
         String sql = update.toString();
 
@@ -287,7 +294,6 @@ public class JdbcTmpl implements Closeable {
     public void close() throws IOException {
         this.oper.close();
     }
-
 
 
 }

@@ -7,7 +7,7 @@ import com.shuimin.pond.core.Pond;
 import com.shuimin.pond.core.mw.Action;
 import com.shuimin.pond.core.mw.Dispatcher;
 import com.shuimin.pond.core.mw.StaticFileServer;
-import com.shuimin.pond.core.mw.router.Router;
+import com.shuimin.pond.core.spi.Router;
 
 import static com.shuimin.common.S.echo;
 import static com.shuimin.pond.core.Interrupt.render;
@@ -19,7 +19,7 @@ import static com.shuimin.pond.core.Renderable.text;
 public class App {
 
     public static void main(String[] args) {
-        Dispatcher app = new Dispatcher(Router.regex());
+        Dispatcher app = new Dispatcher();
         app.get("/index",index);
         app.post("/upload", upload);
         app.get(".*", new StaticFileServer("C:\\var\\www"));

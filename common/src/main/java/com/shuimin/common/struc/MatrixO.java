@@ -34,7 +34,7 @@ public class MatrixO {
 		init_with_null();
 	}
 
-    public MatrixO(int rows, int cols, Function._2 provider){
+    public MatrixO(int rows, int cols, Function.F2 provider){
         this.cols = cols;
         this.rows = rows;
         this.data = new Object[rows * cols];

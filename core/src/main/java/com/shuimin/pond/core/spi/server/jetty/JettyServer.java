@@ -20,7 +20,7 @@ public class JettyServer implements BaseServer {
 
     private org.eclipse.jetty.server.Server server;
 
-    private Callback._2<com.shuimin.pond.core.Request,Response> handler
+    private Callback.C2<com.shuimin.pond.core.Request,Response> handler
         = (req,resp) -> S.echo("EMPTY SERVER") ;
 
     @Override
@@ -60,7 +60,7 @@ public class JettyServer implements BaseServer {
     }
 
     @Override
-    public void installHandler(Callback._2<com.shuimin.pond.core.Request, Response> handler) {
+    public void installHandler(Callback.C2<com.shuimin.pond.core.Request, Response> handler) {
         this.handler = handler;
     }
 

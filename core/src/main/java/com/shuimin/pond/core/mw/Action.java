@@ -18,7 +18,7 @@ public abstract class Action extends AbstractMiddleware {
      * @param cb
      * @return
      */
-    public static Action simple(Callback._2<Request, Response> cb) {
+    public static Action simple(Callback.C2<Request, Response> cb) {
         return new Action() {
             @Override
             public ExecutionContext handle(ExecutionContext ctx) {
@@ -71,7 +71,7 @@ public abstract class Action extends AbstractMiddleware {
      * @param <T>
      * @return
      */
-    public static <T> Action supply(Function._0<T> cb) {
+    public static <T> Action supply(Function.F0<T> cb) {
         return new Action() {
 
             @Override
@@ -88,7 +88,7 @@ public abstract class Action extends AbstractMiddleware {
      * @param <T>
      * @return
      */
-    public static <T> Action resolve(Function._2<T, Request, Response> cb) {
+    public static <T> Action resolve(Function.F2<T, Request, Response> cb) {
         return new Action() {
 
             @Override
@@ -133,7 +133,7 @@ public abstract class Action extends AbstractMiddleware {
         };
     }
 
-    public static Action end(Callback._2<Request, Response> cb) {
+    public static Action end(Callback.C2<Request, Response> cb) {
         return new Action() {
 
             @Override
@@ -150,7 +150,7 @@ public abstract class Action extends AbstractMiddleware {
      * @param cb
      * @return
      */
-    public static Action fly(Callback._0 cb) {
+    public static Action fly(Callback.C0 cb) {
         return new Action() {
 
             @Override

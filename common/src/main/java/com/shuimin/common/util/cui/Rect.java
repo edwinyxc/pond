@@ -25,7 +25,7 @@ public class Rect {
     }
 
     public Rect(final String[] str, int width, int height) {
-        this.width = S.math.max(((Function._0<Integer>) () -> {
+        this.width = S.math.max(((Function.F0<Integer>) () -> {
             int maxLen = 0;
             for (String s : str) {
                 s = s.replaceAll("\n", "");

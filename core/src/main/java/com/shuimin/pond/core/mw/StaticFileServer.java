@@ -36,7 +36,7 @@ public class StaticFileServer extends AbstractMiddleware
      * Provider
      */
 
-    private Function._0<Pattern> allowedFileNamesProvider =
+    private Function.F0<Pattern> allowedFileNamesProvider =
         () -> Pattern.compile("[A-Za-z0-9][-_A-Za-z0-9\\.]*");
 
     private String[] defaultPages = {"index.html"};
@@ -48,12 +48,12 @@ public class StaticFileServer extends AbstractMiddleware
         return this;
     }
 
-    private Function._0<String> webRootProvider = () ->
+    private Function.F0<String> webRootProvider = () ->
         (String) Pond.config(Global.ROOT);
 
-    private Callback._2<Response, File> listDir = this::defaultListFiles;
+    private Callback.C2<Response, File> listDir = this::defaultListFiles;
 
-    public StaticFileServer allowedNames(Function._0<Pattern> f) {
+    public StaticFileServer allowedNames(Function.F0<Pattern> f) {
         this.allowedFileNamesProvider = f;
         return this;
     }
@@ -63,7 +63,7 @@ public class StaticFileServer extends AbstractMiddleware
         return this;
     }
 
-    public StaticFileServer onList(Callback._2<Response, File> f) {
+    public StaticFileServer onList(Callback.C2<Response, File> f) {
         this.listDir = f;
         return this;
     }

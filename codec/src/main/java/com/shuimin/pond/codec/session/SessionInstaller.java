@@ -50,7 +50,6 @@ public class SessionInstaller extends AbstractMiddleware
 
     @Override
     public void init() {
-
         Pond.get().attr(SessionManager.SESSION_LIFETIME, life_time);
     }
 
