@@ -3,7 +3,7 @@ package com.shuimin.pond.core.kernel;
 import com.shuimin.common.S;
 import com.shuimin.common.abs.Config;
 import com.shuimin.pond.core.spi.Logger;
-import com.shuimin.pond.core.spi.logger.JDKLogger;
+import com.shuimin.pond.core.spi.logger.SimpleLogger;
 
 import java.util.Iterator;
 import java.util.ServiceLoader;
@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public final class PKernel {
 
-    private static final Logger defaultLogger = new JDKLogger();
+    private static final Logger defaultLogger = new SimpleLogger();
     private static ConcurrentMap<String, Object> holder =
             new ConcurrentHashMap<>();
     private static ConcurrentMap<Class, Object> serviceHolder = new ConcurrentHashMap<>();
