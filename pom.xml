@@ -27,7 +27,6 @@
         <module>codec</module>
         <module>example</module>
         <module>all</module>
-        <module>jdbc</module>
     </modules>
 
     <properties>
