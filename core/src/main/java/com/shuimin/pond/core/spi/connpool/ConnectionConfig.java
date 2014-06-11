@@ -8,11 +8,11 @@ import java.util.Properties;
 public class ConnectionConfig extends Properties{
 
     public final static String MYSQL_DRIVER = "com.mysql.jdbc.Driver";
-    public final static String MAX_SIZE = "connpool.max_size";
-    public final static String DRIVER_CLASS = "connpool.driver_class";
-    public final static String USERNAME ="connpool.username";
-    public final static String PASSWORD = "connpool.password";
-    public final static String CONNECTION_URL = "connpool.conn";
+    public final static String MAX_SIZE = "max_size";
+    public final static String DRIVER_CLASS = "driver_class";
+    public final static String USERNAME ="username";
+    public final static String PASSWORD = "password";
+    public final static String CONNECTION_URL = "conn_url";
 
     public int maxPoolSize = 5;
 

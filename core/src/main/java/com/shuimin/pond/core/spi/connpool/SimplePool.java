@@ -1,17 +1,23 @@
 package com.shuimin.pond.core.spi.connpool;
 
+import com.shuimin.common.S;
 import com.shuimin.common.util.logger.Logger;
+import com.shuimin.pond.core.spi.ConnectionPool;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import static com.shuimin.common.S._throw;
 
-public class SimplePool {
+public class SimplePool implements ConnectionPool {
 
     private Logger logger = Logger.get();
     private List<Connection> connPool;
@@ -23,7 +29,23 @@ public class SimplePool {
     private String pass;
 
     public SimplePool() {
-
+        //read from classpath
+        String filename = "cp.conf";
+        File dir = new File(S.path.rootClassPath());
+        try {
+            Properties config = new Properties();
+            if(dir.exists()){
+                File conf = new File(dir,filename);
+                if(conf.exists() && conf.canRead())
+                    config.load(
+                            new FileInputStream(new File(dir,filename))
+                    );
+            }
+            init(new ConnectionConfig(config));
+        } catch (IOException | SQLException e) {
+            S._throw(e);
+            e.printStackTrace();
+        }
     }
 
     public void setLogger(Logger logger) {
