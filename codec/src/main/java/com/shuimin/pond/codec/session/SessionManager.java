@@ -16,9 +16,12 @@ import static com.shuimin.pond.core.Pond.debug;
  */
 public class SessionManager implements Makeable<SessionManager> {
 
-    private final static Map<String, Session> sessions = new HashMap<>();
-
     public static final String SESSION_LIFETIME = "session_lifetime";
+    private final static Map<String, Session> sessions = new HashMap<>();
+    private static Function<Session, String> supplierFunc = (id) -> {
+        debug("session : " + id + " created");
+        return new TimerSession(id, SessionManager::sessionLifeTime);
+    };
 
     public static Session get(String sessionId) {
         return get(sessionId, true);
@@ -35,8 +38,8 @@ public class SessionManager implements Makeable<SessionManager> {
                 sessions.put(sessionId, ret);
             }
         }
-        if(ret != null )
-            debug("got session : " +  ret.toString());
+        if (ret != null)
+            debug("got session : " + ret.toString());
         return ret;
     }
 
@@ -52,14 +55,9 @@ public class SessionManager implements Makeable<SessionManager> {
         }
     }
 
-    private static Function<Session, String> supplierFunc = (id) -> {
-        debug("session : "+id+" created");
-        return new TimerSession(id,SessionManager::sessionLifeTime);
-    };
-
-    private static int sessionLifeTime(){
+    private static int sessionLifeTime() {
         return (Integer) Pond.get().attr(
-            SESSION_LIFETIME) * 1000;
+                SESSION_LIFETIME) * 1000;
     }
 
 //    public static
@@ -72,7 +70,6 @@ public class SessionManager implements Makeable<SessionManager> {
     public static Session get() {
         return get((String) CUR().attr(SessionInstaller.JSESSIONID));
     }
-
 
 
     public static SessionInstaller installer() {

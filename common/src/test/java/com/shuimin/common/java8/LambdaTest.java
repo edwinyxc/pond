@@ -11,7 +11,7 @@ public class LambdaTest {
     public static void main(String[] args) {
 
         Map<Integer, String> testMap = map.hashMap(new Object[][]{
-            {1, "one"}, {2, "two"}, {3, "weee"}, {4, "weee"}
+                {1, "one"}, {2, "two"}, {3, "weee"}, {4, "weee"}
         });
 
         _for(testMap).map((s) -> s + "_new").each((entry) -> echo(entry.getValue()));

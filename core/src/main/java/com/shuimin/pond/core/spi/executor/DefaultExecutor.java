@@ -3,7 +3,7 @@ package com.shuimin.pond.core.spi.executor;
 import com.shuimin.common.f.Function;
 import com.shuimin.pond.core.*;
 import com.shuimin.pond.core.exception.HttpException;
-import com.shuimin.pond.core.exception.YException;
+import com.shuimin.pond.core.exception.PondException;
 import com.shuimin.pond.core.kernel.PKernel;
 import com.shuimin.pond.core.spi.Logger;
 import com.shuimin.pond.core.spi.MiddlewareExecutor;
@@ -24,13 +24,13 @@ public class DefaultExecutor implements MiddlewareExecutor {
     @Override
     public ExecutionContext execute(
 
-        Function.F0<ExecutionContext> executionProvider,
-        Function.F0<Iterable<Middleware>> midProvider) {
+            Function.F0<ExecutionContext> executionProvider,
+            Function.F0<Iterable<Middleware>> midProvider) {
 
 
         ExecutionContext ctx = executionProvider.apply();
         Iterator<Middleware> midIter = _notNull(midProvider.apply())
-            .iterator();
+                .iterator();
 
         Request req = ctx.req();
         Response resp = ctx.resp();
@@ -66,7 +66,7 @@ public class DefaultExecutor implements MiddlewareExecutor {
 
         } catch (HttpException e) {
             resp.sendError(e.code(), e.getMessage());
-        } catch (YException e) {
+        } catch (PondException e) {
             resp.sendError(500, e.toString());
         } catch (Throwable th) {
             th.printStackTrace();

@@ -19,6 +19,10 @@ public class StreamView extends View {
         this.is = is;
     }
 
+    public static StreamView one(InputStream is) {
+        return new StreamView(is);
+    }
+
     @Override
     public void _render(Response resp) {
         try {
@@ -27,9 +31,5 @@ public class StreamView extends View {
             S._lazyThrow(ex);
         }
         resp.writer().flush();
-    }
-
-    public static StreamView one(InputStream is) {
-        return new StreamView(is);
     }
 }

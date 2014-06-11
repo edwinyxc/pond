@@ -13,12 +13,13 @@ public interface MiddlewareExecutor {
      * <pre>
      *     execute
      * </pre>
+     *
      * @param midProvider
      * @return
      */
     ExecutionContext execute(
-        Function.F0<ExecutionContext> ctxProvider,
-        Function.F0<Iterable<Middleware>> midProvider
+            Function.F0<ExecutionContext> ctxProvider,
+            Function.F0<Iterable<Middleware>> midProvider
     );
 
 }

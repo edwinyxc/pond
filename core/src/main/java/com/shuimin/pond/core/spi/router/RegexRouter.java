@@ -1,10 +1,8 @@
 package com.shuimin.pond.core.spi.router;
 
 import com.shuimin.common.S;
-import com.shuimin.common.f.Function;
 import com.shuimin.pond.core.ExecutionContext;
 import com.shuimin.pond.core.Middleware;
-import com.shuimin.pond.core.Request;
 import com.shuimin.pond.core.http.HttpMethod;
 import com.shuimin.pond.core.spi.Router;
 

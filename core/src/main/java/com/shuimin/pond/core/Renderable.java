@@ -8,13 +8,19 @@ import com.shuimin.pond.core.spi.ViewEngine;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Created by ed on 2014/4/18.
  */
 public interface Renderable {
-    public void render(Response resp);
+
+    public static Renderable error(int err_code, String msg) {
+        String path = "err" + File.separator + err_code;
+        return view(path, new HashMap<String, Object>() {{
+            this.put("err_msg", msg);
+        }});
+    }
 
     public static Renderable text(String text) {
         return (resp) -> {
@@ -22,10 +28,6 @@ public interface Renderable {
             resp.send(200);
         };
     }
-
-//    public static Renderable xml(Object o) {
-//        //TODO
-//    }
 
     public static Renderable json(Object o) {
         JsonService serv = PKernel.getService(JsonService.class);
@@ -53,10 +55,11 @@ public interface Renderable {
     }
 
     public static Renderable view(String path, Object o) {
-        File file = new File((String) Pond.attribute(Global.ROOT)+File.separator+path);
+        File file = new File((String) Pond.attribute(Global.ROOT)
+                + File.separator + path);
         ViewEngine engine = PKernel.getService(ViewEngine.class);
-        if(file.exists()) {
-            PKernel.getLogger().warn("File"+ file + "not found");
+        if (file.exists()) {
+            PKernel.getLogger().warn("File" + file + "not found");
             return (resp) -> engine.render(resp.out(), path, o);
         }
         return json(o);
@@ -65,6 +68,8 @@ public interface Renderable {
     public static Renderable view(String path) {
         return view(path, null);
     }
+
+    public void render(Response resp);
 
 
 }

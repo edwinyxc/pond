@@ -19,14 +19,14 @@ import static com.shuimin.pond.core.Pond.CUR;
  * Cookie[JSESSIONID] 若没有则加入一个session </p>
  */
 public class SessionInstaller extends AbstractMiddleware
-    implements Makeable<SessionInstaller>{
+        implements Makeable<SessionInstaller> {
 
     public static final String JSESSIONID = "JSESSIONID";
-
+    int life_time = 60 * 30;
 
     String checkJSession(Request req) {
         Cookie c = req.cookie(JSESSIONID);
-        if(c == null) return null;
+        if (c == null) return null;
         return c.getValue();
     }
 
@@ -37,10 +37,8 @@ public class SessionInstaller extends AbstractMiddleware
         return uuid;
     }
 
-    int life_time= 60 *30;
-
     public SessionInstaller maxLifeSec(int seconds) {
-        if(seconds < 0 ){
+        if (seconds < 0) {
             throw new IllegalArgumentException("invalid seconds");
         }
         this.life_time = seconds;
@@ -56,7 +54,7 @@ public class SessionInstaller extends AbstractMiddleware
     @Override
     public ExecutionContext handle(ExecutionContext ctx) {
         String uuid;
-        if(null == (uuid = checkJSession(ctx.req()))){
+        if (null == (uuid = checkJSession(ctx.req()))) {
             uuid = writeSessionId(ctx.resp());
             redirect(ctx.req().path());
         }

@@ -1,8 +1,8 @@
 package com.shuimin.pond.codec.view;
 
 import com.shuimin.common.f.Callback;
-import com.shuimin.pond.core.Response;
 import com.shuimin.pond.core.Renderable;
+import com.shuimin.pond.core.Response;
 
 import java.io.InputStream;
 
@@ -12,7 +12,8 @@ import java.io.InputStream;
 public abstract class View implements Renderable {
 
     private Callback<Response> _before
-        = t -> {};
+            = t -> {
+    };
 
     @Override
     public void render(Response resp) {

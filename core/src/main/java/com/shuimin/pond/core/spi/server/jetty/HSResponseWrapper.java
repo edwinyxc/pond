@@ -29,7 +29,7 @@ public class HSResponseWrapper implements Response {
 
     @Override
     public void send(int code) {
-        if(hasSend){
+        if (hasSend) {
             return;
         }
         _resp.setStatus(code);
@@ -37,17 +37,16 @@ public class HSResponseWrapper implements Response {
             _resp.flushBuffer();
         } catch (IOException e) {
             _throw(e);
-        }
-        finally {
+        } finally {
             hasSend = true;
         }
     }
 
     @Override
     public void sendError(int code, String msg) {
-        if(hasSend) return;
+        if (hasSend) return;
         try {
-            _resp.sendError(code,msg);
+            _resp.sendError(code, msg);
         } catch (IOException e) {
             _throw(e);
         } finally {
@@ -57,14 +56,13 @@ public class HSResponseWrapper implements Response {
 
     @Override
     public void sendFile(File file) {
-        if(hasSend)return;
+        if (hasSend) return;
         _resp.setStatus(200);
-        try(FileInputStream in = new FileInputStream(file)){
-            S.stream.write(in,_resp.getOutputStream());
+        try (FileInputStream in = new FileInputStream(file)) {
+            S.stream.write(in, _resp.getOutputStream());
         } catch (IOException e) {
-           _throw(e);
-        }
-        finally {
+            _throw(e);
+        } finally {
             hasSend = true;
         }
     }

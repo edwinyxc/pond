@@ -20,8 +20,8 @@ public class JettyServer implements BaseServer {
 
     private org.eclipse.jetty.server.Server server;
 
-    private Callback.C2<com.shuimin.pond.core.Request,Response> handler
-        = (req,resp) -> S.echo("EMPTY SERVER") ;
+    private Callback.C2<com.shuimin.pond.core.Request, Response> handler
+            = (req, resp) -> S.echo("EMPTY SERVER");
 
     @Override
     public void listen(int port) {
@@ -31,18 +31,18 @@ public class JettyServer implements BaseServer {
             public void handle(String target, Request baseRequest,
                                HttpServletRequest request,
                                HttpServletResponse response)
-                throws IOException, ServletException {
+                    throws IOException, ServletException {
 
                 handler.apply(
-                    new HSRequestWrapper(request),
-                    new HSResponseWrapper(response));
+                        new HSRequestWrapper(request),
+                        new HSResponseWrapper(response));
             }
         });
         try {
             server.start();
         } catch (Exception e) {
             // Jetty throw EofE when client close the connection
-            if( e instanceof EofException){
+            if (e instanceof EofException) {
                 S.echo("Jetty throw an EOF exception");
                 return;
             }

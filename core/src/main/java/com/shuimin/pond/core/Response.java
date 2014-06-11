@@ -14,6 +14,7 @@ public interface Response {
 
     /**
      * <p>写入响应头</p>
+     *
      * @param k key
      * @param v value
      * @return this
@@ -23,12 +24,14 @@ public interface Response {
     /**
      * <p>向客户端发送对应代码,内容一并送出
      * 此方法调用之后任何对其的操作都被视为无效，具体细节参考服务期实现。</p>
+     *
      * @param code http status code
      */
     void send(int code);
 
     /**
      * <p>此方法用来发送错误码和详细描述</p>
+     *
      * @param code
      * @param msg
      */
@@ -36,12 +39,14 @@ public interface Response {
 
     /**
      * <p>向客户端写入文件，完成时发送200，此操作立即返回，具体如何发送由底层服务器控制。</p>
+     *
      * @param file
      */
     void sendFile(File file);
 
     /**
      * <p>设置响应状态码，只要不发送，此状态码可以再次改变</p>
+     *
      * @param sc
      * @return this
      */
@@ -49,18 +54,21 @@ public interface Response {
 
     /**
      * <p>获取底层响应流，不建议直接使用，原因是具体的底层响应可能不是以流的方式实现的。</p>
+     *
      * @return outputStream
      */
     OutputStream out();
 
     /**
      * <p>包装了out流的printWriter,用于输出响应文本</p>
+     *
      * @return printWriter
      */
     PrintWriter writer();
 
     /**
      * <p>向响应添加字符串</p>
+     *
      * @param s to append string
      * @return this
      */
@@ -68,6 +76,7 @@ public interface Response {
 
     /**
      * <p>为响应添加cookie, 使用 Add-Cookie 响应头实现</p>
+     *
      * @param c
      * @return this
      */
@@ -75,6 +84,7 @@ public interface Response {
 
     /**
      * <p>发送302响应，参数作为Location</p>
+     *
      * @param url destination location
      */
     void redirect(String url);
@@ -82,6 +92,7 @@ public interface Response {
     /**
      * <p>设置 Content-Type 响应头
      * </p>
+     *
      * @param type type
      * @return this
      */

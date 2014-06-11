@@ -9,15 +9,6 @@ import com.shuimin.pond.core.Request;
  * Created by ed interrupt 2014/4/2.
  */
 public interface RouteNode extends Middleware {
-    /**
-     * true if req math the path
-     *
-     * @param req - request that contains path
-     * @return boolean
-     */
-    public boolean match(Request req);
-
-
     static RouteNode of(String path, Middleware ware) {
         return new RouteNode() {
 
@@ -47,4 +38,12 @@ public interface RouteNode extends Middleware {
             }
         };
     }
+
+    /**
+     * true if req math the path
+     *
+     * @param req - request that contains path
+     * @return boolean
+     */
+    public boolean match(Request req);
 }

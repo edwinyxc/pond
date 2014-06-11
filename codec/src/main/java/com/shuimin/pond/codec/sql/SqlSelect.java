@@ -5,7 +5,7 @@ import com.shuimin.common.f.Tuple;
 /**
  * Created by ed on 2014/4/30.
  */
-public interface SqlSelect extends Sql,SqlWhere<SqlSelect> {
+public interface SqlSelect extends Sql, SqlWhere<SqlSelect> {
 
     public SqlSelect from(String table);
 

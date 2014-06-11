@@ -7,17 +7,17 @@ Record.java -- should settable ava?  --?
 ResourceService -- delete queryForPage --- ok
                 -- fix query  ---ok
 
-check debug
+check debug -- ?
 
-template & structure
+template & structure -- done
 
-delete "ROOT_CLASS"
+delete "ROOT_CLASS" ---- divined to webRoot and root
 
-set public & forbidden folders
+set public & forbidden folder ---??? may not require
 
-re-consider logger ?
+re-consider logger ? --- ok
 
-
+add model --- ok
 
 
 

@@ -6,7 +6,6 @@ import com.shuimin.common.f.Function;
 import com.shuimin.common.f.Tuple;
 import com.shuimin.pond.core.Middleware;
 import com.shuimin.pond.core.http.HttpMethod;
-import com.shuimin.pond.core.kernel.PKernel;
 import com.shuimin.pond.core.mw.Dispatcher;
 import com.shuimin.pond.core.spi.Logger;
 
@@ -24,7 +23,7 @@ import static com.shuimin.pond.core.http.HttpMethod.*;
  */
 public abstract class Controller implements Config<Dispatcher> {
 
-    static Logger logger = PKernel.getLogger();
+    static Logger logger = Logger.createLogger(Controller.class);
 
     protected List<Tuple.T3<Integer, String, Middleware>> actions = new ArrayList<>();
 
@@ -78,10 +77,10 @@ public abstract class Controller implements Config<Dispatcher> {
 
         logger.debug("Binding resource controller : " + nameSupplier.apply(this));
 
-//        System.out.println("Binding bo controller : " + nameSupplier.apply(this));
-        String namespace = "/"+nameSupplier.apply(this);
+        String namespace = "/" + nameSupplier.apply(this);
         _for(actions).each(t -> {
-            S.echo("binding "+t._c+ "to "+ namespace + t._b);
+            //TODO debug not functioning
+            logger.debug("binding " + t._c + "to " + namespace + t._b);
             dispatcher.bind(t._a, namespace + t._b, t._c);
         });
     }

@@ -1,11 +1,11 @@
 package com.shuimin.common.struc.tree;
 
-import java.util.Iterator;
-import java.util.List;
-
 import com.shuimin.common.abs.Attrs;
 import com.shuimin.common.abs.Namable;
 import com.shuimin.common.f.Function;
+
+import java.util.Iterator;
+import java.util.List;
 
 public interface Tree<T> extends Namable<Tree<T>>, Attrs<Tree<T>> {
 
@@ -162,9 +162,9 @@ public interface Tree<T> extends Namable<Tree<T>>, Attrs<Tree<T>> {
     Tree<T> first();
 
     /**
-     * <p>
+     * <p/>
      * Return children of parent
-     * <p>
+     * <p/>
      *
      * @return
      */

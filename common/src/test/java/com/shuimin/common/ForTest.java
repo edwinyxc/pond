@@ -6,7 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static com.shuimin.common.S.*;
+import static com.shuimin.common.S._for;
+import static com.shuimin.common.S.echo;
 
 public class ForTest extends TestCase {
 
@@ -36,9 +37,9 @@ public class ForTest extends TestCase {
 
     public static void testBi() {
 
-        Integer[] arr = {1,2,3,4,5,6,6,6344,3,2,2,3,4};
+        Integer[] arr = {1, 2, 3, 4, 5, 6, 6, 6344, 3, 2, 2, 3, 4};
 
-        echo(_for(arr).map( i -> i+1 ).reduce((a, b) -> a > b ? a : b));
+        echo(_for(arr).map(i -> i + 1).reduce((a, b) -> a > b ? a : b));
 
     }
 

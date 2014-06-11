@@ -6,17 +6,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- *
  * @author ed
  */
 public class STest {
 
     static void test_array_join() {
-        S.echo(S.array.of(new ArrayList<String>(){{
-                this.add("s");
-                this.add("b");
-                this.add("b");
-                this.add("b");
+        S.echo(S.array.of(new ArrayList<String>() {{
+            this.add("s");
+            this.add("b");
+            this.add("b");
+            this.add("b");
         }}));
     }
 
@@ -24,7 +23,7 @@ public class STest {
         String a = "";
         try {
             a
-                = throwCheckedException();
+                    = throwCheckedException();
         } catch (IOException ex) {
             S._lazyThrow(ex);
         }

@@ -10,102 +10,7 @@ import java.util.*;
 
 public class TinyTree<E> implements Tree<E> {
 
-    private class BFS implements Iterator<Tree<E>> {
-
-        private final Queue<Iterator<Tree<E>>> queue = new LinkedList<>();
-
-        public BFS(Tree<E> node) {
-            queue.offer(node.children().iterator());
-        }
-
-        @Override
-        public boolean hasNext() {
-            if (queue.isEmpty()) {
-                return false;
-            }
-            Iterator<Tree<E>> it = queue.peek();
-            if (it.hasNext()) {
-                return true;
-            }
-            queue.poll();
-            return hasNext();
-        }
-
-        @Override
-        public Tree<E> next() {
-            if (hasNext()) {
-                Iterator<Tree<E>> it = queue.peek();
-                Tree<E> next = it.next();
-                if (!next.isLeaf()) {
-                    queue.offer(next.children().iterator());
-                }
-                return next;
-            }
-            return null;
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException(
-                    "remove not supported, yet.");
-        }
-
-    }
-
-    private class DFS implements Iterator<Tree<E>> {
-
-        final private Stack<Iterator<Tree<E>>> stack = new Stack<>();
-
-        public DFS(Tree<E> node) {
-            S._assert(node, "node null");
-            stack.push(node.children().iterator());
-        }
-
-        @Override
-        public boolean hasNext() {
-            if (stack.isEmpty()) {
-                return false;
-            }
-            Iterator<Tree<E>> it = stack.peek();
-            if (it.hasNext()) {
-                return true;
-            }
-            stack.pop();
-            return hasNext();
-        }
-
-        @Override
-        public Tree<E> next() {
-            if (hasNext()) {
-                Iterator<Tree<E>> it = stack.peek();
-                Tree<E> next = it.next();
-                if (!next.isLeaf()) {
-                    stack.push(next.children().iterator());
-                }
-                return next;
-            }
-            return null;
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException(
-                    "remove not supported, yet.");
-        }
-    }
-
     private final Map<String, Object> attrs = new TreeMap<>();
-
-    private int idxInParent = -1;
-
-    private E elem;
-
-    private List<Tree<E>> children = new LinkedList<>();
-
-    private Tree<E> parent;
-
-    private Tree<E> root = this;
-
     protected Selector<Tree<E>> selector = name -> {
         for (Tree<E> node : TinyTree.this.children) {
             if (node == null) {
@@ -117,6 +22,11 @@ public class TinyTree<E> implements Tree<E> {
         }
         return null;
     };
+    private int idxInParent = -1;
+    private E elem;
+    private List<Tree<E>> children = new LinkedList<>();
+    private Tree<E> parent;
+    private Tree<E> root = this;
 
     protected TinyTree() {
     }
@@ -270,9 +180,9 @@ public class TinyTree<E> implements Tree<E> {
                 prefix = "┗━━";
             }
             view.addRows(t.isLeaf() ? S.matrix.fromString(new String[]{
-                prefix, t.name()})
+                    prefix, t.name()})
                     : S.matrix.addHorizontal(S.matrix.fromString(prefix),
-                            ((TinyTree<E>) t)._lines()));
+                    ((TinyTree<E>) t)._lines()));
             for (int i = 1; i < view.rows(); i++) {
                 if (view.get(i, 0) == '┗') {
                     break;
@@ -406,7 +316,7 @@ public class TinyTree<E> implements Tree<E> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override
@@ -443,5 +353,89 @@ public class TinyTree<E> implements Tree<E> {
         // str.append(_s).append('\n');
         // }
         // return str.toString();
+    }
+
+    private class BFS implements Iterator<Tree<E>> {
+
+        private final Queue<Iterator<Tree<E>>> queue = new LinkedList<>();
+
+        public BFS(Tree<E> node) {
+            queue.offer(node.children().iterator());
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (queue.isEmpty()) {
+                return false;
+            }
+            Iterator<Tree<E>> it = queue.peek();
+            if (it.hasNext()) {
+                return true;
+            }
+            queue.poll();
+            return hasNext();
+        }
+
+        @Override
+        public Tree<E> next() {
+            if (hasNext()) {
+                Iterator<Tree<E>> it = queue.peek();
+                Tree<E> next = it.next();
+                if (!next.isLeaf()) {
+                    queue.offer(next.children().iterator());
+                }
+                return next;
+            }
+            return null;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException(
+                    "remove not supported, yet.");
+        }
+
+    }
+
+    private class DFS implements Iterator<Tree<E>> {
+
+        final private Stack<Iterator<Tree<E>>> stack = new Stack<>();
+
+        public DFS(Tree<E> node) {
+            S._assert(node, "node null");
+            stack.push(node.children().iterator());
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (stack.isEmpty()) {
+                return false;
+            }
+            Iterator<Tree<E>> it = stack.peek();
+            if (it.hasNext()) {
+                return true;
+            }
+            stack.pop();
+            return hasNext();
+        }
+
+        @Override
+        public Tree<E> next() {
+            if (hasNext()) {
+                Iterator<Tree<E>> it = stack.peek();
+                Tree<E> next = it.next();
+                if (!next.isLeaf()) {
+                    stack.push(next.children().iterator());
+                }
+                return next;
+            }
+            return null;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException(
+                    "remove not supported, yet.");
+        }
     }
 }

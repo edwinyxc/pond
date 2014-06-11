@@ -8,7 +8,7 @@ import com.shuimin.pond.core.spi.JsonService;
 /**
  * Created by ed on 14-5-21.
  */
-public class AlibabaJson implements JsonService{
+public class AlibabaJson implements JsonService {
 
     @Override
     public String toString(Object o) {
@@ -17,6 +17,7 @@ public class AlibabaJson implements JsonService{
 
     @Override
     public <E> E fromString(Class<E> clazz, String s) {
-        return JSON.parseObject(s, new TypeReference<E>(){});
+        return JSON.parseObject(s, new TypeReference<E>() {
+        });
     }
 }

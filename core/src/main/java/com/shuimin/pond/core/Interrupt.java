@@ -1,7 +1,7 @@
 package com.shuimin.pond.core;
 
 import com.shuimin.common.S;
-import com.shuimin.pond.core.exception.YException;
+import com.shuimin.pond.core.exception.PondException;
 
 /**
  * @author ed
@@ -9,34 +9,16 @@ import com.shuimin.pond.core.exception.YException;
 public interface Interrupt {
 
 
-    public static abstract class Interruption extends YException {
-        private static final Object fakeCause = new Object() {
-            @Override
-            public String toString() {
-                return "This is an interrupt with no cause";
-            }
-        };
-
-        public Interruption() {
-            super(fakeCause);
-        }
-
-        public Interruption(Object cause) {
-            super(cause);
-        }
-
-        @Override
-        public Throwable fillInStackTrace() {
-            return this;
-        }
-    }
-
     public static void redirect(String uri) {
         throw new RedirectInterruption(uri);
     }
 
     public static void render(Renderable o) {
         throw new RenderInterruption(o);
+    }
+
+    public static void kill() {
+        throw new KillInterruption();
     }
 
 //    public static void jump() {
@@ -47,19 +29,26 @@ public interface Interrupt {
 //        throw new JumpInterruption(cause);
 //    }
 
-    public static void kill() {
-        throw new KillInterruption();
+    public static abstract class Interruption extends PondException {
+        private static final Object fakeCause = new Object() {
+            @Override
+            public String toString() {
+                return "This is an interrupt with no cause";
+            }
+        };
+
+        @Override
+        public Throwable fillInStackTrace() {
+            return this;
+        }
     }
 
     /**
      * used in a interception chain to jump out the chain
      */
     @SuppressWarnings("serial")
+    @Deprecated
     public static class JumpInterruption extends Interruption {
-
-        public JumpInterruption(Object cause) {
-            super(cause);
-        }
 
         public JumpInterruption() {
             super();
@@ -72,7 +61,7 @@ public interface Interrupt {
 
         @Override
         public String detail() {
-            return "jump out from " + cause();
+            return "jump out from " + getCause();
         }
 
     }
@@ -98,7 +87,7 @@ public interface Interrupt {
 
         @Override
         public String detail() {
-            return "kill by " + cause();
+            return "kill by " + getCause();
         }
 
     }
@@ -108,13 +97,13 @@ public interface Interrupt {
 
         final private String _uri;
 
-        public String uri() {
-            return _uri;
-        }
-
         public RedirectInterruption(String uri) {
             super();
             _uri = S._notNull(uri);
+        }
+
+        public String uri() {
+            return _uri;
         }
 
         @Override
@@ -124,7 +113,7 @@ public interface Interrupt {
 
         @Override
         public String detail() {
-            return brief() + " fired by " + cause();
+            return brief() + " fired by " + getCause();
         }
     }
 
@@ -133,13 +122,13 @@ public interface Interrupt {
 
         final private Renderable value;
 
-        public Renderable value() {
-            return value;
-        }
-
         public RenderInterruption(Renderable o) {
             super();
             value = o;
+        }
+
+        public Renderable value() {
+            return value;
         }
 
         @Override
@@ -149,7 +138,7 @@ public interface Interrupt {
 
         @Override
         public String detail() {
-            return brief() + " fired by " + cause();
+            return brief() + " fired by " + getCause();
         }
     }
 

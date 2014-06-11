@@ -1,37 +1,37 @@
 package com.shuimin.common.s;
 
-import static com.shuimin.common.S.echo;
-
-import java.lang.reflect.Method;
-
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
+import java.lang.reflect.Method;
+
+import static com.shuimin.common.S.echo;
+
 public class CgLibTest {
-	public static class Foo {
-		public String doSomething() {
-			return "I do something";
-		}
-	}
+    public static void main(String[] args) {
 
-	private static class Interceptor implements MethodInterceptor {
-		public Interceptor() {
-		}
+        Foo created = (Foo) Enhancer.create(Foo.class, new Interceptor());
 
-		@Override
-		public Object intercept(Object o, Method method, Object[] args,
-				MethodProxy mp) throws Throwable {
-			return "I do nothing";
-		}
-	}
+        echo(created.doSomething());
 
-	public static void main(String[] args) {
+    }
 
-		Foo created = (Foo) Enhancer.create(Foo.class, new Interceptor());
+    public static class Foo {
+        public String doSomething() {
+            return "I do something";
+        }
+    }
 
-		echo(created.doSomething());
+    private static class Interceptor implements MethodInterceptor {
+        public Interceptor() {
+        }
 
-	}
+        @Override
+        public Object intercept(Object o, Method method, Object[] args,
+                                MethodProxy mp) throws Throwable {
+            return "I do nothing";
+        }
+    }
 
 }

@@ -26,32 +26,50 @@ import static com.shuimin.pond.core.Pond.debug;
  * <p>A Simple static file server</p>
  */
 
-//TODO make an interface
+/*TODO make an interface
+ Make StaticFilerServer as spi,
+ so third-party FileServer can be bound-in.
+ Yet the abstraction still unknown.
+ */
 public class StaticFileServer extends AbstractMiddleware
-    implements  Makeable<StaticFileServer> {
+        implements Makeable<StaticFileServer> {
 
+    public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
+    public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
+    public static final int HTTP_CACHE_SECONDS = 60;
+    private static final Pattern INSECURE_PATH = Pattern.compile(".*[<>&\"].*");
+    public String publicDir;
     private Logger logger = PKernel.getLogger();
-
-    /***
+    /**
      * Provider
      */
 
     private Function.F0<Pattern> allowedFileNamesProvider =
-        () -> Pattern.compile("[A-Za-z0-9][-_A-Za-z0-9\\.]*");
-
+            () -> Pattern.compile("[A-Za-z0-9][-_A-Za-z0-9\\.]*");
     private String[] defaultPages = {"index.html"};
-
     private String charset = "utf-8";
+    private Callback.C2<Response, File> listDir = this::defaultListFiles;
+    public StaticFileServer(String str) {
+        String absPath = Pond.pathRelWebRoot(str);
+
+        File f = new File(absPath);
+        System.out.println(f.getAbsolutePath());
+        if (!f.exists() || !f.canWrite()) {
+            throw new UnexpectedException() {
+                @Override
+                public String brief() {
+                    return "File[" + absPath + "] not valid";
+                }
+            };
+        }
+        debug("static server path : " + absPath);
+        publicDir = absPath;
+    }
 
     public StaticFileServer charset(String charset) {
         this.charset = charset;
         return this;
     }
-
-    private Function.F0<String> webRootProvider = () ->
-        (String) Pond.config(Global.ROOT);
-
-    private Callback.C2<Response, File> listDir = this::defaultListFiles;
 
     public StaticFileServer allowedNames(Function.F0<Pattern> f) {
         this.allowedFileNamesProvider = f;
@@ -68,47 +86,19 @@ public class StaticFileServer extends AbstractMiddleware
         return this;
     }
 
-    public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
-    public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
-    public static final int HTTP_CACHE_SECONDS = 60;
-
-    public String publicDir;
-
-    public StaticFileServer(String str) {
-        String absPath;
-
-        if (str.startsWith("/") || str.indexOf(":") == 1) {
-            absPath = str;
-        } else {
-            absPath = webRootProvider.apply() + File.separator + str;
-        }
-
-        File f = new File(absPath);
-
-        if (!f.exists() || !f.canWrite()) {
-            throw new UnexpectedException(this) {
-                @Override
-                public String brief() {
-                    return "File[" + absPath + "] not valid";
-                }
-            };
-        }
-        debug("static server path : "+ absPath);
-        publicDir = absPath;
-    }
-
     @Override
     public void init() {
-        Pond.get().attr(Global.ROOT, publicDir);
+        String webRoot = (String) Pond.get().attr(Global.ROOT_WEB);
+        if (S.str.notBlank(webRoot))
+            Pond.get().attr(Global.ROOT_WEB, publicDir);
     }
-
 
     private String findDefaultPage(File dir) {
         File[] files = dir.listFiles();
-        if(files == null){
+        if (files == null) {
             throw new NullPointerException();
         }
-        String[] names = defaultPages ;
+        String[] names = defaultPages;
         for (File f : files) {
             for (String name : names) {
                 if (name.equals(f.getName())) {
@@ -191,20 +181,18 @@ public class StaticFileServer extends AbstractMiddleware
         }
 
 
-
         setDateAndCacheHeaders(resp, file);
 
         resp.sendFile(file);
 
     }
 
-
     public void defaultListFiles(Response resp, File dir) {
         resp.contentType("text/html; charset=UTF-8");
 
         StringBuilder buf = new StringBuilder();
         String dirPath = dir.getPath()
-            .replace(publicDir, "\\").replaceAll("\\\\", "/");
+                .replace(publicDir, "\\").replaceAll("\\\\", "/");
 
         buf.append("<!DOCTYPE html>\r\n");
         buf.append("<html><head><title>");
@@ -221,7 +209,7 @@ public class StaticFileServer extends AbstractMiddleware
 
         Pattern allowedNames = this.allowedFileNamesProvider.apply();
 
-        if(dir == null) {
+        if (dir == null) {
             throw new NullPointerException();
         }
 
@@ -247,8 +235,6 @@ public class StaticFileServer extends AbstractMiddleware
         resp.send(200);
     }
 
-    private static final Pattern INSECURE_PATH = Pattern.compile(".*[<>&\"].*");
-
     private String validPath(String path) {
         if (!path.startsWith("/")) {
             return null;
@@ -256,9 +242,9 @@ public class StaticFileServer extends AbstractMiddleware
         String _path = path.replace('/', File.separatorChar);
 
         if (_path.contains(File.separator + '.') ||
-            _path.contains('.' + File.separator) ||
-            _path.startsWith(".") || _path.endsWith(".") ||
-            INSECURE_PATH.matcher(_path).matches()) {
+                _path.contains('.' + File.separator) ||
+                _path.startsWith(".") || _path.endsWith(".") ||
+                INSECURE_PATH.matcher(_path).matches()) {
             return null;
         }
 
@@ -288,13 +274,13 @@ public class StaticFileServer extends AbstractMiddleware
     private void setContentType(Response resp, File file) {
         String[] fullName = file.getName().split("\\.");
         logger.debug(file.getAbsolutePath() + " suffix " + dump(fullName));
-        String ext = fullName[fullName.length-1];
+        String ext = fullName[fullName.length - 1];
         resp.contentType(MimeTypes.getMimeType(ext) + ";charset=" + charset);
     }
 
     @Override
     public ExecutionContext handle(ExecutionContext ctx) {
-        this.handle(ctx.req(),ctx.resp());
+        this.handle(ctx.req(), ctx.resp());
         kill();
         return null;
     }

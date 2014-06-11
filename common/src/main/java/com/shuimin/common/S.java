@@ -107,7 +107,7 @@ public class S {
     }
 
     public static <T> T _avoidNull(T t, Class<T> clazz) {
-        if (t == null) return nothing.of(clazz);// TODO possible to remove the second
+        if (t == null) return nothing.of(clazz);
         return t;
     }
 
@@ -145,6 +145,99 @@ public class S {
     public static <T> T _one(Class<?> clazz) throws InstantiationException,
             IllegalAccessException {
         return (T) clazz.newInstance();
+    }
+
+    /**
+     * Assert an Object is NonNull, if not throw an RuntimeException.
+     *
+     * @param a potential null value
+     */
+    public static void _assert(Object a) {
+        if (a == null) {
+            throw new RuntimeException(new NullPointerException());
+        }
+    }
+
+    /**
+     * Assert an object is non-null, if not throw an RuntimeException
+     * with input err string.
+     *
+     * @param a   potential null value
+     * @param err err value
+     */
+    public static void _assert(Object a, String err) {
+        if (a == null) {
+            throw new RuntimeException(err);
+        }
+    }
+
+    public static void _assertNotNull(Object... x) {
+        for (Object o : x) {
+            if (o == null) throw new NullPointerException();
+        }
+    }
+
+    /**
+     * <p>Print somethings to the default logger</p>
+     *
+     * @param o object(s) to print
+     */
+    public static void echo(Object o) {
+        logger.echo(dump(o));
+    }
+
+    /**
+     * ***************** B ********************
+     */
+
+    @SuppressWarnings("unchecked")
+    public static String dump(Object o) {
+        if (o == null) return "null";
+        Class clazz = o.getClass();
+        if (clazz.isPrimitive()) {
+            return String.valueOf(o);
+        } else if (o instanceof String) {
+            return (String) o;
+        } else if (o instanceof Iterable) {
+            return "["
+                    + String.join(",",
+                    _notNullElse(_for((Iterable) o).
+                            map((i) -> (dump(i))).val(),
+                            list.one()))
+                    + "]";
+        } else if (clazz.isArray()) {
+            Object[] oArr = new Object[Array.getLength(o)];
+            for (int i = 0; i < oArr.length; i++) {
+                oArr[i] = Array.get(o, i);
+            }
+            return "["
+                    + String.join(",", _for(oArr).
+                    <String>map((i) -> (dump(i))).val())
+                    + "]";
+        } else if (o instanceof Map) {
+            return _for((Map) o).map((i) -> (dump(i))).val().toString();
+        } else {
+            return o.toString();
+        }
+    }
+
+    /**
+     * ******************* L **********************
+     */
+    @SafeVarargs
+    public static <E> list.FList<E> list(E... e) {
+        return list.one(e);
+    }
+
+    /**
+     * ***************** E ********************
+     */
+
+    /**
+     * @return system current time as millseconds
+     */
+    public static long time() {
+        return System.currentTimeMillis();
     }
 
     /**
@@ -301,40 +394,6 @@ public class S {
     }
 
     /**
-     * Assert an Object is NonNull, if not throw an RuntimeException.
-     *
-     * @param a potential null value
-     */
-    public static void _assert(Object a) {
-        if (a == null) {
-            throw new RuntimeException(new NullPointerException());
-        }
-    }
-
-    /**
-     * Assert an object is non-null, if not throw an RuntimeException
-     * with input err string.
-     *
-     * @param a   potential null value
-     * @param err err value
-     */
-    public static void _assert(Object a, String err) {
-        if (a == null) {
-            throw new RuntimeException(err);
-        }
-    }
-
-
-    public static void _assertNotNull(Object... x) {
-        for (Object o : x) {
-            if (o == null) throw new NullPointerException();
-        }
-    }
-
-    /**
-     * ***************** B ********************
-     */
-    /**
      * ***************** C ********************
      */
     public static class collection {
@@ -418,48 +477,6 @@ public class S {
     }
 
     /**
-     * ***************** E ********************
-     */
-
-    /**
-     * <p>Print somethings to the default logger</p>
-     *
-     * @param o object(s) to print
-     */
-    public static void echo(Object o) {
-        logger.echo(dump(o));
-    }
-
-    @SuppressWarnings("unchecked")
-    public static String dump(Object o) {
-        if (o == null) return "null";
-        Class clazz = o.getClass();
-        if (clazz.isPrimitive()) {
-            return String.valueOf(o);
-        } else if (o instanceof String) {
-            return (String) o;
-        } else if (o instanceof Iterable) {
-            return "["
-                    + String.join(",", _for((Iterable) o).
-                    map((i) -> (dump(i))).val())
-                    + "]";
-        } else if (clazz.isArray()) {
-            Object[] oArr = new Object[Array.getLength(o)];
-            for (int i = 0; i < oArr.length; i++) {
-                oArr[i] = Array.get(o, i);
-            }
-            return "["
-                    + String.join(",", _for(oArr).
-                    <String>map((i) -> (dump(i))).val())
-                    + "]";
-        } else if (o instanceof Map) {
-            return _for((Map) o).map((i) -> (dump(i))).val().toString();
-        } else {
-            return o.toString();
-        }
-    }
-
-    /**
      * ******************* F
      * <p/>
      * *********************
@@ -530,6 +547,22 @@ public class S {
 
     }
 
+    /**
+     * ******************* G **********************
+     */
+    /**
+     * ******************* H **********************
+     */
+    /**
+     * ******************* I **********************
+     */
+    /**
+     * ******************* J **********************
+     */
+    /**
+     * ******************* K **********************
+     */
+
     public final static class ForIt<E> {
 
         private final Iterable<E> iter;
@@ -549,9 +582,7 @@ public class S {
                 try {
                     return S._one(itClass);
                 } catch (InstantiationException | IllegalAccessException e) {
-                    e.printStackTrace();
-                    return null;
-                    //TODO test
+                    return list.one();
                 }
             } else {
                 return list.one();
@@ -689,30 +720,19 @@ public class S {
         }
     }
 
-    /**
-     * ******************* G **********************
-     */
-    /**
-     * ******************* H **********************
-     */
-    /**
-     * ******************* I **********************
-     */
-    /**
-     * ******************* J **********************
-     */
-    /**
-     * ******************* K **********************
-     */
-    /**
-     * ******************* L **********************
-     */
-    @SafeVarargs
-    public static <E> list.FList<E> list(E... e) {
-        return list.one(e);
-    }
-
     final static public class list {
+
+        public static <E> FList<E> one() {
+            return new FList<>();
+        }
+
+        public static <E> FList<E> one(Iterable<E> iterable) {
+            return new FList<>(iterable);
+        }
+
+        public static <E> FList<E> one(E... arr) {
+            return new FList<>(arr);
+        }
 
         @SuppressWarnings("serial")
         final static public class FList<T> extends ArrayList<T> {
@@ -773,18 +793,6 @@ public class S {
                 }
                 return sb.toString();
             }
-        }
-
-        public static <E> FList<E> one() {
-            return new FList<>();
-        }
-
-        public static <E> FList<E> one(Iterable<E> iterable) {
-            return new FList<>(iterable);
-        }
-
-        public static <E> FList<E> one(E... arr) {
-            return new FList<>(arr);
         }
 
     }
@@ -892,6 +900,13 @@ public class S {
     }
 
     /**
+     * ******************* O **********************
+     */
+    /**
+     * ******************* P **********************
+     */
+
+    /**
      * ******************* N **********************
      */
     final public static class nothing {
@@ -921,32 +936,26 @@ public class S {
             proxyClass = clazz;
         }
 
-        protected Object proxy() {
-            return _nothingValues.get(proxyClass);
-        }
-
         @SuppressWarnings("unchecked")
         public static <T> T of(Class<T> t) {
             return (T) new nothing(t).proxy();
         }
 
+        protected Object proxy() {
+            return _nothingValues.get(proxyClass);
+        }
+
     }
 
-    /**
-     * ******************* O **********************
-     */
-    /**
-     * ******************* P **********************
-     */
     /**
      * @param <T>
      */
     @SuppressWarnings("unchecked")
     final public static class proxy<T> {
 
+        final Map<String, Function<Object, Object[]>> _mm = new HashMap<>(5);
         final private Class<T> _clazz;
         final private T _t;
-        final Map<String, Function<Object, Object[]>> _mm = new HashMap<>(5);
 
         private proxy(Class<T> clazz, T t) {
             _clazz = clazz;
@@ -1051,7 +1060,23 @@ public class S {
             }
         }
 
+        public static Boolean isAbsolute(String path) {
+            _assert(path);
+            return path.startsWith("/") ||
+                    path.indexOf(":") == 1;
+        }
+
     }
+
+    /**
+     * ******************* Q **********************
+     */
+    /**
+     * ******************* R **********************
+     */
+    /**
+     * ******************* S **********************
+     */
 
     public static class parse {
 
@@ -1085,15 +1110,6 @@ public class S {
     }
 
     /**
-     * ******************* Q **********************
-     */
-    /**
-     * ******************* R **********************
-     */
-    /**
-     * ******************* S **********************
-     */
-    /**
      * @author ed
      */
     public static class stream {
@@ -1117,6 +1133,10 @@ public class S {
             }
         }
     }
+
+    /**
+     * ******************* T **********************
+     */
 
     public static class str {
 
@@ -1260,16 +1280,6 @@ public class S {
 
         }
 
-    }
-
-    /**
-     * ******************* T **********************
-     */
-    /**
-     * @return system current time as millseconds
-     */
-    public static long time() {
-        return System.currentTimeMillis();
     }
 
     /**

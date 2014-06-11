@@ -13,10 +13,10 @@ public class StaticFileServerTest {
 
     public static void main(String[] args) {
         Pond.init().debug()
-            .use(Action.fly(() -> RESP().contentType("text/html;charset=utf-8")))
-            .use(new StaticFileServer("C:\\var\\www")
-                    .defaultPages("index.html", "fine.html")
-            ).start(10000);
+                .use(Action.fly(() -> RESP().contentType("text/html;charset=utf-8")))
+                .use(new StaticFileServer("C:\\var\\www")
+                                .defaultPages("index.html", "fine.html")
+                ).start(10000);
     }
 
 }

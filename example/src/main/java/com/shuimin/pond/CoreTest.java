@@ -5,7 +5,6 @@ import com.shuimin.pond.codec.view.View;
 import com.shuimin.pond.core.Pond;
 import com.shuimin.pond.core.mw.Action;
 import com.shuimin.pond.core.mw.Dispatcher;
-import com.shuimin.pond.core.spi.Router;
 
 import static com.shuimin.pond.core.Interrupt.render;
 
@@ -39,10 +38,6 @@ public class CoreTest {
                 .use(dispatcher).start(9090);
     }
 
-    public static interface SupplyString {
-        public String a();
-    }
-
     public static void echo(SupplyString su) {
         S.echo(su.a());
     }
@@ -50,6 +45,10 @@ public class CoreTest {
     public static void main(String[] args) {
         _1();
 
+    }
+
+    public static interface SupplyString {
+        public String a();
     }
 
 }

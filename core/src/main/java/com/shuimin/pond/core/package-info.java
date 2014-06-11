@@ -4,7 +4,7 @@
  *
  * <p>Core API</p>
  * <ul>
- *     <li>Server
+ *     <li>Pond
  *      - Service Domain, API entrance,
  *      responsible for life-cycle management of executions,
  *      controls all executable middlewares,

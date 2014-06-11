@@ -15,6 +15,13 @@ public abstract class AbstractCache<K, V> extends Cache<K, V> {
     protected final Map cache;
 
     protected Function<V, K> onNothingFound = a -> null;
+    protected Callback.C2<K, V> onRemove = (k, v) -> {
+        // do nothing
+    };
+
+    protected AbstractCache(Map<K, ?> a) {
+        cache = a;
+    }
 
     @Override
     public Cache<K, V> onNotFound(Function<V, K> nothingFoundListener) {
@@ -22,18 +29,10 @@ public abstract class AbstractCache<K, V> extends Cache<K, V> {
         return this;
     }
 
-    protected Callback.C2<K, V> onRemove = (k, v) -> {
-        // do nothing
-    };
-
     @Override
     public Cache<K, V> onRemove(Callback.C2<K, V> removeListener) {
         onRemove = S._notNull(removeListener);
         return this;
-    }
-
-    protected AbstractCache(Map<K, ?> a) {
-        cache = a;
     }
 
     @Override

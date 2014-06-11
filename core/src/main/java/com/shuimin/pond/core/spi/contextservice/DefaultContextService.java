@@ -6,8 +6,9 @@ import com.shuimin.pond.core.spi.ContextService;
 /**
  * Created by ed on 2014/5/8.
  */
-public class DefaultContextService implements ContextService{
+public class DefaultContextService implements ContextService {
     public ThreadLocal<ExecutionContext> contextThreadLocal = new ThreadLocal<>();
+
     @Override
     public ExecutionContext get() {
         return contextThreadLocal.get();

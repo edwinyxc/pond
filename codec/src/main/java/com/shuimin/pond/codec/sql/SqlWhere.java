@@ -11,6 +11,8 @@ import java.util.List;
  */
 public interface SqlWhere<T extends Sql> {
 
+    List<String> where = new ArrayList<>();
+
     /**
      * workaround for java-corner-problem
      *
@@ -19,9 +21,6 @@ public interface SqlWhere<T extends Sql> {
     default T _this() {
         return (T) this;
     }
-
-    List<String> where = new ArrayList<>();
-
 
     default T where(Iterable<Tuple.T3<String, Criterion, Object[]>> conditions) {
         for (Tuple.T3<String, Criterion, Object[]> t : conditions) {
@@ -35,7 +34,7 @@ public interface SqlWhere<T extends Sql> {
     }
 
     default T where(String key, String criterion, String... x) {
-        return where(key,Criterion.of(criterion), x);
+        return where(key, Criterion.of(criterion), x);
     }
 
     default T where(Tuple.T3<String, Criterion, Object[]>... conditions) {

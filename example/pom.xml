@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>pond-common</artifactId>
+            <artifactId>pond-all</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

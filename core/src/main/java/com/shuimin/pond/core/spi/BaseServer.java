@@ -13,5 +13,5 @@ public interface BaseServer {
 
     public void stop();
 
-    public void installHandler(Callback.C2<Request,Response> handler);
+    public void installHandler(Callback.C2<Request, Response> handler);
 }
