@@ -5,9 +5,14 @@ import com.shuimin.common.abs.Attrs;
 import com.shuimin.common.abs.Config;
 import com.shuimin.common.abs.Makeable;
 import com.shuimin.common.f.Callback;
+import com.shuimin.pond.core.exception.PondException;
 import com.shuimin.pond.core.kernel.PKernel;
-import com.shuimin.pond.core.spi.*;
+import com.shuimin.pond.core.spi.BaseServer;
+import com.shuimin.pond.core.spi.ContextService;
+import com.shuimin.pond.core.spi.Logger;
+import com.shuimin.pond.core.spi.MiddlewareExecutor;
 
+import java.io.File;
 import java.util.LinkedList;
 
 import static com.shuimin.common.S._for;
@@ -17,97 +22,35 @@ import static com.shuimin.common.S._for;
  */
 public final class Pond implements Makeable<Pond>, Attrs<Pond> {
 
-    private static class holder {
-        final static Pond instance = new Pond().init();
+    private LinkedList<Middleware> mids = new LinkedList<>();
+    private Logger logger;
+    private BaseServer server;
+    private ContextService service;
+    private MiddlewareExecutor executor;
+    private Pond() {
     }
 
     public static Pond get() {
         return holder.instance;
     }
 
-    private LinkedList<Middleware> mids = new LinkedList<>();
-
-    private Logger logger;
-    private BaseServer server;
-    private ContextService service;
-    private MiddlewareExecutor executor;
-
     public static Pond init(Config<Pond>... configs) {
-        Pond pond = Pond.get();
-        pond.init();
-        for (Config<Pond> conf : configs) {
-            conf.config(pond);
+        try {
+            Pond pond = Pond.get();
+            pond.init();
+            for (Config<Pond> conf : configs) {
+                conf.config(pond);
+            }
+
+            //do not change this
+            pond.attr(Global.ROOT, S.path.rootClassPath());
+            //default
+            pond.attr(Global.ROOT_WEB, pond.attr(Global.ROOT)
+                    + File.separator + "www");
+            return pond;
+        } catch (PondException t) {
+            throw new RuntimeException(t.toString(), t);
         }
-        pond.attr(Global.ROOT_CLASSES,S.path.rootClassPath());
-        return pond;
-    }
-
-    private Pond() {
-    }
-
-    public void start(int port) {
-        logger.info("Starting server...");
-        server.listen(port);
-        logger.info("Server binding port: " + port);
-    }
-
-    public void stop() {
-        logger.info("Stopping server...");
-        server.stop();
-        logger.info("... finished");
-    }
-
-    public Pond debug() {
-        logger.allowDebug(true);
-        return this;
-    }
-
-    public Pond use(Middleware... mids) {
-        this.mids.addAll(_for(mids)
-            .each(Middleware::init).toList());
-        return this;
-    }
-
-    private Pond init() {
-
-        this.attr(Global.ROOT,S.path.webRoot());
-
-        logger = PKernel.getLogger();
-
-        logger.info("web root : "+ this.attr(Global.ROOT));
-
-        server = find(BaseServer.class);
-
-        service = find(ContextService.class);
-
-        executor = find(MiddlewareExecutor.class);
-
-        logger.info("Installing Handler");
-        server.installHandler(handler(service, executor));
-        logger.info("... Finished");
-
-        return this;
-    }
-
-    private <E> E find(Class<E> s) {
-        logger.info("Getting " + s.getSimpleName());
-        E e = PKernel.getService(s);
-        if (e == null) throw new NullPointerException(s.getSimpleName() + "not found");
-        return e;
-    }
-
-    private Callback.C2<Request, Response> handler(
-        ContextService service,
-        MiddlewareExecutor executor
-    ) {
-        return (req, resp) -> {
-            ExecutionContext ctx = ExecutionContext.init(req, resp);
-            /*install to thread-local*/
-            service.set(ctx);
-            executor.execute(() -> ctx, () -> this.mids);
-            /*remove from thread*/
-            service.remove(ctx);
-        };
     }
 
     public static ExecutionContext CUR() {
@@ -136,17 +79,6 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         return (E) get().attr(name);
     }
 
-    @Override
-    public Pond attr(String name, Object o) {
-        PKernel.register(name, o, null);
-        return this;
-    }
-
-    @Override
-    public Object attr(String name) {
-        return PKernel.get(name);
-    }
-
     @SuppressWarnings("unchecked")
     public static void register(Class clazz, Object singleton) {
         PKernel.register(clazz, singleton);
@@ -166,15 +98,139 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         Pond.get().attr(name, o);
     }
 
+    /**
+     * get absolute path relative to g.web_root
+     *
+     * @param path input relative path
+     * @return absolute path
+     */
+    //TODO ugly name
+    public static String pathRelWebRoot(String path) {
+        String root = (String) Pond.get().attr(Global.ROOT);
+        if (path == null) return null;
+        if (S.path.isAbsolute(path)) {
+            return path;
+        }
+        return root + File.separator + path;
+    }
+
+    /**
+     * get absolute path relative to g.root
+     *
+     * @param path input relative path
+     * @return absolute path
+     */
+    //TODO ugly name
+    public static String pathRelRoot(String path) {
+        String root = (String) Pond.get().attr(Global.ROOT_WEB);
+        if (path == null) return null;
+        if (S.path.isAbsolute(path)) {
+            return path;
+        }
+        return root + File.separator + path;
+    }
+
+    public Pond webRoot(String relPath) {
+        this.attr(Global.ROOT_WEB, this.attr(Global.ROOT)
+                + File.separator + relPath);
+        return this;
+    }
+
+    public void start(int port) {
+        logger.info("Starting server...");
+        server.listen(port);
+        logger.info("Server binding port: " + port);
+    }
+
+    public void stop() {
+        logger.info("Stopping server...");
+        server.stop();
+        logger.info("... finished");
+    }
+
+    public Pond debug() {
+        Logger.allowDebug(true);
+        return this;
+    }
+
+    public Pond use(Middleware... mids) {
+        try {
+            this.mids.addAll(_for(mids)
+                    .each(Middleware::init).toList());
+        } catch (PondException pe) {
+            throw new RuntimeException(pe.toString(), pe);
+        } catch (Exception e) {
+            throw e;
+        }
+        return this;
+    }
+
+    private Pond init() {
+
+        this.attr(Global.ROOT, S.path.webRoot());
+
+        logger = PKernel.getLogger();
+
+        logger.info("root : " + this.attr(Global.ROOT));
+
+        server = find(BaseServer.class);
+
+        service = find(ContextService.class);
+
+        executor = find(MiddlewareExecutor.class);
+
+        logger.info("Installing Handler");
+        server.installHandler(handler(service, executor));
+        logger.info("... Finished");
+
+        return this;
+    }
+
+    private <E> E find(Class<E> s) {
+        logger.info("Getting " + s.getSimpleName());
+        E e = PKernel.getService(s);
+        if (e == null) throw new NullPointerException(s.getSimpleName() + "not found");
+        return e;
+    }
+
+    private Callback.C2<Request, Response> handler(
+            ContextService service,
+            MiddlewareExecutor executor
+    ) {
+        return (req, resp) -> {
+            ExecutionContext ctx = ExecutionContext.init(req, resp);
+            /*install to thread-local*/
+            service.set(ctx);
+            executor.execute(() -> ctx, () -> this.mids);
+            /*remove from thread*/
+            service.remove(ctx);
+        };
+    }
+
+    @Override
+    public Pond attr(String name, Object o) {
+        PKernel.register(name, o, null);
+        return this;
+    }
+
+    @Override
+    public Object attr(String name) {
+        return PKernel.get(name);
+    }
+
     @Override
     public String toString() {
         return "Pond{" +
-            "mids=" + mids +
-            ", logger=" + logger +
-            ", server=" + server +
-            ", service=" + service +
-            ", executor=" + executor +
-            '}';
+                "mids=" + mids +
+                ", logger=" + logger +
+                ", server=" + server +
+                ", service=" + service +
+                ", executor=" + executor +
+                '}';
+    }
+
+    private static class holder {
+        final static Pond instance = new Pond().init();
     }
 
 

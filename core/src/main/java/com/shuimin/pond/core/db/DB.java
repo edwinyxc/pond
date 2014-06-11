@@ -1,14 +1,13 @@
-package com.shuimin.pond.codec.db;
+package com.shuimin.pond.core.db;
 
 import com.shuimin.common.abs.Makeable;
 import com.shuimin.common.f.Function;
 import com.shuimin.common.util.logger.Logger;
-import com.shuimin.pond.codec.connpool.ConnectionConfig;
-import com.shuimin.pond.codec.connpool.ConnectionPool;
 import com.shuimin.pond.core.ExecutionContext;
-import com.shuimin.pond.core.Pond;
+
 import com.shuimin.pond.core.exception.UnexpectedException;
 import com.shuimin.pond.core.kernel.PKernel;
+import com.shuimin.pond.core.spi.ConnectionPool;
 import com.shuimin.pond.core.spi.ContextService;
 
 import java.io.Closeable;
@@ -32,15 +31,14 @@ import static com.shuimin.common.S._throw;
 public class DB implements Makeable<DB>, Closeable {
 
     private static final Logger logger = Logger.get();
+    private JDBCTmpl tmpl;
 
-    public static final String CONNECTION_POOL = "db.connection_pool";
+    public DB() {
+    }
 
     public static Connection getConnFromPool() {
         ConnectionPool connectionPool =
-            (ConnectionPool) Pond.get().attr(DB.CONNECTION_POOL);
-
-        if (connectionPool == null)
-            throw new UnexpectedException("ConnPool not found");
+               PKernel.getService(ConnectionPool.class);
         return connectionPool.getConnection();
     }
 
@@ -49,7 +47,7 @@ public class DB implements Makeable<DB>, Closeable {
         ExecutionContext ctx = service.get();
         Connection conn = (Connection) ctx.attr("cur_conn");
         try {
-            if( conn == null || conn.isClosed()) {
+            if (conn == null || conn.isClosed()) {
                 conn = getConnFromPool();
             }
         } catch (SQLException e) {
@@ -59,14 +57,8 @@ public class DB implements Makeable<DB>, Closeable {
         return conn;
     }
 
-    private JdbcTmpl tmpl;
-
-    public DB() {
-    }
-
-
-    public static <R> R fire(Function<R, JdbcTmpl> process) {
-        try(DB b = new DB().open(DB::getConn)) {
+    public static <R> R fire(Function<R, JDBCTmpl> process) {
+        try (DB b = new DB().open(DB::getConn)) {
             return b.exec(process);
         }
     }
@@ -80,10 +72,10 @@ public class DB implements Makeable<DB>, Closeable {
      * @param connectionProvider 数据库连接
      * @param process            数据库链接打开之后执行的操作，参数为 JdbcTmpl
      * @return 执行后的结果
-     * @see com.shuimin.pond.codec.db.JdbcTmpl
+     * @see JDBCTmpl
      */
     public static <R> R fire(Function.F0<Connection> connectionProvider,
-                             Function<R, JdbcTmpl> process) {
+                             Function<R, JDBCTmpl> process) {
         try (DB b = new DB().open(connectionProvider)) {
             return b.exec(process);
         }
@@ -96,17 +88,39 @@ public class DB implements Makeable<DB>, Closeable {
      * @param <R>                最终结果类型
      * @param <M>                中间结果类型
      * @return 最终计算结果
-     * @see com.shuimin.pond.codec.db.DB
+     * @see com.shuimin.pond.core.db.DB
      * #fire(java.sql.Connection, com.shuimin.common.f.Function, com.shuimin.common.f.Function)
      */
     public static <R, M> R fire(Function.F0<Connection> connectionProvider,
-                                Function<M, JdbcTmpl> process,
+                                Function<M, JDBCTmpl> process,
                                 Function<R, M> finisher) {
 
         try (DB b = new DB().open(connectionProvider)) {
             return b.exec(process, finisher);
         }
 
+    }
+
+    public static Connection newConnection(String driverClass,
+                                           String connUrl,
+                                           String username,
+                                           String password) {
+        try {
+            DriverManager.registerDriver((java.sql.Driver)
+                    Class.forName(driverClass).newInstance());
+        } catch (ClassNotFoundException e) {
+            logger.debug("cont find class [" + driverClass + "]");
+            e.printStackTrace();
+        } catch (SQLException | InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            return DriverManager.getConnection(connUrl, username, password);
+        } catch (SQLException e) {
+            logger.debug("cont open connection, sql error: " + e.toString());
+            throw new UnexpectedException(e);
+        }
     }
 
     /**
@@ -123,8 +137,8 @@ public class DB implements Makeable<DB>, Closeable {
                    String username,
                    String password) {
 
-        tmpl = new JdbcTmpl(new JdbcOperator(
-            newConnection(driverClass, connUrl, username, password)));
+        tmpl = new JDBCTmpl(new JDBCOper(
+                newConnection(driverClass, connUrl, username, password)));
         return this;
     }
 
@@ -133,10 +147,9 @@ public class DB implements Makeable<DB>, Closeable {
      *
      * @return JdbcTmpl
      */
-    public JdbcTmpl tmpl() {
+    public JDBCTmpl tmpl() {
         return tmpl;
     }
-
 
     /**
      * <p>做一次查询,并映射到结果集，然后返回结果集</p>
@@ -146,7 +159,7 @@ public class DB implements Makeable<DB>, Closeable {
      * @param <T>       返回类型
      * @return 类型为 T 的返回结果
      */
-    public <T> T query(Function<ResultSet, JdbcTmpl> queryFunc,
+    public <T> T query(Function<ResultSet, JDBCTmpl> queryFunc,
                        Function<T, ResultSet> mapper) {
         return mapper.apply(queryFunc.apply(tmpl));
     }
@@ -158,53 +171,21 @@ public class DB implements Makeable<DB>, Closeable {
      * @param <R>
      * @return
      */
-    public <R> R exec(Function<R, JdbcTmpl> process) {
+    public <R> R exec(Function<R, JDBCTmpl> process) {
         return process.apply(tmpl);
     }
 
     /**
-     * @see com.shuimin.pond.codec.db.DB#exec(com.shuimin.common.f.Function)
+     * @see com.shuimin.pond.core.db.DB#exec(com.shuimin.common.f.Function)
      */
-    public <R, T> R exec(Function<T, JdbcTmpl> process,
+    public <R, T> R exec(Function<T, JDBCTmpl> process,
                          Function<R, T> finisher) {
         return finisher.apply(process.apply(tmpl));
     }
 
     public DB open(Function.F0<Connection> connectionSupplier) {
-        tmpl = new JdbcTmpl(new JdbcOperator(connectionSupplier.apply()));
+        tmpl = new JDBCTmpl(new JDBCOper(connectionSupplier.apply()));
         return this;
-    }
-
-    public DB open(ConnectionPool p) {
-        tmpl = new JdbcTmpl(new JdbcOperator(p.getConnection()));
-        return this;
-    }
-
-    public static Connection newConnection(ConnectionConfig config) {
-        return newConnection(config.driverClass,
-            config.connectionUrl, config.username, config.password);
-    }
-
-    public static Connection newConnection(String driverClass,
-                                           String connUrl,
-                                           String username,
-                                           String password) {
-        try {
-            DriverManager.registerDriver((java.sql.Driver)
-                Class.forName(driverClass).newInstance());
-        } catch (ClassNotFoundException e) {
-            logger.debug("cont find class [" + driverClass + "]");
-            e.printStackTrace();
-        } catch (SQLException | InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            return DriverManager.getConnection(connUrl, username, password);
-        } catch (SQLException e) {
-            logger.debug("cont open connection, sql error: " + e.toString());
-            throw new UnexpectedException(e);
-        }
     }
 
     @Override

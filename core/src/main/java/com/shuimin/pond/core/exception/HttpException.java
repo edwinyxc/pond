@@ -1,27 +1,24 @@
 package com.shuimin.pond.core.exception;
 
 @SuppressWarnings("serial")
-public class HttpException extends YException {
+public class HttpException extends PondException {
 
     private final int code;
 
-    public int code() {
-        return code;
-    }
-
     public HttpException() {
-        super("error");
         this.code = 500;
     }
 
     public HttpException(Exception e) {
-        super(e.getMessage());
         this.code = 500;
     }
 
     public HttpException(int code, String errMsg) {
-        super(errMsg);
         this.code = code;
+    }
+
+    public int code() {
+        return code;
     }
 
     @Override

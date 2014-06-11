@@ -13,12 +13,11 @@ import static com.shuimin.common.S._for;
  */
 public class TSqlInsert extends AbstractSql
         implements SqlInsert {
+    private List<String> fields = new ArrayList<>();
+    private String table;
+
     public TSqlInsert() {
     }
-
-    private List<String> fields = new ArrayList<>();
-
-    private String table;
 
     @Override
     public SqlInsert into(String table) {
@@ -28,7 +27,7 @@ public class TSqlInsert extends AbstractSql
 
     @Override
     public SqlInsert values(Tuple<String, Object>... columns) {
-        for(Tuple<String,Object> t : columns) {
+        for (Tuple<String, Object> t : columns) {
             fields.add(t._a);
             params.add(t._b);
         }
@@ -46,9 +45,9 @@ public class TSqlInsert extends AbstractSql
         StringBuilder sql = new StringBuilder("INSERT INTO ");
         sql.append(table)
                 .append(" (")
-                .append(String.join(", ",fields))
+                .append(String.join(", ", fields))
                 .append(") VALUES (")
-                .append(String.join(", ",_for(fields).map( i -> "?").val()))
+                .append(String.join(", ", _for(fields).map(i -> "?").val()))
                 .append(")");
         return sql.toString();
     }

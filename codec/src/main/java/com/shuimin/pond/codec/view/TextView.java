@@ -18,9 +18,9 @@ public class TextView extends View {
 
     public static TextView one() {
         return (TextView) new TextView("").onRender(
-            (resp) -> {
-                resp.contentType("text/html;charset=utf8");
-            }
+                (resp) -> {
+                    resp.contentType("text/html;charset=utf8");
+                }
         );
     }
 

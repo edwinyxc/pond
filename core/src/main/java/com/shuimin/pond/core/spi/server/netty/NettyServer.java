@@ -20,10 +20,12 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 
 public class NettyServer implements BaseServer {
 
-    private ChannelFuture severFuture;
-
     EventLoopGroup bossGroup = new NioEventLoopGroup();
     EventLoopGroup workerGroup = new NioEventLoopGroup();
+    private ChannelFuture severFuture;
+    private Callback.C2<Request, Response> handler = (req, resp) -> {
+        S.echo("EMPTY SERVER");
+    };
 
     @Override
     public void listen(int port) {
@@ -31,27 +33,27 @@ public class NettyServer implements BaseServer {
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class)
-                .childHandler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    public void initChannel(SocketChannel ch)
-                        throws Exception {
-                        ch.pipeline()
-                            .addLast("codec", new HttpServerCodec())
-                            .addLast(new HttpObjectAggregator(1048576))
-                            .addLast(new HttpContentCompressor())
-                            .addLast("chunkedWriter", new ChunkedWriteHandler())
-                            .addLast(new HttpServerHandler(handler));
-                    }
-                })
-                .option(ChannelOption.SO_BACKLOG, 128)
-                .childOption(ChannelOption.SO_KEEPALIVE, true);
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        public void initChannel(SocketChannel ch)
+                                throws Exception {
+                            ch.pipeline()
+                                    .addLast("codec", new HttpServerCodec())
+                                    .addLast(new HttpObjectAggregator(1048576))
+                                    .addLast(new HttpContentCompressor())
+                                    .addLast("chunkedWriter", new ChunkedWriteHandler())
+                                    .addLast(new HttpServerHandler(handler));
+                        }
+                    })
+                    .option(ChannelOption.SO_BACKLOG, 128)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
 
             // Bind and start to accept incoming connections.
             severFuture = b.bind(port).sync();
 
             // Wait until the server socket is closed.
-            // In this example, this does not happen, 
+            // In this example, this does not happen,
             // but you can do that to gracefully
             // shut down your server.
             severFuture.channel().closeFuture().sync();//block here?
@@ -79,9 +81,5 @@ public class NettyServer implements BaseServer {
     public void installHandler(Callback.C2<Request, Response> handler) {
         this.handler = handler;
     }
-
-    private Callback.C2<Request,Response> handler = (req,resp)->{
-        S.echo("EMPTY SERVER");
-    };
 
 }

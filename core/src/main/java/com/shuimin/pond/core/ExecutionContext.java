@@ -7,18 +7,7 @@ import com.shuimin.common.abs.Attrs;
  */
 public interface ExecutionContext extends Attrs<ExecutionContext> {
 
-    public Request req();
-
-    public Response resp();
-
-    /**
-     * last result holder
-     *
-     * @return return value of last execution
-     */
-    public Object last();
-
-    //TODO :加入type-safe-insurance
+    final static ThreadLocal<ExecutionContext> executionContexts = new ThreadLocal<>();
 
     static ExecutionContext init(Request req, Response resp) {
         return new ExecutionContext() {
@@ -39,6 +28,17 @@ public interface ExecutionContext extends Attrs<ExecutionContext> {
             }
         };
     }
+
+    public Request req();
+
+    public Response resp();
+
+    /**
+     * last result holder
+     *
+     * @return return value of last execution
+     */
+    public Object last();
 
     public default ExecutionContext next(Object value) {
         ExecutionContext _this = this;
@@ -61,8 +61,5 @@ public interface ExecutionContext extends Attrs<ExecutionContext> {
 
         };
     }
-
-
-    final static ThreadLocal<ExecutionContext> executionContexts = new ThreadLocal<>();
 }
 

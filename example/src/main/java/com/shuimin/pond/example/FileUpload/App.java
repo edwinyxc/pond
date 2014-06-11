@@ -7,7 +7,6 @@ import com.shuimin.pond.core.Pond;
 import com.shuimin.pond.core.mw.Action;
 import com.shuimin.pond.core.mw.Dispatcher;
 import com.shuimin.pond.core.mw.StaticFileServer;
-import com.shuimin.pond.core.spi.Router;
 
 import static com.shuimin.common.S.echo;
 import static com.shuimin.pond.core.Interrupt.render;
@@ -18,21 +17,20 @@ import static com.shuimin.pond.core.Renderable.text;
  */
 public class App {
 
+    public static Action index = Action.simple((req, resp) -> {
+        String html = "<html><body><h1>333</h1><form method = 'post' action = 'upload' enctype = 'multipart/form-data' >" +
+                "<input type = 'file' name= 'test'>" +
+                "<input type = submit> </form></body></html>";
+        render(text(html));
+    });
+    public static Middleware upload = new FileUploadServer();
+
     public static void main(String[] args) {
         Dispatcher app = new Dispatcher();
-        app.get("/index",index);
+        app.get("/index", index);
         app.post("/upload", upload);
         app.get(".*", new StaticFileServer("C:\\var\\www"));
         Pond.init().use(app).start(8080);
         echo("ROOT: " + Pond.get().attr(Global.ROOT));
     }
-
-    public static Action index = Action.simple((req,resp) -> {
-    String html = "<html><body><h1>333</h1><form method = 'post' action = 'upload' enctype = 'multipart/form-data' >" +
-            "<input type = 'file' name= 'test'>" +
-            "<input type = submit> </form></body></html>";
-        render(text(html));
-    });
-
-    public static Middleware upload =  new FileUploadServer();
 }

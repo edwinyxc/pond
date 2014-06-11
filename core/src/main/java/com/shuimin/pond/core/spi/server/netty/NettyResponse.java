@@ -28,8 +28,8 @@ public class NettyResponse implements Response {
     private boolean hasSend = false;
 
     public NettyResponse(
-        FullHttpResponse httpResponse,
-        ChannelHandlerContext ctx) {
+            FullHttpResponse httpResponse,
+            ChannelHandlerContext ctx) {
         this.httpResponse = httpResponse;
         this.out = new NettyOutputStream(httpResponse);
         this.pw = new PrintWriter(out);
@@ -40,11 +40,11 @@ public class NettyResponse implements Response {
     public Response header(String k, String v) {
         httpResponse.headers().add(k, v);
         return this;
-}
+    }
 
     @Override
     public void send(int code) {
-        if(hasSend) return;
+        if (hasSend) return;
         HttpResponseStatus status = HttpResponseStatus.valueOf(code);
         httpResponse.setStatus(status);
         try {
@@ -57,7 +57,7 @@ public class NettyResponse implements Response {
 
     @Override
     public void sendError(int code, String msg) {
-        if(hasSend) return;
+        if (hasSend) return;
         HttpResponseStatus status = HttpResponseStatus.valueOf(code);
         httpResponse.setStatus(status);
         writer().print(msg);
@@ -71,19 +71,19 @@ public class NettyResponse implements Response {
 
     @Override
     public void sendFile(File file) {
-        if(hasSend) return ;
-        RandomAccessFile raf ;
-        long fileLength ;
+        if (hasSend) return;
+        RandomAccessFile raf;
+        long fileLength;
         try {
             raf = new RandomAccessFile(file, "r");
-        }catch (FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             send(404);
             return;
         }
         try {
             fileLength = raf.length();
             ctx.write(
-                new ChunkedFile(raf,0,fileLength,8192), ctx.newProgressivePromise());
+                    new ChunkedFile(raf, 0, fileLength, 8192), ctx.newProgressivePromise());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -104,8 +104,8 @@ public class NettyResponse implements Response {
     @Override
     public Response cookie(Cookie c) {
         httpResponse.headers()
-            .add(HttpHeaders.Names.SET_COOKIE,
-                ServerCookieEncoder.encode(c.getName(), c.getValue()));
+                .add(HttpHeaders.Names.SET_COOKIE,
+                        ServerCookieEncoder.encode(c.getName(), c.getValue()));
         return this;
     }
 
@@ -125,7 +125,7 @@ public class NettyResponse implements Response {
     public Response contentType(String type) {
         httpResponse.headers().add(HttpHeaders.Names.CONTENT_TYPE, type);
         return this;
-   }
+    }
 
     @Override
     public HttpServletResponse raw() {

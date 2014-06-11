@@ -1,7 +1,5 @@
 package com.shuimin.pond.core.spi;
 
-import java.util.Map;
-
 /**
  * Created by ed on 14-5-20.
  */

@@ -15,7 +15,7 @@ public class Global {
 
     public final static String ROOT = "g.root";
 
-    public final static String ROOT_CLASSES = "g.root_classes";
+    public final static String ROOT_WEB = "g.root_web";
 
     public final static String JSON_PROCESSOR = "g.json_processor";
 

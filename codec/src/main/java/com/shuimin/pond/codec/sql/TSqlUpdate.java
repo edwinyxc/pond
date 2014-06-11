@@ -22,8 +22,8 @@ public class TSqlUpdate extends AbstractSql
     }
 
     @Override
-    public SqlUpdate set(Tuple<String,Object>... columns) {
-        for(Tuple<String,Object> t : columns) {
+    public SqlUpdate set(Tuple<String, Object>... columns) {
+        for (Tuple<String, Object> t : columns) {
             fields.add(t._a);
             params.add(columns);
         }
@@ -41,8 +41,8 @@ public class TSqlUpdate extends AbstractSql
         StringBuilder sql = new StringBuilder("UPDATE ");
         sql.append(table)
                 .append(" SET ")
-                .append(String.join(", ",_for(fields).map( i -> i+" = ?").val()));
-        if(! where.isEmpty()) {
+                .append(String.join(", ", _for(fields).map(i -> i + " = ?").val()));
+        if (!where.isEmpty()) {
             sql.append(" WHERE ").append(String.join(" AND ", where));
         }
         return sql.toString();

@@ -1,6 +1,5 @@
 package com.shuimin.pond.core.spi.server.jetty;
 
-import com.shuimin.common.S;
 import com.shuimin.pond.core.http.AbstractRequest;
 
 import javax.servlet.http.Cookie;
@@ -13,7 +12,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.shuimin.common.S._for;
-import static com.shuimin.pond.core.Pond.debug;
 
 /**
  * @author ed
@@ -22,7 +20,7 @@ public class HSRequestWrapper extends AbstractRequest {
 
     HttpServletRequest _req;
 
-    Map<String,String[]> paramsMap;
+    Map<String, String[]> paramsMap;
 
     public HSRequestWrapper(HttpServletRequest req) {
         _req = req;
@@ -56,7 +54,7 @@ public class HSRequestWrapper extends AbstractRequest {
 
     @Override
     public Map<String, String[]> params() {
-        if(paramsMap == null) {
+        if (paramsMap == null) {
             paramsMap = new HashMap<>(_req.getParameterMap());
         }
         return paramsMap;

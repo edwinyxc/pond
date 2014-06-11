@@ -8,11 +8,10 @@ package com.shuimin.common.f.promise;
 import com.shuimin.common.f.Function;
 
 /**
- *
  * @author ed
  */
 public interface Thenable<T> {
 
-	public <NEW> Thenable<NEW> then(Function<NEW, T> onFulfiled, 
-			Function<NEW, T> onRejected);
+    public <NEW> Thenable<NEW> then(Function<NEW, T> onFulfiled,
+                                    Function<NEW, T> onRejected);
 }

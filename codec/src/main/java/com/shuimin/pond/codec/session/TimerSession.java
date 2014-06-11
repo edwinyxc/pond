@@ -12,27 +12,24 @@ import static com.shuimin.pond.core.Pond.debug;
 /**
  * Created by ed on 2014/4/22.
  */
-public class TimerSession extends HashMap<String,Object>
-    implements Session{
+public class TimerSession extends HashMap<String, Object>
+        implements Session {
 
     private final Timer timer;
 
     private final String id;
-
-
+    private final Function.F0<Integer> lifetimeProvider;
     private TimerTask suicide = new Suicide();
 
-    private final Function.F0<Integer> lifetimeProvider;
-
-    public TimerSession( String id,
-                         Function.F0<Integer> lifetimeProvider) {
+    public TimerSession(String id,
+                        Function.F0<Integer> lifetimeProvider) {
         this.id = id;
         this.timer = new Timer();
         this.lifetimeProvider = lifetimeProvider;
-        timer.schedule(suicide,lifetimeProvider.apply());
+        timer.schedule(suicide, lifetimeProvider.apply());
     }
 
-    private void reschedule(){
+    private void reschedule() {
         suicide.cancel();
         suicide = new Suicide();
         debug("delay time =" + lifetimeProvider.apply());
@@ -54,15 +51,15 @@ public class TimerSession extends HashMap<String,Object>
     @Override
     public Session set(String key, Object value) {
         reschedule();
-        super.put(key,value);
+        super.put(key, value);
         return this;
     }
 
     @Override
     public String toString() {
         return "TimerSession{" +
-            "id='" + id + '\'' +
-            '}';
+                "id='" + id + '\'' +
+                '}';
     }
 
     private class Suicide extends TimerTask {

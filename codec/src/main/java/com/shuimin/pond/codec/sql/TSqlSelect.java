@@ -45,7 +45,7 @@ public class TSqlSelect extends AbstractSql
     public SqlSelect on(String... where) {
         String table = tables.remove(tables.size() - 1);
         tables.add(table.concat(" ON ").concat(
-            String.join(" AND ", Arrays.asList(where))
+                String.join(" AND ", Arrays.asList(where))
         ));
         return this;
     }
@@ -58,8 +58,8 @@ public class TSqlSelect extends AbstractSql
 
     @Override
     public SqlSelect having(Tuple.T3<String, Criterion, Object[]>... conditions) {
-        for(Tuple.T3<String,Criterion,Object[]> t : conditions) {
-            having.add(t._b.prepare(t._a,t._c));
+        for (Tuple.T3<String, Criterion, Object[]> t : conditions) {
+            having.add(t._b.prepare(t._a, t._c));
             params.addAll(Arrays.asList(t._c));
         }
         return this;

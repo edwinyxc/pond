@@ -1,8 +1,6 @@
 package com.shuimin.szgwyw.article;
 
-import com.shuimin.pond.codec.db.AbstractRecord;
-import com.shuimin.pond.codec.db.Record;
-import com.shuimin.pond.core.Request;
+import com.shuimin.pond.codec.mvc.model.AbstractModel;
 
 import java.util.Date;
 
@@ -12,7 +10,7 @@ import static com.shuimin.common.S.time;
  * Created by ed on 2014/5/9.
  * BO
  */
-public class Article extends AbstractRecord {
+public class Article extends AbstractModel {
 
 
     /**
@@ -26,12 +24,15 @@ public class Article extends AbstractRecord {
      +--------------+--------------+------+-----+---------+-------+
      * @return
      */ {
-        this.PKLabel("vid");
+        field("vid");
+        field("title", () -> "default title");
+        field("author", () -> "system");
+        field("release_date", () -> String.valueOf(time()));
+        field("change_date", () -> String.valueOf(time()));
+        field("content", () -> "empty");
+        field("category");
 
-        this.setDefault("title", () -> "default title");
-        this.setDefault("author", () -> "system");
-        this.setDefault("release_date", () -> String.valueOf(time()));
-        this.setDefault("content", () -> "empty");
+        primaryKeyName("vid");
 
         this.onSet("release_date", (Object o) -> {
             if (o instanceof Date) {
@@ -42,6 +43,7 @@ public class Article extends AbstractRecord {
             }
             return String.valueOf(o);
         });
+
         this.onGet("release_date", s -> s == null ? null
                 : new Date(Long.parseLong((String) s)));
 
@@ -58,22 +60,6 @@ public class Article extends AbstractRecord {
                 : new Date(Long.parseLong((String) s)));
 
         this.table("t_article");
-    }
-
-    @Override
-    protected String[] _fields() {
-        return new String[]{"vid",
-                "title",
-                "author",
-                "release_date",
-                "change_date",
-                "content",
-                "category"};
-    }
-
-    @Override
-    public Record merge(Request req) {
-        return super.merge(req);
     }
 
 }

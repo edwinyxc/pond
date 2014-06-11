@@ -11,6 +11,18 @@ import java.util.concurrent.ConcurrentMap;
 
 public abstract class Cache<K, V> {
 
+    public static <K, V> Cache<K, V> lruCache(int max) {
+        return new LRUCache<>(max);
+    }
+
+    public static <K, V> Cache<K, V> fixedCache(int max) {
+        return new FixedCache<>(max);
+    }
+
+    public static <K, V> Cache<K, V> defaultCache() {
+        return new DefaultCache<>();
+    }
+
     /**
      * <p>
      * Get from cache, if not found, trigger doWhenNothing
@@ -54,16 +66,4 @@ public abstract class Cache<K, V> {
     public abstract Cache<K, V> onNotFound(Function<V, K> nothingFoundLisener);
 
     public abstract Cache<K, V> onRemove(Callback.C2<K, V> removeListener);
-
-    public static <K, V> Cache<K, V> lruCache(int max) {
-        return new LRUCache<>(max);
-    }
-
-    public static <K, V> Cache<K, V> fixedCache(int max) {
-        return new FixedCache<>(max);
-    }
-
-    public static <K, V> Cache<K, V> defaultCache() {
-        return new DefaultCache<>();
-    }
 }

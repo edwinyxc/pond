@@ -15,6 +15,7 @@ public abstract class Action extends AbstractMiddleware {
 
     /**
      * <p>最简单的ACtion，接受一对req,resp 作为参数而不返回信息</p>
+     *
      * @param cb
      * @return
      */
@@ -31,6 +32,7 @@ public abstract class Action extends AbstractMiddleware {
 
     /**
      * <p>消耗上一个action返回的对象 T ,不返回信息</p>
+     *
      * @param cb
      * @param <T>
      * @return
@@ -49,6 +51,7 @@ public abstract class Action extends AbstractMiddleware {
 
     /**
      * <p>处理单个输入，返回另一个对象</p>
+     *
      * @param converter
      * @param <R>
      * @param <T>
@@ -67,6 +70,7 @@ public abstract class Action extends AbstractMiddleware {
 
     /**
      * <p>提供一个输出</p>
+     *
      * @param cb
      * @param <T>
      * @return
@@ -84,6 +88,7 @@ public abstract class Action extends AbstractMiddleware {
 
     /**
      * <p>从 req,resp 中提供输出</p>
+     *
      * @param cb
      * @param <T>
      * @return
@@ -101,6 +106,7 @@ public abstract class Action extends AbstractMiddleware {
 
     /**
      * <p>直接暴露executionContext</p>
+     *
      * @param cb
      * @return
      */
@@ -117,6 +123,7 @@ public abstract class Action extends AbstractMiddleware {
 
     /**
      * <p>一般作为流程最后一步</p>
+     *
      * @param cb
      * @param <T>
      * @return
@@ -147,6 +154,7 @@ public abstract class Action extends AbstractMiddleware {
 
     /**
      * <p>0输入，0输出，一般作为测试</p>
+     *
      * @param cb
      * @return
      */
@@ -162,8 +170,8 @@ public abstract class Action extends AbstractMiddleware {
         };
     }
 
-    public static Action view(String path, Map map){
-        return fly(()-> Interrupt.render(Renderable.view(path,map)));
+    public static Action view(String path, Map map) {
+        return fly(() -> Interrupt.render(Renderable.view(path, map)));
     }
 
 //    public static Action file(String s) {

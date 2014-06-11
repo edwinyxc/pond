@@ -19,18 +19,12 @@ import java.util.Map;
  */
 public class NettyRequest extends AbstractRequest {
 
-    final private FullHttpRequest httpRequest;
-
-    final private List<Cookie> cookies;
-
-    final private QueryStringDecoder queryStringDecoder;
-
-    final private Map<String, String[]> parameterMap;
-
     final Channel channel;
-
     final InputStream in;
-
+    final private FullHttpRequest httpRequest;
+    final private List<Cookie> cookies;
+    final private QueryStringDecoder queryStringDecoder;
+    final private Map<String, String[]> parameterMap;
     private Map<String, String[]> headers = new HashMap<>();
 
     public NettyRequest(FullHttpRequest httpRequest, Channel channel) {
@@ -38,9 +32,9 @@ public class NettyRequest extends AbstractRequest {
         this.channel = channel;
         this.queryStringDecoder = new QueryStringDecoder(httpRequest.getUri());
         String cookie_str
-            = httpRequest.headers().get(HttpHeaders.Names.COOKIE);
+                = httpRequest.headers().get(HttpHeaders.Names.COOKIE);
         cookies = S.list.one(S._for(CookieDecoder
-            .decode(cookie_str != null ? cookie_str : "")).<Cookie>map((cookie) -> {
+                .decode(cookie_str != null ? cookie_str : "")).<Cookie>map((cookie) -> {
             Cookie sc = new Cookie(cookie.getName(), cookie.getValue());
             if (S.str.notBlank(cookie.getDomain())) {
                 sc.setDomain(cookie.getDomain());
@@ -60,8 +54,8 @@ public class NettyRequest extends AbstractRequest {
         });
 
         parameterMap
-            = S._for(queryStringDecoder.parameters()).<String[]>map(
-            (list) -> (S.array.of(list))).val();
+                = S._for(queryStringDecoder.parameters()).<String[]>map(
+                (list) -> (S.array.of(list))).val();
 
         in = new NettyInputStream(httpRequest);
 
@@ -89,19 +83,19 @@ public class NettyRequest extends AbstractRequest {
         //Fuck IPv6 according javaDoc
         // ipv6 string should contained between '[]'
         // fuck java fuck me
-        if(hostName.contains(":")){ /*an ipv6*/
-            hostName = "["+hostName+"]";
+        if (hostName.contains(":")) { /*an ipv6*/
+            hostName = "[" + hostName + "]";
         }
 
         String port = String.valueOf(
-            ((InetSocketAddress) channel.localAddress()).getPort());
+                ((InetSocketAddress) channel.localAddress()).getPort());
         return protocol + "://" + hostName + ":" + port + httpRequest.getUri();
     }
 
     @Override
     public Locale locale() {
         String sc = httpRequest
-            .headers().get(HttpHeaders.Names.ACCEPT_LANGUAGE);
+                .headers().get(HttpHeaders.Names.ACCEPT_LANGUAGE);
         String[] parsed;
         if (S.str.notBlank(sc) && (parsed = sc.split("-")).length == 2) {
             return new Locale(parsed[0], parsed[1]);
@@ -114,7 +108,7 @@ public class NettyRequest extends AbstractRequest {
         return headers;
     }
 
-   @Override
+    @Override
     public Map<String, String[]> params() {
         return parameterMap;
     }
@@ -127,7 +121,7 @@ public class NettyRequest extends AbstractRequest {
     @Override
     public String remoteIp() {
         return ((InetSocketAddress) channel.remoteAddress())
-            .getAddress().getHostAddress();
+                .getAddress().getHostAddress();
     }
 
     @Override

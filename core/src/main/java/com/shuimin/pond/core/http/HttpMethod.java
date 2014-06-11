@@ -14,18 +14,10 @@ public enum HttpMethod {
         value = i;
     }
 
-    public int value() {
-        return this.value;
-    }
-
-    public boolean match(int test) {
-        return (test & this.value) == this.value;
-    }
-
-    public static List<HttpMethod> unMask(int i){
+    public static List<HttpMethod> unMask(int i) {
         List<HttpMethod> ret = S.list.one();
-        for(HttpMethod m : HttpMethod.values()){
-            if(m.match(i)){
+        for (HttpMethod m : HttpMethod.values()) {
+            if (m.match(i)) {
                 ret.add(m);
             }
         }
@@ -67,5 +59,13 @@ public enum HttpMethod {
             return CONNECT;
         }
         throw new IllegalArgumentException("method string not recognized");
+    }
+
+    public int value() {
+        return this.value;
+    }
+
+    public boolean match(int test) {
+        return (test & this.value) == this.value;
     }
 }

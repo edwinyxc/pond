@@ -35,66 +35,32 @@ import static com.shuimin.pond.core.Renderable.text;
 public class FileUploadServer extends AbstractMiddleware {
 
     private final Set<String> allowedTypes = S.collection.set.hashSet(
-        new String[]{"jpg", "zip", "txt", "ppt", "pptx", "doc", "docx", "xls", "gif"});
-
-
-    /**
-     * <p>添加允许的文件类型后缀 [jpg,zip,...]</p>
-     * @param s
-     * @return
-     */
-    public FileUploadServer allow(String... s) {
-        this.allowedTypes.addAll(Arrays.asList(s));
-        return this;
-    }
-
+            new String[]{"jpg", "zip", "txt", "ppt", "pptx", "doc", "docx", "xls", "gif"});
+    /*
+    *Exceptions
+    */
+    private Function<HttpException, String> E403_INVALID_FILE_TYPE = s ->
+            new HttpException(403, "invalid file type " + s + ", only " + dump(allowedTypes) + " are allowed.");
     /**
      * configs
      */
     private int maxUploadSize = 1024 * 1024 * 200;
+    private Function<HttpException, Exception> E500_INNER_EXCEPTION = e ->
+            new HttpException(500, e.getMessage());
+    /**
+     * providers
+     */
 
-    public FileUploadServer maxUpload_Mb(int size) {
-        maxUploadSize = size * 1024 * 1024;
-        return this;
-    }
-
-
-    /*
-    *Exceptions
-    */
-    private Function<HttpException,String> E403_INVALID_FILE_TYPE = s ->
-        new HttpException(403,"invalid file type "+s+", only "+dump(allowedTypes)+" are allowed.");
-    private Function<HttpException,Exception> E500_INNER_EXCEPTION = e ->
-        new HttpException(500,e.getMessage());
+    private Function.F0<File> uploadDirProvider = this::getUploadDir;
+    private Function.F0<File> tmpDirProvider = this::getTmpDir;
 
     /**
      *
      * @return
      */
-
-
-    /***
-     * providers
-     */
-
-    private Function.F0<File> uploadDirProvider = this::getUploadDir;
-
-    private Function.F0<File> tmpDirProvider = this:: getTmpDir;
-
     private Function.F0<String> webRootProvider = () ->
-        (String) Pond.config(Global.ROOT);
-
+            (String) Pond.config(Global.ROOT);
     /**
-     * <p>注入root目录的提供器</p>
-     * @param provider provider
-     * @return root path
-     */
-    public FileUploadServer root(Function.F0<String> provider) {
-        webRootProvider = provider;
-        return this;
-    }
-
-    /***
      * callbacks
      */
 
@@ -102,21 +68,9 @@ public class FileUploadServer extends AbstractMiddleware {
         RESP().write(e.toString()).send(e.code());
         kill();
     };
-
-    public FileUploadServer onErr(Callback<HttpException> cb){
-        this.onErr = cb;
-        return this;
-    }
-
-    private Callback.C2<String,String> onNormal = (name,value) ->
-        debug("you`ve received "+name+" = "+value);
-
-    public FileUploadServer onNormal(Callback.C2<String,String> cb) {
-        this.onNormal = cb;
-        return this;
-    }
-
-    private Function.F2<File,String,InputStream> onFileUpload = (name,in) -> {
+    private Callback.C2<String, String> onNormal = (name, value) ->
+            debug("you`ve received " + name + " = " + value);
+    private Function.F2<File, String, InputStream> onFileUpload = (name, in) -> {
         debug("Upload filename : " + name);
         File f = null;
         try (FileOutputStream out = new FileOutputStream((f = new File(uploadDirProvider.apply(), name)))) {
@@ -129,16 +83,54 @@ public class FileUploadServer extends AbstractMiddleware {
         }
         return null;
     };
+    private Callback<File> onFileUploadFinished = (file) -> {
+        if(file != null)
+        render(text("File[" + file.getName() + "] uploaded, location:" + file.getAbsolutePath()));
+    };
 
-    private Callback<File> onFileUploadFinished = (file) ->
-        render(text("File[" + file.getName()+ "] uploaded, location:" + file.getAbsolutePath()));
+    /**
+     * <p>添加允许的文件类型后缀 [jpg,zip,...]</p>
+     *
+     * @param s
+     * @return
+     */
+    public FileUploadServer allow(String... s) {
+        this.allowedTypes.addAll(Arrays.asList(s));
+        return this;
+    }
 
-    public FileUploadServer onFileUpload(Function.F2<File,String,InputStream> cb ) {
+    public FileUploadServer maxUpload_Mb(int size) {
+        maxUploadSize = size * 1024 * 1024;
+        return this;
+    }
+
+    /**
+     * <p>注入root目录的提供器</p>
+     *
+     * @param provider provider
+     * @return root path
+     */
+    public FileUploadServer root(Function.F0<String> provider) {
+        webRootProvider = provider;
+        return this;
+    }
+
+    public FileUploadServer onErr(Callback<HttpException> cb) {
+        this.onErr = cb;
+        return this;
+    }
+
+    public FileUploadServer onNormal(Callback.C2<String, String> cb) {
+        this.onNormal = cb;
+        return this;
+    }
+
+    public FileUploadServer onFileUpload(Function.F2<File, String, InputStream> cb) {
         this.onFileUpload = cb;
         return this;
     }
 
-    public FileUploadServer onFileUploadFinished(Callback<File> finishedCb ) {
+    public FileUploadServer onFileUploadFinished(Callback<File> finishedCb) {
         this.onFileUploadFinished = finishedCb;
         return this;
     }
@@ -155,68 +147,15 @@ public class FileUploadServer extends AbstractMiddleware {
         File f = new File(absPath);
 
         if (!f.exists() || !f.canWrite()) {
-            throw new UnexpectedException(this) {
+            throw new UnexpectedException() {
                 @Override
                 public String brief() {
                     return "File[" + absPath + "] not valid";
                 }
             };
         }
-        this.uploadDirProvider = ()-> f;
+        this.uploadDirProvider = () -> f;
         return this;
-    }
-
-
-    private class ReqCtx implements UploadContext{
-        String encoding;
-        String contentType;
-        long contentLength;
-        InputStream in;
-
-        public ReqCtx(Request req) {
-            this.encoding = _notNullElse(req.characterEncoding(),"UTF-8");
-            this.contentType = req.header("Content-Type")[0];
-            this.contentLength = S.parse.toLong(req.header("Content-Length")[0]);
-            try {
-                this.in = req.in();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public String getCharacterEncoding() {
-            return encoding;
-        }
-
-        @Override
-        public String getContentType() {
-            return contentType;
-        }
-
-        @Override
-        public int getContentLength() {
-            return (int)contentLength;
-        }
-
-        @Override
-        public InputStream getInputStream() throws IOException {
-            return in;
-        }
-
-        @Override
-        public String toString() {
-            return "$ReqCtx{" +
-                "encoding='" + encoding + '\'' +
-                ", contentType='" + contentType + '\'' +
-                ", contentLength=" + contentLength +
-                '}';
-        }
-
-        @Override
-        public long contentLength() {
-            return contentLength;
-        }
     }
 
     @Override
@@ -231,7 +170,7 @@ public class FileUploadServer extends AbstractMiddleware {
             return ctx;
         }
         DiskFileItemFactory factory =
-            new DiskFileItemFactory();
+                new DiskFileItemFactory();
 
         factory.setSizeThreshold(4 * 1024);
 
@@ -314,5 +253,57 @@ public class FileUploadServer extends AbstractMiddleware {
             throw new RuntimeException(ret + "cant write");
         }
         return ret;
+    }
+
+    private class ReqCtx implements UploadContext {
+        String encoding;
+        String contentType;
+        long contentLength;
+        InputStream in;
+
+        public ReqCtx(Request req) {
+            this.encoding = _notNullElse(req.characterEncoding(), "UTF-8");
+            this.contentType = req.header("Content-Type")[0];
+            this.contentLength = S.parse.toLong(req.header("Content-Length")[0]);
+            try {
+                this.in = req.in();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public String getCharacterEncoding() {
+            return encoding;
+        }
+
+        @Override
+        public String getContentType() {
+            return contentType;
+        }
+
+        @Override
+        public int getContentLength() {
+            return (int) contentLength;
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return in;
+        }
+
+        @Override
+        public String toString() {
+            return "$ReqCtx{" +
+                    "encoding='" + encoding + '\'' +
+                    ", contentType='" + contentType + '\'' +
+                    ", contentLength=" + contentLength +
+                    '}';
+        }
+
+        @Override
+        public long contentLength() {
+            return contentLength;
+        }
     }
 }
