@@ -57,23 +57,19 @@ public class SimplePool implements ConnectionPool {
 
         poolMaxSize = config.maxPoolSize <= 0 ? 5 : config.maxPoolSize;
 
-        logger.debug("max_pool_size ->" + poolMaxSize);
+        logger.info("max_pool_size ->" + poolMaxSize);
 
         driverClass = config.driverClass;
 
-        logger.debug("driver_class ->" + driverClass);
+        logger.info("driver_class ->" + driverClass);
 
         username = config.username;
 
-        logger.debug("username ->" + username);
-
         pass = config.password;
-
-        logger.debug("password ->" + pass);
 
         url = config.connectionUrl;
 
-        logger.debug("conn_url ->" + url);
+        logger.info("conn_url ->" + url);
         // poolMaxSize = pool_max_size;
         // userName = user_name;
         // this.password = password;

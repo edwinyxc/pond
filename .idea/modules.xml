@@ -8,6 +8,7 @@
       <module fileurl="file://$PROJECT_DIR$/core/pond-core.iml" filepath="$PROJECT_DIR$/core/pond-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/example/pond-example.iml" filepath="$PROJECT_DIR$/example/pond-example.iml" />
       <module fileurl="file://$PROJECT_DIR$/pond-parent.iml" filepath="$PROJECT_DIR$/pond-parent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/pond-server-tomcat/pond-server-tomcat.iml" filepath="$PROJECT_DIR$/pond-server-tomcat/pond-server-tomcat.iml" />
     </modules>
   </component>
 </project>

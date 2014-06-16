@@ -2,8 +2,11 @@ package com.shuimin.pond.core.mw;
 
 import com.shuimin.common.abs.Config;
 import com.shuimin.common.abs.Makeable;
+import com.shuimin.common.f.Callback;
 import com.shuimin.pond.core.ExecutionContext;
 import com.shuimin.pond.core.Middleware;
+import com.shuimin.pond.core.Request;
+import com.shuimin.pond.core.Response;
 import com.shuimin.pond.core.exception.HttpException;
 import com.shuimin.pond.core.http.HttpMethod;
 import com.shuimin.pond.core.kernel.PKernel;
@@ -24,6 +27,38 @@ public class Dispatcher extends AbstractMiddleware
     public Dispatcher bind(int mask, String pattern, Middleware... mw) {
         router.add(mask, pattern, mw);
         return this;
+    }
+
+    public Dispatcher get(String pattern, Callback<?> cb) {
+        return get(pattern, Action.consume(cb));
+    }
+
+    public Dispatcher get(String pattern, Callback.C2<Request, Response> cb) {
+        return get(pattern, Action.simple(cb));
+    }
+
+    public Dispatcher post(String pattern, Callback<?> cb) {
+        return post(pattern, Action.consume(cb));
+    }
+
+    public Dispatcher post(String pattern, Callback.C2<Request, Response> cb) {
+        return post(pattern, Action.simple(cb));
+    }
+
+    public Dispatcher delete(String pattern, Callback<?> cb) {
+        return delete(pattern, Action.consume(cb));
+    }
+
+    public Dispatcher delete(String pattern, Callback.C2<Request, Response> cb) {
+        return delete(pattern, Action.simple(cb));
+    }
+
+    public Dispatcher put(String pattern, Callback<?> cb) {
+        return put(pattern, Action.consume(cb));
+    }
+
+    public Dispatcher put(String pattern, Callback.C2<Request, Response> cb) {
+        return put(pattern, Action.simple(cb));
     }
 
     public Dispatcher get(String pattern, Middleware... mw) {

@@ -29,6 +29,7 @@
         <module name="pond-core" />
         <module name="pond-example" />
         <module name="pond-jdbc" />
+        <module name="pond-server-tomcat" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -40,6 +41,7 @@
       <module name="pond-example" target="1.8" />
       <module name="pond-jdbc" target="1.8" />
       <module name="pond-parent" target="1.8" />
+      <module name="pond-server-tomcat" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
