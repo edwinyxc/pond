@@ -43,7 +43,7 @@ public class RegexRouter implements Router {
                     Middleware.string(
                             S.list.one(_for(wares).each(Middleware::init).val()))
             ));
-            debug("Route{" + m.toString() + "," + path + "," + wares.toString() + "}");
+            debug("Route{" + m.toString() + "," + path + "," + S.dump(wares) + "}");
         }
         return this;
     }

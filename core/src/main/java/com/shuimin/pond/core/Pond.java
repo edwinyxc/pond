@@ -27,26 +27,26 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
     private BaseServer server;
     private ContextService service;
     private MiddlewareExecutor executor;
+    private boolean init_flag = false;
+
     private Pond() {
     }
 
     public static Pond get() {
+        if(!holder.instance.init_flag) {
+            holder.instance._init();
+        }
         return holder.instance;
     }
 
     public static Pond init(Config<Pond>... configs) {
         try {
             Pond pond = Pond.get();
-            pond.init();
+
             for (Config<Pond> conf : configs) {
                 conf.config(pond);
             }
 
-            //do not change this
-            pond.attr(Global.ROOT, S.path.rootClassPath());
-            //default
-            pond.attr(Global.ROOT_WEB, pond.attr(Global.ROOT)
-                    + File.separator + "www");
             return pond;
         } catch (PondException t) {
             throw new RuntimeException(t.toString(), t);
@@ -165,13 +165,19 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         return this;
     }
 
-    private Pond init() {
+    private Pond _init() {
+        String rootPath = S.path.rootClassPath();
+        //do not change this
+        this.attr(Global.ROOT, rootPath);
+        //default
+        this.attr(Global.ROOT_WEB, rootPath
+                + File.separator + "www");
 
-        this.attr(Global.ROOT, S.path.webRoot());
+//        this.attr(Global.ROOT, S.path.webRoot());
 
         logger = PKernel.getLogger();
 
-        logger.info("root : " + this.attr(Global.ROOT));
+        logger.info("root : " + rootPath);
 
         server = find(BaseServer.class);
 
@@ -183,13 +189,15 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         server.installHandler(handler(service, executor));
         logger.info("... Finished");
 
+        this.init_flag = true;
+
         return this;
     }
 
     private <E> E find(Class<E> s) {
-        logger.info("Getting " + s.getSimpleName());
         E e = PKernel.getService(s);
         if (e == null) throw new NullPointerException(s.getSimpleName() + "not found");
+        logger.info("Get " + s.getSimpleName()+": " + e.getClass().getCanonicalName());
         return e;
     }
 
@@ -230,7 +238,7 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
     }
 
     private static class holder {
-        final static Pond instance = new Pond().init();
+        final static Pond instance = new Pond();
     }
 
 

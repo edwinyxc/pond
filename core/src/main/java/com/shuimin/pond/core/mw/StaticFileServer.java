@@ -53,7 +53,6 @@ public class StaticFileServer extends AbstractMiddleware
         String absPath = Pond.pathRelWebRoot(str);
 
         File f = new File(absPath);
-        System.out.println(f.getAbsolutePath());
         if (!f.exists() || !f.canWrite()) {
             throw new UnexpectedException() {
                 @Override
