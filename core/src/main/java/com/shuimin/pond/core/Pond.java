@@ -169,10 +169,13 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         String rootPath = S.path.rootClassPath();
         //do not change this
         this.attr(Global.ROOT, rootPath);
+
         //default
         this.attr(Global.ROOT_WEB, rootPath
                 + File.separator + "www");
 
+        this.attr(Global.TEMPLATE_PATH, rootPath
+                + File.separator + "view");
 //        this.attr(Global.ROOT, S.path.webRoot());
 
         logger = PKernel.getLogger();
