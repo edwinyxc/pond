@@ -32,7 +32,7 @@ public class Resource extends Controller {
      * GET ${bo}/?[query]   -- list as query text/html index.view || application/json
      */
     public static final Function<T3<Integer, String, Middleware>, Resource> INDEX =
-            res -> t3(mask(HttpMethod.GET), "", Action.simple((req, resp) ->
+            res -> t3(mask(HttpMethod.GET), "/", Action.simple((req, resp) ->
             {
                 ResourceService service = res.service.val;
                 String mime = getAcceptHeader(req).trim().toLowerCase();
@@ -46,7 +46,7 @@ public class Resource extends Controller {
      * POST ${bo}/?[params] -- create
      */
     public static final Function<T3<Integer, String, Middleware>, Resource> CREATE = res ->
-            t3(mask(HttpMethod.POST), "", Action.simple((req, resp) -> res.service.val.create(req)));
+            t3(mask(HttpMethod.POST), "/", Action.simple((req, resp) -> res.service.val.create(req)));
     /**
      * GET ${bo}/${id} -- get by id text/html detail.view || application/json
      */
@@ -141,19 +141,19 @@ public class Resource extends Controller {
 
     private Resource initByDefault() {
 
-        this.actions.add(INDEX.apply(this));
-        this.actions.add(GET.apply(this));
         this.actions.add(UPDATE.apply(this));
         this.actions.add(CREATE.apply(this));
         this.actions.add(VIEW_NEW.apply(this));
         this.actions.add(VIEW_EDIT.apply(this));
         this.actions.add(DELETE.apply(this));
+        this.actions.add(GET.apply(this));
+        this.actions.add(INDEX.apply(this));
 
         return this;
     }
 
     String resourcePath(String name) {
-        return templatePath() + File.separator + nameSupplier.apply(this) + File.separator + name;
+        return File.separator + nameSupplier.apply(this) + File.separator + name;
     }
 
 }
