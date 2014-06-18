@@ -12,7 +12,6 @@ import java.util.List;
 public class TSqlSelect extends AbstractSql
         implements SqlSelect {
     List<String> tables = new ArrayList<>();
-    List<String> where = new ArrayList<>();
     List<String> fields = new ArrayList<>();
     List<String> groups = new ArrayList<>();
     List<String> having = new ArrayList<>();

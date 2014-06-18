@@ -12,7 +12,6 @@ import static com.shuimin.common.S._for;
  */
 public interface Sql {
 
-    List<Object> params = new ArrayList<>();
 
     public static SqlInsert insert() {
         return new TSqlInsert();
@@ -32,9 +31,7 @@ public interface Sql {
 
     public String preparedSql();
 
-    default public Object[] params() {
-        return params.toArray();
-    }
+    public Object[] params();
 
     default public String debug() {
         return String.format("{ sql: %s, params: [ %s ]}",

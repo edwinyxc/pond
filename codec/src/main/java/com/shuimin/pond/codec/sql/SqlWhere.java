@@ -11,22 +11,12 @@ import java.util.List;
  */
 public interface SqlWhere<T extends Sql> {
 
-    List<String> where = new ArrayList<>();
-
-    /**
-     * workaround for java-corner-problem
-     *
-     * @return
-     */
-    default T _this() {
-        return (T) this;
-    }
 
     default T where(Iterable<Tuple.T3<String, Criterion, Object[]>> conditions) {
         for (Tuple.T3<String, Criterion, Object[]> t : conditions) {
             where(t._a, t._b, (String[]) t._c);
         }
-        return _this();
+        return (T) this;
     }
 
     default T where(String key, Tuple<Criterion, Object[]> condition) {
@@ -41,22 +31,20 @@ public interface SqlWhere<T extends Sql> {
         for (Tuple.T3<String, Criterion, Object[]> t : conditions) {
             where(t._a, t._b, (String[]) t._c);
         }
-        return _this();
+        return (T) this;
     }
 
     default T where(String key, Criterion c, String... x) {
-        where.add(c.prepare(key, x));
-        _this().params.addAll(Arrays.asList(x));
-        return _this();
+        AbstractSql sql = (AbstractSql) this;
+        sql.where.add(c.prepare(key, x));
+        sql.params.addAll(Arrays.asList(x));
+        return (T)sql;
     }
 
     default T where(String... where) {
-        this.where.addAll(Arrays.asList(where));
-        return _this();
-    }
-
-    default List<String> _getWhere() {
-        return where;
+        AbstractSql sql = (AbstractSql) this;
+        sql.where.addAll(Arrays.asList(where));
+        return (T)sql;
     }
 
 }
