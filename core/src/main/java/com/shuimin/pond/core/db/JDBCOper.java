@@ -1,5 +1,6 @@
 package com.shuimin.pond.core.db;
 
+import com.shuimin.common.S;
 import com.shuimin.pond.core.spi.Logger;
 
 import java.io.Closeable;
@@ -171,8 +172,8 @@ public class JDBCOper
                 setParam(pstmt, i + 1, params[i]);
             }
         }
-        _debug(pstmt.getMetaData());
-        _debug(pstmt.getParameterMetaData());
+        _debug(sql+"\n"
+                + S.dump(params));
 
         if (rs != null) {
             _closeRs();
@@ -201,9 +202,9 @@ public class JDBCOper
                 }
             }
 
-            _debug(pstmt);
-            _debug(pstmt.getMetaData());
-            _debug(pstmt.getParameterMetaData());
+            _debug(sql+"\n"
+                    + S.dump(params));
+
             if (rs != null) {
                 _closeRs();
             }

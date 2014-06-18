@@ -396,6 +396,7 @@ public class S {
     /**
      * ***************** C ********************
      */
+
     public static class collection {
 
         public static class set {
@@ -1074,6 +1075,14 @@ public class S {
     /**
      * ******************* R **********************
      */
+
+    public static class reflect {
+        public static boolean isPrimitive(Object o){
+            Class c = o.getClass();
+            //TODO?
+            return c.isPrimitive();
+        }
+    }
     /**
      * ******************* S **********************
      */
