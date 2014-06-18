@@ -108,7 +108,7 @@ public class JDBCTmpl implements Closeable {
                 list.add((R) mapper.apply(rs));
             }
 
-            echo(S.dump(list));
+//            echo(S.dump(list));
 
         } catch (SQLException e) {
             _throw(e);
