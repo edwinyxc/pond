@@ -107,6 +107,9 @@ public class JDBCTmpl implements Closeable {
                 //check
                 list.add((R) mapper.apply(rs));
             }
+
+            echo(S.dump(list));
+
         } catch (SQLException e) {
             _throw(e);
         }
@@ -207,35 +210,40 @@ public class JDBCTmpl implements Closeable {
         return oper.query(sql, x);
     }
 
-    public boolean add(Record r) {
+    private void cleanComma(StringBuilder sb) {
+        if(sb.charAt(sb.length()-1) == ','){
+            sb.delete(sb.length() -1,sb.length());
+        }
+    }
 
+    public boolean add(Record r) {
+        System.out.println(S.dump(r));
         StringBuilder all = new StringBuilder("INSERT INTO ");
         StringBuilder fields = new StringBuilder(" (");
 
         StringBuilder values = new StringBuilder(" )VALUES(");
-        Object[] valuesObjs = new Object[r.fields().size()];
+        List<Object> valuesObjs = new ArrayList<>();
 
         Holder.AccumulatorInt i = new Holder.AccumulatorInt(0);
         _for(r.fields()).each((f) -> {
             Object v = r.get(f);
-            if(v !=null) {
+            if (v != null && !"".equals(v)) {
                 fields.append(f);
                 values.append("?");
-                if (i.val != r.fields().size() - 1) {
-                    fields.append(", ");
-                    values.append(", ");
-                }
-                valuesObjs[i.accum()] = v;
+                valuesObjs.add(v);
+                fields.append(",");
+                values.append(",");
             }
         });
-
+        cleanComma(values);
+        cleanComma(fields);
         all.append(r.table()).append(" ")
                 .append(fields).append(values).append(" ) ");
 
         String sql = all.toString();
 
         try {
-            oper.execute(sql, valuesObjs);
+            oper.execute(sql, valuesObjs.toArray());
             return true;
         } catch (SQLException e) {
             _throw(e);
@@ -299,12 +307,10 @@ public class JDBCTmpl implements Closeable {
              iterator.hasNext(); ) {
             String f = iterator.next();
             Object v =r.get(f);
-            if(v != null) {
+            if(v != null ) {
                 set.append(f).append(" = ?");
                 valuesObjs.add(v);
-                if (iterator.hasNext()) {
-                    set.append(", ");
-                }
+                set.append(",");
             }
         }
 
@@ -313,6 +319,8 @@ public class JDBCTmpl implements Closeable {
             whereCnt++;
             valuesObjs.add(r.get(pk));
         }
+
+        cleanComma(set);
 
         update.append(r.table()).append(set)
                 .append(where);

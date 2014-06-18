@@ -28,14 +28,16 @@ public abstract class AbstractRecord extends HashMap<String, Object>
      */
     RowMapper<?> rm =
             (ResultSet rs) -> {
+                Class c = this.getClass();
+                AbstractRecord ret = (AbstractRecord) Record.newValue(c);
                 try {
                     ResultSetMetaData metaData = rs.getMetaData();
                     int cnt = metaData.getColumnCount();
                     String mainTableName = metaData.getTableName(1);
-                    this.table(mainTableName);
+                    ret.table(mainTableName);
                     for (int i = 0; i < cnt; i++) {
                         String className = metaData.getColumnClassName(i + 1);
-                        String thisTable = metaData.getTableName(i + 1);
+                        String retTable = metaData.getTableName(i + 1);
                         Class<?> type = Object.class;
                         try {
                             type = Class.forName(className);
@@ -56,15 +58,16 @@ public abstract class AbstractRecord extends HashMap<String, Object>
 //                    S.echo(String.format("NAME : %s ,TYPE : %s", colName,
 //                            val == null ? null : val.getClass()));
 
-                        if (mainTableName.equals(thisTable))
-                            this.set(colName, val);
-                        else this.setInner(thisTable, colName, val);
+                        if (mainTableName.equals(retTable))
+                            ret.set(colName, val);
+                        else ret.setInner(retTable, colName, val);
                     }
                 } catch (SQLException e) {
                     S._lazyThrow(e);
                 }
-                return this;
+                return ret;
             };
+
     private List<Record> others = new ArrayList<>();
 
     @Override
@@ -102,40 +105,24 @@ public abstract class AbstractRecord extends HashMap<String, Object>
     @SuppressWarnings("unchecked")
     @Override
     public Record merge(Request req) {
-        Record t;
-        try {
-            Class<?> cls = this.getClass();
-            t = (Record) cls.newInstance();
-            for (String f : this.fields()) {
-                Object o = req.param(f);
-                if (o != null) t.set(f, o);
-            }
-            return t;
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-            S._throw(e);
+        for (String f : this.fields()) {
+            Object o = req.param(f);
+            if (!f.equals(priKeyLabel) && o != null)
+                this.set(f, o);
         }
-        throw new RuntimeException("fail");
+        return this;
     }
 
     @Override
     public Record merge(Map map) {
-        Record t;
-        try {
-            Class<?> cls = this.getClass();
-            t = (Record) cls.newInstance();
-            for (String f : this.fields()) {
-                Object o = map.get(f);
-                if (o != null) t.set(f, o);
-            }
-            return t;
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-            S._throw(e);
+        for (String f : this.fields()) {
+            Object o = map.get(f);
+            if (!f.equals(priKeyLabel) && o != null)
+                this.set(f, o);
         }
-        throw new RuntimeException("fail");
-
+        return this;
     }
+
 
     @Override
     public RowMapper mapper() {
