@@ -59,7 +59,10 @@ public class Page<E> extends HashMap<String, Object> {
 
     public Page<E> fulfill(List<E> data, int records) {
         put(DATA, data);
-        put(PG_SIZE, Math.ceil(records / data.size()));
+        if (data.size() != 0)
+            put(PG_SIZE, Math.ceil(records / data.size()));
+        else
+            put(PG_SIZE, 0);
         put(REC_SIZE, records);
         return this;
     }
