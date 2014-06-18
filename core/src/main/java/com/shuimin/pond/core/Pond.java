@@ -176,7 +176,7 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
 
         this.attr(Global.TEMPLATE_PATH, rootPath
                 + File.separator + "view");
-//        this.attr(Global.ROOT, S.path.webRoot());
+//        this.attr(Global.ROOT, S.path.webRoot()#);
 
         logger = PKernel.getLogger();
 

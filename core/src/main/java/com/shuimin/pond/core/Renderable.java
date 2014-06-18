@@ -55,14 +55,15 @@ public interface Renderable {
     }
 
     public static Renderable view(String path, Object o) {
-        File file = new File((String) Pond.attribute(Global.ROOT)
+        File file = new File((String) Pond.attribute(Global.TEMPLATE_PATH)
                 + File.separator + path);
         ViewEngine engine = PKernel.getService(ViewEngine.class);
         if (file.exists()) {
-            PKernel.getLogger().warn("File" + file + "not found");
             return (resp) -> engine.render(resp.out(), path, o);
+        } else {
+            PKernel.getLogger().warn("File" + file + "not found");
+            return json(o);
         }
-        return json(o);
     }
 
     public static Renderable view(String path) {
