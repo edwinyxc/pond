@@ -217,13 +217,16 @@ public class JDBCTmpl implements Closeable {
 
         Holder.AccumulatorInt i = new Holder.AccumulatorInt(0);
         _for(r.fields()).each((f) -> {
-            fields.append(f);
-            values.append("?");
-            if (i.val != r.fields().size() - 1) {
-                fields.append(", ");
-                values.append(", ");
+            Object v = r.get(f);
+            if(v !=null) {
+                fields.append(f);
+                values.append("?");
+                if (i.val != r.fields().size() - 1) {
+                    fields.append(", ");
+                    values.append(", ");
+                }
+                valuesObjs[i.accum()] = v;
             }
-            valuesObjs[i.accum()] = r.get(f);
         });
 
         all.append(r.table()).append(" ")
@@ -295,10 +298,13 @@ public class JDBCTmpl implements Closeable {
         for (Iterator<String> iterator = nonPrimaryFields.iterator();
              iterator.hasNext(); ) {
             String f = iterator.next();
-            set.append(f).append(" = ?");
-            valuesObjs.add(r.get(f));
-            if (iterator.hasNext()) {
-                set.append(", ");
+            Object v =r.get(f);
+            if(v != null) {
+                set.append(f).append(" = ?");
+                valuesObjs.add(v);
+                if (iterator.hasNext()) {
+                    set.append(", ");
+                }
             }
         }
 

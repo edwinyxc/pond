@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.shuimin.common.S._assert;
 import static com.shuimin.common.S._throw;
 import static com.shuimin.common.S.dump;
 
@@ -289,9 +290,12 @@ public class JDBCOper
 
     private void setParam(PreparedStatement pstmt, int idx, Object val)
             throws SQLException {
-        if (val == null) {
-            return;
-        }
+//        if (val == null) {
+//            int type = pstmt.getMetaData().getColumnType(idx);
+//            pstmt.setNull(idx,type);
+//            return;
+//        }
+        _assert(val);
         if (setParam_try_primitive(pstmt, idx, val)
                 || setParam_try_common(pstmt, idx, val)) return;
         throw new UnsupportedTypeException(val.getClass(),
