@@ -29,7 +29,7 @@ import static com.shuimin.pond.core.http.HttpMethod.mask;
 public class Resource extends Controller {
 
     /**
-     * GET ${bo}/?[query]   -- list as query text/html index.tpl || application/json
+     * GET ${bo}/?[query]   -- list as query text/html index.view || application/json
      */
     public static final Function<T3<Integer, String, Middleware>, Resource> INDEX =
             res -> t3(mask(HttpMethod.GET), "", Action.simple((req, resp) ->
@@ -37,7 +37,7 @@ public class Resource extends Controller {
                 ResourceService service = res.service.val;
                 String mime = getAcceptHeader(req).trim().toLowerCase();
                 if (mime.startsWith("text/html"))
-                    render(view(res.resourcePath("index.tpl"), service.query(req)));
+                    render(view(res.resourcePath("index.view"), service.query(req)));
                 else
                     render(service.render(mime, service.query((req))));
 
@@ -48,7 +48,7 @@ public class Resource extends Controller {
     public static final Function<T3<Integer, String, Middleware>, Resource> CREATE = res ->
             t3(mask(HttpMethod.POST), "", Action.simple((req, resp) -> res.service.val.create(req)));
     /**
-     * GET ${bo}/${id} -- get by id text/html detail.tpl || application/json
+     * GET ${bo}/${id} -- get by id text/html detail.view || application/json
      */
     public final static Function<T3<Integer, String, Middleware>, Resource> GET = res ->
             t3(mask(HttpMethod.GET), "/${_id}"
@@ -57,7 +57,7 @@ public class Resource extends Controller {
                 String id = req.param("_id");
                 String mime = getAcceptHeader(req).trim().toLowerCase();
                 if (mime.startsWith("text/html"))
-                    render(view(res.resourcePath("detail.tpl"), res.service.val.get(id)));
+                    render(view(res.resourcePath("detail.view"), res.service.val.get(id)));
                 else
                     render(res.service.val.render(mime, res.service.val.get(id)));
             }));
@@ -75,7 +75,7 @@ public class Resource extends Controller {
      * PUT ${bo}/${id} --update
      */
     public final static Function<T3<Integer, String, Middleware>, Resource> UPDATE = res ->
-            t3(mask(HttpMethod.GET), "/${_id}",
+            t3(mask(HttpMethod.PUT), "/${_id}",
                     Action.simple((req, resp) -> {
                         ResourceService service = res.service.val;
                         String id = req.param("_id");
@@ -83,21 +83,21 @@ public class Resource extends Controller {
                     })
             );
     /**
-     * GET ${bo}/new -- new view ONLY ACCEPT text/html new.tpl
+     * GET ${bo}/new -- new view ONLY ACCEPT text/html new.view
      */
     public final Function<T3<Integer, String, Middleware>, Resource> VIEW_NEW = res ->
             t3(mask(HttpMethod.GET), "/new",
-                    Action.fly(() -> render(view(resourcePath("new.tpl"))))
+                    Action.fly(() -> render(view(resourcePath("new.view"))))
             );
     /**
-     * GET ${bo}/${id}/edit -- edit view ACCEPT text/html edit.tpl
+     * GET ${bo}/${id}/edit -- edit view ACCEPT text/html edit.view
      */
     public final Function<T3<Integer, String, Middleware>, Resource> VIEW_EDIT = res ->
             t3(mask(HttpMethod.GET), "/${_id}/edit",
                     Action.simple((req, resp) -> {
                         String id = req.param("_id");
                         Object o = res.service.val.get(id);
-                        render(view(resourcePath("edit.tpl"), o));
+                        render(view(resourcePath("edit.view"), o));
                     })
             );
     protected final Holder<ResourceService> service = new Holder<>();
