@@ -289,9 +289,11 @@ public class JDBCOper
 
     private void setParam(PreparedStatement pstmt, int idx, Object val)
             throws SQLException {
+        if (val == null) {
+            return;
+        }
         if (setParam_try_primitive(pstmt, idx, val)
                 || setParam_try_common(pstmt, idx, val)) return;
-
         throw new UnsupportedTypeException(val.getClass(),
                 SUPPORTED_TYPES);
     }
