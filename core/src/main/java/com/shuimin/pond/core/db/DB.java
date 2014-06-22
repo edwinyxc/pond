@@ -4,7 +4,6 @@ import com.shuimin.common.abs.Makeable;
 import com.shuimin.common.f.Function;
 import com.shuimin.common.util.logger.Logger;
 import com.shuimin.pond.core.ExecutionContext;
-
 import com.shuimin.pond.core.exception.UnexpectedException;
 import com.shuimin.pond.core.kernel.PKernel;
 import com.shuimin.pond.core.spi.ConnectionPool;
@@ -38,27 +37,12 @@ public class DB implements Makeable<DB>, Closeable {
 
     public static Connection getConnFromPool() {
         ConnectionPool connectionPool =
-               PKernel.getService(ConnectionPool.class);
+                PKernel.getService(ConnectionPool.class);
         return connectionPool.getConnection();
     }
 
-    public static Connection getConn() {
-        ContextService service = PKernel.getService(ContextService.class);
-        ExecutionContext ctx = service.get();
-        Connection conn = (Connection) ctx.attr("cur_conn");
-        try {
-            if (conn == null || conn.isClosed()) {
-                conn = getConnFromPool();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        ctx.attr("cur_conn", conn);
-        return conn;
-    }
-
     public static <R> R fire(Function<R, JDBCTmpl> process) {
-        try (DB b = new DB().open(DB::getConn)) {
+        try (DB b = new DB().open(DB::getConnFromPool)) {
             return b.exec(process);
         }
     }
