@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.shuimin.common.S._notNullElse;
-import static com.shuimin.pond.core.Pond.debug;
 
 /**
  * Created by ed on 14-5-20.
@@ -32,9 +31,7 @@ public class Page<E> extends HashMap<String, Object> {
         Page<E> page = new Page<>();
 
         Integer pgIdx = _notNullElse(r.paramInt(PG_IDX), 1);
-        debug(pgIdx);
         Integer pgLen = _notNullElse(r.paramInt(PG_LEN), 0);
-        debug(pgLen);
         page.put(PG_IDX, pgIdx);
         page.put(PG_LEN, pgLen);
 
@@ -58,12 +55,17 @@ public class Page<E> extends HashMap<String, Object> {
     }
 
     public Page<E> fulfill(List<E> data, int records) {
-        put(DATA, data);
-        if (data.size() != 0)
-            put(PG_SIZE, Math.ceil(records / data.size())+1);
-        else
-            put(PG_SIZE, 0);
+        Integer pg_len = (Integer) this.get(PG_LEN);
+        if(pg_len == null){
+            pg_len = data.size();
+        }
+        if(pg_len == 0){
+            //top max return
+            pg_len = 9999;
+        }
+        put(PG_SIZE, Math.ceil((double)records / (double)pg_len));
         put(REC_SIZE, records);
+        put(DATA, data);
         return this;
     }
 
