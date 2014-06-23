@@ -3,11 +3,9 @@ package com.shuimin.pond.core.db;
 import com.shuimin.common.abs.Makeable;
 import com.shuimin.common.f.Function;
 import com.shuimin.common.util.logger.Logger;
-import com.shuimin.pond.core.ExecutionContext;
 import com.shuimin.pond.core.exception.UnexpectedException;
 import com.shuimin.pond.core.kernel.PKernel;
 import com.shuimin.pond.core.spi.ConnectionPool;
-import com.shuimin.pond.core.spi.ContextService;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -182,5 +180,5 @@ public class DB implements Makeable<DB>, Closeable {
             _throw(e);
         }
     }
-
+//
 }
