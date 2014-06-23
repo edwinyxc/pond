@@ -236,7 +236,7 @@ public class JDBCTmpl implements Closeable {
         }
     }
 
-    public void add(Record r) {
+    public boolean add(Record r) {
         List<Tuple<String, Object>> values =
                 new ArrayList<>();
         for (String f : r.fields()) {
@@ -248,18 +248,18 @@ public class JDBCTmpl implements Closeable {
         Sql sql = Sql.insert().into(r.table()).values(S.array.of(values));
 
         try {
-            oper.execute(sql.preparedSql(), sql.params());
+            return oper.execute(sql.preparedSql(), sql.params()) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);
         }
     }
 
-    public void del(Record r) {
+    public boolean del(Record r) {
         Sql sql = Sql.delete().from(r.table())
                 .where(r.primaryKeyName(), Criterion.EQ, r.pk());
         try {
-            oper.execute(sql.preparedSql(), sql.params());
+            return oper.execute(sql.preparedSql(), sql.params()) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);
@@ -267,7 +267,7 @@ public class JDBCTmpl implements Closeable {
     }
 
 
-    public void upd(Record r) {
+    public boolean upd(Record r) {
         List<Tuple<String, Object>> sets =
                 new ArrayList<>();
 
@@ -278,7 +278,7 @@ public class JDBCTmpl implements Closeable {
                 .where(r.primaryKeyName(), Criterion.EQ, r.pk());
 
         try {
-            oper.execute(sql.preparedSql(), sql.params());
+            return oper.execute(sql.preparedSql(), sql.params()) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);
