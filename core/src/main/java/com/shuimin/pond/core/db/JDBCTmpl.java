@@ -3,8 +3,9 @@ package com.shuimin.pond.core.db;
 import com.shuimin.common.S;
 import com.shuimin.common.f.Callback;
 import com.shuimin.common.f.Function;
-import com.shuimin.common.f.Holder;
 import com.shuimin.common.f.Tuple;
+import com.shuimin.common.sql.Criterion;
+import com.shuimin.common.sql.Sql;
 import com.shuimin.pond.core.exception.UnexpectedException;
 
 import java.io.Closeable;
@@ -12,11 +13,11 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static com.shuimin.common.S.*;
+import static com.shuimin.common.S._for;
+import static com.shuimin.common.S._notNullElse;
 
 /**
  * Created by ed on 2014/4/18.
@@ -53,14 +54,14 @@ public class JDBCTmpl implements Closeable {
         return this.map(_default_rm::map, sql, x);
     }
 
-    public List<Record> find(String sql) throws SQLException {
+    public List<Record> find(String sql) {
         return this.map(_default_rm::map, sql);
     }
 
     public <R> List<R> map(
             Class<R> clazz,
             String sql, Object... x
-    ) throws SQLException {
+    ) {
         try {
             Record c = S._one(clazz);
 
@@ -74,12 +75,12 @@ public class JDBCTmpl implements Closeable {
         return null;
     }
 
-    public int count(String sql, Object[] params) throws SQLException {
+    public int count(String sql, Object[] params) {
         return _notNullElse(S.<Integer>_for(map(counter, sql,
                 params)).first(), 0);
     }
 
-    public int count(Tuple<String, Object[]> mix) throws SQLException {
+    public int count(Tuple<String, Object[]> mix) {
         return count(mix._a, mix._b);
     }
 
@@ -92,7 +93,7 @@ public class JDBCTmpl implements Closeable {
 //    }
 
     public <R> List<R> map(Function<?, ResultSet> mapper,
-                           Tuple<String, Object[]> mix) throws SQLException {
+                           Tuple<String, Object[]> mix) {
         return map(mapper, mix._a, mix._b);
     }
 
@@ -100,7 +101,7 @@ public class JDBCTmpl implements Closeable {
     public <R> List<R> map(Function<?, ResultSet> mapper,
                            String sql, Object... x) {
 
-        ResultSet rs ;
+        ResultSet rs;
         List<R> list = new ArrayList<>();
         try {
             rs = oper.query(sql, x);
@@ -211,12 +212,22 @@ public class JDBCTmpl implements Closeable {
         exec("TRUNCATE TABLE " + tbName);
     }
 
-    public ResultSet query(String sql) throws SQLException {
-        return oper.query(sql);
+    public ResultSet query(String sql) {
+        try {
+            return oper.query(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeSQLException(e);
+        }
     }
 
-    public ResultSet query(String sql, String... x) throws SQLException {
-        return oper.query(sql, x);
+    public ResultSet query(String sql, String... x) {
+        try {
+            return oper.query(sql, x);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeSQLException(e);
+        }
     }
 
     private void cleanComma(StringBuilder sb) {
@@ -225,127 +236,53 @@ public class JDBCTmpl implements Closeable {
         }
     }
 
-    public boolean add(Record r) {
-        System.out.println(S.dump(r));
-        StringBuilder all = new StringBuilder("INSERT INTO ");
-        StringBuilder fields = new StringBuilder(" (");
-
-        StringBuilder values = new StringBuilder(" )VALUES(");
-        List<Object> valuesObjs = new ArrayList<>();
-
-        Holder.AccumulatorInt i = new Holder.AccumulatorInt(0);
-        _for(r.fields()).each((f) -> {
-            Object v = r.get(f);
-            if (v != null && !"".equals(v)) {
-                fields.append(f);
-                values.append("?");
-                valuesObjs.add(v);
-                fields.append(",");
-                values.append(",");
-            }
-        });
-        cleanComma(values);
-        cleanComma(fields);
-        all.append(r.table()).append(" ")
-                .append(fields).append(values).append(" ) ");
-
-        String sql = all.toString();
-
-        try {
-            oper.execute(sql, valuesObjs.toArray());
-            return true;
-        } catch (SQLException e) {
-            _throw(e);
-        }
-        return false;
-    }
-
-    public boolean del(Record r) {
-        if (r == null) return false;
-
-        StringBuilder all = new StringBuilder("DELETE FROM ");
-
-        StringBuilder where = new StringBuilder(" WHERE ");
-
-        Object[] valuesObjs = new Object[r.fields().size()];
-
-        Holder.AccumulatorInt i = new Holder.AccumulatorInt(0);
-
-        _for(r.fields()).each((f) -> {
-            where.append(f).append(" = ? ");
-            if (i.val != r.fields().size() - 1) {
-                where.append("AND ");
-            }
-            valuesObjs[i.accum()] = r.get(f);
-        });
-
-        all.append(r.table()).append(" ")
-                .append(where);
-
-        String sql = all.toString();
-
-        try {
-            oper.execute(sql, valuesObjs);
-            return true;
-        } catch (SQLException e) {
-            _throw(e);
-        }
-        return false;
-    }
-
-    public Set<String> tables() throws SQLException {
-        return oper.getTableNames();
-    }
-
-    public boolean upd(Record r) {
-        StringBuilder update = new StringBuilder(" UPDATE ");
-
-        StringBuilder set = new StringBuilder(" SET ");
-
-        StringBuilder where = new StringBuilder(" WHERE ");
-
-        int whereCnt = 0;
-
-        List<Object> valuesObjs = new ArrayList<>();
-
-        String pk = r.pk();
-        Iterable<String> nonPrimaryFields =
-                _for(r.fields()).grep(s -> !s.equals(pk)).val();
-
-        for (Iterator<String> iterator = nonPrimaryFields.iterator();
-             iterator.hasNext(); ) {
-            String f = iterator.next();
-            Object v = r.get(f);
-            if (v != null) {
-                set.append(f).append(" = ?");
-                valuesObjs.add(v);
-                set.append(",");
+    public void add(Record r) {
+        List<Tuple<String, Object>> values =
+                new ArrayList<>();
+        for (String f : r.fields()) {
+            Object val = r.get(f);
+            if (val != null) {
+                values.add(Tuple.t2(f, val));
             }
         }
-
-        if (pk != null) {
-            where.append(pk).append(" = ?");
-            whereCnt++;
-            valuesObjs.add(r.get(pk));
-        }
-
-        cleanComma(set);
-
-        update.append(r.table()).append(set)
-                .append(where);
-
-        String sql = update.toString();
-
-        if (whereCnt == 0) throw new UnexpectedException("UPD SQL : " + sql + "has empty where clause!");
-
+        Sql sql = Sql.insert().into(r.table()).values(S.array.of(values));
 
         try {
-            oper.execute(sql, valuesObjs.toArray());
-            return true;
+            oper.execute(sql.preparedSql(), sql.params());
         } catch (SQLException e) {
-            _throw(e);
+            e.printStackTrace();
+            throw new RuntimeSQLException(e);
         }
-        return false;
+    }
+
+    public void del(Record r) {
+        Sql sql = Sql.delete().from(r.table())
+                .where(r.primaryKeyName(), Criterion.EQ, r.pk());
+        try {
+            oper.execute(sql.preparedSql(), sql.params());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeSQLException(e);
+        }
+    }
+
+
+    public void upd(Record r) {
+        List<Tuple<String, Object>> sets =
+                new ArrayList<>();
+
+        for (String f : r.fields()) {
+            sets.add(Tuple.t2(f,r.get(f)));
+        }
+        Sql sql = Sql.update(r.table()).set(S.array.of(sets))
+                .where(r.primaryKeyName(), Criterion.EQ, r.pk());
+
+        try {
+            oper.execute(sql.preparedSql(), sql.params());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeSQLException(e);
+        }
     }
 
     @Override
@@ -353,6 +290,14 @@ public class JDBCTmpl implements Closeable {
         this.oper.close();
     }
 
+    public Set<String> tables() {
+        try {
+            return oper.getTableNames();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeSQLException(e);
+        }
+    }
 
     /**
      * in case ...

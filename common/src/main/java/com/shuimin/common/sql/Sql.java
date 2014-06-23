@@ -1,9 +1,6 @@
-package com.shuimin.pond.codec.sql;
+package com.shuimin.common.sql;
 
 import com.shuimin.common.f.Tuple;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.shuimin.common.S._for;
 

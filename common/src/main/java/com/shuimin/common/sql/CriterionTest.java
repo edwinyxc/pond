@@ -1,8 +1,6 @@
-package com.shuimin.pond.codec.sql;
+package com.shuimin.common.sql;
 
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class CriterionTest {
 

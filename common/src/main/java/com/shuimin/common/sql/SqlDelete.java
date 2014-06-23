@@ -1,4 +1,4 @@
-package com.shuimin.pond.codec.sql;
+package com.shuimin.common.sql;
 
 /**
  * Created by ed on 2014/4/30.

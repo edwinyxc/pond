@@ -1,4 +1,4 @@
-package com.shuimin.pond.codec.sql.dialect;
+package com.shuimin.common.sql.dialect;
 
 /**
  * Created by ed on 2014/5/4.

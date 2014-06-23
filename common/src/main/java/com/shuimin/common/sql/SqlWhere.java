@@ -1,10 +1,8 @@
-package com.shuimin.pond.codec.sql;
+package com.shuimin.common.sql;
 
 import com.shuimin.common.f.Tuple;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by ed on 14-5-23.

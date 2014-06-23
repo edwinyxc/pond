@@ -34,7 +34,7 @@ public abstract class PondException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return toString();
+        return super.getMessage();
     }
 
     @Override
