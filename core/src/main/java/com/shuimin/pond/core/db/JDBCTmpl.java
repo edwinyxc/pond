@@ -257,7 +257,7 @@ public class JDBCTmpl implements Closeable {
 
     public boolean del(Record r) {
         Sql sql = Sql.delete().from(r.table())
-                .where(r.primaryKeyName(), Criterion.EQ, r.pk());
+                .where(r.primaryKeyName(), Criterion.EQ, (String) r.pk());
         try {
             return oper.execute(sql.preparedSql(), sql.params()) > 0;
         } catch (SQLException e) {
@@ -275,7 +275,7 @@ public class JDBCTmpl implements Closeable {
             sets.add(Tuple.t2(f,r.get(f)));
         }
         Sql sql = Sql.update(r.table()).set(S.array.of(sets))
-                .where(r.primaryKeyName(), Criterion.EQ, r.pk());
+                .where(r.primaryKeyName(), Criterion.EQ, (String) r.pk());
 
         try {
             return oper.execute(sql.preparedSql(), sql.params()) > 0;
