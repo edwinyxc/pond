@@ -90,6 +90,14 @@ public class S {
         throw new RuntimeException(err);
     }
 
+    public static boolean _in(Object some, Object... conditions){
+        _assert(some);
+        for(Object o : conditions) {
+            if(some.equals(o))return true;
+        }
+        return false;
+    }
+
     public static void _lazyThrow(Throwable a) {
         throw new RuntimeException(a);
     }
