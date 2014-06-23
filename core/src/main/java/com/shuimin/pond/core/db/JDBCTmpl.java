@@ -53,14 +53,14 @@ public class JDBCTmpl implements Closeable {
         return this.map(_default_rm::map, sql, x);
     }
 
-    public List<Record> find(String sql) {
+    public List<Record> find(String sql) throws SQLException {
         return this.map(_default_rm::map, sql);
     }
 
     public <R> List<R> map(
             Class<R> clazz,
             String sql, Object... x
-    ) {
+    ) throws SQLException {
         try {
             Record c = S._one(clazz);
 
@@ -74,12 +74,12 @@ public class JDBCTmpl implements Closeable {
         return null;
     }
 
-    public int count(String sql, Object[] params) {
+    public int count(String sql, Object[] params) throws SQLException {
         return _notNullElse(S.<Integer>_for(map(counter, sql,
                 params)).first(), 0);
     }
 
-    public int count(Tuple<String, Object[]> mix) {
+    public int count(Tuple<String, Object[]> mix) throws SQLException {
         return count(mix._a, mix._b);
     }
 
@@ -92,7 +92,7 @@ public class JDBCTmpl implements Closeable {
 //    }
 
     public <R> List<R> map(Function<?, ResultSet> mapper,
-                           Tuple<String, Object[]> mix) {
+                           Tuple<String, Object[]> mix) throws SQLException {
         return map(mapper, mix._a, mix._b);
     }
 
@@ -100,18 +100,17 @@ public class JDBCTmpl implements Closeable {
     public <R> List<R> map(Function<?, ResultSet> mapper,
                            String sql, Object... x) {
 
-        ResultSet rs = oper.query(sql, x);
+        ResultSet rs ;
         List<R> list = new ArrayList<>();
         try {
+            rs = oper.query(sql, x);
             while (rs.next()) {
                 //check
                 list.add((R) mapper.apply(rs));
             }
-
-//            echo(S.dump(list));
-
         } catch (SQLException e) {
-            _throw(e);
+            e.printStackTrace();
+            throw new RuntimeSQLException(e);
         }
         return list;
     }
@@ -127,7 +126,12 @@ public class JDBCTmpl implements Closeable {
             _for(callback).each(c -> c.apply(this));
             oper.transactionCommit();
         } catch (Exception e) {
-            oper.rollback();
+            try {
+                oper.rollback();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+                throw new RuntimeSQLException(e);
+            }
             throw new UnexpectedException(e);
         }
     }
@@ -145,7 +149,12 @@ public class JDBCTmpl implements Closeable {
             }
             oper.transactionCommit();
         } catch (SQLException e) {
-            oper.rollback();
+            try {
+                oper.rollback();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+                throw new RuntimeSQLException(e);
+            }
             throw new UnexpectedException(e);
         }
     }
@@ -202,17 +211,17 @@ public class JDBCTmpl implements Closeable {
         exec("TRUNCATE TABLE " + tbName);
     }
 
-    public ResultSet query(String sql) {
+    public ResultSet query(String sql) throws SQLException {
         return oper.query(sql);
     }
 
-    public ResultSet query(String sql, String... x) {
+    public ResultSet query(String sql, String... x) throws SQLException {
         return oper.query(sql, x);
     }
 
     private void cleanComma(StringBuilder sb) {
-        if(sb.charAt(sb.length()-1) == ','){
-            sb.delete(sb.length() -1,sb.length());
+        if (sb.charAt(sb.length() - 1) == ',') {
+            sb.delete(sb.length() - 1, sb.length());
         }
     }
 
@@ -284,7 +293,7 @@ public class JDBCTmpl implements Closeable {
         return false;
     }
 
-    public Set<String> tables() {
+    public Set<String> tables() throws SQLException {
         return oper.getTableNames();
     }
 
@@ -306,8 +315,8 @@ public class JDBCTmpl implements Closeable {
         for (Iterator<String> iterator = nonPrimaryFields.iterator();
              iterator.hasNext(); ) {
             String f = iterator.next();
-            Object v =r.get(f);
-            if(v != null ) {
+            Object v = r.get(f);
+            if (v != null) {
                 set.append(f).append(" = ?");
                 valuesObjs.add(v);
                 set.append(",");

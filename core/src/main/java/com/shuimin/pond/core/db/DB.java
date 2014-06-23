@@ -3,6 +3,7 @@ package com.shuimin.pond.core.db;
 import com.shuimin.common.abs.Makeable;
 import com.shuimin.common.f.Function;
 import com.shuimin.common.util.logger.Logger;
+import com.shuimin.pond.core.exception.HttpException;
 import com.shuimin.pond.core.exception.UnexpectedException;
 import com.shuimin.pond.core.kernel.PKernel;
 import com.shuimin.pond.core.spi.ConnectionPool;
@@ -14,7 +15,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.shuimin.common.S._throw;
 
 /**
  * Created by ed on 2014/4/15.
@@ -177,7 +177,8 @@ public class DB implements Makeable<DB>, Closeable {
                 tmpl.close();
             }
         } catch (IOException e) {
-            _throw(e);
+            e.printStackTrace();
+            throw new HttpException(500,e.getMessage());
         }
     }
 //

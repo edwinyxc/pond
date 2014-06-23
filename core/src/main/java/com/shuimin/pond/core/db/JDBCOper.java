@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.shuimin.common.S._assert;
-import static com.shuimin.common.S._throw;
 import static com.shuimin.common.S.dump;
 
 /**
@@ -33,7 +32,7 @@ public class JDBCOper
     private PreparedStatement pstmt = null;
 
 
-//	//use under jdk -1.4
+    //	//use under jdk -1.4
 //	@SuppressWarnings("unused")
 //	private Object guarder = new Object() {
 //		public void finalize() throws Throwable
@@ -110,34 +109,26 @@ public class JDBCOper
         }
     }
 
-    public Set<String> getTableNames() {
+    public Set<String> getTableNames() throws SQLException {
         Set<String> tables = new HashSet<>();
-        try {
-            DatabaseMetaData dbMeta = conn.getMetaData();
-            ResultSet rs = dbMeta.getTables(
-                    null, null, "%", new String[]{"TABLE"}
-            );
-            while (rs.next()) {
-                tables.add(rs.getString("table_name"));
-            }
-        } catch (SQLException e) {
-            _throw(e);
+        DatabaseMetaData dbMeta = conn.getMetaData();
+        ResultSet rs = dbMeta.getTables(
+                null, null, "%", new String[]{"TABLE"}
+        );
+        while (rs.next()) {
+            tables.add(rs.getString("table_name"));
         }
         return tables;
     }
 
-    public Set<String> getTableAndViewNames() {
+    public Set<String> getTableAndViewNames() throws SQLException {
         Set<String> tables = new HashSet<>();
-        try {
-            DatabaseMetaData dbMeta = conn.getMetaData();
-            ResultSet rs = dbMeta.getTables(
-                    null, null, "%", new String[]{"TABLE", "VIEW"}
-            );
-            while (rs.next()) {
-                tables.add(rs.getString("table_name"));
-            }
-        } catch (SQLException e) {
-            _throw(e);
+        DatabaseMetaData dbMeta = conn.getMetaData();
+        ResultSet rs = dbMeta.getTables(
+                null, null, "%", new String[]{"TABLE", "VIEW"}
+        );
+        while (rs.next()) {
+            tables.add(rs.getString("table_name"));
         }
         return tables;
     }
@@ -173,7 +164,7 @@ public class JDBCOper
                 setParam(pstmt, i + 1, params[i]);
             }
         }
-        _debug(sql+"\n"
+        _debug(sql + "\n"
                 + S.dump(params));
 
         if (rs != null) {
@@ -182,39 +173,34 @@ public class JDBCOper
         return pstmt.executeUpdate();
     }
 
-    public ResultSet query(String sql) {
+    public ResultSet query(String sql) throws SQLException {
         return query(sql, null);
     }
 
     /**
      * execute SQL statements to Query
      */
-    public ResultSet query(String sql, Object[] params) {
-        try {
-            if (pstmt != null) {
-                _closeStmt();
-            }
-            pstmt = conn.prepareStatement(sql);
-
-            if (params != null) {
-                for (int i = 0; i < params.length; i++) {
-                    //untested
-                    pstmt.setObject(i + 1, params[i]);
-                }
-            }
-
-            _debug(sql+"\n"
-                    + S.dump(params));
-
-            if (rs != null) {
-                _closeRs();
-            }
-            rs = pstmt.executeQuery();
-            return rs;
-        } catch (SQLException s) {
-            _throw(s);
+    public ResultSet query(String sql, Object[] params) throws SQLException {
+        if (pstmt != null) {
+            _closeStmt();
         }
-        return null;
+        pstmt = conn.prepareStatement(sql);
+
+        if (params != null) {
+            for (int i = 0; i < params.length; i++) {
+                //untested
+                pstmt.setObject(i + 1, params[i]);
+            }
+        }
+
+        _debug(sql + "\n"
+                + S.dump(params));
+
+        if (rs != null) {
+            _closeRs();
+        }
+        rs = pstmt.executeQuery();
+        return rs;
     }
 
     public int execute(String sql) throws SQLException {
@@ -241,32 +227,24 @@ public class JDBCOper
 //		num = pstmt.execute();
 //		return num;
 //	}
-    public void transactionStart() {
-        try {
-            synchronized (conn) {
-                conn.setAutoCommit(false);
-            }
-        } catch (SQLException e) {
-            _throw(e);
+    public void transactionStart() throws SQLException {
+        synchronized (conn) {
+            conn.setAutoCommit(false);
         }
     }
 
-    public void transactionCommit() {
+    public void transactionCommit() throws SQLException {
         try {
-            try {
-                synchronized (conn) {
-                    conn.commit();
-                }
-            } catch (SQLException e) {
-                conn.rollback();
-                throw e;
-            } finally {
-                synchronized (conn) {
-                    conn.setAutoCommit(true);
-                }
+            synchronized (conn) {
+                conn.commit();
             }
         } catch (SQLException e) {
-            _throw(e);
+            conn.rollback();
+            throw e;
+        } finally {
+            synchronized (conn) {
+                conn.setAutoCommit(true);
+            }
         }
     }
 
@@ -274,12 +252,8 @@ public class JDBCOper
      * <p>调用jdbc 的 RollBack
      * </p>
      */
-    public void rollback() {
-        try {
-            conn.rollback();
-        } catch (SQLException e) {
-            _throw(e);
-        }
+    public void rollback() throws SQLException {
+        conn.rollback();
     }
 
     private void _debug(Object o) {

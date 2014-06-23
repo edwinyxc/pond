@@ -42,8 +42,6 @@ public class DefaultExecutor implements MiddlewareExecutor {
                 debug("executing mid :" + m);
                 try {
                     m.handle(ctx);
-                } catch (Interrupt.JumpInterruption jump) {
-                    //continue;
                 } catch (Interrupt.KillInterruption kill) {
                     break;
                 } catch (Interrupt.RedirectInterruption redirection) {
@@ -72,8 +70,8 @@ public class DefaultExecutor implements MiddlewareExecutor {
             th.printStackTrace();
         } finally {
             ExecutionContext.executionContexts.remove();
-            return ctx;
         }
+        return ctx;
     }
 
 }
