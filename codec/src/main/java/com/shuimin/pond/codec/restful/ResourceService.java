@@ -46,7 +46,7 @@ public abstract class ResourceService<E extends Record> {
         E r = prototype();
         String tb_name = r.table();
         return Sql.select(r.fields().toArray(new String[0])).from(tb_name)
-                .where(Criterion.parseFromRequest(r, req));
+                .where(req.getQuery(r, req));
     }
 
     @SuppressWarnings("unchecked")

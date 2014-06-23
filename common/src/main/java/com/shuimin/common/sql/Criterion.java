@@ -1,13 +1,6 @@
 package com.shuimin.common.sql;
 
 import com.shuimin.common.f.Function;
-import com.shuimin.common.f.Tuple;
-import com.shuimin.pond.core.db.Record;
-import com.shuimin.pond.core.Request;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import static java.lang.String.format;
 
@@ -47,28 +40,6 @@ public enum Criterion {
         this.url = url;
     }
 
-    public static List<Tuple.T3<String, Criterion, Object[]>>
-    parseFromRequest(Record r, Request req) {
-        List<Tuple.T3<String, Criterion, Object[]>>
-                conditions = new ArrayList<>();
-        for (String f : r.fields()) {
-            String k = f;
-            String[] c_and_v = req.params(f);
-            if (c_and_v != null) {
-                if (c_and_v.length == 1) {
-                    //&uid=xxx;
-                    //eq
-                    conditions.add(Tuple.t3(f, EQ, c_and_v));
-                } else {
-                    conditions.add(Tuple.t3(f,
-                            Criterion.of(c_and_v[0]),
-                            Arrays.copyOfRange(c_and_v, 1, c_and_v.length)
-                    ));
-                }
-            }
-        }
-        return conditions;
-    }
 
     public static Criterion of(String str) {
 
