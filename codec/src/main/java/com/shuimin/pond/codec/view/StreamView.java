@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Top abstract View merge Blob Value
+ * Top abstract View of Blob Value
  *
  * @author ed
  */

@@ -77,23 +77,34 @@ public abstract class ResourceService<E extends Record> {
         return Renderable.json(o);
     }
 
-    public void delete(String id) {
+    /**
+     * Delete a record, returns its id, if success
+     * @param id id
+     * @return id
+     */
+    public String delete(String id) {
         Record r = get(id);
         if (r == null) throw new HttpException(404, "Record[" + id + "] not found.");
-        DB.fire(tmpl -> tmpl.del(r));
+        if(DB.fire(tmpl -> tmpl.del(r)))
+            return id;
+        throw new HttpException(500,"Delete record "+id+" not success.");
     }
 
-    public void create(Request request) {
+    public Record create(Request request) {
         @SuppressWarnings("unchecked")
         E a = (E) Record.newEntity(prototype().getClass())
-                .merge(request);
-        DB.fire(tmpl -> tmpl.add(a));
+                .of(request);
+        if(DB.fire(t -> t.add(a)))
+            return a;
+        throw new HttpException(500,"Create record not success.");
     }
 
-    public void update(String id, Request request) {
+    public Record update(String id, Request request) {
         Record e = get(id);
         if (e == null) throw new HttpException(404, "Record[" + id + "] not found.");
-        e.merge(request);
-        DB.fire(tmpl -> tmpl.upd(e));
+        e.of(request);
+        if(DB.fire(tmpl -> tmpl.upd(e)))
+            return e;
+        throw new HttpException(500,"Update record "+id+" not success.");
     }
 }

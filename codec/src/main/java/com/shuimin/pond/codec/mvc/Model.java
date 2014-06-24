@@ -20,6 +20,7 @@ public interface Model extends Record {
      */
     Model field(String name, Function.F0 supplier);
 
+
     /**
      * define field
      *

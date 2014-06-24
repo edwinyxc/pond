@@ -4,7 +4,7 @@ package com.shuimin.pond.codec.view;
 import com.shuimin.pond.core.Response;
 
 /**
- * Top abstract View merge Text Value
+ * Top abstract View of Text Value
  *
  * @author ed
  */

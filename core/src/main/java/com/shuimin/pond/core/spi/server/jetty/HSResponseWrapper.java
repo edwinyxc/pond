@@ -55,19 +55,6 @@ public class HSResponseWrapper implements Response {
     }
 
     @Override
-    public void sendFile(File file) {
-        if (hasSend) return;
-        _resp.setStatus(200);
-        try (FileInputStream in = new FileInputStream(file)) {
-            S.stream.write(in, _resp.getOutputStream());
-        } catch (IOException e) {
-            _throw(e);
-        } finally {
-            hasSend = true;
-        }
-    }
-
-    @Override
     public Response status(int sc) {
         _resp.setStatus(sc);
         return this;

@@ -130,17 +130,17 @@ public interface Record extends Map<String, Object> {
     Object set(String s, Object val);
 
     /**
-     * merge argument as defined in fields,
+     * of argument as defined in fields,
      * WARN: this method change the state of current object
      * rather than return a new copy
      *
      * @param req input request
      * @return altered this
      */
-    Record merge(Request req);
+    Record of(Request req);
 
     /**
-     * merge argument as defined in fields,
+     * of argument as defined in fields,
      * WARN: this method change the state of current object
      * rather than return a new copy
      *

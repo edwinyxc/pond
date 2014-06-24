@@ -1,10 +1,10 @@
 package com.shuimin.pond.core;
 
+import com.shuimin.common.S;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 
 /**
  * <p>Response 封装了http response 对象，
@@ -42,7 +42,27 @@ public interface Response {
      *
      * @param file
      */
-    void sendFile(File file);
+    default void sendFile(File file){
+        try(FileInputStream in = new FileInputStream(file)) {
+            sendStream(in,file.getName());
+        } catch (IOException e) {
+            status(500);
+            e.printStackTrace();
+        }
+    }
+
+    default void sendStream(InputStream in,String filename) {
+        String filen = S.str.notBlank(filename)? filename:
+                String.valueOf(S.time());
+        header("Content-disposition", "attachment;filename=" + filen);
+        try {
+            S.stream.write(in, this.out());
+            status(200);
+        } catch (IOException e) {
+            status(500);
+            e.printStackTrace();
+        }
+    }
 
     /**
      * <p>设置响应状态码，只要不发送，此状态码可以再次改变</p>

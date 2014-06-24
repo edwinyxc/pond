@@ -54,6 +54,8 @@ public interface Request {
     //    HttpServletRequest raw();
     String characterEncoding();
 
+    InputStream file(String name);
+
     default public List<Tuple.T3<String, Criterion, Object[]>>
     getQuery(Record r, Request req) {
         List<Tuple.T3<String, Criterion, Object[]>>

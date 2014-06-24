@@ -264,12 +264,24 @@ public class JDBCOper
 
     private void setParam(PreparedStatement pstmt, int idx, Object val)
             throws SQLException {
-//        if (val == null) {
-//            int type = pstmt.getMetaData().getColumnType(idx);
-//            pstmt.setNull(idx,type);
-//            return;
-//        }
-        _assert(val);
+        if (val == null) {
+            //TODO
+            try{
+                pstmt.setNull(idx,Types.VARCHAR);
+            }catch (SQLException e){
+                try{pstmt.setNull(idx,Types.NUMERIC);}
+                catch (SQLException e1){
+                    try{
+                        pstmt.setNull(idx,Types.BLOB);
+                    }
+                    catch (SQLException e2){
+                        logger.warn(" :X setNull fail!" +e2.getMessage());
+                        e2.printStackTrace();
+                    }
+                }
+            }
+            return;
+        }
         if (setParam_try_primitive(pstmt, idx, val)
                 || setParam_try_common(pstmt, idx, val)) return;
         throw new UnsupportedTypeException(val.getClass(),

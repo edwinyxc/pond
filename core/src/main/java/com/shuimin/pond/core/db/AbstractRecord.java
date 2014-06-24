@@ -2,7 +2,10 @@ package com.shuimin.pond.core.db;
 
 import com.shuimin.common.S;
 import com.shuimin.pond.core.Request;
+import com.shuimin.pond.core.kernel.PKernel;
+import com.shuimin.pond.core.spi.MultipartRequestResolver;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -101,14 +104,24 @@ public abstract class AbstractRecord extends HashMap<String, Object>
     public void primaryKeyName(String label) {
         priKeyLabel = label;
     }
-
+    MultipartRequestResolver requestResolver
+            = PKernel.getService(MultipartRequestResolver.class);
     @SuppressWarnings("unchecked")
     @Override
-    public Record merge(Request req) {
-        for (String f : this.fields()) {
-            Object o = req.param(f);
-            if (!f.equals(priKeyLabel) && o != null)
-                this.set(f, o);
+    public Record of(Request req) {
+        if(requestResolver.isMultipart(req)){
+            try {
+                this.merge(requestResolver.resolve(req));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            for (String f : this.fields()) {
+                Object o = req.param(f);
+                if (!f.equals(priKeyLabel) && o != null)
+                    this.set(f, o);
+            }
         }
         return this;
     }

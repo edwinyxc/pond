@@ -18,6 +18,7 @@ import static com.shuimin.common.f.Tuple.T3;
 import static com.shuimin.common.f.Tuple.t3;
 import static com.shuimin.pond.core.Interrupt.render;
 import static com.shuimin.pond.core.Pond.debug;
+import static com.shuimin.pond.core.Renderable.json;
 import static com.shuimin.pond.core.Renderable.view;
 import static com.shuimin.pond.core.http.HttpMethod.mask;
 
@@ -79,7 +80,7 @@ public class Resource extends Controller {
                     Action.simple((req, resp) -> {
                         ResourceService service = res.service.val;
                         String id = req.param("_id");
-                        service.update(id, req);
+                        render(json(service.update(id, req)));
                     })
             );
     /**
