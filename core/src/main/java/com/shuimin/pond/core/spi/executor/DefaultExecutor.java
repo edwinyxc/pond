@@ -66,8 +66,6 @@ public class DefaultExecutor implements MiddlewareExecutor {
             resp.sendError(e.code(), e.getMessage());
         } catch (PondException e) {
             resp.sendError(500, e.toString());
-        } catch (Throwable th) {
-            th.printStackTrace();
         } finally {
             ExecutionContext.executionContexts.remove();
         }

@@ -4,6 +4,7 @@ import com.shuimin.common.S;
 import com.shuimin.common.f.Callback;
 import com.shuimin.pond.core.Response;
 import com.shuimin.pond.core.spi.BaseServer;
+import com.shuimin.pond.core.spi.Logger;
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -22,6 +23,7 @@ public class JettyServer implements BaseServer {
 
     private Callback.C2<com.shuimin.pond.core.Request, Response> handler
             = (req, resp) -> S.echo("EMPTY SERVER");
+    private Logger logger = Logger.createLogger(JettyServer.class);
 
     @Override
     public void listen(int port) {
@@ -32,21 +34,24 @@ public class JettyServer implements BaseServer {
                                HttpServletRequest request,
                                HttpServletResponse response)
                     throws IOException, ServletException {
-
-                handler.apply(
-                        new HSRequestWrapper(request),
-                        new HSResponseWrapper(response));
+                try {
+                    handler.apply(
+                            new HSRequestWrapper(request),
+                            new HSResponseWrapper(response));
+                } catch (Exception e) {
+                    // Jetty throw EofE when client close the connection
+                    if (e instanceof EofException) {
+                        logger.info("Jetty throw an EOF exception");
+                        return;
+                    }
+                    S._lazyThrow(e);
+                }
             }
         });
         try {
             server.start();
         } catch (Exception e) {
-            // Jetty throw EofE when client close the connection
-            if (e instanceof EofException) {
-                S.echo("Jetty throw an EOF exception");
-                return;
-            }
-            S._lazyThrow(e);
+            e.printStackTrace();
         }
     }
 
