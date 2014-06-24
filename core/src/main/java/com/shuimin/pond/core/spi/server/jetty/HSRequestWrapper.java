@@ -80,7 +80,9 @@ public class HSRequestWrapper extends AbstractRequest {
 
     @Override
     public Iterable<Cookie> cookies() {
-        return _for(_req.getCookies()).val();
+        Cookie[] cookies = _req.getCookies();
+        if(cookies == null) cookies = new Cookie[0];
+        return _for(cookies).val();
     }
 
 //    @Override
