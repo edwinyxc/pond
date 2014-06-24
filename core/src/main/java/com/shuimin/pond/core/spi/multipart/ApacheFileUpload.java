@@ -1,7 +1,9 @@
 package com.shuimin.pond.core.spi.multipart;
 
 import com.shuimin.common.S;
+import com.shuimin.common.f.Tuple;
 import com.shuimin.pond.core.Request;
+import com.shuimin.pond.core.db.UploadFile;
 import com.shuimin.pond.core.spi.MultipartRequestResolver;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
@@ -116,8 +118,8 @@ public class ApacheFileUpload implements MultipartRequestResolver {
                     value = i.getString("UTF-8");
                 }
                 else{
-                    name = i.getName();
-                    value = i.getInputStream();
+                    name = i.getFieldName();
+                    value = new UploadFile(i.getName(),i.getInputStream());
                 }
                 map.put(name,value);
             }
@@ -147,13 +149,13 @@ public class ApacheFileUpload implements MultipartRequestResolver {
 
 
     @Override
-    public InputStream paramUploadFile(Request req,String name)
+    public UploadFile getUpload(Request req, String name)
             throws IOException {
         try {
             List<FileItem> list = _getFileItems(req);
             for(FileItem i : list){
                 if(!i.isFormField() && name.equals(i.getFieldName())){
-                    return i.getInputStream();
+                    return new UploadFile(i.getName(),i.getInputStream());
                 }
             }
         } catch (FileUploadException e) {

@@ -54,13 +54,11 @@ public interface Request {
     //    HttpServletRequest raw();
     String characterEncoding();
 
-    InputStream file(String name);
-
     default public List<Tuple.T3<String, Criterion, Object[]>>
     getQuery(Record r, Request req) {
         List<Tuple.T3<String, Criterion, Object[]>>
                 conditions = new ArrayList<>();
-        for (String f : r.fields()) {
+        for (String f : r.declaredFields()) {
             String k = f;
             String[] c_and_v = req.params(f);
             if (c_and_v != null) {

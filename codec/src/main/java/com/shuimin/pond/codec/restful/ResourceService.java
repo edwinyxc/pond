@@ -46,7 +46,7 @@ public abstract class ResourceService<E extends Record> {
     public SqlSelect selectSql(Request req) {
         E r = getProto();
         String tb_name = r.table();
-        Set<String> fields = r.fields();
+        Set<String> fields = r.declaredFields();
         return Sql.select(fields.toArray(new String[fields.size()])).from(tb_name)
                 .where(req.getQuery(r, req));
     }

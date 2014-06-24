@@ -2,14 +2,8 @@ package com.shuimin.pond.core.http;
 
 import com.shuimin.common.S;
 import com.shuimin.pond.core.Request;
-import com.shuimin.pond.core.exception.UnexpectedException;
-import com.shuimin.pond.core.kernel.PKernel;
-import com.shuimin.pond.core.spi.Logger;
-import com.shuimin.pond.core.spi.MultipartRequestResolver;
 
 import javax.servlet.http.Cookie;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -19,9 +13,6 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
 public abstract class AbstractRequest implements Request {
-    MultipartRequestResolver multipartRequestResolver
-            = PKernel.getService(MultipartRequestResolver.class);
-    Logger logger = Logger.createLogger(Request.class);
     @Override
     public Integer paramInt(String para) {
         String s = param(para);
@@ -87,20 +78,6 @@ public abstract class AbstractRequest implements Request {
         return S._for(cookies()).grep((cookie) -> (cookie_name.equals(
                 cookie.getName())))
                 .first();
-    }
-
-    @Override
-    public InputStream file(String name) {
-        if(!multipartRequestResolver.isMultipart(this)){
-            logger.warn("req not multipart!");
-            return null;
-        }
-        try {
-            return multipartRequestResolver.paramUploadFile(this,name);
-        } catch (IOException e) {
-            logger.warn(e.getMessage());
-            throw new UnexpectedException(e);
-        }
     }
 
 }

@@ -6,10 +6,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static com.shuimin.common.S._for;
 
@@ -24,6 +21,7 @@ public class HSRequestWrapper extends AbstractRequest {
 
     public HSRequestWrapper(HttpServletRequest req) {
         _req = req;
+        paramsMap = new HashMap<>(_req.getParameterMap());
     }
 
     @Override
@@ -55,7 +53,7 @@ public class HSRequestWrapper extends AbstractRequest {
     @Override
     public Map<String, String[]> params() {
         if (paramsMap == null) {
-            paramsMap = new HashMap<>(_req.getParameterMap());
+            paramsMap =  new HashMap<>(_req.getParameterMap());
         }
         return paramsMap;
     }

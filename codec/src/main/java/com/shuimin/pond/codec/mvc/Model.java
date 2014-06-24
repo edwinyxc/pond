@@ -11,15 +11,11 @@ import java.util.Map;
  */
 public interface Model extends Record {
 
-    /**
-     * define field with default
-     *
-     * @param name     field name
-     * @param supplier supplier
-     * @return this
-     */
-    Model field(String name, Function.F0 supplier);
-
+    public interface Field<E>{
+        Field init(Function.F0<E> supplier);
+        Field onGet(Function<E,E> get);
+        Field onSet(Function<E,E> set);
+    }
 
     /**
      * define field
@@ -27,25 +23,7 @@ public interface Model extends Record {
      * @param name field name
      * @return this
      */
-    Model field(String name);
-
-    /**
-     * set setter
-     *
-     * @param name  key
-     * @param onSet setter function
-     * @return this
-     */
-    public Model onSet(String name, Function onSet);
-
-    /**
-     * set getter
-     *
-     * @param name  key
-     * @param onGet getter function
-     * @return this
-     */
-    public Model onGet(String name, Function onGet);
+    <E> Field<E> field(String name);
 
     /**
      * get value

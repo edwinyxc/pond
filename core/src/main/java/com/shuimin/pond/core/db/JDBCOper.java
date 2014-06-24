@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.shuimin.common.S._assert;
 import static com.shuimin.common.S.dump;
 
 /**
@@ -265,17 +264,17 @@ public class JDBCOper
     private void setParam(PreparedStatement pstmt, int idx, Object val)
             throws SQLException {
         if (val == null) {
-            //TODO
-            try{
-                pstmt.setNull(idx,Types.VARCHAR);
-            }catch (SQLException e){
-                try{pstmt.setNull(idx,Types.NUMERIC);}
-                catch (SQLException e1){
-                    try{
-                        pstmt.setNull(idx,Types.BLOB);
-                    }
-                    catch (SQLException e2){
-                        logger.warn(" :X setNull fail!" +e2.getMessage());
+            //TODO ugly
+            try {
+                pstmt.setNull(idx, Types.VARCHAR);
+            } catch (SQLException e) {
+                try {
+                    pstmt.setNull(idx, Types.NUMERIC);
+                } catch (SQLException e1) {
+                    try {
+                        pstmt.setNull(idx, Types.BLOB);
+                    } catch (SQLException e2) {
+                        logger.warn(" :X setNull fail!" + e2.getMessage());
                         e2.printStackTrace();
                     }
                 }
@@ -283,9 +282,21 @@ public class JDBCOper
             return;
         }
         if (setParam_try_primitive(pstmt, idx, val)
-                || setParam_try_common(pstmt, idx, val)) return;
+                || setParam_try_UploadFile(pstmt, idx, val)
+                || setParam_try_common(pstmt, idx, val))
+            return;
         throw new UnsupportedTypeException(val.getClass(),
                 SUPPORTED_TYPES);
+    }
+
+    private boolean setParam_try_UploadFile(PreparedStatement pstmt,
+                                            int idx,
+                                            Object o) throws SQLException {
+        if (o instanceof UploadFile) {
+            pstmt.setBinaryStream(idx, ((UploadFile) o).inputStream());
+            return true;
+        }
+        return false;
     }
 
     private boolean setParam_try_common(PreparedStatement pstmt,

@@ -3,10 +3,10 @@ package com.shuimin.pond.codec.restful;
 import com.shuimin.common.S;
 import com.shuimin.common.f.Function;
 import com.shuimin.common.f.Holder;
-import com.shuimin.pond.core.db.Record;
 import com.shuimin.pond.codec.mvc.Controller;
 import com.shuimin.pond.core.Middleware;
 import com.shuimin.pond.core.Request;
+import com.shuimin.pond.core.db.Record;
 import com.shuimin.pond.core.http.HttpMethod;
 import com.shuimin.pond.core.mw.Action;
 
@@ -19,12 +19,13 @@ import static com.shuimin.common.f.Tuple.t3;
 import static com.shuimin.pond.core.Interrupt.render;
 import static com.shuimin.pond.core.Pond.debug;
 import static com.shuimin.pond.core.Renderable.json;
+import static com.shuimin.pond.core.Renderable.text;
 import static com.shuimin.pond.core.Renderable.view;
 import static com.shuimin.pond.core.http.HttpMethod.mask;
 
 /**
  * Created by ed on 14-5-20.
- *
+ * <p/>
  * TODO :unit test
  */
 public class Resource extends Controller {
@@ -47,7 +48,8 @@ public class Resource extends Controller {
      * POST ${bo}/?[params] -- create
      */
     public static final Function<T3<Integer, String, Middleware>, Resource> CREATE = res ->
-            t3(mask(HttpMethod.POST), "/", Action.simple((req, resp) -> res.service.val.create(req)));
+            t3(mask(HttpMethod.POST), "/", Action.simple((req, resp) ->
+                    render(json(res.service.val.create(req)))));
     /**
      * GET ${bo}/${id} -- get by id text/html detail.view || application/json
      */
@@ -69,7 +71,7 @@ public class Resource extends Controller {
             t3(mask(HttpMethod.DELETE), "/${_id}",
                     Action.simple((req, resp) -> {
                         String id = req.param("_id");
-                        res.service.val.delete(id);
+                        render(text(res.service.val.delete(id)));
                     })
             );
     /**
@@ -129,7 +131,7 @@ public class Resource extends Controller {
 
     public static Resource build(Function.F0<Record> func,
                                  Function<T3<Integer, String, Middleware>, Resource>... actions) {
-        return build(func.apply(),actions);
+        return build(func.apply(), actions);
     }
 
     public ResourceService service() {

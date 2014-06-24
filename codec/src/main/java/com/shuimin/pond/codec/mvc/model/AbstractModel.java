@@ -1,13 +1,15 @@
 package com.shuimin.pond.codec.mvc.model;
 
 import com.shuimin.common.f.Function;
-import com.shuimin.pond.core.db.AbstractRecord;
 import com.shuimin.pond.codec.mvc.Model;
+import com.shuimin.pond.core.db.AbstractRecord;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.shuimin.common.S._notNullElse;
 import static com.shuimin.common.S.str.underscore;
+import static com.shuimin.common.f.Function.F0;
 
 /**
  * Created by ed on 5/30/14.
@@ -25,31 +27,38 @@ public class AbstractModel extends AbstractRecord
         table(underscore(this.getClass().getSimpleName()));
     }
 
+    public class SimpleField<E> implements Field<E> {
+        String name;
 
-    @Override
-    public Model field(String name, Function.F0 supplier) {
-        this.put(name, supplier.apply());
-        return this;
+        public SimpleField(String name) {
+            this.name = name;
+            AbstractModel.this.declaredFields().add(name);
+            AbstractModel.this.set(name,null);
+        }
+
+        @Override
+        public Field init(F0<E> supplier) {
+            AbstractModel.this.put(name,_notNullElse(supplier,()-> null).apply());
+            return this;
+        }
+
+        @Override
+        public Field onGet(Function<E,E> get) {
+            AbstractModel.this.getters.put(name,get);
+            return this;
+        }
+
+        @Override
+        public Field onSet(Function<E,E> set) {
+            AbstractModel.this.setters.put(name, set);
+            return this;
+        }
     }
 
     @Override
-    public Model field(String name) {
-        this.put(name, null);
-        return this;
+    public <E> Field<E> field(String name) {
+        return new SimpleField<E>(name);
     }
-
-    @Override
-    public Model onSet(String s, Function converter) {
-        this.setters.put(s, converter);
-        return this;
-    }
-
-    @Override
-    public Model onGet(String s, Function f) {
-        this.getters.put(s, f);
-        return this;
-    }
-
 
     @Override
     @SuppressWarnings("unchecked")
@@ -60,6 +69,7 @@ public class AbstractModel extends AbstractRecord
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Model set(String s, Object val) {
         Function setter = setters.get(s);
         if (setter != null)

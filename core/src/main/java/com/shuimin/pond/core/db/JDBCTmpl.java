@@ -240,7 +240,7 @@ public class JDBCTmpl implements Closeable {
     public boolean add(Record r) {
         List<Tuple<String, Object>> values =
                 new ArrayList<>();
-        for (String f : r.fields()) {
+        for (String f : r.declaredFields()) {
             Object val = r.get(f);
             if (val != null) {
                 values.add(Tuple.t2(f, val));
@@ -273,7 +273,7 @@ public class JDBCTmpl implements Closeable {
         List<Tuple<String, Object>> sets =
                 new ArrayList<>();
 
-        for (String f : r.fields()) {
+        for (String f : r.declaredFields()) {
             sets.add(Tuple.t2(f,r.get(f)));
         }
         Sql sql = Sql.update(r.table()).set(S.array.of(sets))

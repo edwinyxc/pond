@@ -9,11 +9,9 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import static com.shuimin.common.S._for;
 import static com.shuimin.pond.core.Renderable.dump;
 
 /**
@@ -25,6 +23,7 @@ public abstract class AbstractRecord extends HashMap<String, Object>
 
     String _tableName = "";
     String priKeyLabel = DEFAULT_PRI_KEY;
+    Set<String> declaredFields = new HashSet<>();
     /**
      * default map
      * TODO: ugly implement
@@ -85,6 +84,7 @@ public abstract class AbstractRecord extends HashMap<String, Object>
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public String pk() {
         return this.get(priKeyLabel);
     }
@@ -95,8 +95,13 @@ public abstract class AbstractRecord extends HashMap<String, Object>
     }
 
     @Override
+    public Set<String> declaredFields() {
+        return declaredFields;
+    }
+
+    @Override
     public Record pk(Object pk) {
-        set(priKeyLabel, pk);
+        super.put(priKeyLabel, pk);
         return this;
     }
 
@@ -104,20 +109,23 @@ public abstract class AbstractRecord extends HashMap<String, Object>
     public void primaryKeyName(String label) {
         priKeyLabel = label;
     }
+
     MultipartRequestResolver requestResolver
             = PKernel.getService(MultipartRequestResolver.class);
+
     @SuppressWarnings("unchecked")
     @Override
     public Record of(Request req) {
-        if(requestResolver.isMultipart(req)){
+        if (requestResolver.isMultipart(req)) {
             try {
-                this.merge(requestResolver.resolve(req));
+                Map<String, Object> map = requestResolver.resolve(req);
+                System.out.println(map);
+                this.merge(map);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        else {
-            for (String f : this.fields()) {
+        } else {
+            for (String f : this.declaredFields()) {
                 Object o = req.param(f);
                 if (!f.equals(priKeyLabel) && o != null)
                     this.set(f, o);
@@ -127,17 +135,18 @@ public abstract class AbstractRecord extends HashMap<String, Object>
     }
 
     @Override
-    public Record merge(Map map) {
-        for (String f : this.fields()) {
-            Object o = map.get(f);
-            if (!f.equals(priKeyLabel) && o != null)
-                this.set(f, o);
-        }
+    public Record merge(Map<String, Object> map) {
+        _for(map).each(e -> {
+            String name = e.getKey();
+            Object value = e.getValue();
+            this.set(name, value);
+        });
         return this;
     }
 
 
     @Override
+    @SuppressWarnings("unchecked")
     public RowMapper mapper() {
         return this.rm;
     }
@@ -169,15 +178,6 @@ public abstract class AbstractRecord extends HashMap<String, Object>
     }
 
 
-    @Override
-    public String toString() {
-        return this.getClass().getSimpleName() +
-                "{" +
-                "_this=" + dump(this) +
-                ", others=" + dump(others) +
-                ", table=" + this.table() +
-                '}';
-    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -187,7 +187,35 @@ public abstract class AbstractRecord extends HashMap<String, Object>
 
     @Override
     public Record set(String s, Object val) {
-        super.put(s, val);
+        //id is immutable
+        if (priKeyLabel.equals(s))
+            super.put(s, val);
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || !(o instanceof AbstractRecord)) {
+            return false;
+        }
+        AbstractRecord other = (AbstractRecord) o;
+        Object vid = this.pk();
+        // if the id is missing, return false
+        if (vid == null)
+            return false;
+
+        // equivalence by id
+        return vid.equals(other.pk());
+    }
+
+    @Override
+    public int hashCode() {
+        if (pk()!= null) {
+            return pk().hashCode();
+        } else {
+            return super.hashCode();
+        }
     }
 }

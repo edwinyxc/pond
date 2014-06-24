@@ -63,9 +63,11 @@ public interface Record extends Map<String, Object> {
         return null;
     }
 
-    default public Set<String> fields() {
-        return this.keySet();
-    }
+    /**
+     * declared fields that should be same as declared in db
+     * @return
+     */
+    public Set<String> declaredFields() ;
 
     /**
      * get primary key -value
@@ -130,7 +132,7 @@ public interface Record extends Map<String, Object> {
     Object set(String s, Object val);
 
     /**
-     * of argument as defined in fields,
+     * of argument as defined in declaredFields,
      * WARN: this method change the state of current object
      * rather than return a new copy
      *
@@ -140,14 +142,14 @@ public interface Record extends Map<String, Object> {
     Record of(Request req);
 
     /**
-     * of argument as defined in fields,
+     * of argument as defined in declaredFields,
      * WARN: this method change the state of current object
      * rather than return a new copy
      *
      * @param map input map
      * @return altered this
      */
-    Record merge(Map map);
+    Record merge(Map<String,Object> map);
 
     /**
      * get defined RowMapper
