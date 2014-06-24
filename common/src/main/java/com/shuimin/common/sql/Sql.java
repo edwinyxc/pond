@@ -1,8 +1,10 @@
 package com.shuimin.common.sql;
 
+import com.shuimin.common.S;
 import com.shuimin.common.f.Tuple;
 
 import static com.shuimin.common.S._for;
+import static com.shuimin.common.S._notNullElse;
 
 /**
  * Created by ed on 2014/4/28.
@@ -31,10 +33,14 @@ public interface Sql {
     public Object[] params();
 
     default public String debug() {
+        Object[] p = params();
+        String[] _debug = new String[p.length];
+        for(int i =0; i< p.length; i++){
+            _debug[i] = _notNullElse(p[i],"").toString();
+        }
         return String.format("{ sql: %s, params: [ %s ]}",
                 preparedSql(),
-                String.join(",", _for(params()).map(
-                        o -> o.toString()).join())
+                String.join(",",_debug)
         );
     }
 

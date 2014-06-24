@@ -5,9 +5,7 @@ import com.shuimin.common.f.Function;
 import com.shuimin.common.f.Holder;
 import com.shuimin.pond.core.db.Record;
 import com.shuimin.pond.codec.mvc.Controller;
-import com.shuimin.pond.core.Global;
 import com.shuimin.pond.core.Middleware;
-import com.shuimin.pond.core.Pond;
 import com.shuimin.pond.core.Request;
 import com.shuimin.pond.core.http.HttpMethod;
 import com.shuimin.pond.core.mw.Action;
@@ -25,6 +23,8 @@ import static com.shuimin.pond.core.http.HttpMethod.mask;
 
 /**
  * Created by ed on 14-5-20.
+ *
+ * TODO :unit test
  */
 public class Resource extends Controller {
 
@@ -133,10 +133,6 @@ public class Resource extends Controller {
 
     public ResourceService service() {
         return service.val;
-    }
-
-    String templatePath() {
-        return Pond.attribute(Global.TEMPLATE_PATH);
     }
 
     private Resource initByDefault() {

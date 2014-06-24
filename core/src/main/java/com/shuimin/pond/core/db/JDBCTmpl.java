@@ -258,6 +258,10 @@ public class JDBCTmpl implements Closeable {
     public boolean del(Record r) {
         Sql sql = Sql.delete().from(r.table())
                 .where(r.primaryKeyName(), Criterion.EQ, (String) r.pk());
+        System.out.println(S.dump(r));
+        System.out.println(r.primaryKeyName());
+        System.out.println((String)r.pk());
+        System.out.println(sql.debug());
         try {
             return oper.execute(sql.preparedSql(), sql.params()) > 0;
         } catch (SQLException e) {

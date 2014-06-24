@@ -11,6 +11,7 @@ import com.shuimin.pond.core.Request;
 import com.shuimin.pond.core.exception.HttpException;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.shuimin.common.S._for;
 
@@ -31,7 +32,7 @@ public abstract class ResourceService<E extends Record> {
 
     @SuppressWarnings("unchecked")
     public E get(String id) {
-        Record r = prototype();
+        Record r = getProto();
         String tableName = r.table();
         String pkLbl = r.primaryKeyName();
         SqlSelect select =
@@ -43,16 +44,16 @@ public abstract class ResourceService<E extends Record> {
     }
 
     public SqlSelect selectSql(Request req) {
-        E r = prototype();
+        E r = getProto();
         String tb_name = r.table();
-        return Sql.select(r.fields().toArray(new String[0])).from(tb_name)
+        Set<String> fields = r.fields();
+        return Sql.select(fields.toArray(new String[fields.size()])).from(tb_name)
                 .where(req.getQuery(r, req));
     }
 
     @SuppressWarnings("unchecked")
     public Page<E> query(Request req) {
-        E r = prototype();
-        String tableName = r.table();
+        E r = getProto();
 
         return DB.fire(tmpl -> {
             Page<E> page = Page.of(req);
