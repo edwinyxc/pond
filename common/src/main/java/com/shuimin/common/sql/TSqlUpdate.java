@@ -25,7 +25,7 @@ public class TSqlUpdate extends AbstractSql
     public SqlUpdate set(Tuple<String, Object>... columns) {
         for (Tuple<String, Object> t : columns) {
             fields.add(t._a);
-            params.add(columns);
+            params.add(t._b);
         }
         return this;
     }
