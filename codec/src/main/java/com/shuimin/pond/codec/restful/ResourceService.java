@@ -1,5 +1,6 @@
 package com.shuimin.pond.codec.restful;
 
+import com.shuimin.common.f.Tuple;
 import com.shuimin.common.sql.Criterion;
 import com.shuimin.common.sql.Sql;
 import com.shuimin.common.sql.SqlSelect;
@@ -15,17 +16,18 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.shuimin.common.S._for;
+import static com.shuimin.common.f.Tuple.t2;
 
 /**
  * Created by ed on 14-5-20.
  */
 public abstract class ResourceService<E extends Record> {
 
-    E _proto;
+    private E _proto;
 
     abstract E prototype();
 
-    private E getProto() {
+     protected E getProto() {
         if (_proto == null)
             _proto = prototype();
         return _proto;
@@ -50,6 +52,16 @@ public abstract class ResourceService<E extends Record> {
         Set<String> fields = r.declaredFields();
         return Sql.select(fields.toArray(new String[fields.size()])).from(tb_name)
                 .where(req.getQuery(r, req));
+    }
+
+    public Tuple<List<E>,Integer> queryForList(SqlSelect sql){
+        E r = getProto();
+        return DB.fire(tmpl -> {
+            List<E> result =
+            tmpl.map(r.mapper()::map,sql.tuple());
+            int count = tmpl.count(sql.count().tuple());
+            return t2(result,count);
+        });
     }
 
     @SuppressWarnings("unchecked")

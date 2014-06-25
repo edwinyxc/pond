@@ -108,7 +108,7 @@ public class Resource extends Controller {
 
     private Resource(ResourceService service) {
         this.service.val = service;
-        PKernel.userService(service._proto.getClass(),service);
+        PKernel.userService(service.getProto().getClass(),service);
     }
 
     static String getAcceptHeader(Request req) {
