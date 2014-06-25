@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.shuimin.common.S._for;
 import static com.shuimin.common.S._notNullElse;
 
 /**
@@ -65,7 +66,7 @@ public class Page<E> extends HashMap<String, Object> {
         }
         put(PG_SIZE, Math.ceil((double)records / (double)pg_len));
         put(REC_SIZE, records);
-        put(DATA, data);
+        put(DATA, _for(data).map( (e)-> ((Record)e).toMap()).toList());
         return this;
     }
 

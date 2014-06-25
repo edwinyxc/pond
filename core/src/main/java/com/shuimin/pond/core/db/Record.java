@@ -199,7 +199,7 @@ public interface Record {
     default Map<String,Object> toMap(){
         Map<String,Object> ret = new HashMap<>();
         for(String s: this.fields()){
-            ret.put(s,this.get(s));
+            ret.put(s,get(s));
         }
         return ret;
     }

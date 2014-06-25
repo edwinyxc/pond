@@ -34,17 +34,10 @@ public interface Renderable {
     }
 
     public static Renderable json(Object o) {
-        final Object render;
-        if(o instanceof Record){
-            render = ((Record)o).toMap();
-        }
-        else{
-            render = o;
-        }
         JsonService serv = PKernel.getService(JsonService.class);
         return (resp) -> {
             resp.contentType("application/json;charset=utf-8");
-            resp.write(serv.toString(render));
+            resp.write(serv.toString(o));
             resp.send(200);
         };
     }
