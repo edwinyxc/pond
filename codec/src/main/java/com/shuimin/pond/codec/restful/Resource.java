@@ -129,6 +129,7 @@ public class Resource extends Controller {
         return ret;
     }
 
+    @SafeVarargs
     public static Resource build(Function.F0<Record> func,
                                  Function<T3<Integer, String, Middleware>, Resource>... actions) {
         return build(func.apply(), actions);
