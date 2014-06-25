@@ -60,6 +60,7 @@ public interface Request {
                 conditions = new ArrayList<>();
         for (String f : r.declaredFields()) {
             String ori_c_and_v = req.param(f);
+            if (ori_c_and_v == null) continue;
             String[] c_and_v = ori_c_and_v.split(",");
             if (c_and_v.length > 0) {
                 if (c_and_v.length == 1) {
