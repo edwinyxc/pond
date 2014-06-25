@@ -39,9 +39,9 @@ public class Resource extends Controller {
                 ResourceService service = res.service.val;
                 String mime = getAcceptHeader(req).trim().toLowerCase();
                 if (mime.startsWith("text/html"))
-                    render(view(res.resourcePath("index.view"), service.query(req)));
+                    render(view(res.resourcePath("index.view"), service.queryForPage(req)));
                 else
-                    render(service.render(mime, service.query((req))));
+                    render(service.render(mime, service.queryForPage((req))));
 
             }));
     /**

@@ -30,7 +30,7 @@ public final class PKernel {
     public static <E> void register(Class<? super E> clazz, E o) {
         register(clazz.getCanonicalName(), o, null);
     }
-
+    @SuppressWarnings("unchecked")
     public static <E> E get(String name) {
         return (E) holder.get(name);
     }

@@ -39,7 +39,7 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         }
         return holder.instance;
     }
-
+    @SafeVarargs
     public static Pond init(Config<Pond>... configs) {
         try {
             Pond pond = Pond.get();

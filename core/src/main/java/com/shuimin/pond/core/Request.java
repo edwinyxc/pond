@@ -59,7 +59,6 @@ public interface Request {
         List<Tuple.T3<String, Criterion, Object[]>>
                 conditions = new ArrayList<>();
         for (String f : r.declaredFields()) {
-            String k = f;
             String[] c_and_v = req.params(f);
             if (c_and_v != null) {
                 if (c_and_v.length == 1) {

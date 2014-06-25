@@ -157,7 +157,6 @@ public class JDBCOper
         }
         pstmt = conn.prepareStatement(sql);
 
-        Object o;
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
                 setParam(pstmt, i + 1, params[i]);

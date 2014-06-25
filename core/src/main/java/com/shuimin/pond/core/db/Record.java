@@ -19,6 +19,21 @@ import java.util.Set;
  */
 public interface Record {
 
+    public interface Field{
+        Field init(Function.F0 supplier);
+        Field onGet(Function get);
+        Field onSet(Function set);
+        Field view(Function view);
+    }
+
+    /**
+     * define field
+     *
+     * @param name field name
+     * @return this
+     */
+    Field field(String name);
+
     final static String DEFAULT_PRI_KEY = "id";
 
     /**
@@ -121,6 +136,14 @@ public interface Record {
     public Record table(String s);
 
     /**
+     * view a value
+     * @param s
+     * @param <E>
+     * @return
+     */
+    <E> E view(String s);
+
+    /**
      * get value
      *
      * @param s   name
@@ -196,11 +219,21 @@ public interface Record {
         DB.fire(DB::getConnFromPool, (tmpl) -> tmpl.del(this));
     }
 
-    default Map<String,Object> toMap(){
+    default Map<String,Object> view(){
         Map<String,Object> ret = new HashMap<>();
         for(String s: this.fields()){
+            ret.put(s,view(s));
+        }
+        return ret;
+    }
+
+    default Map<String,Object> data(){
+
+        Map<String,Object> ret = new HashMap<>();
+        for(String s: this.declaredFields()){
             ret.put(s,get(s));
         }
         return ret;
     }
+
 }

@@ -38,7 +38,7 @@ public class JettyServer implements BaseServer {
                     handler.apply(
                             new HSRequestWrapper(request),
                             new HSResponseWrapper(response));
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     // Jetty throw EofE when client close the connection
                     if (e instanceof EofException) {
                         logger.info("Jetty throw an EOF exception");

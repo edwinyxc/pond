@@ -6,14 +6,14 @@ import com.shuimin.pond.core.Request;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import static com.shuimin.common.S._for;
 import static com.shuimin.common.S._notNullElse;
 
 /**
  * Created by ed on 14-5-20.
  */
-public class Page<E> extends HashMap<String, Object> {
+public class Page extends HashMap<String, Object> {
 
     public static final String DATA = "rows";
     public static final String PG_IDX = "page";
@@ -28,8 +28,8 @@ public class Page<E> extends HashMap<String, Object> {
         this.put(REC_SIZE, 0);
     }
 
-    public static <E> Page<E> of(Request r) {
-        Page<E> page = new Page<>();
+    public static  Page of(Request r) {
+        Page page = new Page();
 
         Integer pgIdx = _notNullElse(r.paramInt(PG_IDX), 1);
         Integer pgLen = _notNullElse(r.paramInt(PG_LEN), 0);
@@ -51,11 +51,11 @@ public class Page<E> extends HashMap<String, Object> {
         return req.param(PG_LEN) != null;
     }
 
-    public Page<E> fulfill(Tuple<List<E>, Integer> x) {
+    public Page fulfill(Tuple<List<Map<String,Object>>, Integer> x) {
         return fulfill(x._a, x._b);
     }
 
-    public Page<E> fulfill(List<E> data, int records) {
+    public Page fulfill(List<Map<String,Object>> data, int records) {
         Integer pg_len = (Integer) this.get(PG_LEN);
         if(pg_len == null){
             pg_len = data.size();
@@ -66,13 +66,13 @@ public class Page<E> extends HashMap<String, Object> {
         }
         put(PG_SIZE, Math.ceil((double)records / (double)pg_len));
         put(REC_SIZE, records);
-        put(DATA, _for(data).map( (e)-> ((Record)e).toMap()).toList());
+        put(DATA, data);
         return this;
     }
 
-    @SuppressWarnings("uncheked")
-    public List<E> data() {
-        return (List<E>) this.get(DATA);
+
+    public Object data() {
+        return this.get(DATA);
     }
 
     public Integer getOffset() {

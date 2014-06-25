@@ -14,9 +14,7 @@ public abstract class Option<T> implements Iterable<T> {
 
     public abstract boolean isPresent();
 
-    ;
 
     public abstract T val();
 
-    ;
 }

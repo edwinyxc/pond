@@ -328,7 +328,7 @@ public class Matrix {
 
     public int[] row(int row) {
         int[] ret = new int[cols];
-        System.arraycopy(data, row * cols + 0, ret, 0, cols);
+        System.arraycopy(data, row * cols, ret, 0, cols);
         return ret;
     }
 

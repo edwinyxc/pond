@@ -54,8 +54,7 @@ public class MatrixSubList {
     }
 
     private int[] getAp() {
-        int[] ret = root_m.row(row);
-        return ret;
+        return root_m.row(row);
     }
 
     @SuppressWarnings("unchecked")

@@ -1,6 +1,7 @@
 package com.shuimin.pond.core.db;
 
 import com.shuimin.common.S;
+import com.shuimin.common.f.Function;
 import com.shuimin.pond.core.Request;
 import com.shuimin.pond.core.kernel.PKernel;
 import com.shuimin.pond.core.spi.MultipartRequestResolver;
@@ -12,6 +13,8 @@ import java.sql.SQLException;
 import java.util.*;
 
 import static com.shuimin.common.S._for;
+import static com.shuimin.common.S._notNullElse;
+import static com.shuimin.common.S.str.underscore;
 
 /**
  * Created by ed on 14-5-19.
@@ -114,6 +117,81 @@ public abstract class AbstractRecord extends HashMap<String, Object>
         priKeyLabel = label;
     }
 
+    protected Map<String, Function> getters = new HashMap<>();
+    protected Map<String, Function> setters = new HashMap<>();
+    protected Map<String, Function> views= new HashMap<>();
+
+    {
+        //default by class name
+        table(underscore(this.getClass().getSimpleName()));
+    }
+
+    public class SimpleField implements Field {
+        String name;
+
+        public SimpleField(String name) {
+            this.name = name;
+            AbstractRecord.this.declaredFields().add(name);
+            AbstractRecord.this.set(name,null);
+        }
+
+        @Override
+        public Field init(Function.F0 supplier) {
+            AbstractRecord.this.put(name,_notNullElse(supplier,()-> null).apply());
+            return this;
+        }
+
+        @Override
+        public Field onGet(Function get) {
+            AbstractRecord.this.getters.put(name,get);
+            return this;
+        }
+
+        @Override
+        public Field onSet(Function set) {
+            AbstractRecord.this.setters.put(name, set);
+            return this;
+        }
+
+        @Override
+        public Field view(Function view) {
+            AbstractRecord.this.views.put(name,view);
+            return this;
+        }
+    }
+
+    @Override
+    public Field field(String name) {
+        return new SimpleField(name);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <E> E view(String s) {
+        return views.get(s) == null? get(s): (E) views.get(s).apply(get(s));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <E> E get(String s) {
+        Function getter = getters.get(s);
+        Object t = super.get(s);
+        return getter != null ? (E) getter.apply(t) : (E) t;
+    }
+
+    @SuppressWarnings("unchecked")
+    public Record set(String s, Object val) {
+        if (priKeyLabel.equals(s))
+            super.put(s, val);
+
+        Function setter = setters.get(s);
+        if (setter != null)
+            this.put(s, setter.apply(val));
+        else
+            this.put(s, val);
+        return this;
+    }
+
     MultipartRequestResolver requestResolver
             = PKernel.getService(MultipartRequestResolver.class);
 
@@ -169,6 +247,7 @@ public abstract class AbstractRecord extends HashMap<String, Object>
             record.table(tablename);
         }
         record.set(colName, val);
+        others.add(record);
         return this;
     }
 
@@ -179,22 +258,6 @@ public abstract class AbstractRecord extends HashMap<String, Object>
             }
         }
         return null;
-    }
-
-
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <E> E get(String s) {
-        return (E) super.get(s);
-    }
-
-    @Override
-    public Record set(String s, Object val) {
-        //id is immutable
-        if (priKeyLabel.equals(s))
-            super.put(s, val);
-        return this;
     }
 
     @Override
