@@ -18,7 +18,7 @@ public interface MiddlewareExecutor {
      * @return
      */
     ExecutionContext execute(
-            Function.F0<ExecutionContext> ctxProvider,
+            Function.F0<ContextService> serviceProvider,
             Function.F0<Iterable<Middleware>> midProvider
     );
 

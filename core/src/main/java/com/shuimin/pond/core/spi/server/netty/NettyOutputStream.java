@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBufOutputStream;
 import io.netty.handler.codec.http.FullHttpResponse;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
 import java.io.IOException;
 
 
@@ -51,5 +52,15 @@ public class NettyOutputStream extends ServletOutputStream {
 
     public int getBufferSize() {
         return this.out.buffer().capacity();
+    }
+
+    @Override
+    public boolean isReady() {
+        return false;
+    }
+
+    @Override
+    public void setWriteListener(WriteListener writeListener) {
+
     }
 }

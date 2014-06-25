@@ -5,6 +5,7 @@ import com.shuimin.common.f.Function;
 import com.shuimin.common.f.Holder;
 import com.shuimin.pond.core.Request;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,7 +17,7 @@ import java.util.Set;
  * record using JDBCTmpl#map
  * </pre>
  */
-public interface Record extends Map<String, Object> {
+public interface Record {
 
     final static String DEFAULT_PRI_KEY = "id";
 
@@ -68,6 +69,12 @@ public interface Record extends Map<String, Object> {
      * @return
      */
     public Set<String> declaredFields() ;
+
+    /**
+     * Returns all fields
+     * @return
+     */
+    public Set<String> fields();
 
     /**
      * get primary key -value
@@ -189,4 +196,11 @@ public interface Record extends Map<String, Object> {
         DB.fire(DB::getConnFromPool, (tmpl) -> tmpl.del(this));
     }
 
+    default Map<String,Object> toMap(){
+        Map<String,Object> ret = new HashMap<>();
+        for(String s: this.fields()){
+            ret.put(s,this.get(s));
+        }
+        return ret;
+    }
 }

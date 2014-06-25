@@ -26,7 +26,7 @@ public class RegexRouter implements Router {
 
         for (RouteNode node : routes) {
             if (node.match(ctx.req())) {
-                return node;
+                return node.ware;
             }
         }
         //not found

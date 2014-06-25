@@ -5,6 +5,7 @@ import com.shuimin.pond.core.*;
 import com.shuimin.pond.core.exception.HttpException;
 import com.shuimin.pond.core.exception.PondException;
 import com.shuimin.pond.core.kernel.PKernel;
+import com.shuimin.pond.core.spi.ContextService;
 import com.shuimin.pond.core.spi.Logger;
 import com.shuimin.pond.core.spi.MiddlewareExecutor;
 
@@ -24,11 +25,11 @@ public class DefaultExecutor implements MiddlewareExecutor {
     @Override
     public ExecutionContext execute(
 
-            Function.F0<ExecutionContext> executionProvider,
+            Function.F0<ContextService> servProvider,
             Function.F0<Iterable<Middleware>> midProvider) {
 
-
-        ExecutionContext ctx = executionProvider.apply();
+        ContextService ctxServ = servProvider.apply();
+        ExecutionContext ctx = ctxServ.get();
         Iterator<Middleware> midIter = _notNull(midProvider.apply())
                 .iterator();
 
@@ -67,7 +68,7 @@ public class DefaultExecutor implements MiddlewareExecutor {
         } catch (PondException e) {
             resp.sendError(500, e.toString());
         } finally {
-            ExecutionContext.executionContexts.remove();
+            ctxServ.remove(ctx);
         }
         return ctx;
     }

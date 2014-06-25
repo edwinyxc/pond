@@ -1,6 +1,7 @@
 package com.shuimin.pond.core;
 
 import com.shuimin.common.S;
+import com.shuimin.pond.core.db.Record;
 import com.shuimin.pond.core.kernel.PKernel;
 import com.shuimin.pond.core.spi.JsonService;
 import com.shuimin.pond.core.spi.ViewEngine;
@@ -9,6 +10,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Map;
+
+import static com.shuimin.pond.core.Pond.CUR;
 
 /**
  * Created by ed on 2014/4/18.
@@ -30,10 +34,17 @@ public interface Renderable {
     }
 
     public static Renderable json(Object o) {
+        final Object render;
+        if(o instanceof Record){
+            render = ((Record)o).toMap();
+        }
+        else{
+            render = o;
+        }
         JsonService serv = PKernel.getService(JsonService.class);
         return (resp) -> {
             resp.contentType("application/json;charset=utf-8");
-            resp.write(serv.toString(o));
+            resp.write(serv.toString(render));
             resp.send(200);
         };
     }
@@ -54,12 +65,22 @@ public interface Renderable {
         };
     }
 
+    @SuppressWarnings("unchecked")
     public static Renderable view(String path, Object o) {
         File file = new File((String) Pond.attribute(Global.TEMPLATE_PATH)
                 + File.separator + path);
         ViewEngine engine = PKernel.getService(ViewEngine.class);
         if (file.exists()) {
-            return (resp) -> engine.render(resp.out(), path, o);
+            final Object render;
+            Map map = new HashMap(CUR().attrs());
+            if(o instanceof Map) {
+                map.putAll((Map) o);
+                render = map;
+            }
+            else{
+                render = o;
+            }
+            return (resp) -> engine.render(resp.out(), path, render);
         } else {
             PKernel.getLogger().warn("File" + file + "not found");
             return json(o);

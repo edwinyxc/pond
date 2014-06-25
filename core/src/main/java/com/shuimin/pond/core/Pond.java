@@ -14,6 +14,7 @@ import com.shuimin.pond.core.spi.MiddlewareExecutor;
 
 import java.io.File;
 import java.util.LinkedList;
+import java.util.Map;
 
 import static com.shuimin.common.S._for;
 
@@ -33,7 +34,7 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
     }
 
     public static Pond get() {
-        if(!holder.instance.init_flag) {
+        if (!holder.instance.init_flag) {
             holder.instance._init();
         }
         return holder.instance;
@@ -200,7 +201,7 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
     private <E> E find(Class<E> s) {
         E e = PKernel.getService(s);
         if (e == null) throw new NullPointerException(s.getSimpleName() + "not found");
-        logger.info("Get " + s.getSimpleName()+": " + e.getClass().getCanonicalName());
+        logger.info("Get " + s.getSimpleName() + ": " + e.getClass().getCanonicalName());
         return e;
     }
 
@@ -209,13 +210,10 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
             MiddlewareExecutor executor
     ) {
         return (req, resp) -> {
-            ExecutionContext ctx = ExecutionContext.init(req, resp);
-            /*install to thread-local*/
-            service.set(ctx);
-            executor.execute(() -> ctx, () -> this.mids);
-            /*remove from thread*/
-            service.remove(ctx);
+            service.set(ExecutionContext.init(req, resp));
+            executor.execute(() -> service, () -> this.mids);
         };
+
     }
 
     @Override
@@ -227,6 +225,11 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
     @Override
     public Object attr(String name) {
         return PKernel.get(name);
+    }
+
+    @Override
+    public Map<String, Object> attrs() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

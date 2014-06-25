@@ -75,6 +75,11 @@ public class TinyTree<E> implements Tree<E> {
     }
 
     @Override
+    public Map<String, Object> attrs() {
+        return this.attrs;
+    }
+
+    @Override
     public Tree<E> attr(String name, Object o) {
         this.attrs.put(name, o);
         return this;

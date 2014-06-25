@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.util.*;
 
 import static com.shuimin.common.S._for;
-import static com.shuimin.pond.core.Renderable.dump;
 
 /**
  * Created by ed on 14-5-19.
@@ -97,6 +96,11 @@ public abstract class AbstractRecord extends HashMap<String, Object>
     @Override
     public Set<String> declaredFields() {
         return declaredFields;
+    }
+
+    @Override
+    public Set<String> fields() {
+        return this.keySet();
     }
 
     @Override
