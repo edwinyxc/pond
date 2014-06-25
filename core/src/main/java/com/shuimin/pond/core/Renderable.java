@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.shuimin.pond.core.Pond.CUR;
+import static com.shuimin.pond.core.Pond.debug;
 
 /**
  * Created by ed on 2014/4/18.
@@ -66,7 +67,11 @@ public interface Renderable {
         if (file.exists()) {
             final Object render;
             Map map = new HashMap(CUR().attrs());
-            if(o instanceof Map) {
+            debug("Render:" + S.dump(o));
+            if(o == null) {
+                render = map;
+            }
+            else if(o instanceof Map) {
                 map.putAll((Map) o);
                 render = map;
             }
