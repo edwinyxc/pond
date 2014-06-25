@@ -3,7 +3,6 @@ package com.shuimin.pond.codec.mvc;
 import com.shuimin.common.f.Function;
 import com.shuimin.pond.core.db.Record;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -31,7 +30,7 @@ public interface Model extends Record {
      * @return value Object - immutable map
      */
     default public Map<String, Object> val() {
-        return Collections.unmodifiableMap(this);
+        return this.toMap();
     }
 
     /**
@@ -41,9 +40,7 @@ public interface Model extends Record {
      * @return this
      */
     default public Model val(Map<String, Object> vo) {
-        this.clear();
-        this.putAll(vo);
-        return this;
+        return (Model) this.merge(vo);
     }
 
     default public Model id(String fieldName) {
