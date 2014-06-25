@@ -42,17 +42,18 @@ public interface Response {
      *
      * @param file
      */
-    default void sendFile(File file){
-        try(FileInputStream in = new FileInputStream(file)) {
-            sendStream(in,file.getName());
+    default void sendFile(File file) {
+        try (FileInputStream in = new FileInputStream(file)) {
+            S.stream.write(in, this.out());
+            status(200);
         } catch (IOException e) {
             status(500);
             e.printStackTrace();
         }
     }
 
-    default void sendStream(InputStream in,String filename) {
-        String filen = S.str.notBlank(filename)? filename:
+    default void sendStream(InputStream in, String filename) {
+        String filen = S.str.notBlank(filename) ? filename :
                 String.valueOf(S.time());
         header("Content-disposition", "attachment;filename=" + filen);
         try {
