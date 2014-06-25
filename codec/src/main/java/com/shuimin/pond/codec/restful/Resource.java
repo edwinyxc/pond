@@ -88,19 +88,19 @@ public class Resource extends Controller {
     /**
      * GET ${bo}/new -- new view ONLY ACCEPT text/html new.view
      */
-    public final Function<T3<Integer, String, Middleware>, Resource> VIEW_NEW = res ->
+    public final static Function<T3<Integer, String, Middleware>, Resource> VIEW_NEW = res ->
             t3(mask(HttpMethod.GET), "/new",
-                    Action.fly(() -> render(view(resourcePath("new.view"))))
+                    Action.fly(() -> render(view(res.resourcePath("new.view"))))
             );
     /**
      * GET ${bo}/${id}/edit -- edit view ACCEPT text/html edit.view
      */
-    public final Function<T3<Integer, String, Middleware>, Resource> VIEW_EDIT = res ->
+    public final static Function<T3<Integer, String, Middleware>, Resource> VIEW_EDIT = res ->
             t3(mask(HttpMethod.GET), "/${_id}/edit",
                     Action.simple((req, resp) -> {
                         String id = req.param("_id");
                         Object o = res.service.val.get(id);
-                        render(view(resourcePath("edit.view"), o));
+                        render(view(res.resourcePath("edit.view"), o));
                     })
             );
     protected final Holder<ResourceService> service = new Holder<>();
