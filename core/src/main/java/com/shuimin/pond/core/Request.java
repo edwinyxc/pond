@@ -59,8 +59,9 @@ public interface Request {
         List<Tuple.T3<String, Criterion, Object[]>>
                 conditions = new ArrayList<>();
         for (String f : r.declaredFields()) {
-            String[] c_and_v = req.params(f);
-            if (c_and_v != null) {
+            String ori_c_and_v = req.param(f);
+            String[] c_and_v = ori_c_and_v.split(",");
+            if (c_and_v.length > 0) {
                 if (c_and_v.length == 1) {
                     //&uid=xxx;
                     //eq
