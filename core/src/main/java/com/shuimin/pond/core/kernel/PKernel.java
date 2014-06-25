@@ -27,6 +27,14 @@ public final class PKernel {
         holder.put(name, o);
     }
 
+    public static void userService(Class cl, Object serv) {
+        register(cl.getCanonicalName(),serv, null);
+    }
+
+    public static <E> E userService(Class cl) {
+        return get(cl.getCanonicalName());
+    }
+
     public static <E> void register(Class<? super E> clazz, E o) {
         register(clazz.getCanonicalName(), o, null);
     }

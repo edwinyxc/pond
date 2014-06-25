@@ -8,6 +8,7 @@ import com.shuimin.pond.core.Middleware;
 import com.shuimin.pond.core.Request;
 import com.shuimin.pond.core.db.Record;
 import com.shuimin.pond.core.http.HttpMethod;
+import com.shuimin.pond.core.kernel.PKernel;
 import com.shuimin.pond.core.mw.Action;
 
 import java.io.File;
@@ -107,6 +108,7 @@ public class Resource extends Controller {
 
     private Resource(ResourceService service) {
         this.service.val = service;
+        PKernel.userService(service._proto.getClass(),service);
     }
 
     static String getAcceptHeader(Request req) {
