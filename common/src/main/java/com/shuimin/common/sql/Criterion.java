@@ -2,6 +2,7 @@ package com.shuimin.common.sql;
 
 import com.shuimin.common.f.Function;
 
+import static com.shuimin.common.S._for;
 import static java.lang.String.format;
 
 /**
@@ -19,9 +20,9 @@ public enum Criterion {
     LITTLE_THAN("lt", (k) -> o -> format("%s < ?", k)),
     LITTLE_THAN_E("lte", (k) -> o -> format("%s <= ?", k)),
     NOT_EQ("neq", (k) -> o -> format("%s <> ?", k)),
-    BETWEEN("btwn", (k) -> o -> format("%s BETWEEN ? and ?", k)),
-    IN("in", (k) -> o -> k + " IN (" + String.join(",", (String[]) o) + ")"),
-    NOT_IN("nin", (k) -> o -> k + " NOT IN (" + String.join(",", (String[]) o) + ")");
+    BETWEEN("btwn", (k) -> o -> format("(%s BETWEEN ? and ?)", k)),
+    IN("in", (k) -> o -> k + " IN (" + String.join(",", _for((String[]) o).map(i->"?").join()) + ")"),
+    NOT_IN("nin", (k) -> o -> k + " NOT IN (" + String.join(",", _for((String[]) o).map(i->"?").join()) + ")");
     /**
      * URL:
      */
