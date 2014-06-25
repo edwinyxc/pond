@@ -39,6 +39,8 @@ public interface Request {
 
     Double paramDouble(String para);
 
+    Long paramLong(String para);
+
     Request param(String para, String value);
 
     String[] params(String para);

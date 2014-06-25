@@ -32,6 +32,12 @@ public abstract class AbstractRequest implements Request {
     }
 
     @Override
+    public Long paramLong(String para) {
+        String s = param(para);
+        return s == null ? null : Long.parseLong(s);
+    }
+
+    @Override
     public String path() {
         S._assert(uri(), "empty uri ");
         try {
