@@ -1,19 +1,22 @@
 package com.shuimin.pond.core;
 
 import com.shuimin.common.S;
-import com.shuimin.pond.core.db.Record;
 import com.shuimin.pond.core.kernel.PKernel;
+import com.shuimin.pond.core.misc.MimeTypes;
 import com.shuimin.pond.core.spi.JsonService;
 import com.shuimin.pond.core.spi.ViewEngine;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.shuimin.pond.core.Pond.CUR;
-import static com.shuimin.pond.core.Pond.debug;
+import static com.shuimin.common.S._for;
+import static com.shuimin.pond.core.Pond.*;
 
 /**
  * Created by ed on 2014/4/18.
@@ -43,20 +46,48 @@ public interface Renderable {
         };
     }
 
+    public static Renderable file(InputStream file, String filename) {
+        return resp -> {
+            String filen = S.str.notBlank(filename) ? filename :
+                    String.valueOf(S.time());
+            String filen_ext = S.file.fileExt(filen);
+            String mime_type;
+
+            //TODO refactor
+            if (filen_ext != null
+                    && (mime_type = MimeTypes.getMimeType(filen_ext)) != null) {
+                resp.header("Content-Type", mime_type + ";charset=utf-8");
+            } else
+                resp.header("Content-Type",
+                        "application/octet-stream");
+            try {
+                String agent = _for(REQ().header("User-Agent")).first();
+                String encodedFileName;
+                if (agent.contains("MSIE")) {
+                    encodedFileName = URLEncoder.encode(filename, "UTF-8");
+                } else {
+                    encodedFileName = "=?UTF-8?B?" +
+                            (new String(Base64.getEncoder().encode(filename.getBytes("UTF-8")))) + "?=";
+                }
+                resp.header("Content-Disposition",
+                        "attachment;filename=" + encodedFileName);
+
+            } catch (UnsupportedEncodingException ignored) {
+            }
+            try {
+                S.stream.write(file, resp.out());
+                resp.send(200);
+            } catch (IOException e) {
+                S._lazyThrow(e);
+            }
+        }
+
+                ;
+    }
+
     public static Renderable dump(Object o) {
         return resp ->
                 resp.write(S.dump(o));
-    }
-
-    public static Renderable stream(InputStream in) {
-        return (resp) -> {
-            try (InputStream _in = in) {
-                S.stream.write(_in, resp.out());
-            } catch (IOException e) {
-                S._throw(e);
-            }
-            resp.send(200);
-        };
     }
 
     @SuppressWarnings("unchecked")
@@ -68,14 +99,12 @@ public interface Renderable {
             final Object render;
             Map map = new HashMap(CUR().attrs());
             debug("Render:" + S.dump(o));
-            if(o == null) {
+            if (o == null) {
                 render = map;
-            }
-            else if(o instanceof Map) {
+            } else if (o instanceof Map) {
                 map.putAll((Map) o);
                 render = map;
-            }
-            else{
+            } else {
                 render = o;
             }
             return (resp) -> engine.render(resp.out(), path, render);

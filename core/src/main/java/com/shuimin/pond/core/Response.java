@@ -42,6 +42,7 @@ public interface Response {
      *
      * @param file
      */
+    @Deprecated
     default void sendFile(File file) {
         try (FileInputStream in = new FileInputStream(file)) {
             S.stream.write(in, this.out());
@@ -52,6 +53,7 @@ public interface Response {
         }
     }
 
+    @Deprecated
     default void sendStream(InputStream in, String filename) {
         String filen = S.str.notBlank(filename) ? filename :
                 String.valueOf(S.time());

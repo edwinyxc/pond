@@ -3,6 +3,8 @@ package com.shuimin.pond.core.misc;
 // Copyright (c) 2003-2011, Jodd Team (jodd.org). All Rights Reserved.
 
 
+import com.shuimin.common.S;
+
 import java.util.HashMap;
 
 /**
@@ -328,4 +330,6 @@ public class MimeTypes {
     public static String lookupMimeType(String ext) {
         return mimeTypeMapping.get(ext.toLowerCase());
     }
+
+
 }

@@ -663,9 +663,15 @@ public class S {
             return path.substring(path.lastIndexOf("\\") + 1);
         }
 
+        /**
+         * Returns file extension name,
+         * return null if it has no extension.
+         * @param fileName
+         * @return
+         */
         public static String fileExt(String fileName) {
-            String[] filenames = splitFileName(fileName);
-            return filenames[filenames.length - 1];
+            String[] filename = splitFileName(fileName);
+            return filename[filename.length - 1];
         }
 
         public static String[] splitFileName(String filename) {
