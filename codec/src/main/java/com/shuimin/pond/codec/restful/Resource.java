@@ -100,8 +100,8 @@ public class Resource extends Controller {
             t3(mask(HttpMethod.GET), "/${_id}/edit",
                     Action.simple((req, resp) -> {
                         String id = req.param("_id");
-                        Object o = res.service.val.get(id);
-                        render(view(res.resourcePath("edit.view"), o));
+                        Record o = res.service.val.get(id);
+                        render(view(res.resourcePath("edit.view"), o.view()));
                     })
             );
     protected final Holder<ResourceService> service = new Holder<>();
@@ -117,6 +117,7 @@ public class Resource extends Controller {
         return S.str.notBlank(accept) ? accept : "text/html";
     }
 
+    @SafeVarargs
     public static Resource build(Record proto,
                                  Function<T3<Integer, String, Middleware>, Resource>... actions) {
         Resource ret = new Resource(new ResourceService() {

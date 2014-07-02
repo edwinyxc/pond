@@ -32,15 +32,16 @@ public interface Response {
     /**
      * <p>此方法用来发送错误码和详细描述</p>
      *
-     * @param code
-     * @param msg
+     * @param code error code
+     * @param msg  error message
      */
     void sendError(int code, String msg);
 
     /**
      * <p>向客户端写入文件，完成时发送200，此操作立即返回，具体如何发送由底层服务器控制。</p>
      *
-     * @param file
+     * @param file file
+     * @deprecated v1.0之后请使用 Renderable#file
      */
     @Deprecated
     default void sendFile(File file) {
@@ -53,6 +54,9 @@ public interface Response {
         }
     }
 
+    /**
+     * @deprecated v1.0之后请使用 Renderable#file
+     */
     @Deprecated
     default void sendStream(InputStream in, String filename) {
         String filen = S.str.notBlank(filename) ? filename :
@@ -70,7 +74,7 @@ public interface Response {
     /**
      * <p>设置响应状态码，只要不发送，此状态码可以再次改变</p>
      *
-     * @param sc
+     * @param sc status code
      * @return this
      */
     Response status(int sc);
@@ -121,5 +125,6 @@ public interface Response {
      */
     Response contentType(String type);
 
+    @Deprecated
     HttpServletResponse raw();
 }

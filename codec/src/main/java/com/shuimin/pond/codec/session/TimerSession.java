@@ -29,7 +29,7 @@ public class TimerSession extends HashMap<String, Object>
         timer.schedule(suicide, lifetimeProvider.apply());
     }
 
-    private void reschedule() {
+    private synchronized void reschedule() {
         suicide.cancel();
         suicide = new Suicide();
         debug("delay time =" + lifetimeProvider.apply());

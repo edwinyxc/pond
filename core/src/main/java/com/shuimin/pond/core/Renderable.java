@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,14 +49,14 @@ public interface Renderable {
 
     public static Renderable file(InputStream file, String filename) {
         return resp -> {
-            String filen = S.str.notBlank(filename) ? filename :
+            String file_n = S.str.notBlank(filename) ? filename :
                     String.valueOf(S.time());
-            String filen_ext = S.file.fileExt(filen);
+            String file_ext = S.file.fileExt(file_n);
             String mime_type;
 
             //TODO refactor
-            if (filen_ext != null
-                    && (mime_type = MimeTypes.getMimeType(filen_ext)) != null) {
+            if (file_ext != null
+                    && (mime_type = MimeTypes.getMimeType(file_ext)) != null) {
                 resp.header("Content-Type", mime_type + ";charset=utf-8");
             } else
                 resp.header("Content-Type",
@@ -66,8 +67,10 @@ public interface Renderable {
                 if (agent.contains("MSIE")) {
                     encodedFileName = URLEncoder.encode(filename, "UTF-8");
                 } else {
-                    encodedFileName = "=?UTF-8?B?" +
-                            (new String(Base64.getEncoder().encode(filename.getBytes("UTF-8")))) + "?=";
+                    encodedFileName = "=?UTF-8?B?"
+                            + Arrays.toString(
+                            Base64.getEncoder().encode(filename.getBytes("UTF-8")))
+                            + "?=";
                 }
                 resp.header("Content-Disposition",
                         "attachment;filename=" + encodedFileName);
@@ -80,9 +83,7 @@ public interface Renderable {
             } catch (IOException e) {
                 S._lazyThrow(e);
             }
-        }
-
-                ;
+        };
     }
 
     public static Renderable dump(Object o) {

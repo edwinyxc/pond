@@ -12,6 +12,8 @@ import com.shuimin.pond.core.misc.MimeTypes;
 import com.shuimin.pond.core.spi.Logger;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -19,6 +21,7 @@ import java.util.regex.Pattern;
 
 import static com.shuimin.common.S.dump;
 import static com.shuimin.pond.core.Interrupt.kill;
+import static com.shuimin.pond.core.Interrupt.render;
 import static com.shuimin.pond.core.Pond.debug;
 
 /**
@@ -182,7 +185,11 @@ public class StaticFileServer extends AbstractMiddleware
 
         setDateAndCacheHeaders(resp, file);
 
-        resp.sendFile(file);
+        try {
+            render(Renderable.file(new FileInputStream(file), file.getName()));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -207,10 +214,6 @@ public class StaticFileServer extends AbstractMiddleware
         buf.append("<li><a href=\"../\">..</a></li>\r\n");
 
         Pattern allowedNames = this.allowedFileNamesProvider.apply();
-
-        if (dir == null) {
-            throw new NullPointerException();
-        }
 
         for (File f : dir.listFiles()) {
             if (f.isHidden() || !f.canRead()) {
