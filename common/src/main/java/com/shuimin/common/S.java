@@ -1009,7 +1009,6 @@ public class S {
 
     public static class path {
 
-        private static String webRoot;
 
         @SuppressWarnings("ConstantConditions")
         public static String rootAbsPath(Object caller) {
@@ -1048,25 +1047,12 @@ public class S {
             return p != null ? p.getName().replaceAll("\\.", "/") : "";
         }
 
-        public static String webRoot() {
-            if (webRoot == null) {
-                webRoot = detectWebRootPath();
-            }
-            return webRoot;
-        }
-
-        public static void webRoot(String webRootPath) {
-            if (webRootPath == null) {
-                return;
-            }
-
-            if (webRootPath.endsWith(File.separator)) {
-                webRootPath = webRootPath.substring(0, webRootPath.length() - 1);
-            }
-            path.webRoot = webRootPath;
-        }
-
-        private static String detectWebRootPath() {
+        /**
+         * Normally return the source dir path under the current project
+         * @return  the source dir path under the current project
+         *
+         */
+        public static String detectWebRootPath() {
             try {
                 String path = S.class.getResource("/").toURI().getPath();
                 return new File(path).getParentFile().getParentFile().getCanonicalPath();
@@ -1090,13 +1076,13 @@ public class S {
      * ******************* R **********************
      */
 
-    public static class reflect {
-        public static boolean isPrimitive(Object o){
-            Class c = o.getClass();
-            //TODO?
-            return c.isPrimitive();
-        }
-    }
+//    public static class reflect {
+//        public static boolean isPrimitive(Object o){
+//            Class c = o.getClass();
+//            //TODO?
+//            return c.isPrimitive();
+//        }
+//    }
     /**
      * ******************* S **********************
      */
