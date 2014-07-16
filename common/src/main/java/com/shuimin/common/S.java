@@ -472,6 +472,10 @@ public class S {
             return new Date(parse.toLong(aDate));
         }
 
+        public static String fromLong(Long aDate, String aFormat) {
+            return toString(new Date(aDate), aFormat);
+        }
+
         public static String fromLong(String aDate, String aFormat) {
             return toString(new Date(parse.toLong(aDate)), aFormat);
         }

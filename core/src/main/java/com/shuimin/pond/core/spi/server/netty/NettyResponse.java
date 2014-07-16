@@ -9,7 +9,6 @@ import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.netty.handler.stream.ChunkedFile;
 
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 
 /**
@@ -43,24 +42,17 @@ public class NettyResponse implements Response {
     }
 
     @Override
-    public void send(int code) {
-        if (hasSend) return;
-        HttpResponseStatus status = HttpResponseStatus.valueOf(code);
-        httpResponse.setStatus(status);
-        try {
-            out.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        hasSend = true;
+    public void sendError(int code, String msg) {
+        throw new RuntimeException("do not use this");
     }
 
     @Override
-    public void sendError(int code, String msg) {
+    public void send(int code, String msg) {
         if (hasSend) return;
         HttpResponseStatus status = HttpResponseStatus.valueOf(code);
         httpResponse.setStatus(status);
-        writer().print(msg);
+        write(msg);
+//        writer().print(msg);
         hasSend = true;
         try {
             out.flush();
@@ -125,12 +117,6 @@ public class NettyResponse implements Response {
     public Response contentType(String type) {
         httpResponse.headers().add(HttpHeaders.Names.CONTENT_TYPE, type);
         return this;
-    }
-
-    @Override
-    public HttpServletResponse raw() {
-        //FIXME: 选择之一是加一层HSR
-        throw new UnsupportedOperationException("not finished yet.");
     }
 
     @Override

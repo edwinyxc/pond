@@ -21,10 +21,6 @@ public interface SqlWhere<T extends Sql> {
         return where(key, condition._a, (String[]) condition._b);
     }
 
-    default T where(String key, String criterion, String... x) {
-        return where(key, Criterion.of(criterion), x);
-    }
-
     default T where(Tuple.T3<String, Criterion, Object[]>... conditions) {
         for (Tuple.T3<String, Criterion, Object[]> t : conditions) {
             where(t._a, t._b, (String[]) t._c);

@@ -31,6 +31,9 @@ public enum HttpMethod {
         }
         return mask;
     }
+    public static int mask_all() {
+        return mask(GET,POST,PUT,DELETE,HEAD,OPTIONS,TRACE,CONNECT);
+    }
 
     public static HttpMethod of(String method) {
         S._assert(method, "method null");

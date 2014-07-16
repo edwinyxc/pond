@@ -1,0 +1,10 @@
+<#include "tpl/home.tpl.view">
+<p>
+    ${req}
+</p>
+<p>
+    ${resp}
+</p>
+<p>
+    <#list test as i> ${i},</#list>
+</p>

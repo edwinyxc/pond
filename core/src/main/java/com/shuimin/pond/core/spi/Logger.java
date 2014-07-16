@@ -1,6 +1,6 @@
 package com.shuimin.pond.core.spi;
 
-import com.shuimin.pond.core.kernel.PKernel;
+import com.shuimin.common.SPILoader;
 
 /**
  * Created by ed on 2014/5/7.
@@ -8,14 +8,14 @@ import com.shuimin.pond.core.kernel.PKernel;
 public interface Logger {
 
     public static final String NAME = "pond";
-    static boolean[] allows = {false, true, true, true};
+    static boolean[] allows = {true, true, true, true};
     static final int DEBUG = 0;
     static final int FATAL = 1;
     static final int WARN = 2;
     static final int INFO = 3;
 
     public static Logger createLogger(Class clazz) {
-        return PKernel.getService(Logger.class).get(clazz);
+        return SPILoader.service(Logger.class).get(clazz);
     }
 
     static boolean allowDebug() {

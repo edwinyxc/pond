@@ -8,7 +8,7 @@ import com.shuimin.common.S;
 import java.util.HashMap;
 
 /**
- * Map file extensions to MIME types. Based on the Apache mime.types file.
+ * Map attachment extensions to MIME types. Based on the Apache mime.types attachment.
  * http://www.iana.org/assignments/media-types/
  */
 public class MimeTypes {

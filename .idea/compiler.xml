@@ -23,22 +23,26 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
         <module name="jdbc" />
+        <module name="mvc" />
         <module name="pond-all" />
         <module name="pond-codec" />
         <module name="pond-common" />
         <module name="pond-core" />
-        <module name="pond-example" />
+        <module name="pond-db" />
         <module name="pond-jdbc" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="jdbc" target="1.8" />
+      <module name="mvc" target="1.8" />
       <module name="pond-all" target="1.8" />
       <module name="pond-codec" target="1.8" />
       <module name="pond-common" target="1.8" />
       <module name="pond-core" target="1.8" />
+      <module name="pond-db" target="1.8" />
       <module name="pond-example" target="1.8" />
       <module name="pond-jdbc" target="1.8" />
+      <module name="pond-mvc" target="1.8" />
       <module name="pond-parent" target="1.8" />
       <module name="pond-server-tomcat" target="1.8" />
     </bytecodeTargetLevel>

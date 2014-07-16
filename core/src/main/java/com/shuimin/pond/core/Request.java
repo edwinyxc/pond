@@ -1,13 +1,17 @@
 package com.shuimin.pond.core;
 
+
+import com.shuimin.common.SPILoader;
 import com.shuimin.common.f.Tuple;
 import com.shuimin.common.sql.Criterion;
-import com.shuimin.pond.core.db.Record;
+import com.shuimin.pond.core.spi.MultipartRequestResolver;
 
 import javax.servlet.http.Cookie;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+
+import static com.shuimin.common.S._for;
 
 /**
  * event
@@ -56,12 +60,22 @@ public interface Request {
     //    HttpServletRequest raw();
     String characterEncoding();
 
-    default public List<Tuple.T3<String, Criterion, Object[]>>
-    getQuery(Record r, Request req) {
+    default Ctx ctx() {
+        throw new UnsupportedOperationException("use wrapper");
+    }
+//    Route route();
+//
+//    Route route(Route r);
+//
+
+    //TODO
+    default List<Tuple.T3<String, Criterion, Object[]>>
+
+    toQuery(Iterable<String> declaredFields) {
         List<Tuple.T3<String, Criterion, Object[]>>
                 conditions = new ArrayList<>();
-        for (String f : r.declaredFields()) {
-            String ori_c_and_v = req.param(f);
+        for (String f : declaredFields) {
+            String ori_c_and_v = this.param(f);
             if (ori_c_and_v == null) continue;
             String[] c_and_v = ori_c_and_v.split(",");
             if (c_and_v.length > 0) {
@@ -79,4 +93,23 @@ public interface Request {
         }
         return conditions;
     }
+
+    final MultipartRequestResolver mResolver =
+            SPILoader.service(MultipartRequestResolver.class);
+
+    default Map<String, Object> toMap() {
+        if (mResolver.isMultipart(this)) {
+            return mResolver.resolve(this);
+        }
+        Map<String, Object> map = new HashMap<>();
+
+        _for(params()).each(e -> {
+            Object val = e.getValue() != null && e.getValue().length > 0
+                    ? e.getValue()[0]
+                    : null;
+            map.put(e.getKey(), val);
+        });
+        return map;
+    }
+
 }

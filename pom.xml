@@ -22,11 +22,11 @@
     </organization>
 
     <modules>
+        <module>all</module>
         <module>common</module>
         <module>core</module>
         <module>codec</module>
-        <module>example</module>
-        <module>all</module>
+        <module>db</module>
     </modules>
 
     <properties>

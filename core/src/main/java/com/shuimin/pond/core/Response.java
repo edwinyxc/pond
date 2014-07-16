@@ -3,7 +3,6 @@ package com.shuimin.pond.core;
 import com.shuimin.common.S;
 
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 
 /**
@@ -27,21 +26,37 @@ public interface Response {
      *
      * @param code http status code
      */
-    void send(int code);
+    default void send(int code) {
+        send(code,"");
+    }
+
+    /**
+     * <p>Send message to client with code 200</p>
+     * @param msg
+     */
+    default void send(String msg) {
+        send(200,msg);
+    }
 
     /**
      * <p>此方法用来发送错误码和详细描述</p>
-     *
-     * @param code error code
-     * @param msg  error message
+     * @param code
+     * @param msg
      */
     void sendError(int code, String msg);
 
     /**
+     *
+     * @param code error code
+     * @param msg  error message
+     */
+    void send(int code, String msg);
+
+    /**
      * <p>向客户端写入文件，完成时发送200，此操作立即返回，具体如何发送由底层服务器控制。</p>
      *
-     * @param file file
-     * @deprecated v1.0之后请使用 Renderable#file
+     * @param file attachment
+     * @deprecated v1.0之后请使用 Renderable#attachment
      */
     @Deprecated
     default void sendFile(File file) {
@@ -55,7 +70,7 @@ public interface Response {
     }
 
     /**
-     * @deprecated v1.0之后请使用 Renderable#file
+     * @deprecated v1.0之后请使用 Renderable#attachment
      */
     @Deprecated
     default void sendStream(InputStream in, String filename) {
@@ -125,6 +140,13 @@ public interface Response {
      */
     Response contentType(String type);
 
-    @Deprecated
-    HttpServletResponse raw();
+    default void render(Render r){
+        r.render(ctx().req,ctx().resp);
+    }
+
+    default Ctx ctx(){
+        throw new UnsupportedOperationException("use wrapper");
+    }
+
+
 }

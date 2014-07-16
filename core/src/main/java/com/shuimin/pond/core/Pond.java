@@ -1,50 +1,117 @@
 package com.shuimin.pond.core;
 
 import com.shuimin.common.S;
+import com.shuimin.common.SPILoader;
 import com.shuimin.common.abs.Attrs;
-import com.shuimin.common.abs.Config;
-import com.shuimin.common.abs.Makeable;
-import com.shuimin.common.f.Callback;
 import com.shuimin.pond.core.exception.PondException;
-import com.shuimin.pond.core.kernel.PKernel;
+import com.shuimin.pond.core.mw.StaticFileServer;
+import com.shuimin.pond.core.router.Router;
 import com.shuimin.pond.core.spi.BaseServer;
-import com.shuimin.pond.core.spi.ContextService;
 import com.shuimin.pond.core.spi.Logger;
-import com.shuimin.pond.core.spi.MiddlewareExecutor;
+import com.shuimin.pond.core.spi.ViewEngine;
 
 import java.io.File;
-import java.util.LinkedList;
-import java.util.Map;
-
-import static com.shuimin.common.S._for;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
- * Created by ed on 2014/5/8.
+ * Main Class
  */
-public final class Pond implements Makeable<Pond>, Attrs<Pond> {
+public final class Pond implements Attrs<Pond>, RouterAPI {
 
-    private LinkedList<Middleware> mids = new LinkedList<>();
-    private Logger logger;
+    private static Logger logger = Logger.createLogger(Pond.class);
     private BaseServer server;
-    private ContextService service;
-    private MiddlewareExecutor executor;
-    private boolean init_flag = false;
+    private Router rootRouter;
+    private List<Mid> before = new LinkedList<>();
+    private List<Mid> after = new LinkedList<>();
+
+    private ConcurrentMap<String, Object> holder =
+            new ConcurrentHashMap<>();
+
+    private Map<String, ViewEngine> viewEngines
+            = new HashMap<String, ViewEngine>() {{
+        //do not put any code here
+    }};
+
+    public Pond before(Mid mid) {
+        before.add(mid);
+        return this;
+    }
+
+    public Pond after(Mid mid) {
+        after.add(mid);
+        return this;
+    }
 
     private Pond() {
     }
 
-    public static Pond get() {
-        if (!holder.instance.init_flag) {
-            holder.instance._init();
-        }
-        return holder.instance;
+    public StaticFileServer _static(String dir) {
+        return new StaticFileServer(dir);
     }
+
+    /**
+     * Enable setting/function/feature
+     */
+    public Pond enable(String setting) {
+        set(setting, true);
+        return this;
+    }
+
+    /**
+     * Disable setting/function/feature
+     */
+    public Pond disable(String setting) {
+        set(setting, false);
+        return this;
+    }
+
+    /**
+     * Set global settings
+     */
+    public Pond set(String attr, Object val) {
+        return attr(attr, val);
+    }
+
+    /**
+     * Get global settings
+     */
+    public Object get(String attr) {
+        return attr(attr);
+    }
+
+    public ViewEngine viewEngine(String ext) {
+        ViewEngine ret = viewEngines.get(ext);
+        if (ret == null) ret = viewEngines.get("default");
+        return ret;
+    }
+
+    public Pond viewEngine(String ext, ViewEngine viewEngine) {
+        viewEngines.put(ext, viewEngine);
+        return this;
+    }
+
+
+    /**
+     * Get current Pond instance, or create one if not exist.
+     */
+    public static Pond get() {
+        return Holder.instance;
+    }
+
+    /**
+     * Custom initialization
+     *
+     * @param configs
+     * @return
+     */
     @SafeVarargs
-    public static Pond init(Config<Pond>... configs) {
+    public static Pond init(com.shuimin.common.abs.Config<Pond>... configs) {
         try {
             Pond pond = Pond.get();
 
-            for (Config<Pond> conf : configs) {
+            for (com.shuimin.common.abs.Config<Pond> conf : configs) {
                 conf.config(pond);
             }
 
@@ -54,20 +121,8 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         }
     }
 
-    public static ExecutionContext CUR() {
-        return Pond.get().service.get();
-    }
-
-    public static Request REQ() {
-        return CUR().req();
-    }
-
-    public static Response RESP() {
-        return CUR().resp();
-    }
-
     public static void debug(Object s) {
-        Logger logger = Pond.get().logger;
+        Logger logger = Pond.logger;
         logger.debug(S.dump(s));
     }
 
@@ -80,25 +135,6 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         return (E) get().attr(name);
     }
 
-    @SuppressWarnings("unchecked")
-    public static void register(Class clazz, Object singleton) {
-        PKernel.register(clazz, singleton);
-    }
-
-    public static <E> E register(Class clazz) {
-        return PKernel.get(clazz.getCanonicalName());
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <E> E attribute(String name) {
-        return (E) Pond.get().attr(name);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static void attribute(String name, Object o) {
-        Pond.get().attr(name, o);
-    }
-
     /**
      * get absolute path relative to g.web_root
      *
@@ -107,7 +143,7 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
      */
     //TODO ugly name
     public static String pathRelWebRoot(String path) {
-        String root = (String) Pond.get().attr(Global.ROOT);
+        String root = (String) Pond.get().attr(Config.ROOT_WEB);
         if (path == null) return null;
         if (S.path.isAbsolute(path)) {
             return path;
@@ -123,7 +159,7 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
      */
     //TODO ugly name
     public static String pathRelRoot(String path) {
-        String root = (String) Pond.get().attr(Global.ROOT_WEB);
+        String root = (String) Pond.get().attr(Config.ROOT);
         if (path == null) return null;
         if (S.path.isAbsolute(path)) {
             return path;
@@ -131,14 +167,14 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         return root + File.separator + path;
     }
 
-    public Pond webRoot(String relPath) {
-        this.attr(Global.ROOT_WEB, this.attr(Global.ROOT)
-                + File.separator + relPath);
-        return this;
-    }
-
-    public void start(int port) {
+    public void listen(int port) {
         logger.info("Starting server...");
+        //append dispatcher to the chain
+        List<Mid> mids = new LinkedList<>(before);
+        mids.add(rootRouter);
+        mids.addAll(after);
+        server.installHandler((req, resp) ->
+                CtxExec.exec(new Ctx(req, resp, mids), Collections.<Mid>emptyList()));
         server.listen(port);
         logger.info("Server binding port: " + port);
     }
@@ -154,77 +190,60 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         return this;
     }
 
-    public Pond use(Middleware... mids) {
-        try {
-            this.mids.addAll(_for(mids)
-                    .each(Middleware::init).toList());
-        } catch (PondException pe) {
-            throw new RuntimeException(pe.toString(), pe);
-        } catch (Exception e) {
-            throw e;
-        }
-        return this;
-    }
 
+    /**
+     * default initialization
+     *
+     * @return
+     */
     private Pond _init() {
-        String rootPath = S.path.rootClassPath();
-        //do not change this
-        this.attr(Global.ROOT, rootPath);
+        String root = S.path.rootClassPath();
+        String webroot = S.path.detectWebRootPath();
+        //do not change these
+        this.attr(Config.ROOT, root);
+        this.attr(Config.ROOT_WEB, webroot);
 
-        //default
-        this.attr(Global.ROOT_WEB, rootPath
-                + File.separator + "www");
-
-        this.attr(Global.TEMPLATE_PATH, rootPath
-                + File.separator + "view");
+        this.attr(Config.WWW_PATH, webroot + File.separator + "www");
+        this.attr(Config.VIEWS_PATH, webroot + File.separator + "views");
 //        this.attr(Global.ROOT, S.path.webRoot()#);
 
-        logger = PKernel.getLogger();
-
-        logger.info("root : " + rootPath);
-
+        logger.info("root : " + root);
         server = find(BaseServer.class);
-
-        service = find(ContextService.class);
-
-        executor = find(MiddlewareExecutor.class);
-
+        //TODO ADD CONFIG
+        //router
+        rootRouter = new Router();
+        //engine
+        ViewEngine vg = find(ViewEngine.class);
+        try {
+            vg.configViewPath((String) this.attr(Config.VIEWS_PATH));
+        } catch (Exception e) {
+            debug(e.getMessage());
+        }
+        viewEngines.put("default", vg);
         logger.info("Installing Handler");
-        server.installHandler(handler(service, executor));
+        //init handler
         logger.info("... Finished");
 
-        this.init_flag = true;
 
         return this;
     }
 
     private <E> E find(Class<E> s) {
-        E e = PKernel.getService(s);
+        E e = SPILoader.service(s);
         if (e == null) throw new NullPointerException(s.getSimpleName() + "not found");
         logger.info("Get " + s.getSimpleName() + ": " + e.getClass().getCanonicalName());
         return e;
     }
 
-    private Callback.C2<Request, Response> handler(
-            ContextService service,
-            MiddlewareExecutor executor
-    ) {
-        return (req, resp) -> {
-            service.set(ExecutionContext.init(req, resp));
-            executor.execute(() -> service, () -> this.mids);
-        };
-
-    }
-
     @Override
     public Pond attr(String name, Object o) {
-        PKernel.register(name, o, null);
+        holder.put(name, o);
         return this;
     }
 
     @Override
     public Object attr(String name) {
-        return PKernel.get(name);
+        return holder.get(name);
     }
 
     @Override
@@ -232,19 +251,28 @@ public final class Pond implements Makeable<Pond>, Attrs<Pond> {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public String toString() {
-        return "Pond{" +
-                "mids=" + mids +
-                ", logger=" + logger +
-                ", server=" + server +
-                ", service=" + service +
-                ", executor=" + executor +
-                '}';
+
+    public static String _ignoreLastSlash(String path) {
+        if (!"/".equals(path) && path.endsWith("/"))
+            return path.substring(0, path.length() - 1);
+        return path;
     }
 
-    private static class holder {
-        final static Pond instance = new Pond();
+    @Override
+    public RouterAPI use(int mask, String path, Mid... mids) {
+        return this.rootRouter.use(mask, path, mids);
+    }
+
+    @Override
+    public RouterAPI use(String path, Router router) {
+        return this.rootRouter.use(path, router);
+    }
+
+    /**
+     * singleton
+     */
+    private static class Holder {
+        final static Pond instance = new Pond()._init();
     }
 
 }

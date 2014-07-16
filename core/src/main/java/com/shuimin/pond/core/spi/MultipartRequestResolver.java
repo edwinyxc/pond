@@ -1,9 +1,10 @@
 package com.shuimin.pond.core.spi;
 
+import com.shuimin.common.f.Tuple;
 import com.shuimin.pond.core.Request;
-import com.shuimin.pond.core.db.UploadFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -21,9 +22,8 @@ public interface MultipartRequestResolver {
      *
      * @param req request
      * @return resolved map
-     * @throws IOException
      */
-    public Map<String, Object> resolve(Request req) throws IOException;
+    public Map<String, Object> resolve(Request req);
 
     /**
      * Decide if a form has enctype:multipart/form-data
@@ -35,13 +35,13 @@ public interface MultipartRequestResolver {
     public List<String> multipartParamNames(Request req);
 
     /**
-     * Returns uploaded file with the inputstream and the filename
+     * Returns uploaded attachment with the inputstream and the filename
      * @param req request
      * @param name fieldname
      * @return inputstream and filename
      * @throws IOException
      */
-    public UploadFile getUpload(Request req, String name)
+    public Tuple<String,InputStream> getUpload(Request req, String name)
             throws IOException;
 }
 

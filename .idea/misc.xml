@@ -15,8 +15,7 @@
     </option>
     <option name="ignoredFiles">
       <set>
-        <option value="$PROJECT_DIR$/jdbc/pom.xml" />
-        <option value="$PROJECT_DIR$/pond-server-tomcat/pom.xml" />
+        <option value="$PROJECT_DIR$/mvc/pom.xml" />
       </set>
     </option>
   </component>

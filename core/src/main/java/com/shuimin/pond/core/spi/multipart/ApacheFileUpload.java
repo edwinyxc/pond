@@ -1,9 +1,8 @@
 package com.shuimin.pond.core.spi.multipart;
 
 import com.shuimin.common.S;
-import com.shuimin.common.f.Tuple;
 import com.shuimin.pond.core.Request;
-import com.shuimin.pond.core.db.UploadFile;
+import com.shuimin.pond.core.http.UploadFile;
 import com.shuimin.pond.core.spi.MultipartRequestResolver;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
@@ -24,8 +23,8 @@ import static com.shuimin.common.S._for;
 import static com.shuimin.common.S._notNullElse;
 
 /**
- * Created by ed on 6/24/14.
- */
+* Created by ed on 6/24/14.
+*/
 public class ApacheFileUpload implements MultipartRequestResolver {
 
     private class ReqCtx implements UploadContext {
@@ -106,7 +105,7 @@ public class ApacheFileUpload implements MultipartRequestResolver {
 
 
     @Override
-    public Map<String, Object> resolve(Request req) throws IOException {
+    public Map<String, Object> resolve(Request req) {
         Map<String,Object> map = new HashMap<>();
         try {
             List<FileItem> list = _getFileItems(req);
@@ -126,6 +125,9 @@ public class ApacheFileUpload implements MultipartRequestResolver {
         } catch (FileUploadException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException ignored) {
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return map;
     }

@@ -39,6 +39,10 @@ public class Logger {
         this.outs = outw;
     }
 
+    public static Logger create(Class c) {
+        return create(c.getName());
+    }
+
     public static Logger create(String name) {
         return holder.root.addOut(new Out() {
             @Override

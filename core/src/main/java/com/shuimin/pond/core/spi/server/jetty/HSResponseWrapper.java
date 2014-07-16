@@ -5,9 +5,9 @@ import com.shuimin.pond.core.Response;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
-
-import static com.shuimin.common.S._throw;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 
 /**
  * @author ed
@@ -28,30 +28,30 @@ public class HSResponseWrapper implements Response {
     }
 
     @Override
-    public void send(int code) {
-        if (hasSend) {
-            return;
-        }
-        _resp.setStatus(code);
+    public void sendError(int code, String msg) {
         try {
-            _resp.flushBuffer();
+            _resp.sendError(code,msg);
         } catch (IOException e) {
-            _throw(e);
-        } finally {
-            hasSend = true;
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void sendError(int code, String msg) {
+    public void send(int code, String msg) {
         if (hasSend) return;
+        _resp.setStatus(code);
         try {
-            _resp.sendError(code, msg);
+            _resp.getWriter().print(msg);
         } catch (IOException e) {
-            _throw(e);
-        } finally {
-            hasSend = true;
+            S._lazyThrow(e);
+        }finally {
+            try {
+                _resp.flushBuffer();
+            } catch (IOException e) {
+                S._lazyThrow(e);
+            }
         }
+        hasSend = true;
     }
 
     @Override
@@ -90,10 +90,6 @@ public class HSResponseWrapper implements Response {
         return this;
     }
 
-    @Override
-    public HttpServletResponse raw() {
-        return _resp;
-    }
 
     @Override
     public OutputStream out() {

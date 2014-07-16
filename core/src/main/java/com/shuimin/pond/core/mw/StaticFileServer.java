@@ -7,26 +7,21 @@ import com.shuimin.common.f.Function;
 import com.shuimin.pond.core.*;
 import com.shuimin.pond.core.exception.UnexpectedException;
 import com.shuimin.pond.core.http.HttpMethod;
-import com.shuimin.pond.core.kernel.PKernel;
 import com.shuimin.pond.core.misc.MimeTypes;
 import com.shuimin.pond.core.spi.Logger;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.shuimin.common.S.dump;
-import static com.shuimin.pond.core.Interrupt.kill;
-import static com.shuimin.pond.core.Interrupt.render;
 import static com.shuimin.pond.core.Pond.debug;
 
 /**
  * Created by ed on 2014/4/10.
- * <p>A Simple static file server</p>
+ * <p>A Simple static attachment server</p>
  */
 
 /*TODO make an interface
@@ -34,15 +29,15 @@ import static com.shuimin.pond.core.Pond.debug;
  so third-party FileServer can be bound-in.
  Yet the abstraction still unknown.
  */
-public class StaticFileServer extends AbstractMiddleware
-        implements Makeable<StaticFileServer> {
+public class StaticFileServer
+        implements Makeable<StaticFileServer>,Mid {
 
     public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
     public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
     public static final int HTTP_CACHE_SECONDS = 60;
     private static final Pattern INSECURE_PATH = Pattern.compile(".*[<>&\"].*");
     public String publicDir;
-    private Logger logger = PKernel.getLogger();
+    private static Logger logger = Logger.createLogger(StaticFileServer.class);
     /**
      * Provider
      */
@@ -88,13 +83,6 @@ public class StaticFileServer extends AbstractMiddleware
         return this;
     }
 
-    @Override
-    public void init() {
-        String webRoot = (String) Pond.get().attr(Global.ROOT_WEB);
-        if (S.str.notBlank(webRoot))
-            Pond.get().attr(Global.ROOT_WEB, publicDir);
-    }
-
     private String findDefaultPage(File dir) {
         File[] files = dir.listFiles();
         if (files == null) {
@@ -113,14 +101,14 @@ public class StaticFileServer extends AbstractMiddleware
 
     private void handle(Request req, Response resp) {
         if (HttpMethod.of(req.method()) != HttpMethod.GET) {
-            resp.send(406);
+            resp.sendError(406,"");
             return;
         }
         final String path = req.path();
         final String absPath = validPath(path);
 
         if (S.str.isBlank(absPath)) {
-            resp.send(403);
+            resp.sendError(403,"");
             return;
         }
 
@@ -130,12 +118,12 @@ public class StaticFileServer extends AbstractMiddleware
 
 
         if (!allowedNames.matcher(file.getName()).matches()) {
-            resp.send(403);
+            resp.sendError(403,"");
             return;
         }
 
         if (file.isHidden() || !file.exists()) {
-            resp.send(404);
+            resp.sendError(404,"");
             return;
         }
 
@@ -155,7 +143,7 @@ public class StaticFileServer extends AbstractMiddleware
         }
 
         if (!file.isFile()) {
-            resp.send(403);
+            resp.sendError(403,"");
             return;
         }
 
@@ -185,11 +173,7 @@ public class StaticFileServer extends AbstractMiddleware
 
         setDateAndCacheHeaders(resp, file);
 
-        try {
-            render(Renderable.file(new FileInputStream(file), file.getName()));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        resp.render(Render.file(file));
 
     }
 
@@ -281,11 +265,8 @@ public class StaticFileServer extends AbstractMiddleware
     }
 
     @Override
-    public ExecutionContext handle(ExecutionContext ctx) {
-        this.handle(ctx.req(), ctx.resp());
-        kill();
-        return null;
+    public void apply(Request request, Response response, Callback.C0 c0) {
+        this.handle(request,response);
+        c0.apply();
     }
-
-
 }

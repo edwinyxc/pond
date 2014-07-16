@@ -4,6 +4,17 @@ Pond 由以下模块
 
 * pond-common - 底层库，包括快速开发使用的工具和一些函数式编程特性。
 
+```java  
+Map<Integer, String> testMap = map.hashMap(new Object[][]{
+            {1, "one"}, {2, "two"}, {3, "weee"}, {4, "weee"}
+    });
+_for(testMap).map((s) -> s + "_new").each((entry) -> echo(entry.getValue()));
+
+for (int i = 0; i < 100; i++) {
+    testMap.put(i, String.valueOf(i));
+}
+_for(testMap).grep((entry) -> (entry.getKey() > 50)).each(S::echo);
+```  
 
 * pond-core - 框架核心
 
@@ -14,6 +25,42 @@ Pond 由以下模块
   * 自带logger
   * 基于正则的路由
   * 采用SPI，方便扩展
-  
-* pond-codec
 
+```java  
+
+    Pond app = Pond.init().debug();
+    Router router = new Router();
+    router.get("/add", (req, resp) -> resp.send("add"))
+            .get("/del", (req, resp) -> resp.send("del"));
+
+    app.get("/", (req, resp) -> {
+        resp.send("root");
+    }).get("/${id}",
+            (req, resp) -> resp.send(req.param("id"))
+    ).get("/${id}/text", (req, resp) -> {
+        resp.send(S.dump(req));
+    }).use("/user", router);
+
+    app.listen(8080);
+```
+  
+* pond-db - 数据库处理相关（默认提供mysql)
+
+> * 简单的连接池
+  * DB.fire 快速获取数据
+  * Record 针对单表简单封装
+  * RecordService 封装简单CURD
+  
+  
+```java  
+
+List<TestRecord> list =  DB.fire(this::createConnection,t ->
+                                t.map(TestRecord.class,
+                                "select * from t_crm_order"));
+                                
+echo(dump(_for(list).map(TestRecord::view).toList()));
+
+```
+
+    
+###详情请参考项目内测试代码和注释
