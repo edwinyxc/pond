@@ -44,7 +44,6 @@ public class RestfulController<E extends Record> extends Controller {
     }
 
     public Page queryForPage(Request req) {
-        req.toQuery(proto.declaredFields());
         return DB.fire(tmpl -> {
             Page page = Page.of(req);
             SqlSelect select = sqlFromReq(req);

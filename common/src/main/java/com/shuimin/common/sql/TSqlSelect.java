@@ -86,6 +86,8 @@ public class TSqlSelect extends AbstractSql
     public SqlSelect count() {
         fields.clear();
         fields.add("count(*)");
+        offset = -1;
+        limit = -1;
         return this;
     }
 
