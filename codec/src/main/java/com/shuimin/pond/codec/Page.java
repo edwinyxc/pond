@@ -22,7 +22,7 @@ public class Page extends HashMap<String, Object> {
 
     public Page(Integer pgIdx, Integer pgLen) {
         this.put(PG_LEN, pgLen);
-        this.put(PG_IDX, 1);
+        this.put(PG_IDX, pgIdx);
         this.put(PG_SIZE, pgIdx == null ? 0 : pgIdx);
         this.put(REC_SIZE, pgLen == null ? 0 : pgLen);
     }
