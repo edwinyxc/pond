@@ -186,6 +186,7 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
         logger.info("... finished");
     }
 
+    @Deprecated
     public Pond debug() {
         //FIXME
         LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
