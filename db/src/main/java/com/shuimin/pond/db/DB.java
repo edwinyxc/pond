@@ -3,6 +3,7 @@ package com.shuimin.pond.db;
 import com.shuimin.common.S;
 import com.shuimin.common.SPILoader;
 import com.shuimin.common.abs.Makeable;
+import com.shuimin.common.f.Callback;
 import com.shuimin.common.f.Function;
 import com.shuimin.pond.db.spi.ConnectionPool;
 import org.slf4j.Logger;
@@ -45,6 +46,14 @@ public class DB implements Makeable<DB>, Closeable {
         }
     }
 
+    public static void post(Callback<JDBCTmpl> cb){
+        try(DB b = new DB().open(DB::getConnFromPool)){
+            b.exec((t)->{
+                cb.apply(t);
+                return null;
+            });
+        }
+    }
 
     /**
      * <pre>

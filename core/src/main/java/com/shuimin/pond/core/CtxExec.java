@@ -29,7 +29,7 @@ public class CtxExec {
         try {
             ctxThreadLocal.set(ctx);
             if (mid != null) {
-                System.out.println("uri="+ctx.req.path()+",mid="+mid.toString());
+                logger.debug("uri="+ctx.req.path()+",mid="+mid.toString());
                 mid.apply(ctx.req, ctx.resp,
                         () -> exec(ctx, Collections.<Mid>emptyList()));
             }
