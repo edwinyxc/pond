@@ -1,7 +1,6 @@
 package com.shuimin.pond.core.exception;
 
 
-import com.shuimin.pond.core.spi.Logger;
 
 /**
  * @author ed
@@ -39,6 +38,6 @@ public abstract class PondException extends RuntimeException {
 
     @Override
     public String toString() {
-        return Logger.allowDebug() ? detail() : brief();
+        return getMessage();
     }
 }

@@ -4,8 +4,9 @@ import com.shuimin.common.S;
 import com.shuimin.common.SPILoader;
 import com.shuimin.pond.core.misc.MimeTypes;
 import com.shuimin.pond.core.spi.JsonService;
-import com.shuimin.pond.core.spi.Logger;
 import com.shuimin.pond.core.spi.ViewEngine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URLEncoder;
@@ -21,7 +22,8 @@ import static com.shuimin.pond.core.Pond.debug;
  * Created by ed on 2014/4/18.
  */
 public interface Render {
-    Logger logger = Logger.createLogger(Render.class);
+
+    static Logger logger = LoggerFactory.getLogger(Render.class);
 
     public static Render error(int err_code, String msg) {
         String path = "err" + File.separator + err_code;

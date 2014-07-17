@@ -96,11 +96,21 @@ public class TestApp {
         });
         app.listen(8080);
     }
+
+    public static void test_min_group_route(){
+        Pond app = Pond.init().debug();
+        app.get("/${id}/new",(req,resp)->resp.send(req.param("id")+"/new1"));
+        app.get("/new/${id}",(req,resp)->resp.send("new2/"+req.param("id")));
+        app.get("/new",(req,resp)->resp.send("new"));
+        app.get("/${id}",(req,resp)->resp.send("id="+req.param("id")));
+        app.listen(8080);
+    }
     public static void main(String[] args) {
 //        basic();
 //        router();
 //        www();
 //        tmpl();
-        test_cross_mid_ctx_continuity_complex();
+//        test_cross_mid_ctx_continuity_complex();
+        test_min_group_route();
     }
 }

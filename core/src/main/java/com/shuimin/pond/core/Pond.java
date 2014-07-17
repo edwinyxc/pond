@@ -7,8 +7,9 @@ import com.shuimin.pond.core.exception.PondException;
 import com.shuimin.pond.core.mw.StaticFileServer;
 import com.shuimin.pond.core.router.Router;
 import com.shuimin.pond.core.spi.BaseServer;
-import com.shuimin.pond.core.spi.Logger;
 import com.shuimin.pond.core.spi.ViewEngine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
@@ -20,7 +21,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public final class Pond implements Attrs<Pond>, RouterAPI {
 
-    private static Logger logger = Logger.createLogger(Pond.class);
+    static Logger logger = LoggerFactory.getLogger(Pond.class);
     private BaseServer server;
     private Router rootRouter;
     private List<Mid> before = new LinkedList<>();
@@ -186,7 +187,8 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
     }
 
     public Pond debug() {
-        Logger.allowDebug(true);
+        //FIXME
+        LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
         return this;
     }
 

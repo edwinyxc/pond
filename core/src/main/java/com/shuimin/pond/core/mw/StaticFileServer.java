@@ -8,7 +8,8 @@ import com.shuimin.pond.core.*;
 import com.shuimin.pond.core.exception.UnexpectedException;
 import com.shuimin.pond.core.http.HttpMethod;
 import com.shuimin.pond.core.misc.MimeTypes;
-import com.shuimin.pond.core.spi.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.text.ParseException;
@@ -37,7 +38,7 @@ public class StaticFileServer
     public static final int HTTP_CACHE_SECONDS = 60;
     private static final Pattern INSECURE_PATH = Pattern.compile(".*[<>&\"].*");
     public String publicDir;
-    private static Logger logger = Logger.createLogger(StaticFileServer.class);
+    static Logger logger = LoggerFactory.getLogger(StaticFileServer.class);
     /**
      * Provider
      */

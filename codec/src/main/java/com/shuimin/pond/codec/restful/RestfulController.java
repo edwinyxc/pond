@@ -75,6 +75,18 @@ public class RestfulController<E extends Record> extends Controller {
         res.render(json(service.create(req.toMap())));
     }
 
+    @Mapping(value = "/new", methods = {HttpMethod.GET})
+    public void view_new(Request req, Response res) {
+        res.render(view(resourcePath("new.view")));
+    }
+
+    @Mapping(value = "/${_id}/edit", methods = {HttpMethod.GET})
+    public void view_edit(Request req, Response res) {
+        String id = req.param("_id");
+        Record o = service.get(id);
+        res.render(view(resourcePath("edit.view"), o.view()));
+    }
+
     @Mapping(value = "/${_id}", methods = {HttpMethod.GET})
     public void get(Request req, Response res) {
         String id = req.param("_id");
@@ -102,17 +114,6 @@ public class RestfulController<E extends Record> extends Controller {
         res.render(text(service.delete(id)));
     }
 
-    @Mapping(value = "/new", methods = {HttpMethod.GET})
-    public void view_new(Request req, Response res) {
-        res.render(view(resourcePath("new.view")));
-    }
-
-    @Mapping(value = "/${_id}/edit", methods = {HttpMethod.GET})
-    public void view_edit(Request req, Response res) {
-        String id = req.param("_id");
-        Record o = service.get(id);
-        res.render(view(resourcePath("edit.view"), o.view()));
-    }
 
     static String getAcceptHeader(Request req) {
         String accept = _for(req.header("Accept")).first();

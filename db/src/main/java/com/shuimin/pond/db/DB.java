@@ -4,8 +4,9 @@ import com.shuimin.common.S;
 import com.shuimin.common.SPILoader;
 import com.shuimin.common.abs.Makeable;
 import com.shuimin.common.f.Function;
-import com.shuimin.common.util.logger.Logger;
 import com.shuimin.pond.db.spi.ConnectionPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -26,7 +27,7 @@ import java.sql.SQLException;
  */
 public class DB implements Makeable<DB>, Closeable {
 
-    private static final Logger logger = Logger.create(DB.class);
+    static Logger logger = LoggerFactory.getLogger(DB.class);
     private JDBCTmpl tmpl;
 
     public DB() {

@@ -1,7 +1,8 @@
 package com.shuimin.pond.db;
 
 import com.shuimin.common.S;
-import com.shuimin.common.util.logger.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.InputStream;
@@ -27,8 +28,7 @@ public class JDBCOper
             Float.TYPE, Double.TYPE, Boolean.TYPE, String.class, InputStream.class
     };
     public final Connection conn;
-    static
-    Logger logger = Logger.create(JDBCOper.class);
+    static Logger logger = LoggerFactory.getLogger(JDBCOper.class);
     private PreparedStatement pstmt = null;
 
 
@@ -274,7 +274,7 @@ public class JDBCOper
                     try {
                         pstmt.setNull(idx, Types.BLOB);
                     } catch (SQLException e2) {
-                        logger.err(" :X setNull fail!" + e2.getMessage());
+                        logger.error(" :X setNull fail!" + e2.getMessage());
                         e2.printStackTrace();
                     }
                 }

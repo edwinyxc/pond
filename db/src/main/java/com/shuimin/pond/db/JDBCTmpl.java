@@ -6,7 +6,8 @@ import com.shuimin.common.f.Function;
 import com.shuimin.common.f.Tuple;
 import com.shuimin.common.sql.Criterion;
 import com.shuimin.common.sql.Sql;
-import com.shuimin.common.util.logger.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -34,8 +35,8 @@ public class JDBCTmpl implements Closeable {
     private static RowMapper<AbstractRecord> _default_rm =
             (RowMapper<AbstractRecord>) new AbstractRecord() {
             }.rm;
-    final static Logger logger = Logger.create(JDBCTmpl.class);
 
+    static Logger logger = LoggerFactory.getLogger(JDBCTmpl.class);
     final
     Function<Integer, ResultSet> counter = rs -> {
         try {

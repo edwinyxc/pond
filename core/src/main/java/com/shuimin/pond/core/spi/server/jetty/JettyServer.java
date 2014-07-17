@@ -4,7 +4,6 @@ import com.shuimin.common.S;
 import com.shuimin.common.f.Callback;
 import com.shuimin.pond.core.Response;
 import com.shuimin.pond.core.spi.BaseServer;
-import com.shuimin.pond.core.spi.Logger;
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -23,7 +22,6 @@ public class JettyServer implements BaseServer {
 
     private Callback.C2<com.shuimin.pond.core.Request, Response> handler
             = (req, resp) -> S.echo("EMPTY SERVER");
-    private Logger logger = Logger.createLogger(JettyServer.class);
 
     @Override
     public void listen(int port) {

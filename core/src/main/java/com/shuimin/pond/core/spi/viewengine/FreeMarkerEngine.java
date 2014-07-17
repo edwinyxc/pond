@@ -1,6 +1,5 @@
 package com.shuimin.pond.core.spi.viewengine;
 
-import com.shuimin.pond.core.spi.Logger;
 import com.shuimin.pond.core.spi.ViewEngine;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -15,7 +14,6 @@ import java.nio.charset.Charset;
  */
 public class FreeMarkerEngine implements ViewEngine {
     final Charset utf8 = Charset.forName("UTF-8");
-    final Logger logger = Logger.createLogger(FreeMarkerEngine.class);
 
     Configuration cfg = new Configuration();
 

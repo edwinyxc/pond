@@ -4,7 +4,8 @@ import com.shuimin.common.S;
 import com.shuimin.common.f.Callback;
 import com.shuimin.pond.core.*;
 import com.shuimin.pond.core.http.HttpMethod;
-import com.shuimin.pond.core.spi.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -18,8 +19,8 @@ import static com.shuimin.common.S._for;
  */
 public class Router implements Mid, RouterAPI {
 
+    static Logger logger = LoggerFactory.getLogger(Ctx.class);
     Routes routes = new Routes();
-    Logger logger = Logger.createLogger(Router.class);
     protected String prefix = "";
 
     public Router prefix(String prefix) {
@@ -41,38 +42,56 @@ public class Router implements Mid, RouterAPI {
 
         List<Route> routes = this.routes.get(method);
 
+        //ignore trialling slash
         String path = Pond._ignoreLastSlash(req.path());
 
         logger.debug("Routing path:" + path);
         long s = S.time();
-        List<Route> result = new LinkedList<>();
-        for (Route node : routes) {
-            if (node.match(path)) {
-                result.add(node);
-            }
-        }
+//        List<Route> result = new LinkedList<>();
+//        for (Route node : routes) {
+//            if (node.match(path)) {
+//                result.add(node);
+//            }
+//        }
+        // 通配获得最小为优先 不然为第一获得
+        Route route_has_min_group = _for(routes)
+                .grep(r -> r.match(path))
+                .reduce((r, r1) -> r.def.matcher(path).groupCount()
+                        <= r1.def.matcher(path).groupCount() ?
+                        r : r1);
         logger.debug("Routing time: " + (S.time() - s) + "ms");
-        if (result.size() == 0) {
+        if (route_has_min_group == null)
             logger.debug("Found nothing");
-        } else {
-            for (Route r : result) {
-                logger.debug("Found Route:" + r.toString());
-                //put in-url params
-                _for(r.urlParams(path)).each(
-                        e -> req.param(e.getKey(), e.getValue())
-                );
-                req.ctx().put("route", r);
-                // trigger CtxExec
-                CtxExec.exec(req.ctx(),r.mids);
-                //FIXME
-                // When i try to string all the result-mids as stack,
-                //it seems it`s impossible to re-bind request value
-                //( either binding url param or removing binding)
-                //So, easiest way is only dispatch to the first
-                //available Mid
-                break;
-            }
+        else {
+            logger.debug("Found Route:" + route_has_min_group.toString());
+
+            //put in-url params
+            _for(route_has_min_group.urlParams(path)).each(
+                    e -> req.param(e.getKey(), e.getValue())
+            );
+            req.ctx().put("route", route_has_min_group);
+            // trigger CtxExec
+            CtxExec.exec(req.ctx(), route_has_min_group.mids);
         }
+
+//            for (Route r : result) {
+//                logger.debug("Found Route:" + r.toString());
+//                //put in-url params
+//                _for(r.urlParams(path)).each(
+//                        e -> req.param(e.getKey(), e.getValue())
+//                );
+//                req.ctx().put("route", r);
+//                // trigger CtxExec
+//                CtxExec.exec(req.ctx(), r.mids);
+//                //FIXME
+//                // When i try to string all the result-mids as stack,
+//                //it seems it`s impossible to re-bind request value
+//                //( either binding url param or removing binding)
+//                //So, easiest way is only dispatch to the first
+//                //available Mid
+//                break;
+//            }
+//    }
         //why?
         next.apply();
     }

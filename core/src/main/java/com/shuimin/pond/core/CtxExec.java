@@ -2,6 +2,8 @@ package com.shuimin.pond.core;
 
 import com.shuimin.common.f.Callback;
 import com.shuimin.pond.core.exception.HttpException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
@@ -9,6 +11,7 @@ import java.util.List;
 
 public class CtxExec {
 
+    static Logger logger = LoggerFactory.getLogger(CtxExec.class);
     private static ThreadLocal<Ctx> ctxThreadLocal = new ThreadLocal<Ctx>();
 
     public static Ctx get() {

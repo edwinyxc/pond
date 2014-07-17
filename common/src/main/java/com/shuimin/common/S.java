@@ -628,7 +628,9 @@ public class S {
         }
 
         public E reduce(final Function.F2<E, E, E> reduceLeft) {
-            return list.one(iter).reduceLeft(reduceLeft);
+            list.FList<E> l = list.one(iter);
+            if(l.size() == 0)return null;
+            return l.reduceLeft(reduceLeft);
         }
 
         public Iterable<E> val() {

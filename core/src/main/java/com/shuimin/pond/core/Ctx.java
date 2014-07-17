@@ -1,9 +1,9 @@
 package com.shuimin.pond.core;
 
-import com.shuimin.common.S;
 import com.shuimin.common.f.Callback;
 import com.shuimin.pond.core.http.AbstractRequest;
-import com.shuimin.pond.core.spi.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.Cookie;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import static com.shuimin.common.S._for;
  * 访问上下文,用于保持异步工作时的状态
  */
 public class Ctx extends TreeMap<String, Object> {
-    static Logger logger = Logger.createLogger(Ctx.class);
+    static Logger logger = LoggerFactory.getLogger(Ctx.class);
     Request req;
     Response resp;
     Stack<Mid> mids = new Stack<>();

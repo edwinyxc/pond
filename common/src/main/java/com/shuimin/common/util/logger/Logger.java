@@ -13,6 +13,7 @@ import java.util.Date;
  */
 
 
+@Deprecated
 public class Logger {
     public final static int DEBUG = 3;
     public final static int ERROR = 2;
