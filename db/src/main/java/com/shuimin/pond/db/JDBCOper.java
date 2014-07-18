@@ -293,7 +293,7 @@ public class JDBCOper
 
 
     /*
-     we`ve commented  this because the dependency of UploadFile have been
+     This`ve been commented because the dependency of UploadFile have been
      moved.
      */
 //    private boolean setParam_try_UploadFile(PreparedStatement pstmt,

@@ -7,6 +7,7 @@
       <module fileurl="file://$PROJECT_DIR$/common/pond-common.iml" filepath="$PROJECT_DIR$/common/pond-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/core/pond-core.iml" filepath="$PROJECT_DIR$/core/pond-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/db/pond-db.iml" filepath="$PROJECT_DIR$/db/pond-db.iml" />
+      <module fileurl="file://$PROJECT_DIR$/db/pond-db.iml" filepath="$PROJECT_DIR$/db/pond-db.iml" />
       <module fileurl="file://$PROJECT_DIR$/pond-parent.iml" filepath="$PROJECT_DIR$/pond-parent.iml" />
     </modules>
   </component>
