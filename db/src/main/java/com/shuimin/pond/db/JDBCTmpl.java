@@ -242,12 +242,17 @@ public class JDBCTmpl implements Closeable {
     public boolean add(Record r) {
         List<Tuple<String, Object>> values =
                 new ArrayList<>();
-        for (String f : r.declaredFields()) {
-            Object val = r.get(f);
-            if (val != null) {
-                values.add(Tuple.t2(f, val));
-            }
-        }
+//        for (String f : r.declaredFields()) {
+//            Object val = r.get(f);
+//            if (val != null) {
+//                values.add(Tuple.t2(f, val));
+//            }
+//        }
+        _for(r.data()).each(e -> {
+            if(e.getValue()!=null)
+                values.add(Tuple.t2(e.getKey(),e.getValue()));
+        });
+
         Sql sql = Sql.insert().into(r.table()).values(S.array.of(values));
         logger.debug(sql.debug());
         try {
@@ -274,10 +279,7 @@ public class JDBCTmpl implements Closeable {
     public boolean upd(Record r) {
         List<Tuple<String, Object>> sets =
                 new ArrayList<>();
-
-        for (String f : r.declaredFields()) {
-            sets.add(Tuple.t2(f,r.get(f)));
-        }
+        _for(r.data()).each(e -> sets.add(Tuple.t2(e.getKey(),e.getValue())));
         Sql sql = Sql.update(r.table()).set(S.array.of(sets))
                 .where(r.idName(), Criterion.EQ, (String) r.id());
 
