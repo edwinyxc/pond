@@ -263,24 +263,26 @@ public class JDBCOper
 
     private void setParam(PreparedStatement pstmt, int idx, Object val)
             throws SQLException {
-        if (val == null) {
-            //TODO ugly
-            try {
-                pstmt.setNull(idx, Types.VARCHAR);
-            } catch (SQLException e) {
-                try {
-                    pstmt.setNull(idx, Types.NUMERIC);
-                } catch (SQLException e1) {
-                    try {
-                        pstmt.setNull(idx, Types.BLOB);
-                    } catch (SQLException e2) {
-                        logger.error(" :X setNull fail!" + e2.getMessage());
-                        e2.printStackTrace();
-                    }
-                }
-            }
-            return;
-        }
+        if (val == null)
+            throw new NullPointerException("Please use default value instead of null");
+//        if (val == null) {
+//            //TODO ugly
+//            try {
+//                pstmt.setNull(idx, Types.VARCHAR);
+//            } catch (SQLException e) {
+//                try {
+//                    pstmt.setNull(idx, Types.NUMERIC);
+//                } catch (SQLException e1) {
+//                    try {
+//                        pstmt.setNull(idx, Types.BLOB);
+//                    } catch (SQLException e2) {
+//                        logger.error(" :X setNull fail!" + e2.getMessage());
+//                        e2.printStackTrace();
+//                    }
+//                }
+//            }
+//            return;
+//        }
         if (setParam_try_primitive(pstmt, idx, val)
 //                || setParam_try_UploadFile(pstmt, idx, val)
                 || setParam_try_common(pstmt, idx, val))
