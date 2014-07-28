@@ -20,7 +20,7 @@ public class LambdaTest {
             testMap.put(i, String.valueOf(i));
         }
 
-        _for(testMap).grep((entry) -> (entry.getKey() > 50)).each(S::echo);
+        _for(testMap).filter((entry) -> (entry.getKey() > 50)).each(S::echo);
 
 //        List<Integer> list = collection.list.arrayList(
 //                new Integer[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 23, 23, 2, 2, 3, 23, 22});

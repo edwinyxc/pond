@@ -53,9 +53,10 @@ public class Router implements Mid, RouterAPI {
 //                result.add(node);
 //            }
 //        }
+        //TODO
         // 通配获得最小为优先 不然为第一获得
         Route route_has_min_group = _for(routes)
-                .grep(r -> r.match(path))
+                .filter(r -> r.match(path))
                 .reduce((r, r1) -> r.def.matcher(path).groupCount()
                         <= r1.def.matcher(path).groupCount() ?
                         r : r1);

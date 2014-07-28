@@ -268,6 +268,6 @@ public class StaticFileServer
     @Override
     public void apply(Request request, Response response, Callback.C0 c0) {
         this.handle(request,response);
-        c0.apply();
+//        c0.apply();
     }
 }

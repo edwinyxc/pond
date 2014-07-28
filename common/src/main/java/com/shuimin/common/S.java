@@ -505,7 +505,7 @@ public class S {
             this.map = map;
         }
 
-        public ForMap<K, V> grep(Function<Boolean, Entry<K, V>> grepFunc) {
+        public ForMap<K, V> filter(Function<Boolean, Entry<K, V>> grepFunc) {
             Map<K, V> newMap = S.map.hashMap(null);
             for (Entry<K, V> entry : map.entrySet()) {
                 if (grepFunc.apply(entry)) {
@@ -515,7 +515,7 @@ public class S {
             return new ForMap<>(newMap);
         }
 
-        public ForMap<K, V> grepByKey(Function<Boolean, K> grepFunc) {
+        public ForMap<K, V> filterByKey(Function<Boolean, K> grepFunc) {
             Map<K, V> newMap = S.map.hashMap(null);
 
             for (Entry<K, V> entry : map.entrySet()) {
@@ -527,7 +527,7 @@ public class S {
             return new ForMap<>(newMap);
         }
 
-        public ForMap<K, V> grepByValue(Function<Boolean, V> grepFunc) {
+        public ForMap<K, V> filterByValue(Function<Boolean, V> grepFunc) {
             Map<K, V> newMap = S.map.hashMap(null);
             for (Entry<K, V> entry : map.entrySet()) {
                 if (grepFunc.apply(entry.getValue())) {
@@ -616,7 +616,7 @@ public class S {
             return this;
         }
 
-        public ForIt<E> grep(final Function<Boolean, E> grepFunc) {
+        public ForIt<E> filter(final Function<Boolean, E> grepFunc) {
             final Class<?> itClass = iter.getClass();
             final Collection<E> c = _initCollection(itClass);
             each((e) -> {
@@ -638,7 +638,7 @@ public class S {
         }
 
         public ForIt<E> compact() {
-            return grep((e) -> (e != null));
+            return filter((e) -> (e != null));
         }
 
         public E first() {

@@ -81,7 +81,7 @@ public abstract class AbstractRequest implements Request {
 
     @Override
     public Cookie cookie(final String cookie_name) {
-        return S._for(cookies()).grep((cookie) -> (cookie_name.equals(
+        return S._for(cookies()).filter((cookie) -> (cookie_name.equals(
                 cookie.getName())))
                 .first();
     }

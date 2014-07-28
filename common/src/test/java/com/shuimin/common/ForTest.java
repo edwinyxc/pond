@@ -14,7 +14,7 @@ public class ForTest extends TestCase {
     public static void testArray() {
         _for(new String[]{"a", "b", "c"})
                 //.map((a) -> a.codePointAt(0))
-                //.grep((a) -> a < 100)
+                //.filter((a) -> a < 100)
                 .map((t) -> {
                     S.echo(t);
                     return String.valueOf(t);
@@ -29,7 +29,7 @@ public class ForTest extends TestCase {
         Map<String, Integer> map = S.map
                 .<String, Integer>hashMap(new Object[][]{{"one", 1},
                         {"two", 2}});
-        _for(map).<String>map((a) -> ("" + a)).grepByValue((a) -> {
+        _for(map).<String>map((a) -> ("" + a)).filterByValue((a) -> {
             S.echo(a);
             return true;
         }).each((entry) -> S.echo(entry.getValue()));

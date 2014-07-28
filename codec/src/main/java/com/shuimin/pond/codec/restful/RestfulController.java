@@ -31,6 +31,9 @@ public class RestfulController<E extends Record> extends Controller {
     protected E proto;
     protected RecordService<E> service;
 
+    protected String SORD = "_sord";
+    protected String SORDF = "_sordf";
+
     public RestfulController(E e) {
         this.proto = e;
         service = RecordService.build(e);
@@ -39,8 +42,25 @@ public class RestfulController<E extends Record> extends Controller {
     public SqlSelect sqlFromReq(Request req) {
         String tb_name = proto.table();
         Set<String> fields = proto.declaredFields();
-        return Sql.select(fields.toArray(new String[fields.size()])).from(tb_name)
+        SqlSelect sql = Sql.select(fields.toArray(new String[fields.size()])).from(tb_name)
                 .where(req.toQuery(proto.declaredFields()));
+        String sord = req.param(SORD);
+        String sord_f = req.param(SORDF);
+        if (S.str.notBlank(sord)
+                && S.str.notBlank(sord_f)
+                ) {
+            String order;
+            if (fields.contains(sord_f)) {
+                order = sord_f;
+            } else
+                throw new RuntimeException("sordf not valid");
+            if (sord.equalsIgnoreCase("desc")) {
+                sql.orderBy(order + " desc");
+            } else {
+                sql.orderBy(order + " asc");
+            }
+        }
+        return sql;
     }
 
     public Page queryForPage(Request req) {
@@ -90,14 +110,13 @@ public class RestfulController<E extends Record> extends Controller {
     public void get(Request req, Response res) {
         String id = req.param("_id");
         String mime = getAcceptHeader(req).trim().toLowerCase();
-        if (mime.startsWith("text/html")){
+        if (mime.startsWith("text/html")) {
             Object render = service.get(id);
-            if(render !=null )
-            res.render(view(resourcePath("detail.view"), render));
+            if (render != null)
+                res.render(view(resourcePath("detail.view"), render));
             else
-                res.send(404,id + " not found.");
-        }
-        else
+                res.send(404, id + " not found.");
+        } else
             res.render(json(service.get(id)));
     }
 
@@ -121,7 +140,7 @@ public class RestfulController<E extends Record> extends Controller {
     }
 
     String resourcePath(String name) {
-        return File.separator +prefix+ File.separator + name;
+        return File.separator + prefix + File.separator + name;
     }
 
 }

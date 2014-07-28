@@ -25,7 +25,7 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
     private BaseServer server;
     private Router rootRouter;
     private List<Mid> before = new LinkedList<>();
-    private List<Mid> after = new LinkedList<>();
+//    private List<Mid> after = new LinkedList<>();
 
     private ConcurrentMap<String, Object> holder =
             new ConcurrentHashMap<>();
@@ -40,10 +40,10 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
         return this;
     }
 
-    public Pond after(Mid mid) {
-        after.add(mid);
-        return this;
-    }
+//    public Pond after(Mid mid) {
+//        after.add(mid);
+//        return this;
+//    }
 
     private Pond() {
     }
@@ -173,9 +173,14 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
         //append dispatcher to the chain
         List<Mid> mids = new LinkedList<>(before);
         mids.add(rootRouter);
-        mids.addAll(after);
+        //TODO test
+//        mids.addAll(after);
+//        StaticFileServer fileServer = new StaticFileServer("www");
+        mids.add(new StaticFileServer("www"));
         server.installHandler((req, resp) ->
-                CtxExec.exec(new Ctx(req, resp, mids), Collections.<Mid>emptyList()));
+                CtxExec.exec(new Ctx(req, resp, mids),
+                        Collections.emptyList()));
+//                        S.list(fileServer)));
         server.listen(port);
         logger.info("Server binding port: " + port);
     }

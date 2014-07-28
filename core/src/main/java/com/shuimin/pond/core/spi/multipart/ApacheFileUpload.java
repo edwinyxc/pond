@@ -141,7 +141,7 @@ public class ApacheFileUpload implements MultipartRequestResolver {
     public List<String> multipartParamNames(Request req) {
         try {
             List<FileItem> list = _getFileItems(req);
-            return _for(list).grep( i -> !i.isFormField())
+            return _for(list).filter(i -> !i.isFormField())
                     .map(FileItem::getFieldName).toList();
         } catch (FileUploadException e) {
             e.printStackTrace();
