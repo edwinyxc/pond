@@ -176,7 +176,7 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
         //TODO test
 //        mids.addAll(after);
 //        StaticFileServer fileServer = new StaticFileServer("www");
-        mids.add(new StaticFileServer("www"));
+//        mids.add(new StaticFileServer("www"));
         server.installHandler((req, resp) ->
                 CtxExec.exec(new Ctx(req, resp, mids),
                         Collections.emptyList()));

@@ -53,26 +53,28 @@ public class Router implements Mid, RouterAPI {
 //                result.add(node);
 //            }
 //        }
-        //TODO
-        // 通配获得最小为优先 不然为第一获得
-        Route route_has_min_group = _for(routes)
+        //TODO static 怎么办？
+        // 通配获得最小为优先
+        Route route_f = _for(routes)
                 .filter(r -> r.match(path))
-                .reduce((r, r1) -> r.def.matcher(path).groupCount()
+                .reduce((r, r1) ->
+                        r.def.matcher(path).groupCount()
                         <= r1.def.matcher(path).groupCount() ?
                         r : r1);
+
         logger.debug("Routing time: " + (S.time() - s) + "ms");
-        if (route_has_min_group == null)
+        if (route_f == null)
             logger.debug("Found nothing");
         else {
-            logger.debug("Found Route:" + route_has_min_group.toString());
+            logger.debug("Found Route:" + route_f.toString());
 
             //put in-url params
-            _for(route_has_min_group.urlParams(path)).each(
+            _for(route_f.urlParams(path)).each(
                     e -> req.param(e.getKey(), e.getValue())
             );
-            req.ctx().put("route", route_has_min_group);
+            req.ctx().put("route", route_f);
             // trigger CtxExec
-            CtxExec.exec(req.ctx(), route_has_min_group.mids);
+            CtxExec.exec(req.ctx(), route_f.mids);
         }
 
 //            for (Route r : result) {
