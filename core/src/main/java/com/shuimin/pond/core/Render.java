@@ -90,12 +90,12 @@ public interface Render {
             try {
                 String agent = _for(req.header("User-Agent")).first();
                 String encodedFileName;
-                if (agent.contains("MSIE")) {
-                    encodedFileName = URLEncoder.encode(filename, "UTF-8");
+                if (agent.toLowerCase().contains("msie")
+                        ||agent.toLowerCase().contains("safari")) {
+                    encodedFileName = URLEncoder.encode(file_n, "UTF-8");
                 } else {
                     encodedFileName = "=?UTF-8?B?"
-                            + Arrays.toString(
-                            Base64.getEncoder().encode(filename.getBytes("UTF-8")))
+                            + new String(Base64.getEncoder().encode(file_n.getBytes("UTF-8")))
                             + "?=";
                 }
                 resp.header("Content-Disposition",

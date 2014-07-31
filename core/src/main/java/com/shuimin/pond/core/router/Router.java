@@ -53,14 +53,19 @@ public class Router implements Mid, RouterAPI {
 //                result.add(node);
 //            }
 //        }
-        //TODO static 怎么办？
-        // 通配获得最小为优先
-        Route route_f = _for(routes)
-                .filter(r -> r.match(path))
-                .reduce((r, r1) ->
-                        r.def.matcher(path).groupCount()
-                        <= r1.def.matcher(path).groupCount() ?
-                        r : r1);
+        // 通配获得最小为优先, * 通配符优先级最低
+        Iterable<Route> resultList = _for(routes)
+                        .filter(r -> r.match(path)).val();
+
+        Route route_f = _for(resultList)
+                        .reduce((r, r1) -> {
+                            if (r.def_path.contains("*")) return r1;
+                            if (r1.def_path.contains("*")) return r;
+                            return
+                            r.def.matcher(path).groupCount()
+                                    <= r1.def.matcher(path).groupCount() ?
+                                    r : r1;
+                        });
 
         logger.debug("Routing time: " + (S.time() - s) + "ms");
         if (route_f == null)
