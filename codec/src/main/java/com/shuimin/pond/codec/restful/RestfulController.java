@@ -120,7 +120,7 @@ public class RestfulController<E extends Record> extends Controller {
             res.render(json(service.get(id)));
     }
 
-    @Mapping(value = "/${_id}", methods = {HttpMethod.PUT})
+    @Mapping(value = "/${_id}", methods = {HttpMethod.PUT,HttpMethod.POST})
     public void update(Request req, Response res) {
         String id = req.param("_id");
         res.render(json(service.update(id, req.toMap())));

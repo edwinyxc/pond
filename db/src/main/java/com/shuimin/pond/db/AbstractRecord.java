@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.util.*;
 
 import static com.shuimin.common.S._for;
-import static com.shuimin.common.S._notNullElse;
 import static com.shuimin.common.S.str.underscore;
 
 /**
@@ -69,7 +68,7 @@ public abstract class AbstractRecord extends HashMap<String, Object>
                 } catch (SQLException e) {
                     S._lazyThrow(e);
                 }
-                return ret;
+                return ret.init();
             };
 
     private List<Record> others = new ArrayList<>();
@@ -84,6 +83,7 @@ public abstract class AbstractRecord extends HashMap<String, Object>
         _tableName = s;
         return this;
     }
+
 
     @Override
     @SuppressWarnings("unchecked")
@@ -122,7 +122,7 @@ public abstract class AbstractRecord extends HashMap<String, Object>
 
     protected Map<String, Function> dbFuncs = new HashMap<>();
     protected Map<String, Function> viewFuncs = new HashMap<>();
-
+    protected Map<String, Function> initFuncs= new HashMap<>();
     {
         //default by class name
         table(underscore(this.getClass().getSimpleName()));
@@ -138,8 +138,8 @@ public abstract class AbstractRecord extends HashMap<String, Object>
         }
 
         @Override
-        public Field init(Function.F0 supplier) {
-            AbstractRecord.this.put(name, _notNullElse(supplier, () -> null).apply());
+        public Field init(Function init) {
+            AbstractRecord.this.initFuncs.put(name, init);
             return this;
         }
 
@@ -175,13 +175,22 @@ public abstract class AbstractRecord extends HashMap<String, Object>
             Object value = e.getValue();
             this.set(name, value);
         });
-        return this;
+        return this.init();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <E> E init(String s) {
+        Function f = initFuncs.get(s);
+        Object ori = this.get(s);
+        if (f != null) return (E) f.apply(ori);
+        return (E) ori;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public final <E> E db(String s) {
-        Function f = viewFuncs.get(s);
+        Function f = dbFuncs.get(s);
         Object origin = this.get(s);
         if (f != null) return (E) f.apply(origin);
         return (E) origin;

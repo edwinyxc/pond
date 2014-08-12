@@ -19,7 +19,12 @@ import java.util.*;
 public interface Record {
 
     public interface Field{
-        Field init(Function.F0 supplier);
+        /**
+         * triggered when parsing value from req
+         * @param init
+         * @return
+         */
+        Field init(Function init);
         Field view(Function view);
         Field db(Function data);
     }
@@ -134,6 +139,14 @@ public interface Record {
     public Record table(String s);
 
     /**
+     * Initialize a value ( plain map -> record )
+     * @param s
+     * @param <E>
+     * @return
+     */
+    <E> E init(String s);
+
+    /**
      * view a value ( entity -> view )
      */
     <E> E view(String s);
@@ -207,6 +220,15 @@ public interface Record {
      */
     default void delete() {
         DB.fire(DB::getConnFromPool, (tmpl) -> tmpl.del(this));
+    }
+
+
+
+    default Record init(){
+        for(String s: this.fields()){
+            this.set(s,init(s));
+        }
+        return this;
     }
 
     default Map<String,Object> view(){

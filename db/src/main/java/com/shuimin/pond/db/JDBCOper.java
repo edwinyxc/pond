@@ -158,13 +158,14 @@ public class JDBCOper
         }
         pstmt = conn.prepareStatement(sql);
 
+        _debug(sql + "\n"
+                + S.dump(params));
+
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
                 setParam(pstmt, i + 1, params[i]);
             }
         }
-        _debug(sql + "\n"
-                + S.dump(params));
 
         if (rs != null) {
             _closeRs();
@@ -185,6 +186,9 @@ public class JDBCOper
         }
         pstmt = conn.prepareStatement(sql);
 
+        _debug(sql + "\n"
+                + S.dump(params));
+
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
                 //untested
@@ -192,8 +196,6 @@ public class JDBCOper
             }
         }
 
-        _debug(sql + "\n"
-                + S.dump(params));
 
         if (rs != null) {
             _closeRs();
@@ -257,7 +259,7 @@ public class JDBCOper
 
     private void _debug(Object o) {
         if (logger != null) {
-            logger.debug(dump(o));
+            logger.info(dump(o));
         }
     }
 
