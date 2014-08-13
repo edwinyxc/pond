@@ -111,9 +111,9 @@ public class RestfulController<E extends Record> extends Controller {
         String id = req.param("_id");
         String mime = getAcceptHeader(req).trim().toLowerCase();
         if (mime.startsWith("text/html")) {
-            Object render = service.get(id);
+            Record render = service.get(id);
             if (render != null)
-                res.render(view(resourcePath("detail.view"), render));
+                res.render(view(resourcePath("detail.view"), render.view()));
             else
                 res.send(404, id + " not found.");
         } else
