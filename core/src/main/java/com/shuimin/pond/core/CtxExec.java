@@ -36,10 +36,10 @@ public class CtxExec {
         } catch (HttpException e) {
             e.printStackTrace();
             ctx.resp.sendError(e.code(), e.getMessage());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             ctx.resp.sendError(500, e.getMessage());
-            throw new RuntimeException(e);
+//            throw new RuntimeException(e);
         } finally {
             ctxThreadLocal.remove();
         }
