@@ -17,10 +17,7 @@ import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import sun.misc.Unsafe;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -664,6 +661,16 @@ public class S {
     }
 
     public static class file {
+        public static void inputStreamToFile(InputStream ins,File file) throws IOException {
+            OutputStream os = new FileOutputStream(file);
+            int bytesRead = 0;
+            byte[] buffer = new byte[8192];
+            while ((bytesRead = ins.read(buffer, 0, 8192)) != -1) {
+                os.write(buffer, 0, bytesRead);
+            }
+            os.close();
+            ins.close();
+        }
 
         public static String fileNameFromPath(String path) {
             return path.substring(path.lastIndexOf("\\") + 1);
