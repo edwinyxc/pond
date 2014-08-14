@@ -50,10 +50,10 @@ public enum Criterion {
                 return EQ;
             case "lk":
                 return LIKE;
-            case "sw":
-                return STARTS_WITH;
-            case "ew":
-                return ENDS_WITH;
+//            case "sw":
+//                return STARTS_WITH;
+//            case "ew":
+//                return ENDS_WITH;
             case "nlk":
                 return NOT_LIKE;
             case "gt":
