@@ -11,10 +11,10 @@ import static java.lang.String.format;
 public enum Criterion {
 
     EQ("eq", (k) -> o -> ""+k+" = ? "),
-    LIKE("lk", (k) -> o -> ""+k+" LIKE '%?%'"),
-    STARTS_WITH("sw", (k) -> o -> ""+k+" LIKE ?%"),
-    ENDS_WITH("ew", (k) -> o -> ""+k+" LIKE %?"),
-    NOT_LIKE("nlk", (k) -> o -> ""+k+" NOT LIKE %?%"),
+    LIKE("lk", (k) -> o -> ""+k+" LIKE ?"),
+//    STARTS_WITH("sw", (k) -> o -> ""+k+" LIKE ?"),
+//    ENDS_WITH("ew", (k) -> o -> ""+k+" LIKE ?"),
+    NOT_LIKE("nlk", (k) -> o -> ""+k+" NOT LIKE ?"),
     GREATER_THAN("gt", (k) -> o ->  ""+k+" > ?"),
     GREATER_THAN_E("gte", (k) -> o -> ""+k+" >= ?"),
     LITTLE_THAN("lt", (k) -> o -> ""+k+" < ?"),
