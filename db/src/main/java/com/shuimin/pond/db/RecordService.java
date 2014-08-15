@@ -144,6 +144,15 @@ public abstract class RecordService<E extends Record> {
         return id;
     }
 
+    public String delete(Record record) {
+        DB.fire(tmpl -> tmpl.del(record));
+        return record.id();
+    }
+
+    public void create(Record record) {
+        DB.fire(t -> t.add(record));
+    }
+
     public Record create(Map<String, Object> p) {
         @SuppressWarnings("unchecked")
         E a = (E) Record.newEntity(prototype().getClass())
@@ -152,12 +161,17 @@ public abstract class RecordService<E extends Record> {
         return a;
     }
 
+    public void update(Record record) {
+        record.update();
+    }
+
     public Record update(String id, Map<String, Object> request) {
         Record e = get(id);
         if (e != null) {
             e.merge(request);
-            if (DB.fire(tmpl -> tmpl.upd(e))) ;
+            DB.fire(tmpl -> tmpl.upd(e));
         }
         return e;
     }
+
 }

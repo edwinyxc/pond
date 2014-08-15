@@ -175,7 +175,7 @@ public abstract class AbstractRecord extends HashMap<String, Object>
             Object value = e.getValue();
             this.set(name, value);
         });
-        return this.init();
+        return this;
     }
 
     @Override

@@ -239,21 +239,25 @@ public class JDBCTmpl implements Closeable {
         }
     }
 
-    public boolean add(Record r) {
-        List<Tuple<String, Object>> values =
-                new ArrayList<>();
+
+    /*----CURD
+    Record#db
+    -------*/
+
+    public boolean add(Record record) {
+        List<Tuple<String, Object>> values = new ArrayList<>();
 //        for (String f : r.declaredFields()) {
 //            Object val = r.get(f);
 //            if (val != null) {
 //                values.add(Tuple.t2(f, val));
 //            }
 //        }
-        _for(r.data()).each(e -> {
-            if(e.getValue()!=null)
-                values.add(Tuple.t2(e.getKey(),e.getValue()));
+        _for(record.db()).each(e -> {
+            if (e.getValue() != null)
+                values.add(Tuple.t2(e.getKey(), e.getValue()));
         });
 
-        Sql sql = Sql.insert().into(r.table()).values(S.array.of(values));
+        Sql sql = Sql.insert().into(record.table()).values(S.array.of(values));
         logger.debug(sql.debug());
         try {
             return oper.execute(sql.preparedSql(), sql.params()) > 0;
@@ -263,9 +267,9 @@ public class JDBCTmpl implements Closeable {
         }
     }
 
-    public boolean del(Record r) {
-        Sql sql = Sql.delete().from(r.table())
-                .where(r.idName(), Criterion.EQ, (String) r.id());
+    public boolean del(Record record) {
+        Sql sql = Sql.delete().from(record.table())
+                .where(record.idName(), Criterion.EQ, (String) record.id());
         logger.debug(sql.debug());
         try {
             return oper.execute(sql.preparedSql(), sql.params()) > 0;
@@ -276,15 +280,12 @@ public class JDBCTmpl implements Closeable {
     }
 
 
-    public boolean upd(Record r) {
-        List<Tuple<String, Object>> sets =
-                new ArrayList<>();
-        _for(r.data()).each(e -> sets.add(Tuple.t2(e.getKey(),e.getValue())));
-        Sql sql = Sql.update(r.table()).set(S.array.of(sets))
-                .where(r.idName(), Criterion.EQ, (String) r.id());
-
+    public boolean upd(Record record) {
+        List<Tuple<String, Object>> sets = new ArrayList<>();
+        _for(record.db()).each(e -> sets.add(Tuple.t2(e.getKey(), e.getValue())));
+        Sql sql = Sql.update(record.table()).set(S.array.of(sets))
+                .where(record.idName(), Criterion.EQ, (String) record.id());
         logger.debug(sql.debug());
-
         try {
             return oper.execute(sql.preparedSql(), sql.params()) > 0;
         } catch (SQLException e) {

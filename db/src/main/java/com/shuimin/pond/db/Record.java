@@ -219,10 +219,14 @@ public interface Record {
      * quick delete
      */
     default void delete() {
-        DB.fire(DB::getConnFromPool, (tmpl) -> tmpl.del(this));
+        DB.fire((tmpl) -> tmpl.del(this));
     }
 
-
+    static <E extends Record> E create(Class<E> clz){
+        E r = Record.newEntity(clz);
+        DB.fire(t -> t.add(r));
+        return r;
+    }
 
     default Record init(){
         for(String s: this.fields()){
@@ -239,7 +243,7 @@ public interface Record {
         return ret;
     }
 
-    default Map<String,Object> data(){
+    default Map<String,Object> db(){
 
         Map<String,Object> ret = new HashMap<>();
         for(String s: this.declaredFields()){

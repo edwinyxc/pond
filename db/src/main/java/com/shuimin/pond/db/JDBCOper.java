@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.InputStream;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.*;
 import java.util.Arrays;
 import java.util.Date;
@@ -355,6 +357,8 @@ public class JDBCOper
         } else if (o instanceof Boolean) {
             pstmt.setBoolean(idx, (Boolean) o);
             return true;
+        } else if (o instanceof BigDecimal) {
+            pstmt.setBigDecimal(idx, (BigDecimal) o);
         }
         return false;
     }
