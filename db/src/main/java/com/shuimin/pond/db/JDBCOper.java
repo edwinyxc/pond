@@ -1,6 +1,7 @@
 package com.shuimin.pond.db;
 
 import com.shuimin.common.S;
+import com.shuimin.common.f.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,12 +9,9 @@ import java.io.Closeable;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.sql.*;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.sql.Date;
+import java.util.*;
 
 import static com.shuimin.common.S.dump;
 
@@ -149,12 +147,64 @@ public class JDBCOper
         execute(String.format("DROP INDEX %s", name));
     }
 
+//    @SuppressWarnings("unchecked")
+//    public int execute(String sql, Callback.C3[] paramFuncs, Object[] params)
+//            throws SQLException {
+//        if (paramFuncs == null || params == null ||
+//                paramFuncs.length != params.length) {
+//            throw new IllegalArgumentException("functions,parameters must be non-none and with same length");
+//        }
+//        if (pstmt != null) {
+//            _closeStmt();
+//        }
+//        pstmt = conn.prepareStatement(sql);
+//        _debug(sql + "\n"
+//                + S.dump(params));
+//        for (int i = 0; i < params.length; i++) {
+//            paramFuncs[i].apply(pstmt, i + 1, params[i]);
+//        }
+//
+//        if (mapper != null) {
+//            _closeRs();
+//        }
+//        return pstmt.executeUpdate();
+//    }
+
+
+//    public int execute(String sql,Object[] params) throws SQLException {
+//        if (pstmt != null) {
+//            _closeStmt();
+//        }
+//        pstmt = conn.prepareStatement(sql);
+//
+//        _debug(sql + "\n"
+//                + S.dump(params));
+//
+//        if (params != null) {
+//            for (int i = 0; i < params.length; i++) {
+//                if (params[i] == null)
+//                    pstmt.setNull(i + 1, types[i]);
+//                else
+//                    pstmt.setObject(i + 1, params[i], types[i]);
+//                //这个函数有缺陷
+////                setParam(pstmt, i + 1, params[i],tpyes[i]);
+//            }
+//        }
+//
+//        if (rs != null) {
+//            _closeRs();
+//        }
+//        return pstmt.executeUpdate();
+//    }
+
     /**
      * @param sql    sql
      * @param params 对象数组，用于按顺序放置到sql模板中,支持InputStream 和 基本数据类型
-     * @return
      */
-    public int execute(String sql, Object[] params) throws SQLException {
+//     * @deprecated Deprecated because we cannot distinguish 'null' value for 'set it null' or for 'leave it for now'.
+//     * Use execute(String sql, Functions, params) instead
+//    @Deprecated
+    public int execute(String sql, Object[] params, int[] types) throws SQLException {
         if (pstmt != null) {
             _closeStmt();
         }
@@ -165,7 +215,12 @@ public class JDBCOper
 
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
-                setParam(pstmt, i + 1, params[i]);
+                if (params[i] == null)
+                    pstmt.setNull(i + 1, types[i]);
+                else
+                    pstmt.setObject(i + 1, params[i], types[i]);
+                //这个函数有缺陷
+//                setParam(pstmt, i + 1, params[i],tpyes[i]);
             }
         }
 
@@ -207,7 +262,7 @@ public class JDBCOper
     }
 
     public int execute(String sql) throws SQLException {
-        return execute(sql, null);
+        return execute(sql, null, null);
     }
 
     //	/**
@@ -265,28 +320,20 @@ public class JDBCOper
         }
     }
 
-    private void setParam(PreparedStatement pstmt, int idx, Object val)
+    void setParam(PreparedStatement pstmt, int idx, Object val, int type)
             throws SQLException {
-        if (val == null)
-            throw new NullPointerException("Please use default value instead of null");
-//        if (val == null) {
-//            //TODO ugly
-//            try {
-//                pstmt.setNull(idx, Types.VARCHAR);
-//            } catch (SQLException e) {
-//                try {
-//                    pstmt.setNull(idx, Types.NUMERIC);
-//                } catch (SQLException e1) {
-//                    try {
-//                        pstmt.setNull(idx, Types.BLOB);
-//                    } catch (SQLException e2) {
-//                        logger.error(" :X setNull fail!" + e2.getMessage());
-//                        e2.printStackTrace();
-//                    }
-//                }
-//            }
-//            return;
-//        }
+//        if (val == null)
+//            //这里这样处理是因为实在区分不出默认情况下，null值是用于“清除值”还是“未改变”
+//            //所以最简单的办法就是留给用户处理
+//            throw new NullPointerException("Please use default value instead of null");
+        /**
+         * 2014-8-20更新：
+         * 出现null值就意味着需要置空。
+         * 表示不改变不是jdbcOper的责任，应该由SQL层负责
+         */
+        if (val == null) {
+            pstmt.setNull(idx, type);
+        }
         if (setParam_try_primitive(pstmt, idx, val)
 //                || setParam_try_UploadFile(pstmt, idx, val)
                 || setParam_try_common(pstmt, idx, val))
@@ -310,9 +357,9 @@ public class JDBCOper
 //        return false;
 //    }
 
-    private boolean setParam_try_common(PreparedStatement pstmt,
-                                        int idx,
-                                        Object o) throws SQLException {
+    private static boolean setParam_try_common(PreparedStatement pstmt,
+                                               int idx,
+                                               Object o) throws SQLException {
         if (o instanceof String) {
             pstmt.setString(idx, (String) o);
             return true;
@@ -330,9 +377,9 @@ public class JDBCOper
         return false;
     }
 
-    private boolean setParam_try_primitive(PreparedStatement pstmt,
-                                           int idx,
-                                           Object o) throws SQLException {
+    private static boolean setParam_try_primitive(PreparedStatement pstmt,
+                                                  int idx,
+                                                  Object o) throws SQLException {
         if (o instanceof Integer) {
             pstmt.setInt(idx, (Integer) o);
             return true;

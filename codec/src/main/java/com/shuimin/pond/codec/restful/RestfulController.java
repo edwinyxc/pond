@@ -71,7 +71,7 @@ public class RestfulController<E extends Record> extends Controller {
                 select.offset(Page.getOffset(req))
                         .limit(Page.getLimit(req));
             List<E> data =
-                    tmpl.map(proto.mapper()::map, select.tuple());
+                    tmpl.map(proto.mapper(), select.tuple());
             int count = tmpl.count(select.count().tuple());
             List<Map<String, Object>> view =
                     _for(data).map(Record::view).toList();

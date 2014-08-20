@@ -11,10 +11,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -33,6 +33,82 @@ public class DB implements Makeable<DB>, Closeable {
 
     public DB() {
     }
+
+
+    /**
+     * 存放连接数据库的表结构(字段类型)
+     */
+    static Map<String, Map<String, Integer>> table_types;
+
+
+    public static int[] getTypes(String table, String[] keys) {
+        S._assert(table);
+        S._assert(keys);
+        int[] types = new int[keys.length];
+        for (int i = 0; i < types.length; i++) {
+            types[i] = DB.getType(table,keys[i]);
+        }
+        return types;
+    }
+
+    /**
+     * Call once
+     */
+    static private Map<String, Map<String, Integer>> initType() {
+        ResultSet rs_db = null;
+        ResultSet rs_table = null;
+        Map<String, Map<String, Integer>> table_types =
+                new HashMap<>();
+        Connection conn = null;
+        try {
+            conn = getConnFromPool();
+            DatabaseMetaData meta = conn.getMetaData();
+            rs_db = meta.getTables(null, "%", "%", new String[]{"TABLE"});
+            while (rs_db.next()) {
+                Map<String, Integer> table = new HashMap<>();
+                String tablename = rs_db.getString("TABLE_NAME");
+                table_types.put(tablename, table);
+            }
+
+            for (Map.Entry<String, Map<String, Integer>> e : table_types.entrySet()) {
+                String table_name = e.getKey();
+                Map<String, Integer> table = e.getValue();
+                rs_table = meta.getColumns(null, null, table_name, null);
+                while (rs_table.next()) {
+                    String name = rs_table.getString("COLUMN_NAME");
+                    Integer type = rs_table.getInt("DATA_TYPE");
+                    table.put(name, type);
+                }
+            }
+
+            //debug
+            System.out.println("dump table_types:" + S.dump(table_types));
+            return table_types;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (rs_db != null)
+                    rs_db.close();
+                if (rs_table != null)
+                    rs_table.close();
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static int getType(String table, String field) {
+        if (table_types == null) {
+            table_types = initType();
+        }
+        return table_types.getOrDefault(table, Collections.emptyMap()).get(field);
+    }
+
 
     public static Connection getConnFromPool() {
         ConnectionPool connectionPool =

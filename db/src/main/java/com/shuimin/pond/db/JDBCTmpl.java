@@ -12,9 +12,11 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.shuimin.common.S._for;
@@ -31,10 +33,53 @@ import static com.shuimin.common.S._notNullElse;
  */
 public class JDBCTmpl implements Closeable {
 
-    @SuppressWarnings("unchecked")
-    private static RowMapper<AbstractRecord> _default_rm =
-            (RowMapper<AbstractRecord>) new AbstractRecord() {
-            }.rm;
+
+    /**
+     * default map
+     * TODO: ugly implement
+     */
+    final Function<AbstractRecord, ResultSet> _default_rm =
+
+            (ResultSet rs) -> {
+                AbstractRecord ret = (AbstractRecord) Record.newValue(AbstractRecord.class);
+                try {
+                    ResultSetMetaData metaData = rs.getMetaData();
+                    int cnt = metaData.getColumnCount();
+                    String mainTableName = metaData.getTableName(1);
+                    ret.table(mainTableName);
+                    for (int i = 0; i < cnt; i++) {
+                        String className = metaData.getColumnClassName(i + 1);
+                        String retTable = metaData.getTableName(i + 1);
+                        Class<?> type = Object.class;
+                        try {
+                            type = Class.forName(className);
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        String colName = metaData.getColumnName(i + 1);
+                        Object val;
+
+                        //TODO ugly!
+                        if (type.equals(byte[].class)
+                                || type.equals(Byte[].class)) {
+                            val = rs.getBinaryStream(i + 1);
+                        } else {
+                            val = JDBCOper.normalizeValue(rs.getObject(i + 1, type));
+                        }
+
+//                    S.echo(String.format("NAME : %s ,TYPE : %s", colName,
+//                            val == null ? null : val.getClass()));
+
+                        if (mainTableName.equals(retTable))
+                            ret.set(colName, val);
+                        else ret.setInner(retTable, colName, val);
+                    }
+                } catch (SQLException e) {
+                    S._lazyThrow(e);
+                }
+                return ret;
+            };
+
 
     static Logger logger = LoggerFactory.getLogger(JDBCTmpl.class);
     final
@@ -54,28 +99,28 @@ public class JDBCTmpl implements Closeable {
     }
 
     public List<Record> find(String sql, String... x) {
-        return this.map(_default_rm::map, sql, x);
+        return this.map(_default_rm, sql, x);
     }
 
     public List<Record> find(String sql) {
-        return this.map(_default_rm::map, sql);
+        return this.map(_default_rm, sql);
     }
 
-    public <R> List<R> map(
+    @SuppressWarnings("unchecked")
+    public <R extends Record> List<R> map(
+            R proto,
+            String sql, Object... x
+    ) {
+        return this.map(proto.mapper(), sql, x);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <R extends Record> List<R> map(
             Class<R> clazz,
             String sql, Object... x
     ) {
-        try {
-            Record c = S._one(clazz);
-
-            @SuppressWarnings("unchecked")
-            Function<R, ResultSet> rm = (rs) -> (R) c.mapper().map(rs);
-
-            return this.map(rm, sql, x);
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return null;
+        R proto = Record.newValue(clazz);
+        return map(proto, sql, x);
     }
 
     public int count(String sql, Object[] params) {
@@ -90,7 +135,7 @@ public class JDBCTmpl implements Closeable {
 // removed page function
 //    public <R> Page<R> page(Function<?, ResultSet> mapper,
 //                            Page<R> page ) {
-//        List<R> r = map(mapper, page.querySql());
+//        List<R> r = map(rs_mapper, page.querySql());
 //        int count = (Integer) _for(map(counter,page.querySql())).first();
 //        return page.fulfill(r, count);
 //    }
@@ -164,15 +209,8 @@ public class JDBCTmpl implements Closeable {
     }
 
 
-    public int exec(Tuple<String, Object[]> sql_t) {
-        return exec(sql_t._a, sql_t._b);
-    }
-
     /**
      * execute sql without prepared-statement
-     *
-     * @param sql
-     * @return
      */
     public int exec(String sql) {
         try {
@@ -182,20 +220,27 @@ public class JDBCTmpl implements Closeable {
         }
     }
 
-    /**
-     * execute sql & params
-     *
-     * @param sql    sql
-     * @param params params
-     * @return affected row number
-     */
-    public int exec(String sql, Object... params) {
-        try {
-            return oper.execute(sql, params);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    /**
+//     * execute sql & params
+//     *
+//     * @param sql    sql
+//     * @param params params
+//     * @return affected row number
+//     */
+//    public int exec(String sql, Object... params) {
+//        try {
+//            int[] types = new int[params.length];
+//            for (int i = 0; i < params.length; i++) {
+//                Object o = params[i];
+//                if (o == null) throw new RuntimeException("");
+//                Class<?> clazz = params.getClass();
+//                types[i] = default_sql_type(clazz);
+//            }
+//            return oper.execute(sql, params, types);
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     /**
      * //TODO: untested
@@ -252,15 +297,19 @@ public class JDBCTmpl implements Closeable {
 //                values.add(Tuple.t2(f, val));
 //            }
 //        }
-        _for(record.db()).each(e -> {
+        Map<String, Object> db = record.db();
+
+        _for(db).each(e -> {
             if (e.getValue() != null)
                 values.add(Tuple.t2(e.getKey(), e.getValue()));
         });
 
+        String[] keys = _for(values).map(t -> t._a).join();
+
         Sql sql = Sql.insert().into(record.table()).values(S.array.of(values));
         logger.debug(sql.debug());
         try {
-            return oper.execute(sql.preparedSql(), sql.params()) > 0;
+            return oper.execute(sql.preparedSql(), sql.params(), DB.getTypes(record.table(), keys)) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);
@@ -272,7 +321,8 @@ public class JDBCTmpl implements Closeable {
                 .where(record.idName(), Criterion.EQ, (String) record.id());
         logger.debug(sql.debug());
         try {
-            return oper.execute(sql.preparedSql(), sql.params()) > 0;
+            return oper.execute(sql.preparedSql(), sql.params(),
+                    new int[]{DB.getType(record.table(), record.idName())}) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);
@@ -282,12 +332,16 @@ public class JDBCTmpl implements Closeable {
 
     public boolean upd(Record record) {
         List<Tuple<String, Object>> sets = new ArrayList<>();
-        _for(record.db()).each(e -> sets.add(Tuple.t2(e.getKey(), e.getValue())));
+
+        Map<String, Object> db = record.db();
+
+        _for(db).each(e -> sets.add(Tuple.t2(e.getKey(), e.getValue())));
+        String[] keys = _for(sets).map(t -> t._a).join();
         Sql sql = Sql.update(record.table()).set(S.array.of(sets))
                 .where(record.idName(), Criterion.EQ, (String) record.id());
         logger.debug(sql.debug());
         try {
-            return oper.execute(sql.preparedSql(), sql.params()) > 0;
+            return oper.execute(sql.preparedSql(), sql.params(), DB.getTypes(record.table(), keys)) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);

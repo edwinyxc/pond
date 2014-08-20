@@ -55,7 +55,7 @@ public abstract class RecordService<E extends Record> {
                 Sql.select().from(tableName).where(
                         pkLbl, Criterion.EQ, id);
         List<E> l = DB.fire(tmpl ->
-                tmpl.map(r.mapper()::map, select.tuple()));
+                tmpl.map(r.mapper(), select.tuple()));
         return _for(l).first();
     }
 
@@ -114,9 +114,8 @@ public abstract class RecordService<E extends Record> {
             );
         }
 //        System.out.println(sqlSelect.debug());
-        RowMapper<E> rm = r.mapper();
         return DB.fire(tmpl ->
-                tmpl.map(rm::map, sqlSelect.tuple()));
+                tmpl.map(r.mapper(), sqlSelect.tuple()));
     }
 
 
@@ -124,7 +123,7 @@ public abstract class RecordService<E extends Record> {
         E r = getProto();
         return DB.fire(tmpl -> {
             List<E> result =
-                    tmpl.map(r.mapper()::map, sql.tuple());
+                    tmpl.map(r.mapper(), sql.tuple());
             int count = tmpl.count(sql.count().tuple());
             return t2(result, count);
         });

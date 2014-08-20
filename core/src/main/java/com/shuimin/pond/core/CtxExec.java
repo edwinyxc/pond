@@ -18,6 +18,14 @@ public class CtxExec {
         return ctxThreadLocal.get();
     }
 
+    static Throwable unwrapRuntimeException(RuntimeException e){
+        Throwable t = e.getCause();
+        if(t == null)return e;
+        if(t instanceof RuntimeException){
+            return unwrapRuntimeException((RuntimeException) t);
+        }
+        return t;
+    }
     /**
      * run a ctx
      *
@@ -35,10 +43,14 @@ public class CtxExec {
             }
         } catch (HttpException e) {
             e.printStackTrace();
-            ctx.resp.sendError(e.code(), e.getMessage());
+            ctx.resp.send(e.code(), e.getMessage());
+        } catch(RuntimeException e){
+            Throwable t = unwrapRuntimeException(e);
+            t.printStackTrace();
+            ctx.resp.send(500, t.getMessage());
         } catch (Throwable e) {
             e.printStackTrace();
-            ctx.resp.sendError(500, e.getMessage());
+            ctx.resp.send(500, e.getMessage());
 //            throw new RuntimeException(e);
         } finally {
             ctxThreadLocal.remove();

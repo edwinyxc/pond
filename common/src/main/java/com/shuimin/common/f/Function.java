@@ -9,6 +9,11 @@ public interface Function<R, A> {
         public R apply();
     }
 
+    public interface F0ERR<R> {
+
+        public R apply() throws Exception;
+    }
+
     public interface F2<R, A, B> {
 
         public R apply(A a, B b);

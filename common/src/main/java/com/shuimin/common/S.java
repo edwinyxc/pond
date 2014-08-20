@@ -95,6 +95,24 @@ public class S {
         return false;
     }
 
+
+    public static void _try(Callback.C0ERR cb){
+        try{
+            cb.apply();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <R> R _try(Function.F0ERR<R> f){
+        try{
+            return f.apply();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     public static void _lazyThrow(Throwable a) {
         throw new RuntimeException(a);
     }

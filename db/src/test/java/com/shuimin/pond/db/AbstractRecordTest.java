@@ -19,8 +19,8 @@ public class AbstractRecordTest {
             e.printStackTrace();
         }
         try {
-//            connection = DriverManager.getConnection("jdbc:mysql://192.168.0.88:3306/bi", "root", "root");
-            connection = DriverManager.getConnection("jdbc:mysql://10.10.10.104:3306/bi", "root", "root");
+            connection = DriverManager.getConnection("jdbc:mysql://192.168.0.88:3306/bi", "root", "root");
+//            connection = DriverManager.getConnection("jdbc:mysql://10.10.10.104:3306/bi", "root", "root");
             return connection;
         } catch (SQLException e) {
             throw new RuntimeException(e);

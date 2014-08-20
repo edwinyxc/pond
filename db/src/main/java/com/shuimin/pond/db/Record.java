@@ -3,10 +3,11 @@ package com.shuimin.pond.db;
 import com.shuimin.common.S;
 import com.shuimin.common.f.Function;
 import com.shuimin.common.f.Holder;
-import com.shuimin.common.f.Tuple;
-import com.shuimin.common.sql.Criterion;
 
-import java.util.*;
+import java.sql.ResultSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by ed on 2014/4/24.
@@ -18,24 +19,54 @@ import java.util.*;
  */
 public interface Record {
 
-    public interface Field{
+    public interface Field<E> {
+
         /**
-         * triggered when parsing value from req
+         * Returns the name of this field.
+         */
+        String name();
+
+        /**
+         * Set how the data is getting from the resultSet.
+         * function(name,mapper)
+         */
+        Field<E> mapper(Function.F2<E, String, ResultSet> e);
+
+        /**
          * @param init
          * @return
          */
-        Field init(Function init);
-        Field view(Function view);
-        Field db(Function data);
+        Field<E> init(Function.F0<E> init);
+
+        /**
+         * Used for
+         */
+        Field<E> merge(Function<E, ?> validator);
+
+        /**
+         * Used for view rendering
+         */
+        <V> Field<E> view(Function<V, E> view);
+
+        /**
+         * Used for sql generation.
+         */
+        <D> Field<E> db(Function<D, E> data);
+
+
     }
 
+    Record init();
+
     /**
-     * define field
+     * Try get the Field if not found
+     * create new one.
      *
      * @param name field name
      * @return this
      */
-    Field field(String name);
+    <E> Field<E> field(String name);
+
 
     final static String DEFAULT_PRI_KEY = "id";
 
@@ -45,9 +76,9 @@ public interface Record {
     static Holder<Function.F0<Object>> PK_PROVIDER =
             new Holder<Function.F0<Object>>().init(S.uuid::vid);
 
-    static void primaryKeySupplier(Function.F0<Object> supplier) {
-        PK_PROVIDER.val = supplier;
-    }
+//    static void primaryKeySupplier(Function.F0<Object> supplier) {
+//        PK_PROVIDER.val = supplier;
+//    }
 
     /**
      * Static builder for subclasses
@@ -58,7 +89,7 @@ public interface Record {
      * @return new entity
      */
     @SuppressWarnings("unchecked")
-    static <T> T newEntity(Class<T> recordClass) {
+    static <T extends Record> T newEntity(Class<T> recordClass) {
         Record t = (Record) newValue(recordClass);
         t.setId(PK_PROVIDER.val.apply());
         return (T) t;
@@ -72,9 +103,11 @@ public interface Record {
      * @param <T>         sub-class-type
      * @return new value OR throw exception when error occurred
      */
-    static <T> T newValue(Class<T> recordClass) {
+    @SuppressWarnings("unchecked")
+    static <T extends Record> T newValue(Class<T> recordClass) {
         try {
-            return S._one(recordClass);
+            T t = S._one(recordClass);
+            return (T) t.init();
         } catch (InstantiationException
                 | IllegalAccessException e) {
             e.printStackTrace();
@@ -82,14 +115,17 @@ public interface Record {
         return null;
     }
 
+
     /**
      * declared fields that should be same as declared in db
+     *
      * @return
      */
-    public Set<String> declaredFields() ;
+    public Set<String> declaredFields();
 
     /**
      * Returns all fields
+     *
      * @return
      */
     public Set<String> fields();
@@ -139,14 +175,6 @@ public interface Record {
     public Record table(String s);
 
     /**
-     * Initialize a value ( plain map -> record )
-     * @param s
-     * @param <E>
-     * @return
-     */
-    <E> E init(String s);
-
-    /**
      * view a value ( entity -> view )
      */
     <E> E view(String s);
@@ -182,72 +210,74 @@ public interface Record {
      * @param map input map
      * @return altered this
      */
-    Record merge(Map<String,Object> map);
+    Record merge(Map<String, Object> map);
 
     /**
      * get defined RowMapper
      *
-     * @param <E> mapper-to type
+     * @param <E> rs_mapper-to type
      * @return rowMapper
      */
-    <E> RowMapper<E> mapper();
+    <E> Function<E, ResultSet> mapper();
 
     /**
      * set rowMapper
      *
-     * @param mapper mapper to-set
-     * @param <E>    mapper-to type
+     * @param mapper rs_mapper to-set
+     * @param <E>    rs_mapper-to type
      * @return this
      */
-    <E> Record mapper(RowMapper<E> mapper);
+    <E> Record mapper(Function<E, ResultSet> mapper);
+
+    //AR -QUICK
 
     /**
-     * quick save
+     * Quick save
      */
     default void save() {
         DB.fire(DB::getConnFromPool, (tmpl) -> tmpl.add(this));
     }
 
     /**
-     * quick update
+     * Quick update
      */
     default void update() {
         DB.fire(DB::getConnFromPool, (tmpl) -> tmpl.upd(this));
     }
 
+
     /**
-     * quick delete
+     * Quick create
+     */
+    static <E extends Record> E create(Class<E> clz) {
+        E r = Record.newEntity(clz);
+        DB.fire(t -> t.add(r));
+        return r;
+
+    }
+
+
+    /**
+     * Quick delete
      */
     default void delete() {
         DB.fire((tmpl) -> tmpl.del(this));
     }
 
-    static <E extends Record> E create(Class<E> clz){
-        E r = Record.newEntity(clz);
-        DB.fire(t -> t.add(r));
-        return r;
-    }
 
-    default Record init(){
-        for(String s: this.fields()){
-            this.set(s,init(s));
-        }
-        return this;
-    }
-
-    default Map<String,Object> view(){
-        Map<String,Object> ret = new HashMap<>();
-        for(String s: this.fields()){
-            ret.put(s,view(s));
+    default Map<String, Object> view() {
+        Map<String, Object> ret = new HashMap<>();
+        for (String s : this.fields()) {
+            ret.put(s, view(s));
         }
         return ret;
     }
 
-    default Map<String,Object> db(){
+    default Map<String, Object> db() {
 
-        Map<String,Object> ret = new HashMap<>();
-        for(String s: this.declaredFields()){
-            ret.put(s,db(s));
+        Map<String, Object> ret = new HashMap<>();
+        for (String s : this.declaredFields()) {
+            ret.put(s, db(s));
         }
         return ret;
     }

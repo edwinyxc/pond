@@ -37,9 +37,10 @@ public class Controller extends Router {
                                     m.setAccessible(true);
                                     m.invoke(this,args);
                                     next.apply();
-                                } catch (IllegalAccessException |
-                                        InvocationTargetException e) {
+                                } catch (IllegalAccessException e) {
                                     throw new RuntimeException(e);
+                                } catch (InvocationTargetException e) {
+                                    throw new RuntimeException(e.getTargetException());
                                 }
                             });
                 }

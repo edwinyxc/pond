@@ -1,9 +1,7 @@
 package com.shuimin.common.sql;
 
-import com.shuimin.common.S;
 import com.shuimin.common.f.Tuple;
 
-import static com.shuimin.common.S._for;
 import static com.shuimin.common.S._notNullElse;
 
 /**
