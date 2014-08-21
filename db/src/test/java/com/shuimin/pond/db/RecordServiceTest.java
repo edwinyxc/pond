@@ -22,9 +22,20 @@ public class RecordServiceTest {
         RecordService<TestRecord> recordService =
                 RecordService.build(new TestRecord());
         List<TestRecord> list =
-                recordService.query("create_time", Criterion.BETWEEN, new String[]{
+                recordService.query("create_time", Criterion.BETWEEN,
                         "1402230396671", "1402230396673"
-                });
+                );
+        S.echo(S.dump(_for(list).map(TestRecord::view).toList()));
+    }
+
+    public static void test5() {
+        RecordService<TestRecord> recordService =
+                RecordService.build(new TestRecord());
+        List<TestRecord> list =
+                recordService.query("create_time", Criterion.BETWEEN,
+                        "1402230396671", "1402230396673",
+                        "vid", Criterion.LIKE, "%02632%"
+                );
         S.echo(S.dump(_for(list).map(TestRecord::view).toList()));
     }
 
@@ -37,7 +48,10 @@ public class RecordServiceTest {
     }
 
     public static void main(String[] args){
+        test2();
         test3();
+        test4();
+        test5();
     }
 
 }

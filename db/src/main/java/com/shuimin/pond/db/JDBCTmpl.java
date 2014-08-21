@@ -11,9 +11,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +44,7 @@ public class JDBCTmpl implements Closeable {
     final Function<AbstractRecord, ResultSet> _default_rm =
 
             (ResultSet rs) -> {
-                AbstractRecord ret = (AbstractRecord) Record.newValue(AbstractRecord.class);
+                AbstractRecord ret = Record.newValue(AbstractRecord.class);
                 try {
                     ResultSetMetaData metaData = rs.getMetaData();
                     int cnt = metaData.getColumnCount();
@@ -220,27 +223,58 @@ public class JDBCTmpl implements Closeable {
         }
     }
 
-//    /**
-//     * execute sql & params
-//     *
-//     * @param sql    sql
-//     * @param params params
-//     * @return affected row number
-//     */
-//    public int exec(String sql, Object... params) {
-//        try {
-//            int[] types = new int[params.length];
-//            for (int i = 0; i < params.length; i++) {
-//                Object o = params[i];
-//                if (o == null) throw new RuntimeException("");
-//                Class<?> clazz = params.getClass();
-//                types[i] = default_sql_type(clazz);
-//            }
-//            return oper.execute(sql, params, types);
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+   public int exec(String sql, Object[] params, int[] types){
+       try {
+           return oper.execute(sql,params,types);
+       } catch (SQLException e) {
+           throw new RuntimeException(e);
+       }
+   }
+    /**
+     * execute sql & params
+     *
+     * @param sql    sql
+     * @param params params
+     * @return affected row number
+     */
+    public int exec(String sql, Object... params) {
+        try {
+            int[] types = new int[params.length];
+            for (int i = 0; i < params.length; i++) {
+                Object o = params[i];
+                if (o == null) throw new IllegalArgumentException("Do not use null values without specify its types.");
+                Class<?> clazz = params.getClass();
+                types[i] = default_sql_type(clazz);
+            }
+            return oper.execute(sql, params, types);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    static int default_sql_type(Class<?> cls) {
+        if (cls.equals(Integer.class) || cls.equals(int.class)){
+            return Types.INTEGER;
+        } else if (cls.equals(Double.class) || cls.equals(double.class)) {
+            return Types.DOUBLE;
+        } else if (cls.equals(Float.class) || cls.equals(float.class)) {
+            return Types.FLOAT;
+        } else if (cls.equals(Short.class) || cls.equals(short.class)) {
+            return Types.SMALLINT;
+        }else if (cls.equals(Boolean.class) || cls.equals(boolean.class)) {
+            return Types.BOOLEAN;
+        }else if (cls.equals(String.class) ){
+            return Types.VARCHAR;
+        }else if (cls.equals(Character.class) || cls.equals(char.class)) {
+            return Types.VARCHAR;
+        }else if( cls.equals(InputStream.class)) {
+            return Types.BLOB;
+        }else if( cls.equals(BigDecimal.class)) {
+            return Types.DECIMAL;
+        }
+        throw new IllegalArgumentException("Class "+cls.toString()+" not supported,please specify input types.");
+    }
 
     /**
      * //TODO: untested

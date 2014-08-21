@@ -39,7 +39,7 @@ public interface Record {
         Field<E> init(Function.F0<E> init);
 
         /**
-         * Used for
+         * Used for merge (form req, from anything as a map)
          */
         Field<E> merge(Function<E, ?> validator);
 

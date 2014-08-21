@@ -6,6 +6,7 @@ import com.shuimin.common.sql.Criterion;
 import com.shuimin.common.sql.Sql;
 import com.shuimin.common.sql.SqlSelect;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +35,12 @@ public abstract class RecordService<E extends Record> {
                 return p;
             }
         };
+    }
+
+    public class Query {
+        String key;
+        Criterion criterion;
+        String[] args;
     }
 
     private E _proto;
@@ -75,7 +82,8 @@ public abstract class RecordService<E extends Record> {
      *      => Select ... from  ... where id = '13'
      *  query("id",Criterion.IN, {"1","2","3","4"})
      *      => Select ... from ... where id IN ("1","2","3","4");
-     *</pre>
+     * </pre>
+     *
      * @param args
      * @return
      */
@@ -89,28 +97,47 @@ public abstract class RecordService<E extends Record> {
         if (args.length == 0) {
         } else if (args.length == 1) {
             sqlSelect.where((String) args[0]);
-        } else if (args.length >= 3 && args.length % 3 == 0) {
-            for (int i = 0; i < args.length; i += 3) {
-                Object key = args[i];
-                Object criterion = args[i + 1];
-                Object value = args[i + 2];
-                if (key instanceof String
-                        && criterion instanceof Criterion) {
-                    if (value instanceof String[])
-                        sqlSelect.where((String) key, (Criterion) criterion,
-                                (String[]) value);
-                    else if (value instanceof String)
-                        sqlSelect.where((String) key, (Criterion) criterion,
-                                (String) value);
+        } else if (args.length > 2) {
+            //1. split args by criterion
+            List<List<Object>> arg_groups = new ArrayList<>();
+            List<Object> group = new ArrayList<>();
+            Object cur;
+            Object last;
+            for (int i = 0; i < args.length; i++) {
+                cur = args[i];
+                last = (i - 1) >= 0 ? args[i - 1] : null;
+                if (last != null && cur instanceof Criterion) {
+                    //size > 2 is the valid size
+                    if (group.size() > 2) {
+                        //put query group into groups
+                        //[key,cri,args...,(key),(cri)]
+                        //remove the redundant key
+                        group.remove(group.size() -1);
+                        arg_groups.add(group);
+                    }
+                    //new an array for put
+                    group = new ArrayList<>();
+                    //add key
+                    group.add(last);
+                    //add criterion
+                    group.add(cur);
                 } else {
-                    throw new RuntimeException(
-                            "argument type not fulfilled," +
-                                    "please use String,Criterion,String[] as a couple");
+                    group.add(cur);
                 }
+            }
+            arg_groups.add(group);
+            //2.make query
+            for (List q_group : arg_groups) {
+                if (q_group.size() > 2) {
+                    sqlSelect.where((String) q_group.remove(0),
+                            (Criterion) q_group.remove(0),
+                            (String[]) q_group.toArray(new String[q_group.size()]));
+                }
+                //else ignore illegal arguments
             }
         } else {
             throw new RuntimeException(
-                    "argument length should be n*3 or 1 or 0"
+                    "argument length should be >3 or 1 or 0"
             );
         }
 //        System.out.println(sqlSelect.debug());
@@ -148,7 +175,11 @@ public abstract class RecordService<E extends Record> {
         return record.id();
     }
 
-    public void create(Record record) {
+    /**
+     * Add record to db.
+     * @param record
+     */
+    public void add(Record record) {
         DB.fire(t -> t.add(record));
     }
 
