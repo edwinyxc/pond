@@ -343,7 +343,8 @@ public class JDBCTmpl implements Closeable {
         Sql sql = Sql.insert().into(record.table()).values(S.array.of(values));
         logger.debug(sql.debug());
         try {
-            return oper.execute(sql.preparedSql(), sql.params(), DB.getTypes(record.table(), keys)) > 0;
+            return oper.execute(sql.preparedSql(), sql.params(),
+                    DB.getTypes(record.table(), keys)) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);
@@ -374,8 +375,17 @@ public class JDBCTmpl implements Closeable {
         Sql sql = Sql.update(record.table()).set(S.array.of(sets))
                 .where(record.idName(), Criterion.EQ, (String) record.id());
         logger.debug(sql.debug());
+        // 多出来的最后一个类型是id
+        // types = [types_of_set, $ types_of id]
+        int[] types_of_sets = DB.getTypes(record.table(), keys);
+        int[] types = new int[types_of_sets.length + 1];
+
+        System.arraycopy(types_of_sets, 0, types, 0, types_of_sets.length);
+        //types of id
+        types[types.length-1] = DB.getType(record.table(),record.idName());
+
         try {
-            return oper.execute(sql.preparedSql(), sql.params(), DB.getTypes(record.table(), keys)) > 0;
+            return oper.execute(sql.preparedSql(), sql.params(),types) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);

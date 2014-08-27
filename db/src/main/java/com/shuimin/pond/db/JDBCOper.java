@@ -205,6 +205,13 @@ public class JDBCOper
 //     * Use execute(String sql, Functions, params) instead
 //    @Deprecated
     public int execute(String sql, Object[] params, int[] types) throws SQLException {
+        if (params == null || types == null ) {
+            throw new NullPointerException("params or types");
+        }
+
+        if (params.length != types.length) {
+            throw new IllegalArgumentException("Illegal arguments. Parameters and Types must have same length." );
+        }
         if (pstmt != null) {
             _closeStmt();
         }
