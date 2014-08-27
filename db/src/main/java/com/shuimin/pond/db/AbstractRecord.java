@@ -1,5 +1,6 @@
 package com.shuimin.pond.db;
 
+import com.shuimin.common.S;
 import com.shuimin.common.f.Callback;
 import com.shuimin.common.f.Function;
 
@@ -20,7 +21,7 @@ public class AbstractRecord extends HashMap<String, Object>
 
     String _tableName = "";
     String idLabel = DEFAULT_PRI_KEY;
-    final Field id = new SimpleField(idLabel);
+    final Field<String> id = new SimpleField<String>(idLabel).init(S.uuid::vid);
     final Field _emptyField = new SimpleField<Void>("null").db(t -> null).view(t -> null);
 
     Set<Field> declaredFields = new HashSet<Field>() {
@@ -182,7 +183,8 @@ public class AbstractRecord extends HashMap<String, Object>
         _for(declaredFields).each(field -> {
             SimpleField f = (SimpleField) field;
             Object o = copy.remove(f.name);
-            this.set(f.name, f.validator.apply(o));
+            if (o != null)
+                this.set(f.name, f.validator.apply(o));
         });
         this.putAll(copy);
         return this;
