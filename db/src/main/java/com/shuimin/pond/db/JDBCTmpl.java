@@ -243,7 +243,7 @@ public class JDBCTmpl implements Closeable {
             for (int i = 0; i < params.length; i++) {
                 Object o = params[i];
                 if (o == null) throw new IllegalArgumentException("Do not use null values without specify its types.");
-                Class<?> clazz = params.getClass();
+                Class<?> clazz = params[i].getClass();
                 types[i] = default_sql_type(clazz);
             }
             return oper.execute(sql, params, types);

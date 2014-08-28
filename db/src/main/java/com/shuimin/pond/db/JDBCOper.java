@@ -1,7 +1,6 @@
 package com.shuimin.pond.db;
 
 import com.shuimin.common.S;
-import com.shuimin.common.f.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,8 +9,9 @@ import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.sql.*;
-import java.sql.Date;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.shuimin.common.S.dump;
 
@@ -205,12 +205,12 @@ public class JDBCOper
 //     * Use execute(String sql, Functions, params) instead
 //    @Deprecated
     public int execute(String sql, Object[] params, int[] types) throws SQLException {
-        if (params == null || types == null ) {
+        if (params == null || types == null) {
             throw new NullPointerException("params or types");
         }
 
         if (params.length != types.length) {
-            throw new IllegalArgumentException("Illegal arguments. Parameters and Types must have same length." );
+            throw new IllegalArgumentException("Illegal arguments. Parameters and Types must have same length.");
         }
         if (pstmt != null) {
             _closeStmt();
@@ -220,15 +220,16 @@ public class JDBCOper
         _debug(sql + "\n"
                 + S.dump(params));
 
-        if (params != null) {
-            for (int i = 0; i < params.length; i++) {
-                if (params[i] == null)
-                    pstmt.setNull(i + 1, types[i]);
-                else
-                    pstmt.setObject(i + 1, params[i], types[i]);
-                //这个函数有缺陷
+        for (int i = 0; i < params.length; i++) {
+            if (params[i] == null)
+                pstmt.setNull(i + 1, types[i]);
+                //work around InputStream
+            else if (params[i] instanceof InputStream)
+                pstmt.setBinaryStream(i + 1, (InputStream) params[i]);
+            else
+                pstmt.setObject(i + 1, params[i], types[i]);
+            //这个函数有缺陷
 //                setParam(pstmt, i + 1, params[i],tpyes[i]);
-            }
         }
 
         if (rs != null) {

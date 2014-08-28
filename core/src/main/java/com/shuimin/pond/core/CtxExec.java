@@ -18,14 +18,24 @@ public class CtxExec {
         return ctxThreadLocal.get();
     }
 
-    static Throwable unwrapRuntimeException(RuntimeException e){
+    static void unwrapRuntimeException(RuntimeException e, Response resp) {
         Throwable t = e.getCause();
-        if(t == null)return e;
-        if(t instanceof RuntimeException){
-            return unwrapRuntimeException((RuntimeException) t);
+        if (t == null) {
+            e.printStackTrace();
+            resp.send(500, e.getMessage());
+            return;
         }
-        return t;
+        if (t instanceof HttpException) {
+            resp.send(((HttpException) t).code(), t.getMessage());
+        }
+        if (t instanceof RuntimeException) {
+            unwrapRuntimeException((RuntimeException) t, resp);
+        } else {
+            t.printStackTrace();
+            resp.send(500, t.getMessage());
+        }
     }
+
     /**
      * run a ctx
      *
@@ -37,17 +47,12 @@ public class CtxExec {
         try {
             ctxThreadLocal.set(ctx);
             if (mid != null) {
-                logger.info("uri="+ctx.req.path()+",mid="+mid.toString());
+                logger.info("uri=" + ctx.req.path() + ",mid=" + mid.toString());
                 mid.apply(ctx.req, ctx.resp,
                         () -> exec(ctx, Collections.<Mid>emptyList()));
             }
-        } catch (HttpException e) {
-            e.printStackTrace();
-            ctx.resp.send(e.code(), e.getMessage());
-        } catch(RuntimeException e){
-            Throwable t = unwrapRuntimeException(e);
-            t.printStackTrace();
-            ctx.resp.send(500, t.getMessage());
+        } catch (RuntimeException e) {
+            unwrapRuntimeException(e, ctx.resp);
         } catch (Throwable e) {
             e.printStackTrace();
             ctx.resp.send(500, e.getMessage());

@@ -6,14 +6,17 @@ public class HttpException extends PondException {
     private final int code;
 
     public HttpException() {
+        super();
         this.code = 500;
     }
 
     public HttpException(Exception e) {
+        super(e);
         this.code = 500;
     }
 
     public HttpException(int code, String errMsg) {
+        super(errMsg);
         this.code = code;
     }
 
