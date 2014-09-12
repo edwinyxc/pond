@@ -4,6 +4,7 @@ package com.shuimin.pond.core;
 import com.shuimin.common.SPILoader;
 import com.shuimin.common.f.Tuple;
 import com.shuimin.common.sql.Criterion;
+import com.shuimin.pond.core.http.UploadFile;
 import com.shuimin.pond.core.spi.MultipartRequestResolver;
 
 import javax.servlet.http.Cookie;
@@ -19,6 +20,9 @@ import static com.shuimin.common.S._for;
  * @author ed
  */
 public interface Request {
+
+    final static MultipartRequestResolver mResolver =
+            SPILoader.service(MultipartRequestResolver.class);
 
     InputStream in() throws IOException;
 
@@ -36,6 +40,14 @@ public interface Request {
     Map<String, String[]> params();
 
     String param(String para);
+
+    default UploadFile paramFile(String name) {
+        Object ret = this.toMap().get(name);
+        if ( ret instanceof UploadFile ) {
+            return (UploadFile) ret;
+        }
+        throw new RuntimeException("" + name + " is not a file");
+    }
 
     Integer paramInt(String para);
 
@@ -94,8 +106,6 @@ public interface Request {
         return conditions;
     }
 
-    final MultipartRequestResolver mResolver =
-            SPILoader.service(MultipartRequestResolver.class);
 
     default Map<String, Object> toMap() {
         if (mResolver.isMultipart(this)) {
