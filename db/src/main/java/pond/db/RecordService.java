@@ -1,6 +1,5 @@
 package pond.db;
 
-import pond.common.f.Function;
 import pond.common.f.Tuple;
 import pond.common.sql.Criterion;
 import pond.common.sql.Sql;
@@ -19,13 +18,8 @@ import static pond.common.f.Tuple.t2;
  */
 public abstract class RecordService<E extends Record> {
 
-    public static <E extends Record> RecordService<E> build(Function.F0<E> p) {
-        return new RecordService<E>() {
-            @Override
-            E prototype() {
-                return p.apply();
-            }
-        };
+    public static <E extends Record> RecordService<E> build(Class<E> clazz) {
+        return build(Proto.proto(clazz));
     }
 
     public static <E extends Record> RecordService<E> build(E p) {
@@ -35,12 +29,6 @@ public abstract class RecordService<E extends Record> {
                 return p;
             }
         };
-    }
-
-    public class Query {
-        String key;
-        Criterion criterion;
-        String[] args;
     }
 
     private E _proto;

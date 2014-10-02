@@ -6,15 +6,15 @@
  */
 package pond.common;
 
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
 import pond.common.f.*;
 import pond.common.struc.Cache;
 import pond.common.struc.IterableEnumeration;
 import pond.common.struc.Matrix;
 import pond.common.util.cui.Rect;
 import pond.common.util.logger.Logger;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
 import sun.misc.Unsafe;
 
 import java.io.*;
@@ -87,25 +87,25 @@ public class S {
         throw new RuntimeException(err);
     }
 
-    public static boolean _in(Object some, Object... conditions){
+    public static boolean _in(Object some, Object... conditions) {
         _assert(some);
-        for(Object o : conditions) {
-            if(some.equals(o))return true;
+        for (Object o : conditions) {
+            if (some.equals(o)) return true;
         }
         return false;
     }
 
 
-    public static void _try(Callback.C0ERR cb){
-        try{
+    public static void _try(Callback.C0ERR cb) {
+        try {
             cb.apply();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static <R> R _try(Function.F0ERR<R> f){
-        try{
+    public static <R> R _try(Function.F0ERR<R> f) {
+        try {
             return f.apply();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -200,6 +200,7 @@ public class S {
         }
     }
 
+
     /**
      * <p>Print somethings to the default logger</p>
      *
@@ -225,7 +226,7 @@ public class S {
             return "["
                     + String.join(",",
                     _notNullElse(_for((Iterable) o).
-                            map((i) -> (dump(i))).val(),
+                                    map((i) -> (dump(i))).val(),
                             list.one()))
                     + "]";
         } else if (clazz.isArray()) {
@@ -644,7 +645,7 @@ public class S {
 
         public E reduce(final Function.F2<E, E, E> reduceLeft) {
             list.FList<E> l = list.one(iter);
-            if(l.size() == 0)return null;
+            if (l.size() == 0) return null;
             return l.reduceLeft(reduceLeft);
         }
 
@@ -679,7 +680,7 @@ public class S {
     }
 
     public static class file {
-        public static void inputStreamToFile(InputStream ins,File file) throws IOException {
+        public static void inputStreamToFile(InputStream ins, File file) throws IOException {
             OutputStream os = new FileOutputStream(file);
             int bytesRead = 0;
             byte[] buffer = new byte[8192];
@@ -697,6 +698,7 @@ public class S {
         /**
          * Returns file extension name,
          * return null if it has no extension.
+         *
          * @param fileName
          * @return
          */
@@ -1080,8 +1082,8 @@ public class S {
 
         /**
          * Normally return the source dir path under the current project
-         * @return  the source dir path under the current project
          *
+         * @return the source dir path under the current project
          */
         public static String detectWebRootPath() {
             try {
@@ -1114,6 +1116,7 @@ public class S {
 //            return c.isPrimitive();
 //        }
 //    }
+
     /**
      * ******************* S **********************
      */
