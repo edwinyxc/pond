@@ -35,10 +35,9 @@ public class ApacheFileUpload implements MultipartRequestResolver {
 
         public ReqCtx(Request req) {
             this.encoding = _notNullElse(req.characterEncoding(), "UTF-8");
-            this.contentType =_notNullElse(req.header("Content-Type"),
-                    new String[]{"text/html"})[0];
-            this.contentLength = S.parse.toLong(_notNullElse(req.header("Content-Length"),
-                        new String[]{"0"})[0]);
+            this.contentType =_for(req.header("Content-Type")).first();
+            this.contentLength = S.parse.toLong(
+                    _notNullElse(_for(req.header("Content-Length")).first(),"0"));
             try {
                 this.in = req.in();
             } catch (IOException e) {
