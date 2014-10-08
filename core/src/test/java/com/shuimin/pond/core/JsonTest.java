@@ -1,8 +1,7 @@
 package com.shuimin.pond.core;
 
-import com.shuimin.common.S;
-import com.shuimin.common.SPILoader;
-import com.shuimin.pond.core.spi.JsonService;
+import org.junit.*;
+import static org.junit.Assert.*;
 
 import java.util.Map;
 
@@ -11,10 +10,15 @@ import java.util.Map;
  */
 public class JsonTest {
 
-    public static void main(String[] args){
-        JsonService s = SPILoader.service(JsonService.class);
+    
+    @Test
+    public void json_fromstring() {
         String json = "{a:'A',b:'B',c:'C'}";
-        Map map = s.fromString(Map.class,json);
-        S.echo(map);
+        Map map =
+        Pond.json().fromString(Map.class, json);
+        assertEquals(map.get("a"),"A");
+        assertEquals(map.get("b"),"B");
+        assertEquals(map.get("c"),"C");
     }
+
 }

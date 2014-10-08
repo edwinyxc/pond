@@ -42,7 +42,8 @@ public class RestfulController<E extends Record> extends Controller {
     public SqlSelect sqlFromReq(Request req) {
         String tb_name = proto.table();
         Set<String> fields = proto.declaredFields();
-        SqlSelect sql = Sql.select(fields.toArray(new String[fields.size()])).from(tb_name)
+        SqlSelect sql = 
+            Sql.select(fields.toArray(new String[fields.size()])).from(tb_name)
                 .where(req.toQuery(proto.declaredFields()));
         String sord = req.param(SORD);
         String sord_f = req.param(SORDF);

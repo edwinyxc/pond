@@ -40,7 +40,8 @@ public class Controller extends Router {
                                 } catch (IllegalAccessException e) {
                                     throw new RuntimeException(e);
                                 } catch (InvocationTargetException e) {
-                                    throw new RuntimeException(e.getTargetException());
+                                    throw new RuntimeException(
+                                        e.getTargetException());
                                 }
                             });
                 }

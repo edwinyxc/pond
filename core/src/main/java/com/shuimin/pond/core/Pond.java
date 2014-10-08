@@ -8,6 +8,10 @@ import com.shuimin.pond.core.mw.StaticFileServer;
 import com.shuimin.pond.core.router.Router;
 import com.shuimin.pond.core.spi.BaseServer;
 import com.shuimin.pond.core.spi.ViewEngine;
+import com.shuimin.pond.core.spi.JsonService;
+import com.shuimin.pond.core.spi.MultipartRequestResolver;
+import com.shuimin.pond.core.mw.session.SessionInstaller;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,57 +52,25 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
     private Pond() {
     }
 
-    public StaticFileServer _static(String dir) {
-        return new StaticFileServer(dir);
-    }
+    //static method 
+    //
+    //
 
+    
     /**
-     * Enable setting/function/feature
+     * Returns MultipartResolver
      */
-    public Pond enable(String setting) {
-        set(setting, true);
-        return this;
+    public static MultipartRequestResolver multipart() {
+        return SPILoader.service(MultipartRequestResolver.class);
     }
 
+    
     /**
-     * Disable setting/function/feature
+     * 
+     * Returns JsonService
      */
-    public Pond disable(String setting) {
-        set(setting, false);
-        return this;
-    }
-
-    /**
-     * Set global settings
-     */
-    public Pond set(String attr, Object val) {
-        return attr(attr, val);
-    }
-
-    /**
-     * Get global settings
-     */
-    public Object get(String attr) {
-        return attr(attr);
-    }
-
-    public ViewEngine viewEngine(String ext) {
-        ViewEngine ret = viewEngines.get(ext);
-        if (ret == null) ret = viewEngines.get("default");
-        return ret;
-    }
-
-    public Pond viewEngine(String ext, ViewEngine viewEngine) {
-        viewEngines.put(ext, viewEngine);
-        return this;
-    }
-
-
-    /**
-     * Get current Pond instance, or create one if not exist.
-     */
-    public static Pond get() {
-        return Holder.instance;
+    public static JsonService json() {
+        return SPILoader.service(JsonService.class);
     }
 
     /**
@@ -120,6 +92,12 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
         } catch (PondException t) {
             throw new RuntimeException(t.toString(), t);
         }
+    }
+
+    public static String _ignoreLastSlash(String path) {
+        if (!"/".equals(path) && path.endsWith("/"))
+            return path.substring(0, path.length() - 1);
+        return path;
     }
 
     public static void debug(Object s) {
@@ -167,6 +145,72 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
         }
         return root + File.separator + path;
     }
+    
+    /**
+     * Returns a MW that handle session
+     * see more at com.shuimin.pond.core.mw.session.Session
+     */
+
+    public SessionInstaller _session() {
+        return new SessionInstaller();
+    }
+    
+    /**
+     * Returns a new MW that handle static files
+     *
+     */
+    public StaticFileServer _static(String dir) {
+        return new StaticFileServer(dir);
+    }
+
+    /**
+     * Get current Pond instance, or create one if not exist.
+     */
+    public static Pond get() {
+        return Holder.instance;
+    }
+
+    /**
+     * Enable setting/function/feature
+     */
+    public Pond enable(String setting) {
+        set(setting, true);
+        return this;
+    }
+
+    /**
+     * Disable setting/function/feature
+     */
+    public Pond disable(String setting) {
+        set(setting, false);
+        return this;
+    }
+
+    /**
+     * Set global settings
+     */
+    public Pond set(String attr, Object val) {
+        return attr(attr, val);
+    }
+
+    /**
+     * Get global settings
+     */
+    public Object get(String attr) {
+        return attr(attr);
+    }
+
+    public ViewEngine viewEngine(String ext) {
+        ViewEngine ret = viewEngines.get(ext);
+        if (ret == null) ret = viewEngines.get("default");
+        return ret;
+    }
+
+    public Pond viewEngine(String ext, ViewEngine viewEngine) {
+        viewEngines.put(ext, viewEngine);
+        return this;
+    }
+
 
     public void listen(int port) {
         logger.info("Starting server...");
@@ -190,7 +234,11 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
         server.stop();
         logger.info("... finished");
     }
-
+    
+    /**
+     * DO NOT USE 
+     * MAY BE DELETED IN FUTURE
+     */
     @Deprecated
     public Pond debug() {
         //FIXME
@@ -257,13 +305,6 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
     @Override
     public Map<String, Object> attrs() {
         throw new UnsupportedOperationException();
-    }
-
-
-    public static String _ignoreLastSlash(String path) {
-        if (!"/".equals(path) && path.endsWith("/"))
-            return path.substring(0, path.length() - 1);
-        return path;
     }
 
     @Override
