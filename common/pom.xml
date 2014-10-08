@@ -5,9 +5,9 @@
     <parent>
         <artifactId>pond-parent</artifactId>
         <groupId>com.shuimin</groupId>
-        <version>1.0.0</version>
+        <version>0.1.0</version>
     </parent>
-
+    <version>0.1.0</version>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
 
@@ -16,7 +16,6 @@
     </properties>
 
     <artifactId>pond-common</artifactId>
-
     <dependencies>
         <dependency>
             <groupId>cglib</groupId>
@@ -33,6 +32,11 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.7</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
