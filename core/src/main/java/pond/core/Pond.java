@@ -1,19 +1,3 @@
-<<<<<<< HEAD:core/src/main/java/com/shuimin/pond/core/Pond.java
-package com.shuimin.pond.core;
-
-import com.shuimin.common.S;
-import com.shuimin.common.SPILoader;
-import com.shuimin.common.abs.Attrs;
-import com.shuimin.pond.core.exception.PondException;
-import com.shuimin.pond.core.mw.StaticFileServer;
-import com.shuimin.pond.core.router.Router;
-import com.shuimin.pond.core.spi.BaseServer;
-import com.shuimin.pond.core.spi.ViewEngine;
-import com.shuimin.pond.core.spi.JsonService;
-import com.shuimin.pond.core.spi.MultipartRequestResolver;
-import com.shuimin.pond.core.mw.session.SessionInstaller;
-
-=======
 package pond.core;
 
 import pond.common.S;
@@ -23,7 +7,9 @@ import pond.core.exception.PondException;
 import pond.core.router.Router;
 import pond.core.spi.BaseServer;
 import pond.core.spi.ViewEngine;
->>>>>>> v_0_1:core/src/main/java/pond/core/Pond.java
+import pond.core.spi.JsonService;
+import pond.core.session.SessionInstaller;
+import pond.core.spi.MultipartRequestResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,41 +50,15 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
     private Pond() {
     }
 
-<<<<<<< HEAD:core/src/main/java/com/shuimin/pond/core/Pond.java
     //static method 
     //
     //
-=======
     public Pond _static(String dir) {
         server.installStatic(server.staticFileServer(dir));
         return this;
     }
 
-    /**
-     * Enable setting/function/feature
-     */
-    public Pond enable(String setting) {
-        set(setting, true);
-        return this;
-    }
 
-    /**
-     * Disable setting/function/feature
-     */
-    public Pond disable(String setting) {
-        set(setting, false);
-        return this;
-    }
-
-    /**
-     * Set global settings
-     */
-    public Pond set(String attr, Object val) {
-        return attr(attr, val);
-    }
->>>>>>> v_0_1:core/src/main/java/pond/core/Pond.java
-
-    
     /**
      * Returns MultipartResolver
      */
@@ -195,14 +155,6 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
 
     public SessionInstaller _session() {
         return new SessionInstaller();
-    }
-    
-    /**
-     * Returns a new MW that handle static files
-     *
-     */
-    public StaticFileServer _static(String dir) {
-        return new StaticFileServer(dir);
     }
 
     /**
