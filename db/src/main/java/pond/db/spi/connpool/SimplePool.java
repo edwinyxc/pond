@@ -29,27 +29,38 @@ public class SimplePool implements ConnectionPool {
     private String pass;
 
     public SimplePool() {
-        //read from classpath
-        String filename = "cp.conf";
-        File dir = new File(S.path.rootClassPath());
-        try {
-            Properties config = new Properties();
-            if(dir.exists()){
-                File conf = new File(dir,filename);
-                if(conf.exists() && conf.canRead())
-                    config.load(
-                            new FileInputStream(new File(dir,filename))
-                    );
-            }
-            init(new ConnectionConfig(config));
-        } catch (IOException | SQLException e) {
-            S._throw(e);
-            e.printStackTrace();
-        }
     }
 
     public void setLogger(Logger logger) {
         this.logger = logger;
+    }
+
+    @Override 
+    public void init( Properties p ) {
+    }
+
+    @Override
+    public void init( String driver, String url, String username,
+            String password ) {
+
+        this.driverClass = driver;
+
+        try {
+            Class.forName(driverClass);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+
+        logger.info("driver_class ->" + driverClass);
+
+        this.username = username;
+
+        this.pass = password;
+
+        this.url = url;
+
+        logger.info("conn_url ->" + url);
     }
 
     public SimplePool init(ConnectionConfig config)
@@ -59,23 +70,11 @@ public class SimplePool implements ConnectionPool {
 
         logger.info("max_pool_size ->" + poolMaxSize);
 
-        driverClass = config.driverClass;
+        init( config.driverClass,
+              config.connectionUrl,
+              config.username,
+              config.password );
 
-        logger.info("driver_class ->" + driverClass);
-
-        username = config.username;
-
-        pass = config.password;
-
-        url = config.connectionUrl;
-
-        logger.info("conn_url ->" + url);
-        // poolMaxSize = pool_max_size;
-        // userName = user_name;
-        // this.password = password;
-        // this.driverClass = driver_class;
-        // this.url = conn_url;
-        //
 
         connPool = new ArrayList<>();
         int size;
@@ -94,11 +93,6 @@ public class SimplePool implements ConnectionPool {
 
     private Connection createConnection() throws SQLException {
         Connection connection;
-        try {
-            Class.forName(driverClass);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
         connection = DriverManager.getConnection(url, username, pass);
         return connection;
     }

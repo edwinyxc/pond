@@ -1,0 +1,24 @@
+2014.9.17
+    1.加入Pond#json 直接返回 JsonService
+
+2014.10.7
+
+2014.10.8
+    1.去除了pond 的全局唯一性，现在可以开启多个 pond 实例（不同端口）。
+
+    2.加入了Config#loadProperties，用于方便读取配置文件。
+
+    3.重新设计了属性自定义切面
+        Pond app = Pond.init((p) -> p.load("cp.conf"));
+
+    4.现在，在 Mid 中可以获得 pond 对象实例了。
+        Mid#pond();
+
+    5.添加了 PondAware 接口， 实现此接口的实例 可以获得当前运行的pond实例
+    （在实例化时就被确定, 不同pond实例间不能共享)。
+
+    6.在 common 包中添加了 EnvSPI 接口， 实现此接口的 spi可以获得当前
+    运行环境参数.
+    
+
+

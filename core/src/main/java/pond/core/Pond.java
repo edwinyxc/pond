@@ -15,22 +15,24 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Main Class
  */
-public final class Pond implements Attrs<Pond>, RouterAPI {
+public final class Pond implements  RouterAPI {
 
     static Logger logger = LoggerFactory.getLogger(Pond.class);
     private BaseServer server;
     private Router rootRouter;
-    private List<Mid> before = new LinkedList<>();
-//    private List<Mid> after = new LinkedList<>();
+    //config
+    private Map attrs = new HashMap();
 
-    private ConcurrentMap<String, Object> holder =
-            new ConcurrentHashMap<>();
+    //Before the routing chain
+    private List<Mid> before = new LinkedList<>();
+
+    //After the routing chain
 
     private Map<String, ViewEngine> viewEngines
             = new HashMap<String, ViewEngine>() {{
@@ -50,14 +52,33 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
     private Pond() {
     }
 
-    //static method 
-    //
-    //
     public Pond _static(String dir) {
         server.installStatic(server.staticFileServer(dir));
         return this;
     }
 
+    /**
+     * Returns a MW that handle session
+     * see more at com.shuimin.pond.core.mw.session.Session
+     */
+    public SessionInstaller _session() {
+        return new SessionInstaller();
+    }
+
+    public <E> E spi( Class<E> spiClass ) {
+        E service = SPILoader.service( spiClass );
+        if( service instanceof PondSPI) {
+            ((PondSPI) service).pond(this);
+        }
+        else if( service instanceof EnvSPI ) {
+            ((EnvSPI) service).env(this.config);
+        }
+        return service;
+    }
+
+    //static method 
+    //
+    //
 
     /**
      * Returns MultipartResolver
@@ -84,7 +105,7 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
     @SafeVarargs
     public static Pond init(pond.common.abs.Config<Pond>... configs) {
         try {
-            Pond pond = Pond.get();
+            Pond pond = new Pond()._init();
 
             for (pond.common.abs.Config<Pond> conf : configs) {
                 conf.config(pond);
@@ -107,14 +128,7 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
         logger.debug(S.dump(s));
     }
 
-    public static void config(String name, Object o) {
-        get().attr(name, o);
-    }
 
-    @SuppressWarnings("unchecked")
-    public static <E> E config(String name) {
-        return (E) get().attr(name);
-    }
 
     /**
      * get absolute path relative to g.web_root
@@ -122,9 +136,8 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
      * @param path input relative path
      * @return absolute path
      */
-    //TODO ugly name
-    public static String pathRelWebRoot(String path) {
-        String root = (String) Pond.get().attr(Config.ROOT_WEB);
+    public String pathRelWebRoot(String path) {
+        String root = (String) attr(Config.ROOT_WEB);
         if (path == null) return null;
         if (S.path.isAbsolute(path)) {
             return path;
@@ -138,9 +151,8 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
      * @param path input relative path
      * @return absolute path
      */
-    //TODO ugly name
-    public static String pathRelRoot(String path) {
-        String root = (String) Pond.get().attr(Config.ROOT);
+    public String pathRelRoot(String path) {
+        String root = (String) attr(Config.ROOT);
         if (path == null) return null;
         if (S.path.isAbsolute(path)) {
             return path;
@@ -148,21 +160,7 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
         return root + File.separator + path;
     }
     
-    /**
-     * Returns a MW that handle session
-     * see more at com.shuimin.pond.core.mw.session.Session
-     */
 
-    public SessionInstaller _session() {
-        return new SessionInstaller();
-    }
-
-    /**
-     * Get current Pond instance, or create one if not exist.
-     */
-    public static Pond get() {
-        return Holder.instance;
-    }
 
     /**
      * Enable setting/function/feature
@@ -249,6 +247,11 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
     private Pond _init() {
         String root = S.path.rootClassPath();
         String webroot = S.path.detectWebRootPath();
+        
+        //map properties
+        Properties conf = Config.loadProperties(Config.CONFIG_FILE_NAME);
+        //TODO
+
         //do not change these
         this.attr(Config.ROOT, root);
         this.attr(Config.ROOT_WEB, webroot);
@@ -280,20 +283,20 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
 
     private <E> E find(Class<E> s) {
         E e = SPILoader.service(s);
-        if (e == null) throw new NullPointerException(s.getSimpleName() + "not found");
-        logger.info("Get " + s.getSimpleName() + ": " + e.getClass().getCanonicalName());
+        if (e == null)
+            throw new NullPointerException(s.getSimpleName() + "not found");
+        logger.info("Get " + 
+                s.getSimpleName() + ": " + e.getClass().getCanonicalName());
         return e;
     }
 
-    @Override
     public Pond attr(String name, Object o) {
-        holder.put(name, o);
+        this.attrs.put( name, o );
         return this;
     }
 
-    @Override
     public Object attr(String name) {
-        return holder.get(name);
+        return this.attrs.get( name );
     }
 
     @Override
@@ -311,11 +314,5 @@ public final class Pond implements Attrs<Pond>, RouterAPI {
         return this.rootRouter.use(path, router);
     }
 
-    /**
-     * singleton
-     */
-    private static class Holder {
-        final static Pond instance = new Pond()._init();
-    }
 
 }

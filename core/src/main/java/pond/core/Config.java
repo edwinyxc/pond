@@ -1,5 +1,8 @@
 package pond.core;
 
+import java.util.Properties;
+import pond.common.S;
+import static pond.common.S.*;
 /**
  * Created by ed on 2014/4/22.
  */
@@ -48,5 +51,29 @@ public class Config {
      */
     public final static String VIEW_CACHE = "g.view_cache";
 
+    
+    public final static String CONFIG_FILE_NAME = "pond.conf";
 
+    
+    /**
+     * Load properties from the file, under the classroot
+     */
+    public static Properties loadProperties(String fileName) {
+        File dir = new File(S.path.rootClassPath());
+        _try( () -> {
+            Properties config = new Properties();
+            if( dir.exists() ) {
+                File conf = new File( dir, fileName );
+                if( conf.exists() && conf.canRead() )
+                    config.load( new FileInputStream( conf )); 
+                //using default settings;
+                else 
+                    System.out.println(
+                        "Can`t read properties file, using default.");
+            }
+            return config;
+        });
+    }
+
+    
 }
