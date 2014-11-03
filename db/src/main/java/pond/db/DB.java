@@ -39,7 +39,7 @@ public final class DB {
         return cp;
     }
 
-    public static <E extends Model> RecordService<E> dao(Class<E> cls){
+    public static <E extends Record> RecordService<E> dao(Class<E> cls){
         return Proto.dao(cls);
     }
 

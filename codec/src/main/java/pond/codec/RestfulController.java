@@ -5,6 +5,7 @@ import pond.core.Request;
 import pond.core.Response;
 import pond.core.http.HttpMethod;
 import pond.core.Controller;
+import pond.db.DB;
 import pond.db.Model;
 import pond.db.Record;
 import pond.db.RecordService;
@@ -14,21 +15,24 @@ import java.io.File;
 import static pond.common.S._for;
 import static pond.core.Pond.debug;
 import static pond.core.Render.*;
+import static pond.db.DB.dao;
 
 /**
  * Created by ed on 14-5-20.
  * <p/>
  */
-public class RestfulController<E extends Model> extends Controller {
+public class RestfulController<E extends Record> extends Controller {
 
     protected E proto;
 
     //consider rename to dao ?
     protected RecordService<E> service;
 
+    protected DB db;
+
     public RestfulController(E e) {
         this.proto = e;
-        service = Model.dao( proto.getClass() );
+        service = dao((Class<E>) proto.getClass() );
     }
 
 //    public SqlSelect sqlFromReq(Request req) {
@@ -71,6 +75,7 @@ public class RestfulController<E extends Model> extends Controller {
 //            return page.fulfill(view, count);
 //        });
 //    }
+
 
     @Mapping(value = "/", methods = {HttpMethod.GET})
     public void index(Request req, Response res) {
@@ -132,7 +137,7 @@ public class RestfulController<E extends Model> extends Controller {
         return S.str.notBlank(accept) ? accept : "text/html";
     }
 
-    String resourcePath(String name) {
+    protected String resourcePath(String name) {
         return File.separator + prefix + File.separator + name;
     }
 

@@ -3,6 +3,7 @@ package pond.codec;
 import pond.common.S;
 import pond.common.f.Tuple;
 import pond.core.Ctx;
+import pond.core.Pond;
 import pond.core.Request;
 
 import java.util.HashMap;
@@ -63,22 +64,24 @@ public class ReqQuery {
         return sql;
     }
 
+
     public static Page queryForPage(Request req, Record p) {
-        return DB.fire(tmpl -> {
+        Pond pond = req.ctx().pond;
+        DB db = (DB) (pond.attr(Pond.DEFAULT_DB));
+        return db.get(tmpl -> {
             Page page = Page.of(req);
             SqlSelect select = sqlFromReq(req, p);
             if (page.allowPage(req))
                 select.offset(page.getOffset(req))
                         .limit(page.getLimit(req));
             List<Record> data =
-                    tmpl.map(p.mapper(), select.tuple());
+                    tmpl.query(p.mapper(), select.tuple());
             int count = tmpl.count(select.count().tuple());
             List<Map<String, Object>> view =
                     _for(data).map(Record::view).toList();
             return page.fulfill(view, count);
         });
     }
-
     public static class Page extends HashMap<String, Object> {
 
 

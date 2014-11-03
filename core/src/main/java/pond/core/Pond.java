@@ -24,6 +24,8 @@ import static pond.common.S.*;
  */
 public final class Pond implements  RouterAPI {
 
+    public final static String DEFAULT_DB = "_db";
+
     static Logger logger = LoggerFactory.getLogger(Pond.class);
     private BaseServer server;
     private Router rootRouter;
