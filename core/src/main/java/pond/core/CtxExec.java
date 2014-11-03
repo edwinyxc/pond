@@ -18,6 +18,9 @@ public class CtxExec {
         return ctxThreadLocal.get();
     }
 
+    public CtxExec() {
+    }
+
     static void unwrapRuntimeException(RuntimeException e, Response resp) {
         Throwable t = e.getCause();
         if (t == null) {
@@ -41,7 +44,7 @@ public class CtxExec {
      *
      * @param ctx
      */
-    public static void exec(Ctx ctx, List<Mid> mids) {
+    public void exec(Ctx ctx, List<Mid> mids) {
         Callback.C3<Request, Response, Callback.C0> mid = ctx.nextMid();
         ctx.addMid(mids);
         try {

@@ -4,6 +4,7 @@ import pond.common.abs.Makeable;
 import pond.common.f.Function;
 import pond.core.Ctx;
 import pond.core.Pond;
+import pond.core.Session;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,18 +17,24 @@ import static pond.core.Pond.debug;
  */
 public class SessionManager implements Makeable<SessionManager> {
 
-    public static final String SESSION_LIFETIME = "session_lifetime";
-    private final static Map<String, Session> sessions = new HashMap<>();
-    private static Function<Session, String> supplierFunc = (id) -> {
+    public static final String SESSION_LIFETIME = "SessionManager.session_lifetime";
+    public static final int default_life_time = 60 * 30;
+    final Pond pond;
+    private final Map<String, Session> sessions = new HashMap<>();
+    private Function<Session, String> supplierFunc = (id) -> {
         debug("session : " + id + " created");
-        return new TimerSession(id, SessionManager::sessionLifeTime);
+        return new TimerSession(this, id, this::sessionLifeTime);
     };
 
-    public static Session get(String sessionId) {
+    public SessionManager(Pond pond) {
+        this.pond = pond;
+    }
+
+    public Session get(String sessionId) {
         return get(sessionId, true);
     }
 
-    public static Session get(String sessionId, boolean createOnNotFound) {
+    public Session get(String sessionId, boolean createOnNotFound) {
         Session ret;
         synchronized (sessions) {
             ret = sessions.get(sessionId);
@@ -43,21 +50,23 @@ public class SessionManager implements Makeable<SessionManager> {
         return ret;
     }
 
-    public static void kill(Session session) {
+    public void kill(Session session) {
         synchronized (sessions) {
             sessions.remove(session.id());
         }
     }
 
-    public static void kill(String sessionId) {
+    public void kill(String sessionId) {
         synchronized (sessions) {
             sessions.remove(sessionId);
         }
     }
 
-    private static int sessionLifeTime() {
-        return (Integer) Pond.get().attr(
-                SESSION_LIFETIME) * 1000;
+    private int sessionLifeTime() {
+        // as mills-seconds
+        String sessionLifeStr = (String) pond.attr(SESSION_LIFETIME);
+
+        return  Integer.parseInt(sessionLifeStr) * 1000 ;
     }
 
 //    public static
@@ -67,13 +76,13 @@ public class SessionManager implements Makeable<SessionManager> {
      *
      * @return 当前的session
      */
-    public static Session get(Ctx ctx) {
+    public Session get(Ctx ctx) {
         return get((String) ctx.get(SessionInstaller.JSESSIONID));
     }
 
 
-    public static SessionInstaller installer() {
-        return new SessionInstaller();
+    public SessionInstaller installer() {
+        return new SessionInstaller(this);
     }
 
 }

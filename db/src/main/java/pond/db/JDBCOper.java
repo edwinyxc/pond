@@ -23,10 +23,10 @@ import static pond.common.S.dump;
 public class JDBCOper
         implements Closeable {
 
-    private static final Type[] SUPPORTED_TYPES = new Type[]{
-            Byte.TYPE, Character.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE,
-            Float.TYPE, Double.TYPE, Boolean.TYPE, String.class, InputStream.class
-    };
+//    private static final Type[] SUPPORTED_TYPES = new Type[]{
+//            Byte.TYPE, Character.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE,
+//            Float.TYPE, Double.TYPE, Boolean.TYPE, String.class, InputStream.class
+//    };
     public final Connection conn;
     static Logger logger = LoggerFactory.getLogger(JDBCOper.class);
     private PreparedStatement pstmt = null;
@@ -205,8 +205,9 @@ public class JDBCOper
 //     * Use execute(String sql, Functions, params) instead
 //    @Deprecated
     public int execute(String sql, Object[] params, int[] types) throws SQLException {
-        if (params == null || types == null) {
-            throw new NullPointerException("params or types");
+
+        if (params == null || params == null){
+            throw new NullPointerException("params or types null");
         }
 
         if (params.length != types.length) {
@@ -270,7 +271,7 @@ public class JDBCOper
     }
 
     public int execute(String sql) throws SQLException {
-        return execute(sql, null, null);
+        return execute(sql, new String[0], new int[0] );
     }
 
     //	/**
@@ -341,13 +342,10 @@ public class JDBCOper
          */
         if (val == null) {
             pstmt.setNull(idx, type);
+        }else {
+            pstmt.setObject(idx, val, type);
         }
-        if (setParam_try_primitive(pstmt, idx, val)
-//                || setParam_try_UploadFile(pstmt, idx, val)
-                || setParam_try_common(pstmt, idx, val))
-            return;
-        throw new UnsupportedTypeException(val.getClass(),
-                SUPPORTED_TYPES);
+
     }
 
 
@@ -365,58 +363,58 @@ public class JDBCOper
 //        return false;
 //    }
 
-    private static boolean setParam_try_common(PreparedStatement pstmt,
-                                               int idx,
-                                               Object o) throws SQLException {
-        if (o instanceof String) {
-            pstmt.setString(idx, (String) o);
-            return true;
-        }
-//        else if (o instanceof Date) {
-//            pstmt.setTimestamp(idx,new Timestamp(((Date) o).getTime()));
+//    private static boolean setParam_try_common(PreparedStatement pstmt,
+//                                               int idx,
+//                                               Object o) throws SQLException {
+//        if (o instanceof String) {
+//            pstmt.setString(idx, (String) o);
 //            return true;
 //        }
-
-        if (o instanceof InputStream) {
-            pstmt.setBinaryStream(idx, (InputStream) o);
-            return true;
-        }
-
-        return false;
-    }
-
-    private static boolean setParam_try_primitive(PreparedStatement pstmt,
-                                                  int idx,
-                                                  Object o) throws SQLException {
-        if (o instanceof Integer) {
-            pstmt.setInt(idx, (Integer) o);
-            return true;
-        } else if (o instanceof Long) {
-            pstmt.setLong(idx, (Long) o);
-            return true;
-        } else if (o instanceof Short) {
-            pstmt.setShort(idx, (Short) o);
-            return true;
-        } else if (o instanceof Character) {
-            pstmt.setString(idx, String.valueOf(o));
-            return true;
-        } else if (o instanceof Float) {
-            pstmt.setFloat(idx, (Float) o);
-            return true;
-        } else if (o instanceof Double) {
-            pstmt.setDouble(idx, (Double) o);
-            return true;
-        } else if (o instanceof Byte) {
-            pstmt.setByte(idx, (Byte) o);
-            return true;
-        } else if (o instanceof Boolean) {
-            pstmt.setBoolean(idx, (Boolean) o);
-            return true;
-        } else if (o instanceof BigDecimal) {
-            pstmt.setBigDecimal(idx, (BigDecimal) o);
-        }
-        return false;
-    }
+////        else if (o instanceof Date) {
+////            pstmt.setTimestamp(idx,new Timestamp(((Date) o).getTime()));
+////            return true;
+////        }
+//
+//        if (o instanceof InputStream) {
+//            pstmt.setBinaryStream(idx, (InputStream) o);
+//            return true;
+//        }
+//
+//        return false;
+//    }
+//
+//    private static boolean setParam_try_primitive(PreparedStatement pstmt,
+//                                                  int idx,
+//                                                  Object o) throws SQLException {
+//        if (o instanceof Integer) {
+//            pstmt.setInt(idx, (Integer) o);
+//            return true;
+//        } else if (o instanceof Long) {
+//            pstmt.setLong(idx, (Long) o);
+//            return true;
+//        } else if (o instanceof Short) {
+//            pstmt.setShort(idx, (Short) o);
+//            return true;
+//        } else if (o instanceof Character) {
+//            pstmt.setString(idx, String.valueOf(o));
+//            return true;
+//        } else if (o instanceof Float) {
+//            pstmt.setFloat(idx, (Float) o);
+//            return true;
+//        } else if (o instanceof Double) {
+//            pstmt.setDouble(idx, (Double) o);
+//            return true;
+//        } else if (o instanceof Byte) {
+//            pstmt.setByte(idx, (Byte) o);
+//            return true;
+//        } else if (o instanceof Boolean) {
+//            pstmt.setBoolean(idx, (Boolean) o);
+//            return true;
+//        } else if (o instanceof BigDecimal) {
+//            pstmt.setBigDecimal(idx, (BigDecimal) o);
+//        }
+//        return false;
+//    }
 
 
 }

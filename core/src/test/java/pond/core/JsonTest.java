@@ -2,9 +2,6 @@ package pond.core;
 
 import org.junit.*;
 import static org.junit.Assert.*;
-import pond.common.S;
-import pond.common.SPILoader;
-import pond.core.spi.JsonService;
 
 import java.util.Map;
 

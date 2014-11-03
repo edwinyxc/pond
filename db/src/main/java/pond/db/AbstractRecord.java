@@ -1,13 +1,12 @@
 package pond.db;
 
 import pond.common.S;
-import pond.common.f.Callback;
 import pond.common.f.Function;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
 
+import static pond.common.S._assert;
 import static pond.common.S._for;
 import static pond.common.S._try;
 import static pond.common.S.str.underscore;
@@ -19,6 +18,7 @@ import static pond.common.S.str.underscore;
 public class AbstractRecord extends HashMap<String, Object>
         implements Record {
 
+    DB _db;
     String _tableName = "";
     String idLabel = DEFAULT_PRI_KEY;
     final Field<String> id = new SimpleField<String>(idLabel).init(S.uuid::vid);
@@ -33,7 +33,8 @@ public class AbstractRecord extends HashMap<String, Object>
     //allow construction
     public AbstractRecord() {
         //default by class name
-        table(underscore(this.getClass().getSimpleName()));
+        //no default
+        //table(underscore(this.getClass().getSimpleName()));
     }
 
     Function<?, ResultSet> rm;
@@ -50,6 +51,7 @@ public class AbstractRecord extends HashMap<String, Object>
         _tableName = s;
         return this;
     }
+
 
 
     @Override
@@ -94,9 +96,6 @@ public class AbstractRecord extends HashMap<String, Object>
         Function.F2<E, String, ResultSet> rs_mapper = (name, rs) ->
                 _try(() -> (E) rs.getObject(name));
 
-        Callback.C3<PreparedStatement, Integer, E>
-                pstmt_mapper = (pstmt, idx, e) ->
-                _try(() -> pstmt.setString(idx, e.toString()));
 
         Function<?, E> view = t -> t;
 
@@ -236,6 +235,7 @@ public class AbstractRecord extends HashMap<String, Object>
         return this;
     }
 
+
     public Record setInner(String tablename, String colName, Object val) {
         Record record;
         if (null == (record = getInnerRecord(tablename))) {
@@ -282,4 +282,17 @@ public class AbstractRecord extends HashMap<String, Object>
             return super.hashCode();
         }
     }
+
+    @Override
+    public DB _getDB() {
+        _assert( _db ,"Oops! Please use Record#db for setting db first.");
+        return _db;
+    }
+
+    @Override
+    public Record db(DB db) {
+        this._db = db;
+        return this;
+    }
+
 }

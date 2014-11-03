@@ -1,8 +1,11 @@
 package pond.core;
 
 import java.util.Properties;
+import java.io.File;
+import java.io.FileInputStream;
 import pond.common.S;
 import static pond.common.S.*;
+
 /**
  * Created by ed on 2014/4/22.
  */
@@ -18,16 +21,27 @@ public class Config {
 
     /***** for app.set    ***/
 
+
     /**
      * The view directory path, defaulting to ${ROOT}/views
      */
     public final static String VIEWS_PATH = "g.views_path";
 
     /**
+     * default to views
+     */
+    public final static String VIEWS_NAME = "g.views_name";
+
+    /**
      * The public attachment i.e.js,css,img,font,txt ...
      * directory path, defaulting to ${ROOT}/www
      */
-    public final static String WWW_PATH= "g.www_path";
+    public final static String WWW_PATH = "g.www_path";
+
+    /**
+     * default to www 
+     */
+    public final static String WWW_NAME = "g.www_name";
 
     /**
      * X-POWERED-BY Http header, defaulting to "Pond"
@@ -53,27 +67,8 @@ public class Config {
 
     
     public final static String CONFIG_FILE_NAME = "pond.conf";
-
     
-    /**
-     * Load properties from the file, under the classroot
-     */
-    public static Properties loadProperties(String fileName) {
-        File dir = new File(S.path.rootClassPath());
-        _try( () -> {
-            Properties config = new Properties();
-            if( dir.exists() ) {
-                File conf = new File( dir, fileName );
-                if( conf.exists() && conf.canRead() )
-                    config.load( new FileInputStream( conf )); 
-                //using default settings;
-                else 
-                    System.out.println(
-                        "Can`t read properties file, using default.");
-            }
-            return config;
-        });
-    }
+    
 
     
 }

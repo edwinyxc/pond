@@ -1,9 +1,9 @@
-package pond.core.spi.json;
+package pond.common.spi.json;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import pond.core.spi.JsonService;
+import pond.common.spi.JsonService;
 
 /**
  * Created by ed on 14-5-21.

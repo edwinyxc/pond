@@ -21,28 +21,38 @@ public class Ctx extends TreeMap<String, Object> {
     static Logger logger = LoggerFactory.getLogger(Ctx.class);
     Request req;
     Response resp;
+    //current pond
+    public Pond pond;
     Stack<Mid> mids = new Stack<>();
 
-    public Ctx(Request req, Response resp,
-               List<Mid> mids) {
+    public Ctx(Request req,
+               Response resp,
+               Pond pond,
+               List<Mid> mids) 
+    {
         this.req = new ReqWrapper(req);
         this.put("req", this.req);
         this.resp = new RespWrapper(resp);
         this.put("resp", this.resp);
+        this.pond = pond;
+        this.put("pond", this.pond);
+
         List<Mid> _mids = new ArrayList<>(mids);
         Collections.reverse(_mids);
+
         for (Mid m : _mids) {
             this.mids.push(m);
         }
+
         try {
             this.putAll(this.req.ctx());
         } catch (Exception ignored) {
             ignored.printStackTrace();
         }
+
         logger.debug("Main ctx route:" + String.join("->",
                 _for(mids).map(Object::toString).join()));
     }
-
 
     public Request req() {
         return req;

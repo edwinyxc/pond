@@ -49,8 +49,8 @@ public abstract class RecordService<E extends Record> {
         SqlSelect select =
                 Sql.select().from(tableName).where(
                         pkLbl, Criterion.EQ, id);
-        List<E> l = DB.fire(tmpl ->
-                tmpl.map(r.mapper(), select.tuple()));
+        List<E> l = r._getDB().get(tmpl ->
+                tmpl.query(r.mapper(), select.tuple()));
         return _for(l).first();
     }
 
@@ -60,15 +60,15 @@ public abstract class RecordService<E extends Record> {
      * if there is no arguments, return Select all;
      *
      * if only one argument, the argument will treated as raw sql
-     *  i.e. query("id = '123' AND something LIKE '%else%' ")
+     *  i.e. queryRS("id = '123' AND something LIKE '%else%' ")
      *      => Select ... from ... where id = '123' AND something LIKE '%else%';
      *
      * if arguments has a 3-multiple length and each 3 has a form of
      * (String,Criterion,String)  or (String,Criterion,String[])
      *  i.e.
-     *  query("id", Criterion.EQ, "13")
+     *  queryRS("id", Criterion.EQ, "13")
      *      => Select ... from  ... where id = '13'
-     *  query("id",Criterion.IN, {"1","2","3","4"})
+     *  queryRS("id",Criterion.IN, {"1","2","3","4"})
      *      => Select ... from ... where id IN ("1","2","3","4");
      * </pre>
      *
@@ -97,7 +97,7 @@ public abstract class RecordService<E extends Record> {
                 if (last != null && cur instanceof Criterion) {
                     //size > 2 is the valid size
                     if (group.size() > 2) {
-                        //put query group into groups
+                        //put queryRS group into groups
                         //[key,cri,args...,(key),(cri)]
                         //remove the redundant key
                         group.remove(group.size() -1);
@@ -114,7 +114,7 @@ public abstract class RecordService<E extends Record> {
                 }
             }
             arg_groups.add(group);
-            //2.make query
+            //2.make queryRS
             for (List q_group : arg_groups) {
                 if (q_group.size() > 2) {
                     sqlSelect.where((String) q_group.remove(0),
@@ -129,16 +129,16 @@ public abstract class RecordService<E extends Record> {
             );
         }
 //        System.out.println(sqlSelect.debug());
-        return DB.fire(tmpl ->
-                tmpl.map(r.mapper(), sqlSelect.tuple()));
+        return r._getDB().get(tmpl ->
+                tmpl.query(r.mapper(), sqlSelect.tuple()));
     }
 
 
     public Tuple<List<E>, Integer> list(SqlSelect sql) {
         E r = getProto();
-        return DB.fire(tmpl -> {
+        return r._getDB().get(tmpl -> {
             List<E> result =
-                    tmpl.map(r.mapper(), sql.tuple());
+                    tmpl.query(r.mapper(), sql.tuple());
             int count = tmpl.count(sql.count().tuple());
             return t2(result, count);
         });
@@ -154,13 +154,12 @@ public abstract class RecordService<E extends Record> {
     public String delete(String id) {
         Record r = get(id);
         if (r != null)
-            DB.fire(tmpl -> tmpl.del(r));
+            r._getDB().post(tmpl -> tmpl.del(r));
         return id;
     }
 
-    public String delete(Record record) {
-        DB.fire(tmpl -> tmpl.del(record));
-        return record.id();
+    public void delete(Record record) {
+        record.delete();
     }
 
     /**
@@ -168,14 +167,14 @@ public abstract class RecordService<E extends Record> {
      * @param record
      */
     public void add(Record record) {
-        DB.fire(t -> t.add(record));
+        record.add();
     }
 
     public Record create(Map<String, Object> p) {
         @SuppressWarnings("unchecked")
         E a = (E) Record.newEntity(prototype().getClass())
                 .merge(p);
-        DB.fire(t -> t.add(a));
+        a._getDB().post(t -> t.add(a));
         return a;
     }
 
@@ -187,7 +186,7 @@ public abstract class RecordService<E extends Record> {
         Record e = get(id);
         if (e != null) {
             e.merge(request);
-            DB.fire(tmpl -> tmpl.upd(e));
+            e._getDB().post(tmpl -> tmpl.upd(e));
         }
         return e;
     }

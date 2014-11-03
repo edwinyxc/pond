@@ -14,10 +14,12 @@ import java.util.Set;
  * <pre>
  * Record represents record from DB,
  * normally, a row from a table can be mapped into a
- * record using JDBCTmpl#map
+ * record using JDBCTmpl#query
  * </pre>
  */
 public interface Record {
+
+
 
     public interface Field<E> {
 
@@ -39,7 +41,7 @@ public interface Record {
         Field<E> init(Function.F0<E> init);
 
         /**
-         * Used for merge (form req, from anything as a map)
+         * Used for merge (form req, from anything as a query)
          */
         Field<E> merge(Function<E, ?> validator);
 
@@ -207,7 +209,7 @@ public interface Record {
      * WARN: this method change the state of current object
      * rather than return a new copy
      *
-     * @param map input map
+     * @param map input query
      * @return altered this
      */
     Record merge(Map<String, Object> map);
@@ -229,31 +231,25 @@ public interface Record {
      */
     <E> Record mapper(Function<E, ResultSet> mapper);
 
+    DB _getDB();
+
+    Record db(DB db);
+
     //AR -QUICK
 
+
     /**
-     * Quick save
+     * Quick add
      */
-    default void save() {
-        DB.fire(DB::getConnFromPool, (tmpl) -> tmpl.add(this));
+    default void add() {
+        _getDB().post( t -> t.add(this));
     }
 
     /**
      * Quick update
      */
     default void update() {
-        DB.fire(DB::getConnFromPool, (tmpl) -> tmpl.upd(this));
-    }
-
-
-    /**
-     * Quick create
-     */
-    static <E extends Record> E create(Class<E> clz) {
-        E r = Record.newEntity(clz);
-        DB.fire(t -> t.add(r));
-        return r;
-
+        _getDB().post( tmpl -> tmpl.upd(this));
     }
 
 
@@ -261,7 +257,7 @@ public interface Record {
      * Quick delete
      */
     default void delete() {
-        DB.fire((tmpl) -> tmpl.del(this));
+        _getDB().post((tmpl) -> tmpl.del(this));
     }
 
 
@@ -281,6 +277,8 @@ public interface Record {
         }
         return ret;
     }
+
+
 
 
 }

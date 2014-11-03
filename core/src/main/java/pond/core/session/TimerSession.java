@@ -1,12 +1,14 @@
 package pond.core.session;
 
 import pond.common.f.Function;
+import pond.core.Session;
 
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import static pond.core.Pond.debug;
+import static pond.common.f.Function.F0;
 
 
 /**
@@ -20,9 +22,12 @@ public class TimerSession extends HashMap<String, Object>
     private final String id;
     private final Function.F0<Integer> lifetimeProvider;
     private TimerTask suicide = new Suicide();
+    private SessionManager mgr;
 
-    public TimerSession(String id,
-                        Function.F0<Integer> lifetimeProvider) {
+    public TimerSession(SessionManager mgr,
+                        String         id,
+                        F0<Integer>    lifetimeProvider) {
+        this.mgr = mgr;
         this.id = id;
         this.timer = new Timer();
         this.lifetimeProvider = lifetimeProvider;
@@ -67,7 +72,7 @@ public class TimerSession extends HashMap<String, Object>
         @Override
         public void run() {
             TimerSession session = TimerSession.this;
-            SessionManager.kill(session);
+            mgr.kill(session);
             debug(session + "invalidated.");
         }
 

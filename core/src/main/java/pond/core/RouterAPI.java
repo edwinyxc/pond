@@ -2,7 +2,6 @@ package pond.core;
 
 import pond.common.f.Callback;
 import pond.core.http.HttpMethod;
-import pond.core.router.Router;
 
 /**
  * Created by ed on 7/9/14.

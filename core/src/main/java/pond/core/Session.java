@@ -1,6 +1,4 @@
-package pond.core.session;
-
-import pond.core.CtxExec;
+package pond.core;
 
 /**
  * Created by ed on 2014/4/18.
@@ -13,7 +11,4 @@ public interface Session {
 
     public Session set(String key, Object value);
 
-    public static Session get(){
-        return SessionManager.get(CtxExec.get());
-    }
 }

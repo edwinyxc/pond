@@ -30,6 +30,7 @@ import static pond.core.Pond.debug;
  * <p>A Simple static attachment server</p>
  */
 
+@Deprecated // redirection problem
 public class DefaultFileServer
         implements Makeable<DefaultFileServer>,BaseServer.StaticFileServer, Mid{
 
@@ -48,9 +49,11 @@ public class DefaultFileServer
     private String[] defaultPages = {"index.html"};
     private String charset = "utf-8";
     private boolean allowListDir = false;
+
     private Callback.C2<Response, File> listDir = this::defaultListFiles;
-    public DefaultFileServer(String str) {
-        String absPath = Pond.pathRelWebRoot(str);
+
+    public DefaultFileServer(Pond p, String str) {
+        String absPath = p.pathRelWebRoot(str);
 
         File f = new File(absPath);
         if (!f.exists() || !f.canWrite()) {

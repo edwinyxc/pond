@@ -8,6 +8,7 @@ import org.eclipse.jetty.util.Jetty;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.core.Pond;
+import pond.core.PondAware;
 import pond.core.Request;
 import pond.core.Response;
 import pond.core.exception.UnexpectedException;
@@ -16,6 +17,7 @@ import pond.core.misc.HSResponseWrapper;
 import pond.core.spi.BaseServer;
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import pond.core.spi.PondAwareSPI;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -28,7 +30,7 @@ import static pond.core.Pond.debug;
 /**
  * @author ed
  */
-public class JettyServer implements BaseServer {
+public class JettyServer extends PondAwareSPI implements BaseServer {
 
     private org.eclipse.jetty.server.Server server;
 
@@ -111,7 +113,7 @@ public class JettyServer implements BaseServer {
             implements StaticFileServer {
 
         public JettyStaticFileServer(String dir) {
-            String webRoot = Pond.pathRelWebRoot(dir);
+            String webRoot = pond.pathRelWebRoot(dir);
 
             File f = new File(webRoot);
             if (!f.exists() || !f.canWrite()) {

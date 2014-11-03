@@ -1,12 +1,9 @@
-package pond.db.spi.connpool;
+package pond.db.connpool;
 
-import pond.common.S;
-import pond.common.util.logger.Logger;
-import pond.db.spi.ConnectionPool;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -15,11 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import static pond.common.S._throw;
+import static pond.common.S._dump;
+import static pond.common.S._try;
 
 public class SimplePool implements ConnectionPool {
 
-    static private Logger logger = Logger.create(SimplePool.class);
+    static private Logger logger = LoggerFactory.getLogger(SimplePool.class);
+
     private List<Connection> connPool;
     private int poolMaxSize = 10;
 
@@ -35,12 +34,8 @@ public class SimplePool implements ConnectionPool {
         this.logger = logger;
     }
 
-    @Override 
-    public void init( Properties p ) {
-    }
 
-    @Override
-    public void init( String driver, String url, String username,
+    public SimplePool config ( String driver, String url, String username,
             String password ) {
 
         this.driverClass = driver;
@@ -61,20 +56,6 @@ public class SimplePool implements ConnectionPool {
         this.url = url;
 
         logger.info("conn_url ->" + url);
-    }
-
-    public SimplePool init(ConnectionConfig config)
-            throws SQLException {
-
-        poolMaxSize = config.maxPoolSize <= 0 ? 5 : config.maxPoolSize;
-
-        logger.info("max_pool_size ->" + poolMaxSize);
-
-        init( config.driverClass,
-              config.connectionUrl,
-              config.username,
-              config.password );
-
 
         connPool = new ArrayList<>();
         int size;
@@ -85,11 +66,12 @@ public class SimplePool implements ConnectionPool {
             size = poolMaxSize;
         }
         for (int i = 0; i < size; i++) {
-            connPool.add(createConnection());
+            connPool.add(_try(() -> createConnection()));
         }
 
         return this;
     }
+
 
     private Connection createConnection() throws SQLException {
         Connection connection;
@@ -108,7 +90,7 @@ public class SimplePool implements ConnectionPool {
             } catch (SQLException e) {
                 if (logger != null) {
                     logger.debug("connection can not close :");
-                    logger.debug(connection);
+                    logger.debug(_dump(connection));
                 }
                 // do nothing
             }
@@ -118,6 +100,12 @@ public class SimplePool implements ConnectionPool {
     }
 
     public synchronized Connection getConnection() {
+        if( connPool == null
+            || driverClass == null
+            || url == null
+            || username == null
+            || pass == null
+        ) throw new RuntimeException("Please config first");
         try {
             ConnectionProxy connectionProxy = new ConnectionProxy(this);
             int size = connPool.size();
@@ -141,8 +129,28 @@ public class SimplePool implements ConnectionPool {
             }
             return connectionProxy.proxyBind();
         } catch (SQLException e) {
-            _throw(e);
+            throw new RuntimeException(e);
         }
-        return null;
     }
+
+
+    @Override
+    public void setMaxSize(Integer maxSize) {
+        if( maxSize < 0 || maxSize > 200) throw new RuntimeException("Invalid maxSize");
+        logger.info("maxSize -> "+ maxSize);
+        this.poolMaxSize = maxSize;
+    }
+
+    @Override
+    public SimplePool loadConfig(Properties p) {
+        String str_poolMaxSize = p.getProperty(ConnectionPool.MAXSIZE, "10");
+        setMaxSize(_try( () -> Integer.parseInt(str_poolMaxSize) ));
+        String driverClass = p.getProperty(ConnectionPool.DRIVER);
+        String url = p.getProperty(ConnectionPool.URL);
+        String pass = p.getProperty(ConnectionPool.PASSWORD);
+        String username = p.getProperty(ConnectionPool.USERNAME);
+        config(driverClass,url,username,pass);
+        return this;
+    }
+
 }

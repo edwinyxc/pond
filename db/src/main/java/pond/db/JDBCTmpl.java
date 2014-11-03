@@ -17,10 +17,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static pond.common.S._for;
 import static pond.common.S._notNullElse;
@@ -36,9 +33,44 @@ import static pond.common.S._notNullElse;
  */
 public class JDBCTmpl implements Closeable {
 
+    static Logger logger = LoggerFactory.getLogger(JDBCTmpl.class);
 
+    Map<String,Map<String,Integer>> dbStruc;
+
+    final
+    Function<Integer, ResultSet> counter = rs -> {
+        try {
+            return (Integer) rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    };
+    protected final JDBCOper oper;
+
+    public JDBCTmpl(
+            JDBCOper oper,
+            Map<String,Map<String,Integer>> struc) {
+        this.oper = oper;
+        this.dbStruc = struc;
+    }
+
+    public int[] getTypes(String table, String[] keys) {
+        S._assert(table);
+        S._assert(keys);
+        int[] types = new int[keys.length];
+        for (int i = 0; i < types.length; i++) {
+            types[i] = getType(table,keys[i]);
+        }
+        return types;
+    }
+
+    public int getType(String table, String field) {
+        if (dbStruc == null) throw new RuntimeException(" dbStruc must not null");
+        return dbStruc.getOrDefault(table, Collections.emptyMap()).get(field);
+    }
     /**
-     * default map
+     * default query
      * TODO: ugly implement
      */
     final Function<AbstractRecord, ResultSet> _default_rm =
@@ -84,50 +116,33 @@ public class JDBCTmpl implements Closeable {
             };
 
 
-    static Logger logger = LoggerFactory.getLogger(JDBCTmpl.class);
-    final
-    Function<Integer, ResultSet> counter = rs -> {
-        try {
-            return (Integer) rs.getInt(1);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    };
-    protected JDBCOper oper;
-
-    public JDBCTmpl(
-            JDBCOper oper) {
-        this.oper = oper;
+    public List<Record> query(String sql, String... x) {
+        return this.query(_default_rm, sql, x);
     }
 
-    public List<Record> find(String sql, String... x) {
-        return this.map(_default_rm, sql, x);
-    }
-
-    public List<Record> find(String sql) {
-        return this.map(_default_rm, sql);
+    public List<Record> query(String sql) {
+        return this.query(_default_rm, sql);
     }
 
     @SuppressWarnings("unchecked")
-    public <R extends Record> List<R> map(
+    public <R extends Record> List<R> query(
             R proto,
             String sql, Object... x
     ) {
-        return this.map(proto.mapper(), sql, x);
+        return this.query(proto.mapper(), sql, x);
     }
 
     @SuppressWarnings("unchecked")
-    public <R extends Record> List<R> map(
+    public <R extends Record> List<R> query(
             Class<R> clazz,
             String sql, Object... x
     ) {
-        R proto = Record.newValue(clazz);
-        return map(proto, sql, x);
+        R proto = Proto.proto(clazz);
+        return query(proto, sql, x);
     }
 
     public int count(String sql, Object[] params) {
-        return _notNullElse(S.<Integer>_for(map(counter, sql,
+        return _notNullElse(S.<Integer>_for(query(counter, sql,
                 params)).first(), 0);
     }
 
@@ -138,19 +153,19 @@ public class JDBCTmpl implements Closeable {
 // removed page function
 //    public <R> Page<R> page(Function<?, ResultSet> mapper,
 //                            Page<R> page ) {
-//        List<R> r = map(rs_mapper, page.querySql());
-//        int count = (Integer) _for(map(counter,page.querySql())).first();
+//        List<R> r = query(rs_mapper, page.querySql());
+//        int count = (Integer) _for(query(counter,page.querySql())).first();
 //        return page.fulfill(r, count);
 //    }
 
-    public <R> List<R> map(Function<?, ResultSet> mapper,
-                           Tuple<String, Object[]> mix) {
-        return map(mapper, mix._a, mix._b);
+    public <R> List<R> query(Function<?, ResultSet> mapper,
+                             Tuple<String, Object[]> mix) {
+        return query(mapper, mix._a, mix._b);
     }
 
     @SuppressWarnings("unchecked")
-    public <R> List<R> map(Function<?, ResultSet> mapper,
-                           String sql, Object... x) {
+    public <R> List<R> query(Function<?, ResultSet> mapper,
+                             String sql, Object... x) {
 
         ResultSet rs;
         List<R> list = new ArrayList<>();
@@ -174,16 +189,12 @@ public class JDBCTmpl implements Closeable {
      */
     public void tx(Callback<JDBCTmpl>... callback) {
         try {
-            oper.transactionStart();
-            _for(callback).each(c -> c.apply(this));
-            oper.transactionCommit();
-        } catch (Exception e) {
-            try {
-                oper.rollback();
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-                throw new RuntimeSQLException(e);
+            synchronized (oper) {
+                oper.transactionStart();
+                _for(callback).each(c -> c.apply(this));
+                oper.transactionCommit();
             }
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -195,18 +206,14 @@ public class JDBCTmpl implements Closeable {
      */
     public void tx(String... batch) {
         try {
-            oper.transactionStart();
-            for (String sql : batch) {
-                oper.execute(sql);
+            synchronized (oper) {
+                oper.transactionStart();
+                for (String sql : batch) {
+                    oper.execute(sql);
+                }
+                oper.transactionCommit();
             }
-            oper.transactionCommit();
         } catch (SQLException e) {
-            try {
-                oper.rollback();
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-                throw new RuntimeSQLException(e);
-            }
             throw new RuntimeException(e);
         }
     }
@@ -294,7 +301,7 @@ public class JDBCTmpl implements Closeable {
         exec("TRUNCATE TABLE " + tbName);
     }
 
-    public ResultSet query(String sql) {
+    public ResultSet queryRS(String sql) {
         try {
             return oper.query(sql);
         } catch (SQLException e) {
@@ -303,7 +310,7 @@ public class JDBCTmpl implements Closeable {
         }
     }
 
-    public ResultSet query(String sql, String... x) {
+    public ResultSet queryRS(String sql, String... x) {
         try {
             return oper.query(sql, x);
         } catch (SQLException e) {
@@ -312,11 +319,6 @@ public class JDBCTmpl implements Closeable {
         }
     }
 
-    private void cleanComma(StringBuilder sb) {
-        if (sb.charAt(sb.length() - 1) == ',') {
-            sb.delete(sb.length() - 1, sb.length());
-        }
-    }
 
 
     /*----CURD
@@ -344,7 +346,7 @@ public class JDBCTmpl implements Closeable {
         logger.debug(sql.debug());
         try {
             return oper.execute(sql.preparedSql(), sql.params(),
-                    DB.getTypes(record.table(), keys)) > 0;
+                    getTypes(record.table(), keys)) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);
@@ -357,7 +359,7 @@ public class JDBCTmpl implements Closeable {
         logger.debug(sql.debug());
         try {
             return oper.execute(sql.preparedSql(), sql.params(),
-                    new int[]{DB.getType(record.table(), record.idName())}) > 0;
+                    new int[]{getType(record.table(), record.idName())}) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);
@@ -377,12 +379,12 @@ public class JDBCTmpl implements Closeable {
         logger.debug(sql.debug());
         // 多出来的最后一个类型是id
         // types = [types_of_set, $ types_of id]
-        int[] types_of_sets = DB.getTypes(record.table(), keys);
+        int[] types_of_sets = getTypes(record.table(), keys);
         int[] types = new int[types_of_sets.length + 1];
 
         System.arraycopy(types_of_sets, 0, types, 0, types_of_sets.length);
         //types of id
-        types[types.length-1] = DB.getType(record.table(),record.idName());
+        types[types.length-1] = getType(record.table(),record.idName());
 
         try {
             return oper.execute(sql.preparedSql(), sql.params(),types) > 0;

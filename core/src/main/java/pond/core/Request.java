@@ -72,6 +72,14 @@ public interface Request {
     //    HttpServletRequest raw();
     String characterEncoding();
 
+    /**
+     * Try to get current session
+     */
+    default Session session() {
+        Ctx c = ctx();
+        return c.pond.session(c);
+    }
+
     default Ctx ctx() {
         throw new UnsupportedOperationException("use wrapper");
     }
@@ -79,7 +87,6 @@ public interface Request {
 //
 //    Route route(Route r);
 //
-
     //TODO
     default List<Tuple.T3<String, Criterion, Object[]>>
 

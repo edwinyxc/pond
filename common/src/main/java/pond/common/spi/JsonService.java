@@ -1,4 +1,4 @@
-package pond.core.spi;
+package pond.common.spi;
 
 /**
  * Created by ed on 14-5-20.

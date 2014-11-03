@@ -1,5 +1,6 @@
 package pond.core.spi;
 
+import pond.core.PondAware;
 import pond.core.Request;
 import pond.core.Response;
 import org.slf4j.Logger;
@@ -9,7 +10,7 @@ import static pond.common.f.Callback.C2;
 /**
  * Created by ed on 2014/5/8.
  */
-public interface BaseServer {
+public interface BaseServer extends PondAware{
     static Logger logger = LoggerFactory.getLogger(BaseServer.class);
 
     public void listen(int port);

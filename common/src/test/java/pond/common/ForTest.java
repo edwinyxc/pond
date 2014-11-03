@@ -1,6 +1,7 @@
 package pond.common;
 
-import junit.framework.TestCase;
+
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,9 +10,10 @@ import java.util.Map;
 import static pond.common.S._for;
 import static pond.common.S.echo;
 
-public class ForTest extends TestCase {
+public class ForTest {
 
-    public static void testArray() {
+    @Test
+    public void testArray() {
         _for(new String[]{"a", "b", "c"})
                 //.map((a) -> a.codePointAt(0))
                 //.filter((a) -> a < 100)
@@ -24,7 +26,8 @@ public class ForTest extends TestCase {
         List list = Arrays.asList(tmp);
     }
 
-    public static void testMap() {
+    @Test
+    public void testMap() {
 
         Map<String, Integer> map = S.map
                 .<String, Integer>hashMap(new Object[][]{{"one", 1},
@@ -35,7 +38,8 @@ public class ForTest extends TestCase {
         }).each((entry) -> S.echo(entry.getValue()));
     }
 
-    public static void testBi() {
+    @Test
+    public void testBi() {
 
         Integer[] arr = {1, 2, 3, 4, 5, 6, 6, 6344, 3, 2, 2, 3, 4};
 
@@ -43,10 +47,4 @@ public class ForTest extends TestCase {
 
     }
 
-    public static void main(String[] args) {
-//        testArray();
-        testBi();
-
-
-    }
 }

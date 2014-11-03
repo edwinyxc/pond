@@ -18,16 +18,18 @@ public class SessionInstaller
         implements Mid {
 
     public static final String JSESSIONID = "JSESSIONID";
-    int life_time = 60 * 30;
+    Pond pond;
 
-    public SessionInstaller() {
-        setLifeTime(life_time);
+    public SessionInstaller(SessionManager mgr) {
+        this.pond = mgr.pond;
+        String time;
+        if( (time = (String) pond.attr( SessionManager.SESSION_LIFETIME )) == null ) {
+            time = String.valueOf( SessionManager.default_life_time );
+        }
+        //set life time
+        pond.attr( SessionManager.SESSION_LIFETIME, time );
     }
 
-    public void setLifeTime(int i) {
-        life_time = i;
-        Pond.get().attr(SessionManager.SESSION_LIFETIME, life_time);
-    }
 
     String checkJSession(Request req) {
         Cookie c = req.cookie(JSESSIONID);
@@ -46,7 +48,8 @@ public class SessionInstaller
         if (seconds < 0) {
             throw new IllegalArgumentException("invalid seconds");
         }
-        setLifeTime(seconds);
+        //set life time
+        pond.attr( SessionManager.SESSION_LIFETIME, String.valueOf( seconds ));
         return this;
     }
 

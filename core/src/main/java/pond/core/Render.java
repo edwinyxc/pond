@@ -3,7 +3,7 @@ package pond.core;
 import pond.common.S;
 import pond.common.SPILoader;
 import pond.core.misc.MimeTypes;
-import pond.core.spi.JsonService;
+import pond.common.spi.JsonService;
 import pond.core.spi.ViewEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,22 +118,23 @@ public interface Render {
 
     @SuppressWarnings("unchecked")
     public static Render view(String path, Object o) {
-        Pond app = Pond.get();
 
-        File file = new File((String) app.get(
-                Config.VIEWS_PATH) + File.separator + path);
-        /**
-         * v1.1.0 add ext-based engine
-         */
-        String ext = S.file.fileExt(path);
-        ViewEngine engine;
-        if (S.str.notBlank(ext)) {
-            engine = app.viewEngine(ext);
-        } else {
-            engine = app.viewEngine("default");
-        }
-        if (file.exists()) {
-            return (req, resp) -> {
+        return (req, resp) -> {
+            Pond app = req.ctx().pond;
+            File file = new File((String) app.attr(
+                    Config.VIEWS_PATH) + File.separator + path);
+            /**
+             * v1.1.0 add ext-based engine
+             */
+            String ext = S.file.fileExt(path);
+            ViewEngine engine;
+            if (S.str.notBlank(ext)) {
+                engine = app.viewEngine(ext);
+            } else {
+                engine = app.viewEngine("default");
+            }
+
+            if (file.exists()) {
                 final Object render;
                 //copy
                 Map map = new HashMap(req.ctx());
@@ -151,11 +152,11 @@ public interface Render {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-            };
-        } else {
-            logger.warn("File" + file + "not found");
-            return json(o);
-        }
+            } else {
+                logger.warn("File" + file + "not found");
+                json(o).render(req, resp);
+            }
+        };
     }
 
     public static Render view(String path) {

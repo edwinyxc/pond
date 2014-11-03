@@ -27,6 +27,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 
+import pond.common.f.Function.F0;
+import pond.common.f.Callback.C0;
+
 public class S {
 
     /**
@@ -111,7 +114,13 @@ public class S {
             throw new RuntimeException(e);
         }
     }
+    public static void _echo(String s) {
+        echo(s);
+    }
 
+    public static String _dump(Object o) {
+        return dump(o);
+    }
 
     public static void _lazyThrow(Throwable a) {
         throw new RuntimeException(a);
@@ -148,6 +157,33 @@ public class S {
         return _check != null ? _check : _else;
     }
 
+    /**
+     * if - else - then expression
+     */
+    public static <T> T _return( F0<Boolean> expr, F0<T> retTrue, F0<T> retFalse ){
+       return expr.apply()?retTrue.apply():retFalse.apply();
+    }
+
+    /**
+     * if - else - then statement
+     */
+    public static void _do( F0<Boolean> expr, C0 doTrue, C0 doFalse ) {
+       if ( expr.apply() ) doTrue.apply(); else doFalse.apply();
+    }
+
+    public static <E> E _getOrDefault(Map m, Object c, E _default) {
+        return (E) _notNullElse(m.get(c), _default);
+    }
+
+    public static <E> E _getOrSet(Map m, Object c, E e) {
+        Holder<E> eHolder = new Holder<E>();
+        return _return(() -> (eHolder.val = (E) m.get(c)) != null,
+                () -> eHolder.val,
+                ()->{
+                    m.put(c, e);
+                    return e;
+                });
+    }
     public static <E> ForIt<E> _for(Iterable<E> c) {
         return new ForIt<>(c);
     }
@@ -680,6 +716,43 @@ public class S {
     }
 
     public static class file {
+
+        /**
+         * (Util method)
+         * Load properties from the file
+         */
+        public static Properties loadProperties(File conf) {
+            return _try( () -> {
+                Properties config = new Properties();
+                if( conf.exists() && conf.canRead() )
+                    config.load( new FileInputStream( conf ));
+                    //using default settings;
+                else
+                    System.out.println(
+                            "Can`t read properties file, using default.");
+                return config;
+            });
+        }
+
+        /**
+         * (Util method)
+         * Load properties from the file, under the classroot
+         */
+        public static Properties loadProperties(String fileName) {
+            return _try( () -> {
+                Properties config = new Properties();
+                File conf = new File( S.path.rootClassPath()
+                        + File.separator + fileName );
+                if( conf.exists() && conf.canRead() )
+                    config.load( new FileInputStream( conf ));
+                    //using default settings;
+                else
+                    System.out.println(
+                            "Can`t read properties file, using default.");
+                return config;
+            });
+        }
+
         public static void inputStreamToFile(InputStream ins, File file) throws IOException {
             OutputStream os = new FileOutputStream(file);
             int bytesRead = 0;

@@ -1,17 +1,23 @@
 package pond.core;
 
 import pond.common.S;
-import pond.core.session.Session;
-import pond.core.session.SessionInstaller;
+import pond.core.session.SessionManager;
 
+import static pond.common.S.file.loadProperties;
 
 public class SessionTest {
 
+
     public static void main(String[] args) {
-        Pond app = Pond.init().debug();
-        app.before(new SessionInstaller());
+
+        Pond app = Pond.init( p -> {
+            p.loadConfig(loadProperties("pond.conf"));
+            p.attr(SessionManager.SESSION_LIFETIME, "5");
+        }).debug();
+
+        app.before(app.useSession());
         app.get("/ses", (req, res) -> {
-                    Session ses = Session.get();
+                    Session ses = req.session();
                     ses.set("i", (Integer) S._notNullElse(ses.get("i"), 0) + 1);
 
                     res.write(S.dump(req.ctx()));
@@ -21,7 +27,7 @@ public class SessionTest {
                 }
         );
         app.get("/read", (req, resp) -> {
-            resp.send("<p>i=" + Session.get().get("i") + "</p>");
+            resp.send("<p>i=" + req.session().get("i") + "</p>");
         });
         app.listen(8080);
     }

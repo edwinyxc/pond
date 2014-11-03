@@ -2,9 +2,10 @@ package pond.core;
 
 import pond.common.S;
 import pond.common.f.Holder;
-import pond.core.router.Router;
 
 import java.util.Map;
+
+import static pond.common.S.file.loadProperties;
 
 /**
  * Created by ed on 7/9/14.
@@ -23,6 +24,16 @@ public class TestApp {
             System.out.println(user);
             res.send("<p>" + user + "</p>");
         });
+        app.listen(8080);
+    }
+
+    public static void config() {
+        Pond app = Pond.init( p ->
+                p.loadConfig(loadProperties("pond.conf")));
+
+        app.get("/123", (req, resp) ->
+                resp.send("<p>"+req.ctx().pond.attr("test")+"</p>"));
+
         app.listen(8080);
     }
 
@@ -108,8 +119,9 @@ public class TestApp {
 
     public static void main(String[] args) {
 //        basic();
+//        config();
 //        router();
-        www();
+//        www();
 //        tmpl();
 //        test_cross_mid_ctx_continuity_complex();
 //        test_min_group_route();

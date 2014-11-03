@@ -1,10 +1,9 @@
-package pond.core.router;
+package pond.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
-import pond.core.*;
 import pond.core.http.HttpMethod;
 
 import java.util.Arrays;
@@ -20,7 +19,7 @@ import static pond.common.S._for;
  */
 public class Router implements Mid, RouterAPI {
 
-    static Logger logger = LoggerFactory.getLogger(Ctx.class);
+    static Logger logger = LoggerFactory.getLogger(Router.class);
     Routes routes = new Routes();
     protected String prefix = "";
 
@@ -43,6 +42,7 @@ public class Router implements Mid, RouterAPI {
 
         List<Route> routes = this.routes.get(method);
 
+        CtxExec exect = req.ctx().pond.executor;
         //ignore trialling slash
         String path = Pond._ignoreLastSlash(req.path());
 
@@ -80,7 +80,7 @@ public class Router implements Mid, RouterAPI {
             );
             req.ctx().put("route", route_f);
             // trigger CtxExec
-            CtxExec.exec(req.ctx(), route_f.mids);
+            exect.exec(req.ctx(), route_f.mids);
         }
 
 //            for (Route r : result) {

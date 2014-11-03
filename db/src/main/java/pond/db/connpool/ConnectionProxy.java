@@ -1,4 +1,4 @@
-package pond.db.spi.connpool;
+package pond.db.connpool;
 
 
 import java.lang.reflect.InvocationHandler;

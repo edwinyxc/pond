@@ -2,10 +2,7 @@ package pond.core;
 
 import pond.common.S;
 import pond.common.f.Callback;
-import pond.core.Request;
-import pond.core.Response;
 import pond.core.http.HttpMethod;
-import pond.core.router.Router;
 
 import java.lang.annotation.*;
 import java.lang.reflect.InvocationTargetException;
@@ -23,7 +20,7 @@ public class Controller extends Router {
             Annotation[] annos = m.getAnnotations();
             for (Annotation a : annos) {
                 if (a instanceof Mapping) {
-                    //find a handler
+                    //spi a handler
                     String val = ((Mapping) a).value();
                     if(S.str.isBlank(val)){
                         val = "/"+m.getName();

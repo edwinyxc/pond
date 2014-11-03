@@ -1,20 +1,15 @@
 package pond.codec;
 
 import pond.common.S;
-import pond.common.sql.Sql;
-import pond.common.sql.SqlSelect;
 import pond.core.Request;
 import pond.core.Response;
 import pond.core.http.HttpMethod;
 import pond.core.Controller;
-import pond.db.DB;
+import pond.db.Model;
 import pond.db.Record;
 import pond.db.RecordService;
 
 import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import static pond.common.S._for;
 import static pond.core.Pond.debug;
@@ -23,69 +18,67 @@ import static pond.core.Render.*;
 /**
  * Created by ed on 14-5-20.
  * <p/>
- * TODO :unit test
  */
-public class RestfulController<E extends Record> extends Controller {
+public class RestfulController<E extends Model> extends Controller {
 
     protected E proto;
-    protected RecordService<E> service;
 
-    protected String SORD = "_sord";
-    protected String SORDF = "_sordf";
+    //consider rename to dao ?
+    protected RecordService<E> service;
 
     public RestfulController(E e) {
         this.proto = e;
-        service = RecordService.build(e);
+        service = Model.dao( proto.getClass() );
     }
 
-    public SqlSelect sqlFromReq(Request req) {
-        String tb_name = proto.table();
-        Set<String> fields = proto.declaredFields();
-        SqlSelect sql = 
-            Sql.select(fields.toArray(new String[fields.size()])).from(tb_name)
-                .where(req.toQuery(proto.declaredFields()));
-        String sord = req.param(SORD);
-        String sord_f = req.param(SORDF);
-        if (S.str.notBlank(sord)
-                && S.str.notBlank(sord_f)
-                ) {
-            String order;
-            if (fields.contains(sord_f)) {
-                order = sord_f;
-            } else
-                throw new RuntimeException("sordf not valid");
-            if (sord.equalsIgnoreCase("desc")) {
-                sql.orderBy(order + " desc");
-            } else {
-                sql.orderBy(order + " asc");
-            }
-        }
-        return sql;
-    }
-
-    public Page queryForPage(Request req) {
-        return DB.fire(tmpl -> {
-            Page page = Page.of(req);
-            SqlSelect select = sqlFromReq(req);
-            if (Page.allowPage(req))
-                select.offset(Page.getOffset(req))
-                        .limit(Page.getLimit(req));
-            List<E> data =
-                    tmpl.map(proto.mapper(), select.tuple());
-            int count = tmpl.count(select.count().tuple());
-            List<Map<String, Object>> view =
-                    _for(data).map(Record::view).toList();
-            return page.fulfill(view, count);
-        });
-    }
+//    public SqlSelect sqlFromReq(Request req) {
+//        String tb_name = proto.table();
+//        Set<String> fields = proto.declaredFields();
+//        SqlSelect sql =
+//            Sql.select(fields.toArray(new String[fields.size()])).from(tb_name)
+//                .where(req.toQuery(proto.declaredFields()));
+//        String sord = req.param(SORD);
+//        String sord_f = req.param(SORDF);
+//        if (S.str.notBlank(sord)
+//                && S.str.notBlank(sord_f)
+//                ) {
+//            String order;
+//            if (fields.contains(sord_f)) {
+//                order = sord_f;
+//            } else
+//                throw new RuntimeException("sordf not valid");
+//            if (sord.equalsIgnoreCase("desc")) {
+//                sql.orderBy(order + " desc");
+//            } else {
+//                sql.orderBy(order + " asc");
+//            }
+//        }
+//        return sql;
+//    }
+//
+//    public Page queryForPage(Request req) {
+//        return DB.fire(tmpl -> {
+//            Page page = Page.of(req);
+//            SqlSelect select = sqlFromReq(req);
+//            if (Page.allowPage(req))
+//                select.offset(Page.getOffset(req))
+//                        .limit(Page.getLimit(req));
+//            List<E> data =
+//                    tmpl.query(proto.mapper(), select.tuple());
+//            int count = tmpl.count(select.count().tuple());
+//            List<Map<String, Object>> view =
+//                    _for(data).query(Record::view).toList();
+//            return page.fulfill(view, count);
+//        });
+//    }
 
     @Mapping(value = "/", methods = {HttpMethod.GET})
     public void index(Request req, Response res) {
         String mime = getAcceptHeader(req).trim().toLowerCase();
         if (mime.startsWith("text/html"))
-            res.render(view(resourcePath("index.view"), queryForPage(req)));
+            res.render(view(resourcePath("index.view"), ReqQuery.queryForPage(req, proto)));
         else
-            res.render(json(queryForPage(req)));
+            res.render(json(ReqQuery.queryForPage(req, proto)));
 
     }
 
