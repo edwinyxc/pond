@@ -4,6 +4,7 @@ import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 import pond.common.S;
 import pond.db.connpool.SimplePool;
 
@@ -60,6 +61,7 @@ INSERT INTO test values('2334','2333334');*/
         ));
     }
 
+    @Ignore
     @Test
     public void testSql() {
 
