@@ -3,21 +3,18 @@ package pond.core.spi.server.jetty;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.util.Jetty;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import pond.common.S;
 import pond.common.f.Callback;
-import pond.core.Pond;
-import pond.core.PondAware;
-import pond.core.Request;
-import pond.core.Response;
+import pond.core.*;
 import pond.core.exception.UnexpectedException;
 import pond.core.misc.HSRequestWrapper;
 import pond.core.misc.HSResponseWrapper;
 import pond.core.spi.BaseServer;
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import pond.core.spi.PondAwareSPI;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -25,12 +22,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 
+import static pond.common.S._notNullElse;
 import static pond.core.Pond.debug;
 
 /**
  * @author ed
  */
-public class JettyServer extends PondAwareSPI implements BaseServer {
+public class JettyServer implements BaseServer {
 
     private org.eclipse.jetty.server.Server server;
 
@@ -106,11 +104,28 @@ public class JettyServer extends PondAwareSPI implements BaseServer {
 
     @Override
     public StaticFileServer staticFileServer(String str) {
-        return new JettyStaticFileServer(str);
+        Config config = pond.config;
+        return new JettyStaticFileServer(str)
+                .allowList(_notNullElse(config.getBool(Config.ALLOW_LIST_DIRECTORY),false))
+                .allowMemFileMapping(_notNullElse(config.getBool(Config.ALLOW_MEMORY_FILE_MAPPING),false));
     }
 
-    public class JettyStaticFileServer extends ResourceHandler
+    @Override
+    public void pond(Pond pond) {
+        this.pond = pond;
+    }
+
+    @Override
+    public Pond pond() {
+        return pond;
+    }
+
+    Pond pond;
+
+    public class JettyStaticFileServer extends ServletContextHandler
             implements StaticFileServer {
+
+        ServletHolder  holder;
 
         public JettyStaticFileServer(String dir) {
             String webRoot = pond.pathRelWebRoot(dir);
@@ -127,21 +142,29 @@ public class JettyServer extends PondAwareSPI implements BaseServer {
             debug("static server path : " + webRoot);
 
             //default false
-            this.setDirectoriesListed(false);
             this.setResourceBase(webRoot);
-            //prevent NullPointerException problem
-            this.setStylesheet("");
+            DefaultServlet defaultServlet = new DefaultServlet();
+            holder = new ServletHolder(defaultServlet);
+            this.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+            holder.setInitParameter("useFileMappedBuffer", "false");
+            this.addServlet(holder, "/");
         }
 
         @Override
         public StaticFileServer allowList(boolean b) {
-            this.setDirectoriesListed(b);
+            this.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", String.valueOf(b));
             return this;
         }
 
         @Override
         public StaticFileServer welcomeFiles(String... files) {
             this.setWelcomeFiles(files);
+            return this;
+        }
+
+        @Override
+        public StaticFileServer allowMemFileMapping(boolean b) {
+            holder.setInitParameter("useFileMappedBuffer", String.valueOf(b));
             return this;
         }
     }

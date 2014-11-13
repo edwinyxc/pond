@@ -121,7 +121,7 @@ public interface Render {
 
         return (req, resp) -> {
             Pond app = req.ctx().pond;
-            File file = new File((String) app.attr(
+            File file = new File(app.attr(
                     Config.VIEWS_PATH) + File.separator + path);
             /**
              * v1.1.0 add ext-based engine

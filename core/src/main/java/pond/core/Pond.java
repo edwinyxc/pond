@@ -29,13 +29,7 @@ public final class Pond implements  RouterAPI {
     static Logger logger = LoggerFactory.getLogger(Pond.class);
     private BaseServer server;
     private Router rootRouter;
-
-    //config
-    Map attrs = new HashMap();
-
-    public Map attrs() {
-        return attrs;
-    }
+    public final Config config = new Config();
 
     //Before the routing chain
     final List<Mid> before = new LinkedList<>();
@@ -78,27 +72,28 @@ public final class Pond implements  RouterAPI {
         }
 
         //do not change these
-        this.attr(Config.ROOT, root);
-        this.attr(Config.ROOT_WEB, webroot);
+        config.put(Config.ROOT, root);
+        config.put(Config.ROOT_WEB, webroot);
 
-        this.attr(Config.WWW_PATH, webroot
+        config.put(Config.WWW_PATH, webroot
                 + File.separator + _notNullElse(
-                this.attr(Config.WWW_NAME), "www"));
-        this.attr(Config.VIEWS_PATH, webroot
+                config.get(Config.WWW_NAME), "www"));
+        config.put(Config.VIEWS_PATH, webroot
                 + File.separator + _notNullElse(
-                this.attr(Config.VIEWS_NAME), "views"));
+                config.get(Config.VIEWS_NAME), "views"));
 
 //        this.attr(Global.ROOT, S.path.webRoot()#);
 
         logger.info("root : " + root);
         server = spi(BaseServer.class);
+        server.pond(this);
         //TODO ADD CONFIG
         //router
         rootRouter = new Router();
         //engine
         ViewEngine vg = spi(ViewEngine.class);
         try {
-            vg.configViewPath((String) this.attr(Config.VIEWS_PATH));
+            vg.configViewPath(config.get(Config.VIEWS_PATH));
         } catch (Exception e) {
             debug(e.getMessage());
         }
@@ -154,15 +149,17 @@ public final class Pond implements  RouterAPI {
     public static JsonService json() {
         return SPILoader.service(JsonService.class);
     }
-    
+
+    public Pond loadConfigFromCmdLine(String[] args) {
+        this.config.readFromFile(args);
+        return this;
+    }
+
     /**
      * Load attributes from properties
      */
     public Pond loadConfig( Properties conf ) {
-        _for( conf.propertyNames() ).each( name -> {
-                String value = conf.getProperty((String) name );
-                this.attr((String) name, value );
-        });
+        config.load(conf);
         return this;
     }
 
@@ -207,7 +204,7 @@ public final class Pond implements  RouterAPI {
      * @return absolute path
      */
     public String pathRelWebRoot(String path) {
-        String root = (String) attr(Config.ROOT_WEB);
+        String root = config.get(Config.ROOT_WEB);
         if (path == null) return null;
         if (S.path.isAbsolute(path)) {
             return path;
@@ -222,7 +219,7 @@ public final class Pond implements  RouterAPI {
      * @return absolute path
      */
     public String pathRelRoot(String path) {
-        String root = (String) attr(Config.ROOT);
+        String root = config.get(Config.ROOT);
         if (path == null) return null;
         if (S.path.isAbsolute(path)) {
             return path;
@@ -230,22 +227,6 @@ public final class Pond implements  RouterAPI {
         return root + File.separator + path;
     }
     
-
-    /**
-     * Enable setting/function/feature
-     */
-    public Pond enable(String setting) {
-        attr(setting, true);
-        return this;
-    }
-
-    /**
-     * Disable setting/function/feature
-     */
-    public Pond disable(String setting) {
-        attr(setting, false);
-        return this;
-    }
 
     public ViewEngine viewEngine(String ext) {
         ViewEngine ret = viewEngines.get(ext);
@@ -258,6 +239,14 @@ public final class Pond implements  RouterAPI {
         return this;
     }
 
+    /**
+     * In this case, the port has been set.
+     * @return
+     */
+    public Pond start() {
+        listen(config.getInt(Config.PORT));
+        return this;
+    }
 
     public Pond listen(int port) {
         logger.info("Starting server...");
@@ -302,24 +291,18 @@ public final class Pond implements  RouterAPI {
         E e = SPILoader.service(s);
         if (e == null)
             throw new NullPointerException(s.getSimpleName() + "not found");
-        if ( e instanceof PondAwareSPI ) {
-            ((PondAwareSPI) e).pond(this);
-        }
         else if ( e instanceof EnvSPI ) {
-            ((EnvSPI) e).env(this.attrs);
+            ((EnvSPI) e).env(this.config);
         }
         logger.info("Get " + 
                 s.getSimpleName() + ": " + e.getClass().getCanonicalName());
         return e;
     }
 
-    public Pond attr(String name, Object o) {
-        this.attrs.put( name, o );
-        return this;
-    }
 
-    public Object attr(String name) {
-        return this.attrs.get( name );
+    @Deprecated
+    public Object attr(String s) {
+        return this.config.get(s);
     }
 
     @Override

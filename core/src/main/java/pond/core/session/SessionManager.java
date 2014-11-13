@@ -64,7 +64,7 @@ public class SessionManager implements Makeable<SessionManager> {
 
     private int sessionLifeTime() {
         // as mills-seconds
-        String sessionLifeStr = (String) pond.attr(SESSION_LIFETIME);
+        String sessionLifeStr = (String) pond.config.get(SESSION_LIFETIME);
 
         return  Integer.parseInt(sessionLifeStr) * 1000 ;
     }

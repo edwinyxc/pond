@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.core.spi.BaseServer;
 
+import javax.naming.OperationNotSupportedException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -289,5 +290,10 @@ public class DefaultFileServer
     @Override
     public BaseServer.StaticFileServer welcomeFiles(String... files) {
         return this.defaultPages(files);
+    }
+
+    @Override
+    public BaseServer.StaticFileServer allowMemFileMapping(boolean b) {
+        throw new RuntimeException("Not Supported Yet");
     }
 }

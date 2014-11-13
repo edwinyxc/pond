@@ -12,7 +12,7 @@ public class SessionTest {
 
         Pond app = Pond.init( p -> {
             p.loadConfig(loadProperties("pond.conf"));
-            p.attr(SessionManager.SESSION_LIFETIME, "5");
+            p.config.put(SessionManager.SESSION_LIFETIME, "5");
         }).debug();
 
         app.before(app.useSession());

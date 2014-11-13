@@ -7,9 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static pond.common.f.Callback.C2;
-/**
- * Created by ed on 2014/5/8.
- */
+
 public interface BaseServer extends PondAware{
     static Logger logger = LoggerFactory.getLogger(BaseServer.class);
 
@@ -28,6 +26,8 @@ public interface BaseServer extends PondAware{
         public StaticFileServer allowList(boolean b);
 
         public StaticFileServer welcomeFiles(String... files);
+
+        public StaticFileServer allowMemFileMapping(boolean b);
 
     }
 }

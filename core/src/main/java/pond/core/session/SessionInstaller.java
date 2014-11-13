@@ -23,11 +23,11 @@ public class SessionInstaller
     public SessionInstaller(SessionManager mgr) {
         this.pond = mgr.pond;
         String time;
-        if( (time = (String) pond.attr( SessionManager.SESSION_LIFETIME )) == null ) {
+        if( (time = (String) pond.config.get( SessionManager.SESSION_LIFETIME )) == null ) {
             time = String.valueOf( SessionManager.default_life_time );
         }
         //set life time
-        pond.attr( SessionManager.SESSION_LIFETIME, time );
+        pond.config.put( SessionManager.SESSION_LIFETIME, time );
     }
 
 
@@ -49,7 +49,7 @@ public class SessionInstaller
             throw new IllegalArgumentException("invalid seconds");
         }
         //set life time
-        pond.attr( SessionManager.SESSION_LIFETIME, String.valueOf( seconds ));
+        pond.config.put( SessionManager.SESSION_LIFETIME, String.valueOf( seconds ));
         return this;
     }
 

@@ -41,8 +41,8 @@ public class ReqQuery {
                         .where(req.toQuery(proto.declaredFields()));
 
         Ctx ctx = req.ctx();
-        String N_SORD = _getOrSet(ctx.pond.attrs(), SORD, "_sord");
-        String N_SORDF = _getOrSet(ctx.pond.attrs(), SORDF, "_sordf");
+        String N_SORD = _getOrSet(ctx.pond.config, SORD, "_sord");
+        String N_SORDF = _getOrSet(ctx.pond.config, SORDF, "_sordf");
         // sort
         String sord = req.param(N_SORD);
         String sord_f = req.param(N_SORDF);
@@ -116,7 +116,7 @@ public class ReqQuery {
 
 
         public static Page of(Request r) {
-            Page page = new Page(r.ctx().pond.attrs());
+            Page page = new Page(r.ctx().pond.config);
             Integer pgIdx = _notNullElse(r.paramInt(page.N_PG_IDX), 1);
             Integer pgLen = _notNullElse(r.paramInt(page.N_PG_LEN), 0);
             return page.take(pgIdx, pgLen);
