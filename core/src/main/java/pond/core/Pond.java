@@ -25,11 +25,20 @@ import static pond.common.S.*;
 public final class Pond implements  RouterAPI {
 
     public final static String DEFAULT_DB = "_db";
-
     static Logger logger = LoggerFactory.getLogger(Pond.class);
     private BaseServer server;
     private Router rootRouter;
     public final Config config = new Config();
+    public final Map<String,Object> container = new HashMap<String,Object>();
+
+    public Object ioc(String k){
+        return container.get(k);
+    }
+
+    public Pond ioc(String k, Object v) {
+        container.put(k,v);
+        return this;
+    }
 
     //Before the routing chain
     final List<Mid> before = new LinkedList<>();

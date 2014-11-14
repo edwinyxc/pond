@@ -6,7 +6,6 @@ import pond.core.Response;
 import pond.core.http.HttpMethod;
 import pond.core.Controller;
 import pond.db.DB;
-import pond.db.Model;
 import pond.db.Record;
 import pond.db.RecordService;
 
@@ -27,8 +26,6 @@ public class RestfulController<E extends Record> extends Controller {
 
     //consider rename to dao ?
     protected RecordService<E> service;
-
-    protected DB db;
 
     public RestfulController(E e) {
         this.proto = e;
