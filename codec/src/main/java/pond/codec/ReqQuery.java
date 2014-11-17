@@ -83,7 +83,7 @@ public class ReqQuery {
 
     @Deprecated
     public static Page queryForPage(Request req, Record p) {
-       DB db = (DB) req.ctx().pond.ioc(Pond.DEFAULT_DB);
+       DB db = (DB) req.ctx().pond.component(Pond.DEFAULT_DB);
         return db.get(tmpl -> {
             Page page = Page.of(req);
             SqlSelect select = sqlFromReq(req, p);

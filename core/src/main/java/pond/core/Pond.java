@@ -29,13 +29,13 @@ public final class Pond implements  RouterAPI {
     private BaseServer server;
     private Router rootRouter;
     public final Config config = new Config();
-    public final Map<String,Object> container = new HashMap<String,Object>();
+    public final Map<String,Object> container = new HashMap<>();
 
-    public Object ioc(String k){
+    public Object component(String k){
         return container.get(k);
     }
 
-    public Pond ioc(String k, Object v) {
+    public Pond component(String k, Object v) {
         container.put(k,v);
         return this;
     }
