@@ -5,7 +5,6 @@ import pond.core.Request;
 import pond.core.Response;
 import pond.core.http.HttpMethod;
 import pond.core.Controller;
-import pond.db.DB;
 import pond.db.Record;
 import pond.db.RecordService;
 
