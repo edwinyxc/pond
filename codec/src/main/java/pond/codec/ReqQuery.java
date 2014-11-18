@@ -33,12 +33,12 @@ public class ReqQuery {
 
     public static SqlSelect sqlFromReq(Request req, Record proto) {
         String tb_name = proto.table();
-        Set<String> fields = proto.declaredFields();
+        Set<String> fields = proto.declaredFieldNames();
 
         SqlSelect sql =
                 Sql.select(fields.toArray(new String[fields.size()]))
                         .from(tb_name)
-                        .where(req.toQuery(proto.declaredFields()));
+                        .where(req.toQuery(proto.declaredFieldNames()));
 
         Ctx ctx = req.ctx();
         String N_SORD = _getOrSet(ctx.pond.config, SORD, "_sord");

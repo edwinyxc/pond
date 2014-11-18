@@ -66,8 +66,13 @@ public class AbstractRecord extends HashMap<String, Object>
     }
 
     @Override
-    public Set<String> declaredFields() {
+    public Set<String> declaredFieldNames() {
         return _for(declaredFields).<String>map(Field::name).toSet();
+    }
+
+    @Override
+    public Set<Field> declaredFields() {
+        return declaredFields;
     }
 
     @Override

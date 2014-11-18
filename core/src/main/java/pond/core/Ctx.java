@@ -15,12 +15,15 @@ import java.util.*;
 import static pond.common.S._for;
 
 /**
- * 访问上下文,用于保持异步工作时的状态
+ * Execution Context, attached to a single thread.
  */
 public class Ctx extends TreeMap<String, Object> {
     static Logger logger = LoggerFactory.getLogger(Ctx.class);
     Request req;
     Response resp;
+    // When this is true, Ctx stops
+    // triggering the following handlers outside the
+    // server (A symbol represents the Response has been sent).
     boolean isHandled = false;
     //current pond
     public Pond pond;

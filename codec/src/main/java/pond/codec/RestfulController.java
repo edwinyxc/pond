@@ -33,10 +33,10 @@ public class RestfulController<E extends Record> extends Controller {
 
 //    public SqlSelect sqlFromReq(Request req) {
 //        String tb_name = proto.table();
-//        Set<String> fields = proto.declaredFields();
+//        Set<String> fields = proto.declaredFieldNames();
 //        SqlSelect sql =
 //            Sql.select(fields.toArray(new String[fields.size()])).from(tb_name)
-//                .where(req.toQuery(proto.declaredFields()));
+//                .where(req.toQuery(proto.declaredFieldNames()));
 //        String sord = req.param(SORD);
 //        String sord_f = req.param(SORDF);
 //        if (S.str.notBlank(sord)

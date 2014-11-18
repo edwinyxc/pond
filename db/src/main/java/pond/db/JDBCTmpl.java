@@ -327,7 +327,7 @@ public class JDBCTmpl implements Closeable {
 
     public boolean add(Record record) {
         List<Tuple<String, Object>> values = new ArrayList<>();
-//        for (String f : r.declaredFields()) {
+//        for (String f : r.declaredFieldNames()) {
 //            Object val = r.get(f);
 //            if (val != null) {
 //                values.add(Tuple.t2(f, val));

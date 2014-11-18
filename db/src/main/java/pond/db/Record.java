@@ -119,11 +119,18 @@ public interface Record {
 
 
     /**
-     * declared fields that should be same as declared in db
-     *
+     * declared field-names that should be same as declared in db
+     * readonly
      * @return
      */
-    public Set<String> declaredFields();
+    public Set<String> declaredFieldNames();
+
+    /**
+     *
+     * declared fields that should be same as declared in db
+     * @return
+     */
+    public Set<Field> declaredFields();
 
     /**
      * Returns all fields
@@ -205,7 +212,7 @@ public interface Record {
     Record set(String s, Object val);
 
     /**
-     * of argument as defined in declaredFields,
+     * of argument as defined in declaredFieldNames,
      * WARN: this method change the state of current object
      * rather than return a new copy
      *
@@ -272,7 +279,7 @@ public interface Record {
     default Map<String, Object> db() {
 
         Map<String, Object> ret = new HashMap<>();
-        for (String s : this.declaredFields()) {
+        for (String s : this.declaredFieldNames()) {
             ret.put(s, db(s));
         }
         return ret;

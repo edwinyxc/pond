@@ -78,7 +78,7 @@ public abstract class RecordService<E extends Record> {
     public List<E> query(Object... args) {
         E r = getProto();
         SqlSelect sqlSelect;
-        Set<String> d_fields = r.declaredFields();
+        Set<String> d_fields = r.declaredFieldNames();
         String[] fields = new String[d_fields.size()];
         fields = d_fields.toArray(fields);
         sqlSelect = Sql.select(fields).from(r.table());
