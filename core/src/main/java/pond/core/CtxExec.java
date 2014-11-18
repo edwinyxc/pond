@@ -44,7 +44,7 @@ public class CtxExec {
      *
      * @param ctx
      */
-    public void exec(Ctx ctx, List<Mid> mids) {
+    public boolean exec(Ctx ctx, List<Mid> mids) {
         Callback.C3<Request, Response, Callback.C0> mid = ctx.nextMid();
         ctx.addMid(mids);
         try {
@@ -54,6 +54,7 @@ public class CtxExec {
                 mid.apply(ctx.req, ctx.resp,
                         () -> exec(ctx, Collections.<Mid>emptyList()));
             }
+            return ctx.isHandled;
         } catch (RuntimeException e) {
             unwrapRuntimeException(e, ctx.resp);
         } catch (Throwable e) {
@@ -63,5 +64,6 @@ public class CtxExec {
         } finally {
             ctxThreadLocal.remove();
         }
+        return false;
     }
 }

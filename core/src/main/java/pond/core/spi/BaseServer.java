@@ -6,7 +6,7 @@ import pond.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static pond.common.f.Callback.C2;
+import static pond.common.f.Function.F2;
 
 public interface BaseServer extends PondAware{
     static Logger logger = LoggerFactory.getLogger(BaseServer.class);
@@ -15,7 +15,7 @@ public interface BaseServer extends PondAware{
 
     public void stop();
 
-    public void installHandler(C2<Request, Response> handler);
+    public void installHandler(F2<Boolean, Request, Response> handler);
 
     public void installStatic(StaticFileServer server);
 

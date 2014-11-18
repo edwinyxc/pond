@@ -21,6 +21,7 @@ public class Ctx extends TreeMap<String, Object> {
     static Logger logger = LoggerFactory.getLogger(Ctx.class);
     Request req;
     Response resp;
+    boolean isHandled = false;
     //current pond
     public Pond pond;
     Stack<Mid> mids = new Stack<>();
@@ -88,30 +89,37 @@ public class Ctx extends TreeMap<String, Object> {
         @Override
         public void sendError(int code, String msg) {
             res.sendError(code, msg);
+            Ctx.this.isHandled = true;
         }
 
         @Override
         public void send(int code, String msg) {
             res.send(code, msg);
+            Ctx.this.isHandled = true;
         }
 
         @Override
         public Response status(int sc) {
+            Ctx.this.isHandled = true;
             return res.status(sc);
         }
 
         @Override
         public OutputStream out() {
+            //TODO get out == handled?
+            Ctx.this.isHandled = true;
             return res.out();
         }
 
         @Override
         public PrintWriter writer() {
+            Ctx.this.isHandled = true;
             return res.writer();
         }
 
         @Override
         public Response write(String s) {
+            Ctx.this.isHandled = true;
             return res.write(s);
         }
 
@@ -122,6 +130,7 @@ public class Ctx extends TreeMap<String, Object> {
 
         @Override
         public void redirect(String url) {
+            Ctx.this.isHandled = true;
             res.redirect(url);
         }
 
