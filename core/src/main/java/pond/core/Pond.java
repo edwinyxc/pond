@@ -118,6 +118,11 @@ public final class Pond implements  RouterAPI {
         return this;
     }
 
+    public Map<String,Session> sessions() {
+        _assert(sessionManager,"Please use session first");
+        return sessionManager.getAll();
+    }
+
     /**
      * Returns a MW that handle session
      * see more at com.shuimin.pond.core.mw.session.Session

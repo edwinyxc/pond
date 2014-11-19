@@ -12,14 +12,13 @@ public class SessionTest {
 
         Pond app = Pond.init( p -> {
             p.loadConfig(loadProperties("pond.conf"));
-            p.config.put(SessionManager.SESSION_LIFETIME, "5");
+//            p.config.put(SessionManager.SESSION_LIFETIME, "5");
         }).debug();
 
         app.before(app.useSession());
         app.get("/ses", (req, res) -> {
                     Session ses = req.session();
                     ses.set("i", (Integer) S._notNullElse(ses.get("i"), 0) + 1);
-
                     res.write(S.dump(req.ctx()));
                     res.write("<br>");
                     res.write(ses.hashCode() + " " + S.dump(ses));

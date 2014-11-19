@@ -34,6 +34,10 @@ public class SessionManager implements Makeable<SessionManager> {
         return get(sessionId, true);
     }
 
+    public Map<String,Session> getAll() {
+        return sessions;
+    }
+
     public Session get(String sessionId, boolean createOnNotFound) {
         Session ret;
         synchronized (sessions) {

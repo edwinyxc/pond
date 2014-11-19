@@ -19,7 +19,6 @@ public class TimerSession extends HashMap<String, Object>
 
     private final Timer timer;
 
-    private final String id;
     private final Function.F0<Integer> lifetimeProvider;
     private TimerTask suicide = new Suicide();
     private SessionManager mgr;
@@ -28,7 +27,7 @@ public class TimerSession extends HashMap<String, Object>
                         String         id,
                         F0<Integer>    lifetimeProvider) {
         this.mgr = mgr;
-        this.id = id;
+        super.put("id", id);
         this.timer = new Timer();
         this.lifetimeProvider = lifetimeProvider;
         timer.schedule(suicide, lifetimeProvider.apply());
@@ -44,7 +43,7 @@ public class TimerSession extends HashMap<String, Object>
 
     @Override
     public String id() {
-        return id;
+        return String.valueOf(super.get("id"));
     }
 
     @Override
@@ -63,7 +62,7 @@ public class TimerSession extends HashMap<String, Object>
     @Override
     public String toString() {
         return "TimerSession{" +
-                "id='" + id + '\'' +
+                "id='" + id()+ '\'' +
                 '}';
     }
 
