@@ -80,7 +80,10 @@ public class ApacheFileUpload implements MultipartRequestResolver {
         }
     }
 
-    private ThreadLocal<List<FileItem>> cache = new ThreadLocal<>();
+    /**
+     * NO THREAD SAFE IS ensured
+     */
+//    private ThreadLocal<List<FileItem>> cache = new ThreadLocal<>();
 
     private final FileItemFactory factory = new DiskFileItemFactory() {
         {
@@ -97,20 +100,21 @@ public class ApacheFileUpload implements MultipartRequestResolver {
         }
     };
 
-    private List<FileItem> _getFileItems(Request req)
-            throws FileUploadException {
-        if (cache.get() != null) return cache.get();
-        List<FileItem> items = upload.parseRequest(new ReqCtx(req));
-        cache.set(items);
-        return items;
-    }
+//    private List<FileItem> _getFileItems(Request req)
+//            throws FileUploadException {
+//        synchronized (cache) {
+//            if (cache.get() != null) return cache.get();
+//            cache.set(items);
+//            return items;
+//        }
+//    }
 
 
     @Override
     public Map<String, Object> resolve(Request req) {
         Map<String,Object> map = new HashMap<>();
         try {
-            List<FileItem> list = _getFileItems(req);
+            List<FileItem> list = upload.parseRequest(new ReqCtx(req));
             String name;
             Object value;
             for(FileItem i : list) {
@@ -142,7 +146,7 @@ public class ApacheFileUpload implements MultipartRequestResolver {
     @Override
     public List<String> multipartParamNames(Request req) {
         try {
-            List<FileItem> list = _getFileItems(req);
+            List<FileItem> list = upload.parseRequest(new ReqCtx(req));
             return _for(list).filter(i -> !i.isFormField())
                     .map(FileItem::getFieldName).toList();
         } catch (FileUploadException e) {
@@ -156,7 +160,7 @@ public class ApacheFileUpload implements MultipartRequestResolver {
     public UploadFile getUpload(Request req, String name)
             throws IOException {
         try {
-            List<FileItem> list = _getFileItems(req);
+            List<FileItem> list = upload.parseRequest(new ReqCtx(req));
             for(FileItem i : list){
                 if(!i.isFormField() && name.equals(i.getFieldName())){
                     return new UploadFile(i.getName(),i.getInputStream());
