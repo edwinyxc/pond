@@ -88,6 +88,7 @@ public class ApacheFileUpload implements MultipartRequestResolver {
 
         }
     };
+    //200m
     private int maxUploadSize = 1024 * 1024 * 200;
     private final ServletFileUpload upload = new ServletFileUpload(factory) {
         {

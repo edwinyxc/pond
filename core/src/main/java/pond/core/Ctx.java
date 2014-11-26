@@ -66,6 +66,10 @@ public class Ctx extends TreeMap<String, Object> {
         return resp;
     }
 
+    public boolean isHandled() {
+        return isHandled;
+    }
+
     public void addMid(List<Mid> midList) {
         Collections.reverse(midList);
         for (Mid m : midList)

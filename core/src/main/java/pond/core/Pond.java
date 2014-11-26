@@ -25,6 +25,7 @@ import static pond.common.S.*;
 public final class Pond implements  RouterAPI {
 
     public final static String DEFAULT_DB = "_db";
+    public final static String MULTIPART_RESOLVER= "_multipart_resolver";
     static Logger logger = LoggerFactory.getLogger(Pond.class);
     private BaseServer server;
     private Router rootRouter;
@@ -151,8 +152,14 @@ public final class Pond implements  RouterAPI {
     /**
      * Returns MultipartResolver
      */
-    public static MultipartRequestResolver multipart() {
-        return SPILoader.service(MultipartRequestResolver.class);
+    public MultipartRequestResolver multipart() {
+        MultipartRequestResolver ret = (MultipartRequestResolver)
+                this.component(MULTIPART_RESOLVER);
+        if(ret == null) {
+            ret = SPILoader.service(MultipartRequestResolver.class);
+            this.component(MULTIPART_RESOLVER, ret);
+        }
+        return ret;
     }
 
     

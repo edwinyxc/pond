@@ -1,7 +1,6 @@
 package pond.core;
 
 
-import pond.common.SPILoader;
 import pond.common.f.Tuple;
 import pond.common.sql.Criterion;
 import pond.core.http.UploadFile;
@@ -20,9 +19,6 @@ import static pond.common.S._for;
  * @author ed
  */
 public interface Request {
-
-    final static MultipartRequestResolver mResolver =
-            SPILoader.service(MultipartRequestResolver.class);
 
     InputStream in() throws IOException;
 
@@ -88,9 +84,15 @@ public interface Request {
 //    Route route(Route r);
 //
     //TODO
-    default List<Tuple.T3<String, Criterion, Object[]>>
 
-    toQuery(Iterable<String> declaredFields) {
+    /**
+     * Parse a query from Request
+     * @param declaredFields
+     * @return
+     */
+    default List<Tuple.T3<String, Criterion, Object[]>>
+            toQuery( Iterable<String> declaredFields)
+    {
         List<Tuple.T3<String, Criterion, Object[]>>
                 conditions = new ArrayList<>();
         for (String f : declaredFields) {
@@ -115,17 +117,20 @@ public interface Request {
 
 
     default Map<String, Object> toMap() {
+        /*multi-part request*/
+        MultipartRequestResolver mResolver  = ctx().pond.multipart();
         if (mResolver.isMultipart(this)) {
             return mResolver.resolve(this);
         }
-        Map<String, Object> map = new HashMap<>();
 
+        Map<String, Object> map = new HashMap<>();
         _for(params()).each(e -> {
             Object val = e.getValue() != null && e.getValue().length > 0
                     ? e.getValue()[0]
                     : null;
             map.put(e.getKey(), val);
         });
+
         return map;
     }
 
