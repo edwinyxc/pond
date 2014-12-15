@@ -9,6 +9,16 @@ package pond.common;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
+import org.apache.http.Consts;
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.*;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import pond.common.f.*;
 import pond.common.struc.Cache;
 import pond.common.struc.IterableEnumeration;
@@ -21,7 +31,9 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -29,6 +41,7 @@ import java.util.Map.Entry;
 
 import pond.common.f.Function.F0;
 import pond.common.f.Callback.C0;
+import sun.net.www.http.HttpClient;
 
 public class S {
 
@@ -114,6 +127,7 @@ public class S {
             throw new RuntimeException(e);
         }
     }
+
     public static void _echo(String s) {
         echo(s);
     }
@@ -160,15 +174,16 @@ public class S {
     /**
      * if - else - then expression
      */
-    public static <T> T _return( F0<Boolean> expr, F0<T> retTrue, F0<T> retFalse ){
-       return expr.apply()?retTrue.apply():retFalse.apply();
+    public static <T> T _return(F0<Boolean> expr, F0<T> retTrue, F0<T> retFalse) {
+        return expr.apply() ? retTrue.apply() : retFalse.apply();
     }
 
     /**
      * if - else - then statement
      */
-    public static void _do( F0<Boolean> expr, C0 doTrue, C0 doFalse ) {
-       if ( expr.apply() ) doTrue.apply(); else doFalse.apply();
+    public static void _do(F0<Boolean> expr, C0 doTrue, C0 doFalse) {
+        if (expr.apply()) doTrue.apply();
+        else doFalse.apply();
     }
 
     public static <E> E _getOrDefault(Map m, Object c, E _default) {
@@ -179,11 +194,12 @@ public class S {
         Holder<E> eHolder = new Holder<E>();
         return _return(() -> (eHolder.val = (E) m.get(c)) != null,
                 () -> eHolder.val,
-                ()->{
+                () -> {
                     m.put(c, e);
                     return e;
                 });
     }
+
     public static <E> ForIt<E> _for(Iterable<E> c) {
         return new ForIt<>(c);
     }
@@ -298,6 +314,20 @@ public class S {
      */
     public static long time() {
         return System.currentTimeMillis();
+    }
+
+    public static long time(Callback.C0 cb) {
+        long start = System.currentTimeMillis();
+        cb.apply();
+        long end = System.currentTimeMillis();
+        return end - start;
+    }
+
+    public static long time_nano(Callback.C0 cb) {
+        long start = System.nanoTime();
+        cb.apply();
+        long end = System.nanoTime();
+        return end - start;
     }
 
     /**
@@ -543,7 +573,7 @@ public class S {
 
     /**
      * ******************* F
-     * <p/>
+     * <p>
      * *********************
      *
      * @param <K>
@@ -618,6 +648,49 @@ public class S {
     /**
      * ******************* H **********************
      */
+    public final static class http {
+
+        public static  void get(String uri, Map<String,Object> params, Callback<HttpResponse> cb) {
+            send(new HttpGet(uri), params, cb);
+        }
+
+        public static void post(String uri, Map<String,Object> params, Callback<HttpResponse> cb) {
+            send(new HttpPost(uri), params, cb);
+        }
+
+        public static void put(String uri, Map<String,Object> params, Callback<HttpResponse> cb) {
+            send(new HttpPut(uri), params, cb);
+        }
+
+        public static void delete(String uri, Map<String,Object> params, Callback<HttpResponse> cb) {
+            send(new HttpDelete(uri), params, cb);
+        }
+
+        public static void send(HttpUriRequest request, Map<String,Object> params, Callback<HttpResponse> cb) {
+            if(params == null) params = Collections.emptyMap();
+            List<NameValuePair> dummyform = new ArrayList<>();
+            _for(params).each((e) ->{
+                dummyform.add(new BasicNameValuePair(e.getKey(),String.valueOf(e.getValue())));
+            });
+
+            if (request instanceof HttpPost ||
+                    request instanceof HttpPut) {
+                ((HttpEntityEnclosingRequest) request).setEntity(new UrlEncodedFormEntity(dummyform, Consts.UTF_8));
+            } else {
+                String uri = request.getURI().toString();
+                uri += URLEncodedUtils.format(dummyform, Consts.UTF_8);
+                ((HttpRequestBase) request).setURI(URI.create(uri));
+            }
+
+            try (CloseableHttpClient client = HttpClients.createDefault();
+                 CloseableHttpResponse resp = client.execute(request);
+            ) {
+                cb.apply(resp);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
     /**
      * ******************* I **********************
      */
@@ -722,10 +795,10 @@ public class S {
          * Load properties from the file
          */
         public static Properties loadProperties(File conf) {
-            return _try( () -> {
+            return _try(() -> {
                 Properties config = new Properties();
-                if( conf.exists() && conf.canRead() )
-                    config.load( new FileInputStream( conf ));
+                if (conf.exists() && conf.canRead())
+                    config.load(new FileInputStream(conf));
                     //using default settings;
                 else
                     System.out.println(
@@ -739,12 +812,12 @@ public class S {
          * Load properties from the file, under the classroot
          */
         public static Properties loadProperties(String fileName) {
-            return _try( () -> {
+            return _try(() -> {
                 Properties config = new Properties();
-                File conf = new File( S.path.rootClassPath()
-                        + File.separator + fileName );
-                if( conf.exists() && conf.canRead() )
-                    config.load( new FileInputStream( conf ));
+                File conf = new File(S.path.rootClassPath()
+                        + File.separator + fileName);
+                if (conf.exists() && conf.canRead())
+                    config.load(new FileInputStream(conf));
                     //using default settings;
                 else
                     System.out.println(
@@ -1232,6 +1305,26 @@ public class S {
 
         private static final int BUFFER_SIZE = 8192;
 
+        public static String readFully(InputStream inputStream, Charset encoding)
+            throws IOException {
+            return new String(readFully(inputStream), encoding);
+        }
+
+        public static String readFully(InputStream inputStream, String encoding)
+                throws IOException {
+            return new String(readFully(inputStream), encoding);
+        }
+
+        private static byte[] readFully(InputStream inputStream)
+                throws IOException {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int length = 0;
+            while ((length = inputStream.read(buffer)) != -1) {
+                baos.write(buffer, 0, length);
+            }
+            return baos.toByteArray();
+        }
         /**
          * write from is to os;
          *

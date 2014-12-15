@@ -1,7 +1,10 @@
 package pond.common;
 
 
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.junit.Test;
+
+import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 
@@ -24,4 +27,12 @@ public class STest {
         S._do( ()-> a > b, ()-> c[0] = a, ()-> c[0] = b );
         assertEquals(c[0], b);
     }
+
+    @Ignore
+    public void test_http() throws Exception {
+        S.http.get("http://www.baidu.com", null, resp -> {
+                S.echo(S.time( () -> S._try(() ->S.stream.write(resp.getEntity().getContent(),System.out)) ));
+        });
+    }
+
 }
