@@ -1,6 +1,7 @@
 package pond.common.sql;
 
 import pond.common.f.Function;
+import pond.common.sql.dialect.Dialect;
 
 import static pond.common.S._for;
 import static java.lang.String.format;
@@ -81,7 +82,10 @@ public enum Criterion {
         return url;
     }
 
-    public String prepare(String k, Object[] v) {
+    public String prepare(String k, Object[] v, Dialect d) {
+        if(d!=null){
+            return sql.apply(d.wrapKey(k)).apply(v);
+        }
         return sql.apply(k).apply(v);
     }
 

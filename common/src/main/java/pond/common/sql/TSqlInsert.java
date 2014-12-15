@@ -45,9 +45,9 @@ public class TSqlInsert extends AbstractSql
         StringBuilder sql = new StringBuilder("INSERT INTO ");
         sql.append(table)
                 .append(" (")
-                .append(String.join(", ", fields))
+                .append(String.join(", ", wrapForDialect(fields)))
                 .append(") VALUES (")
-                .append(String.join(", ", _for(fields).map(i -> "?").val()))
+                .append(String.join(", ", _for(wrapForDialect(fields)).map(i -> "?").val()))
                 .append(")");
         return sql.toString();
     }

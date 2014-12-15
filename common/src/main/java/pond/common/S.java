@@ -1325,6 +1325,7 @@ public class S {
             }
             return baos.toByteArray();
         }
+
         /**
          * write from is to os;
          *

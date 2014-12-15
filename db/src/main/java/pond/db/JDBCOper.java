@@ -6,8 +6,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.InputStream;
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -206,7 +204,7 @@ public class JDBCOper
 //    @Deprecated
     public int execute(String sql, Object[] params, int[] types) throws SQLException {
 
-        if (params == null || params == null){
+        if (params == null){
             throw new NullPointerException("params or types null");
         }
 

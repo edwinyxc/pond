@@ -4,10 +4,10 @@ import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.common.f.Tuple;
-import pond.common.sql.Criterion;
-import pond.common.sql.Sql;
+import pond.common.sql.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pond.common.sql.dialect.Dialect;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class JDBCTmpl implements Closeable {
 
     static Logger logger = LoggerFactory.getLogger(JDBCTmpl.class);
 
-    Map<String,Map<String,Integer>> dbStruc;
+    Map<String, Map<String, Integer>> dbStruc;
 
     final
     Function<Integer, ResultSet> counter = rs -> {
@@ -50,7 +50,7 @@ public class JDBCTmpl implements Closeable {
 
     public JDBCTmpl(
             JDBCOper oper,
-            Map<String,Map<String,Integer>> struc) {
+            Map<String, Map<String, Integer>> struc) {
         this.oper = oper;
         this.dbStruc = struc;
     }
@@ -60,7 +60,7 @@ public class JDBCTmpl implements Closeable {
         S._assert(keys);
         int[] types = new int[keys.length];
         for (int i = 0; i < types.length; i++) {
-            types[i] = getType(table,keys[i]);
+            types[i] = getType(table, keys[i]);
         }
         return types;
     }
@@ -69,6 +69,7 @@ public class JDBCTmpl implements Closeable {
         if (dbStruc == null) throw new RuntimeException(" dbStruc must not null");
         return dbStruc.getOrDefault(table, Collections.emptyMap()).get(field);
     }
+
     /**
      * default query
      * TODO: ugly implement
@@ -230,13 +231,14 @@ public class JDBCTmpl implements Closeable {
         }
     }
 
-   public int exec(String sql, Object[] params, int[] types){
-       try {
-           return oper.execute(sql,params,types);
-       } catch (SQLException e) {
-           throw new RuntimeException(e);
-       }
-   }
+    public int exec(String sql, Object[] params, int[] types) {
+        try {
+            return oper.execute(sql, params, types);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * execute sql & params
      *
@@ -261,7 +263,7 @@ public class JDBCTmpl implements Closeable {
 
 
     static int default_sql_type(Class<?> cls) {
-        if (cls.equals(Integer.class) || cls.equals(int.class)){
+        if (cls.equals(Integer.class) || cls.equals(int.class)) {
             return Types.INTEGER;
         } else if (cls.equals(Double.class) || cls.equals(double.class)) {
             return Types.DOUBLE;
@@ -269,18 +271,18 @@ public class JDBCTmpl implements Closeable {
             return Types.FLOAT;
         } else if (cls.equals(Short.class) || cls.equals(short.class)) {
             return Types.SMALLINT;
-        }else if (cls.equals(Boolean.class) || cls.equals(boolean.class)) {
+        } else if (cls.equals(Boolean.class) || cls.equals(boolean.class)) {
             return Types.BOOLEAN;
-        }else if (cls.equals(String.class) ){
+        } else if (cls.equals(String.class)) {
             return Types.VARCHAR;
-        }else if (cls.equals(Character.class) || cls.equals(char.class)) {
+        } else if (cls.equals(Character.class) || cls.equals(char.class)) {
             return Types.VARCHAR;
-        }else if( cls.equals(InputStream.class)) {
+        } else if (cls.equals(InputStream.class)) {
             return Types.BLOB;
-        }else if( cls.equals(BigDecimal.class)) {
+        } else if (cls.equals(BigDecimal.class)) {
             return Types.DECIMAL;
         }
-        throw new IllegalArgumentException("Class "+cls.toString()+" not supported,please specify input types.");
+        throw new IllegalArgumentException("Class " + cls.toString() + " not supported,please specify input types.");
     }
 
     /**
@@ -325,6 +327,11 @@ public class JDBCTmpl implements Closeable {
     Record#db
     -------*/
 
+    /*
+     *
+     * Using mysql as dialect for now ...
+     */
+
     public boolean add(Record record) {
         List<Tuple<String, Object>> values = new ArrayList<>();
 //        for (String f : r.declaredFieldNames()) {
@@ -342,7 +349,8 @@ public class JDBCTmpl implements Closeable {
 
         String[] keys = _for(values).map(t -> t._a).join();
 
-        Sql sql = Sql.insert().into(record.table()).values(S.array.of(values));
+        SqlInsert sql = Sql.insert().dialect(Dialect.mysql);
+        sql.into(record.table()).values(S.array.of(values));
         logger.debug(sql.debug());
         try {
             return oper.execute(sql.preparedSql(), sql.params(),
@@ -354,7 +362,8 @@ public class JDBCTmpl implements Closeable {
     }
 
     public boolean del(Record record) {
-        Sql sql = Sql.delete().from(record.table())
+        SqlDelete sql = Sql.delete().dialect(Dialect.mysql);
+        sql.from(record.table())
                 .where(record.idName(), Criterion.EQ, (String) record.id());
         logger.debug(sql.debug());
         try {
@@ -374,7 +383,8 @@ public class JDBCTmpl implements Closeable {
 
         _for(db).each(e -> sets.add(Tuple.t2(e.getKey(), e.getValue())));
         String[] keys = _for(sets).map(t -> t._a).join();
-        Sql sql = Sql.update(record.table()).set(S.array.of(sets))
+        SqlUpdate sql = Sql.update(record.table()).dialect(Dialect.mysql);
+        sql.set(S.array.of(sets))
                 .where(record.idName(), Criterion.EQ, (String) record.id());
         logger.debug(sql.debug());
         // 多出来的最后一个类型是id
@@ -384,10 +394,10 @@ public class JDBCTmpl implements Closeable {
 
         System.arraycopy(types_of_sets, 0, types, 0, types_of_sets.length);
         //types of id
-        types[types.length-1] = getType(record.table(),record.idName());
+        types[types.length - 1] = getType(record.table(), record.idName());
 
         try {
-            return oper.execute(sql.preparedSql(), sql.params(),types) > 0;
+            return oper.execute(sql.preparedSql(), sql.params(), types) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);

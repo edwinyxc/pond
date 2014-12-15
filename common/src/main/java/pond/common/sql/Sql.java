@@ -1,6 +1,7 @@
 package pond.common.sql;
 
 import pond.common.f.Tuple;
+import pond.common.sql.dialect.Dialect;
 
 import static pond.common.S._notNullElse;
 
@@ -9,6 +10,7 @@ import static pond.common.S._notNullElse;
  */
 public interface Sql {
 
+    public <T> T dialect(Dialect d);
 
     public static SqlInsert insert() {
         return new TSqlInsert();
@@ -46,5 +48,6 @@ public interface Sql {
     tuple() {
         return Tuple.t2(preparedSql(), params());
     }
+
 
 }

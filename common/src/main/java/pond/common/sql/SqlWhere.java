@@ -30,7 +30,7 @@ public interface SqlWhere<T extends Sql> {
 
     default T where(String key, Criterion c, String... x) {
         AbstractSql sql = (AbstractSql) this;
-        sql.where.add(c.prepare(key, x));
+        sql.where.add(c.prepare(key, x, sql.dialect));
         sql.params.addAll(Arrays.asList(x));
         return (T)sql;
     }

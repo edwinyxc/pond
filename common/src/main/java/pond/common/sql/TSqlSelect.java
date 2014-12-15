@@ -58,7 +58,7 @@ public class TSqlSelect extends AbstractSql
     @Override
     public SqlSelect having(Tuple.T3<String, Criterion, Object[]>... conditions) {
         for (Tuple.T3<String, Criterion, Object[]> t : conditions) {
-            having.add(t._b.prepare(t._a, t._c));
+            having.add(t._b.prepare(t._a, t._c, this.dialect));
             params.addAll(Arrays.asList(t._c));
         }
         return this;
@@ -114,7 +114,7 @@ public class TSqlSelect extends AbstractSql
     @Override
     public String preparedSql() {
         StringBuilder sql = new StringBuilder("SELECT ");
-        sql.append(String.join(", ", fields))
+        sql.append(String.join(", ", wrapForDialect(fields)))
                 .append(" FROM ")
                 .append(String.join(" JOIN ", tables));
         if (!where.isEmpty()) {
@@ -127,7 +127,7 @@ public class TSqlSelect extends AbstractSql
             }
         }
         if (!orders.isEmpty()) {
-            sql.append(" ORDER BY ").append(String.join(", ", orders));
+            sql.append(" ORDER BY ").append(String.join(", ", wrapForDialect(orders)));
         }
         if (limit > 0) {
             sql.append(" LIMIT ").append(String.valueOf(limit));
