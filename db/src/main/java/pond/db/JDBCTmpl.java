@@ -117,7 +117,7 @@ public class JDBCTmpl implements Closeable {
             };
 
 
-    public List<Record> query(String sql, String... x) {
+    public List<Record> query(String sql, Object... x) {
         return this.query(_default_rm, sql, x);
     }
 
