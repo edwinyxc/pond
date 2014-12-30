@@ -349,6 +349,7 @@ public class JDBCTmpl implements Closeable {
 
         String[] keys = _for(values).map(t -> t._a).join();
 
+        //TODO
         SqlInsert sql = Sql.insert().dialect(Dialect.mysql);
         sql.into(record.table()).values(S.array.of(values));
         logger.debug(sql.debug());
@@ -362,6 +363,7 @@ public class JDBCTmpl implements Closeable {
     }
 
     public boolean del(Record record) {
+        //TODO
         SqlDelete sql = Sql.delete().dialect(Dialect.mysql);
         sql.from(record.table())
                 .where(record.idName(), Criterion.EQ, (String) record.id());
@@ -383,6 +385,7 @@ public class JDBCTmpl implements Closeable {
 
         _for(db).each(e -> sets.add(Tuple.t2(e.getKey(), e.getValue())));
         String[] keys = _for(sets).map(t -> t._a).join();
+        //TODO
         SqlUpdate sql = Sql.update(record.table()).dialect(Dialect.mysql);
         sql.set(S.array.of(sets))
                 .where(record.idName(), Criterion.EQ, (String) record.id());

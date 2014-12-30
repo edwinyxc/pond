@@ -678,7 +678,10 @@ public class S {
                 ((HttpEntityEnclosingRequest) request).setEntity(new UrlEncodedFormEntity(dummyform, Consts.UTF_8));
             } else {
                 String uri = request.getURI().toString();
-                uri += URLEncodedUtils.format(dummyform, Consts.UTF_8);
+                String query = URLEncodedUtils.format(dummyform, Consts.UTF_8);
+                if(S.str.notBlank(query)) {
+                    uri += "?" + query;
+                }
                 ((HttpRequestBase) request).setURI(URI.create(uri));
             }
 
