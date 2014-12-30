@@ -92,7 +92,7 @@ public final class DB {
             }
 
             //debug
-            System.out.println("dump table_types:" + S.dump(table_types));
+//            System.out.println("dump table_types:" + S.dump(table_types));
             return table_types;
 
         } catch (SQLException e) {
