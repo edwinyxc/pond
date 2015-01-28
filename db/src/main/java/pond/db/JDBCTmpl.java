@@ -82,7 +82,10 @@ public class JDBCTmpl implements Closeable {
                     ResultSetMetaData metaData = rs.getMetaData();
                     int cnt = metaData.getColumnCount();
                     String mainTableName = metaData.getTableName(1);
-                    ret.table(mainTableName);
+
+                    if(S.str.notBlank(mainTableName))
+                        ret.table(mainTableName);
+
                     for (int i = 0; i < cnt; i++) {
                         String className = metaData.getColumnClassName(i + 1);
                         String retTable = metaData.getTableName(i + 1);
@@ -95,7 +98,7 @@ public class JDBCTmpl implements Closeable {
                         String colName = metaData.getColumnName(i + 1);
                         Object val;
 
-                        //TODO ugly!
+                        // if it is a binary-stream
                         if (type.equals(byte[].class)
                                 || type.equals(Byte[].class)) {
                             val = rs.getBinaryStream(i + 1);
@@ -106,20 +109,22 @@ public class JDBCTmpl implements Closeable {
 //                    S.echo(String.format("NAME : %s ,TYPE : %s", colName,
 //                            val == null ? null : val.getClass()));
 
-                        if (mainTableName.equals(retTable))
+                        if (S.str.notBlank(retTable) && !retTable.equals(mainTableName))
+                            ret.setInner(retTable, colName, val);
+                        else
                             ret.set(colName, val);
-                        else ret.setInner(retTable, colName, val);
                     }
+
                 } catch (SQLException e) {
                     S._lazyThrow(e);
                 }
                 return ret;
             };
 
-
     public List<Record> query(String sql, Object... x) {
         return this.query(_default_rm, sql, x);
     }
+
 
     public List<Record> query(String sql) {
         return this.query(_default_rm, sql);

@@ -25,9 +25,7 @@ public class AbstractRecord extends HashMap<String, Object>
     final Field _emptyField = new SimpleField<Void>("null").db(t -> null).view(t -> null);
 
     Set<Field> declaredFields = new HashSet<Field>() {
-        {
-            add(id);
-        }
+//        { add(id); }
     };
 
     //allow construction

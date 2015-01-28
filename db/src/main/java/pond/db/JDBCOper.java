@@ -54,6 +54,7 @@ public class JDBCOper
      * @return out
      */
     public static Object normalizeValue(Object o) {
+
         if (o instanceof java.sql.Date) {
             return new Date(((java.sql.Date) o).getTime());
         }

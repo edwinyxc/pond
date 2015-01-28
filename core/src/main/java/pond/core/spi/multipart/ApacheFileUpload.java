@@ -155,7 +155,6 @@ public class ApacheFileUpload implements MultipartRequestResolver {
         return Collections.emptyList();
     }
 
-
     @Override
     public UploadFile getUpload(Request req, String name)
             throws IOException {
