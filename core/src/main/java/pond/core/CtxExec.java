@@ -12,7 +12,7 @@ import java.util.List;
 public class CtxExec {
 
     static Logger logger = LoggerFactory.getLogger(CtxExec.class);
-    private static ThreadLocal<Ctx> ctxThreadLocal = new ThreadLocal<Ctx>();
+    private static ThreadLocal<Ctx> ctxThreadLocal = new ThreadLocal<>();
 
     public static Ctx get() {
         return ctxThreadLocal.get();
@@ -50,7 +50,7 @@ public class CtxExec {
         try {
             ctxThreadLocal.set(ctx);
             if (mid != null) {
-                logger.info("uri=" + ctx.req.path() + ",mid=" + mid.toString());
+//                logger.debug("uri=" + ctx.req.path() + ",mid=" + mid.toString());
                 mid.apply(ctx.req, ctx.resp,
                         () -> exec(ctx, Collections.<Mid>emptyList()));
             }
@@ -60,7 +60,6 @@ public class CtxExec {
         } catch (Throwable e) {
             e.printStackTrace();
             ctx.resp.send(500, e.getMessage());
-//            throw new RuntimeException(e);
         } finally {
             ctxThreadLocal.remove();
         }
