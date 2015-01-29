@@ -80,15 +80,25 @@ public class AbstractRecord extends HashMap<String, Object>
 
     @Override
     public Record setId(Object pk) {
+        if(!idFieldExists()){
+            declaredFields().add(id);
+        }
         this.set(idLabel, pk);
         return this;
     }
 
+    private boolean idFieldExists() {
+        return declaredFields().contains(id);
+    }
 
     @Override
     public void id(String label) {
         idLabel = label;
         ((SimpleField) id).name = label;
+
+        if(!idFieldExists()){
+            declaredFields().add(id);
+        }
     }
 
 
