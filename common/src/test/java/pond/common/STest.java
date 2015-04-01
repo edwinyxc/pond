@@ -35,4 +35,14 @@ public class STest {
         });
     }
 
+    @Test
+    public void test() {
+        int[] c = {1,2,3,4,5,6,7,8,9,10};
+        int a = new Integer(1);
+        int b = new Integer(2);
+        System.out.println(String.valueOf(c));
+        System.out.println(c);
+        System.out.println(c.hashCode());
+    }
+
 }

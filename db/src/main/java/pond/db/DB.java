@@ -1,6 +1,5 @@
 package pond.db;
 
-import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.db.connpool.ConnectionPool;
@@ -144,5 +143,4 @@ public final class DB {
     }
 
 
-//
 }

@@ -83,6 +83,7 @@ public abstract class RecordService<E extends Record> {
         fields = d_fields.toArray(fields);
         sqlSelect = Sql.select(fields).from(r.table());
         if (args.length == 0) {
+            //do nothing for query all
         } else if (args.length == 1) {
             sqlSelect.where((String) args[0]);
         } else if (args.length > 2) {
@@ -151,6 +152,7 @@ public abstract class RecordService<E extends Record> {
      * @param id id
      * @return id
      */
+    @SuppressWarnings("unchecked")
     public String delete(String id) {
         Record r = get(id);
         if (r != null)
@@ -170,8 +172,8 @@ public abstract class RecordService<E extends Record> {
         record.add();
     }
 
+    @SuppressWarnings("unchecked")
     public Record create(Map<String, Object> p) {
-        @SuppressWarnings("unchecked")
         E a = (E) Record.newEntity(prototype().getClass())
                 .merge(p);
         a._getDB().post(t -> t.add(a));
@@ -182,6 +184,7 @@ public abstract class RecordService<E extends Record> {
         record.update();
     }
 
+    @SuppressWarnings("unchecked")
     public Record update(String id, Map<String, Object> request) {
         Record e = get(id);
         if (e != null) {

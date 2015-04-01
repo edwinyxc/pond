@@ -35,7 +35,7 @@ public class JDBCTmpl implements Closeable {
 
     static Logger logger = LoggerFactory.getLogger(JDBCTmpl.class);
 
-    Map<String, Map<String, Integer>> dbStruc;
+    Map<String, Map<String, Integer>> dbStructure;
 
     final
     Function<Integer, ResultSet> counter = rs -> {
@@ -52,7 +52,7 @@ public class JDBCTmpl implements Closeable {
             JDBCOper oper,
             Map<String, Map<String, Integer>> struc) {
         this.oper = oper;
-        this.dbStruc = struc;
+        this.dbStructure = struc;
     }
 
     public int[] getTypes(String table, String[] keys) {
@@ -66,8 +66,8 @@ public class JDBCTmpl implements Closeable {
     }
 
     public int getType(String table, String field) {
-        if (dbStruc == null) throw new RuntimeException(" dbStruc must not null");
-        return dbStruc.getOrDefault(table, Collections.emptyMap()).get(field);
+        if (dbStructure == null) throw new RuntimeException(" dbStructure must not null");
+        return dbStructure.getOrDefault(table, Collections.emptyMap()).get(field);
     }
 
     /**
@@ -270,7 +270,10 @@ public class JDBCTmpl implements Closeable {
     static int default_sql_type(Class<?> cls) {
         if (cls.equals(Integer.class) || cls.equals(int.class)) {
             return Types.INTEGER;
-        } else if (cls.equals(Double.class) || cls.equals(double.class)) {
+        }else if(cls.equals(Long.class) || cls.equals(long.class)){
+            //long -> big int works in mysql
+            return Types.BIGINT;
+        }else if (cls.equals(Double.class) || cls.equals(double.class)) {
             return Types.DOUBLE;
         } else if (cls.equals(Float.class) || cls.equals(float.class)) {
             return Types.FLOAT;

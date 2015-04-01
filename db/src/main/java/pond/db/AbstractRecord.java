@@ -9,7 +9,6 @@ import java.util.*;
 import static pond.common.S._assert;
 import static pond.common.S._for;
 import static pond.common.S._try;
-import static pond.common.S.str.underscore;
 
 /**
  * Created by ed on 14-5-19.
@@ -24,16 +23,10 @@ public class AbstractRecord extends HashMap<String, Object>
     final Field<String> id = new SimpleField<String>(idLabel).init(S.uuid::vid);
     final Field _emptyField = new SimpleField<Void>("null").db(t -> null).view(t -> null);
 
-    Set<Field> declaredFields = new HashSet<Field>() {
-//        { add(id); }
-    };
+    Set<Field> declaredFields = new HashSet<>();
 
     //allow construction
-    public AbstractRecord() {
-        //default by class name
-        //no default
-        //table(underscore(this.getClass().getSimpleName()));
-    }
+    public AbstractRecord() {}
 
     Function<?, ResultSet> rm;
 
@@ -80,23 +73,20 @@ public class AbstractRecord extends HashMap<String, Object>
 
     @Override
     public Record setId(Object pk) {
-        if(!idFieldExists()){
+        if(!declaredFields().contains(id)){
             declaredFields().add(id);
         }
         this.set(idLabel, pk);
         return this;
     }
 
-    private boolean idFieldExists() {
-        return declaredFields().contains(id);
-    }
 
     @Override
     public void id(String label) {
         idLabel = label;
         ((SimpleField) id).name = label;
 
-        if(!idFieldExists()){
+        if(!declaredFields().contains(id)){
             declaredFields().add(id);
         }
     }
@@ -175,10 +165,10 @@ public class AbstractRecord extends HashMap<String, Object>
                 return f;
             }
         }
-        // if not found
-        Field newf = new SimpleField<>(name);
-        declaredFields.add(newf);
-        return newf;
+        // if not found then create one
+        Field newField = new SimpleField<>(name);
+        declaredFields.add(newField);
+        return newField;
     }
 
     @Override
