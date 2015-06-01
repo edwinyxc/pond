@@ -2,7 +2,7 @@ package pond.common.abs;
 
 import pond.common.f.Holder;
 
-public interface Namable<T> {
+public interface Nameable<T> {
 
     Holder<String> _name = new Holder<>();
 

@@ -6,15 +6,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * <p>
- * </p>
- *
  * @author ed
  */
 
-
 @Deprecated
 public class Logger {
+
     public final static int DEBUG = 3;
     public final static int ERROR = 2;
     public final static int INFO = 1;

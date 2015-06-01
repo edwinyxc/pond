@@ -1,4 +1,4 @@
-package pond.common;
+package pond.core;
 
 
 import java.util.Iterator;
@@ -11,11 +11,11 @@ import java.util.concurrent.ConcurrentMap;
  */
 public final class SPILoader {
 
-    private static ConcurrentMap<Class, Object> services
+    private ConcurrentMap<Class, Object> services
             = new ConcurrentHashMap<>();
 
 
-    public static <E> E service(Class<E> serviceClass) {
+    public <E> E service(Class<E> serviceClass) {
         @SuppressWarnings("unchecked")
         E service = (E) services.get(serviceClass);
         if (service == null) {
@@ -27,7 +27,7 @@ public final class SPILoader {
         return service;
     }
 
-    private static <S> S findService(Class<S> clazz) {
+    private <S> S findService(Class<S> clazz) {
         ServiceLoader<S> serviceLoader = ServiceLoader.load(clazz);
         Iterator<S> sit;
         if ((sit = serviceLoader.iterator()).hasNext()) {

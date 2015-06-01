@@ -1,9 +1,8 @@
 package pond.core;
 
+import pond.common.JSON;
 import pond.common.S;
-import pond.common.SPILoader;
 import pond.core.misc.MimeTypes;
-import pond.common.spi.JsonService;
 import pond.core.spi.ViewEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +38,10 @@ public interface Render {
     }
 
     public static Render json(Object o) {
-        JsonService serv = SPILoader.service(JsonService.class);
+        //JsonService serv = SPILoader.service(JsonService.class);
         return (req, resp) -> {
             resp.contentType("application/json;charset=utf-8");
-            resp.write(serv.toString(o));
+            resp.write(JSON.stringify(o));
             resp.send(200);
         };
     }

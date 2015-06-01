@@ -1,9 +1,9 @@
 package pond.common.util.logger;
 
-import pond.common.abs.Namable;
+import pond.common.abs.Nameable;
 
 
-public abstract class Out implements Namable<Out> {
+public abstract class Out implements Nameable<Out> {
     private String name;
     private int level = Logger.INFO;
 

@@ -1,4 +1,4 @@
-package pond.common;
+package pond.core;
 
 import java.util.Map;
 

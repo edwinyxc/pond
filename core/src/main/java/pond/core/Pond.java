@@ -1,8 +1,6 @@
 package pond.core;
 
-import pond.common.EnvSPI;
 import pond.common.S;
-import pond.common.SPILoader;
 import pond.common.spi.JsonService;
 import pond.core.exception.PondException;
 import pond.core.session.SessionManager;
@@ -24,9 +22,11 @@ import static pond.common.S.*;
  */
 public final class Pond implements  RouterAPI {
 
+    static Logger logger = LoggerFactory.getLogger(Pond.class);
+
     public final static String DEFAULT_DB = "_db";
     public final static String MULTIPART_RESOLVER= "_multipart_resolver";
-    static Logger logger = LoggerFactory.getLogger(Pond.class);
+    private SPILoader spiLoader = new SPILoader();
     private BaseServer server;
     private Router rootRouter;
     public final Config config = new Config();
@@ -156,7 +156,7 @@ public final class Pond implements  RouterAPI {
         MultipartRequestResolver ret = (MultipartRequestResolver)
                 this.component(MULTIPART_RESOLVER);
         if(ret == null) {
-            ret = SPILoader.service(MultipartRequestResolver.class);
+            ret = spiLoader.service(MultipartRequestResolver.class);
             this.component(MULTIPART_RESOLVER, ret);
         }
         return ret;
@@ -167,8 +167,8 @@ public final class Pond implements  RouterAPI {
      * 
      * Returns JsonService
      */
-    public static JsonService json() {
-        return SPILoader.service(JsonService.class);
+    public JsonService json() {
+        return spiLoader.service(JsonService.class);
     }
 
     public Pond loadConfigFromCmdLine(String[] args) {
@@ -309,7 +309,7 @@ public final class Pond implements  RouterAPI {
     }
 
     public <E> E spi(Class<E> s) {
-        E e = SPILoader.service(s);
+        E e = spiLoader.service(s);
         if (e == null)
             throw new NullPointerException(s.getSimpleName() + "not found");
         else if ( e instanceof EnvSPI ) {

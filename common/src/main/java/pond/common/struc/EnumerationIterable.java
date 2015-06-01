@@ -3,11 +3,11 @@ package pond.common.struc;
 import java.util.Enumeration;
 import java.util.Iterator;
 
-public class IterableEnumeration<E> implements Iterable<E> {
+public class EnumerationIterable<E> implements Iterable<E> {
 
     final Enumeration<E> enumeration;
 
-    public IterableEnumeration(Enumeration<E> e) {
+    public EnumerationIterable(Enumeration<E> e) {
         enumeration = e;
     }
 

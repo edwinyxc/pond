@@ -63,7 +63,7 @@ public abstract class Cache<K, V> {
 
     public abstract ConcurrentMap<K, V> asMap();
 
-    public abstract Cache<K, V> onNotFound(Function<V, K> nothingFoundLisener);
+    public abstract Cache<K, V> onNotFound(Function<V, K> nothingFoundListener);
 
     public abstract Cache<K, V> onRemove(Callback.C2<K, V> removeListener);
 }

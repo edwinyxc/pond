@@ -2,7 +2,6 @@
  * Face of s-lib
  *
  * @author ed
- *
  */
 package pond.common;
 
@@ -21,7 +20,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import pond.common.f.*;
 import pond.common.struc.Cache;
-import pond.common.struc.IterableEnumeration;
+import pond.common.struc.EnumerationIterable;
 import pond.common.struc.Matrix;
 import pond.common.util.cui.Rect;
 import pond.common.util.logger.Logger;
@@ -41,7 +40,6 @@ import java.util.Map.Entry;
 
 import pond.common.f.Function.F0;
 import pond.common.f.Callback.C0;
-import sun.net.www.http.HttpClient;
 
 public class S {
 
@@ -60,6 +58,9 @@ public class S {
         }
         return null;
     }).apply();
+
+
+
 
     public static Logger logger() {
         return logger;
@@ -209,7 +210,7 @@ public class S {
     }
 
     public static <E> ForIt<E> _for(Enumeration<E> enumeration) {
-        return new ForIt<>(new IterableEnumeration<>(enumeration));
+        return new ForIt<>(new EnumerationIterable<>(enumeration));
     }
 
     public static <K, V> ForMap<K, V> _for(Map<K, V> c) {
@@ -314,6 +315,10 @@ public class S {
      */
     public static long time() {
         return System.currentTimeMillis();
+    }
+
+    public static long now() {
+        return time();
     }
 
     public static long time(Callback.C0 cb) {
@@ -650,27 +655,27 @@ public class S {
      */
     public final static class http {
 
-        public static  void get(String uri, Map<String,Object> params, Callback<HttpResponse> cb) {
+        public static void get(String uri, Map<String, Object> params, Callback<HttpResponse> cb) {
             send(new HttpGet(uri), params, cb);
         }
 
-        public static void post(String uri, Map<String,Object> params, Callback<HttpResponse> cb) {
+        public static void post(String uri, Map<String, Object> params, Callback<HttpResponse> cb) {
             send(new HttpPost(uri), params, cb);
         }
 
-        public static void put(String uri, Map<String,Object> params, Callback<HttpResponse> cb) {
+        public static void put(String uri, Map<String, Object> params, Callback<HttpResponse> cb) {
             send(new HttpPut(uri), params, cb);
         }
 
-        public static void delete(String uri, Map<String,Object> params, Callback<HttpResponse> cb) {
+        public static void delete(String uri, Map<String, Object> params, Callback<HttpResponse> cb) {
             send(new HttpDelete(uri), params, cb);
         }
 
-        public static void send(HttpUriRequest request, Map<String,Object> params, Callback<HttpResponse> cb) {
-            if(params == null) params = Collections.emptyMap();
+        public static void send(HttpUriRequest request, Map<String, Object> params, Callback<HttpResponse> cb) {
+            if (params == null) params = Collections.emptyMap();
             List<NameValuePair> dummyform = new ArrayList<>();
-            _for(params).each((e) ->{
-                dummyform.add(new BasicNameValuePair(e.getKey(),String.valueOf(e.getValue())));
+            _for(params).each((e) -> {
+                dummyform.add(new BasicNameValuePair(e.getKey(), String.valueOf(e.getValue())));
             });
 
             if (request instanceof HttpPost ||
@@ -679,7 +684,7 @@ public class S {
             } else {
                 String uri = request.getURI().toString();
                 String query = URLEncodedUtils.format(dummyform, Consts.UTF_8);
-                if(S.str.notBlank(query)) {
+                if (S.str.notBlank(query)) {
                     uri += "?" + query;
                 }
                 ((HttpRequestBase) request).setURI(URI.create(uri));
@@ -1309,7 +1314,7 @@ public class S {
         private static final int BUFFER_SIZE = 8192;
 
         public static String readFully(InputStream inputStream, Charset encoding)
-            throws IOException {
+                throws IOException {
             return new String(readFully(inputStream), encoding);
         }
 

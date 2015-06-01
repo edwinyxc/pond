@@ -1,13 +1,15 @@
 package pond.common.struc.tree;
 
-import pond.common.abs.Attrs;
-import pond.common.abs.Namable;
 import pond.common.f.Function;
 
 import java.util.Iterator;
 import java.util.List;
 
-public interface Tree<T> extends Namable<Tree<T>>, Attrs<Tree<T>> {
+public interface Tree<T> {
+
+    String name();
+
+    Tree<T> name(String name);
 
     /**
      * <p>
@@ -162,9 +164,9 @@ public interface Tree<T> extends Namable<Tree<T>>, Attrs<Tree<T>> {
     Tree<T> first();
 
     /**
-     * <p/>
+     * <p>
      * Return children of parent
-     * <p/>
+     * <p>
      *
      * @return
      */
