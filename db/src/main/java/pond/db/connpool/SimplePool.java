@@ -153,4 +153,8 @@ public class SimplePool implements ConnectionPool {
         return this;
     }
 
+
+    public static MysqlSimplePoolBuilder Mysql(){
+        return new MysqlSimplePoolBuilder();
+    }
 }

@@ -1,15 +1,19 @@
 package pond.db;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.db.connpool.ConnectionPool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import pond.db.connpool.SimplePool;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -32,31 +36,35 @@ public final class DB {
 
     static Logger logger = LoggerFactory.getLogger(DB.class);
 
+
     public static ConnectionPool SimplePool(Properties config) {
-        ConnectionPool cp  = new SimplePool();
+        ConnectionPool cp = new SimplePool();
         cp.loadConfig(config);
         return cp;
     }
 
-    public static <E extends Record> RecordService<E> dao(Class<E> cls){
+    public static <E extends Record> RecordService<E> dao(Class<E> cls) {
         return Proto.dao(cls);
     }
 
     private DataSource dataSource;
     private F0<Connection> connProvider;
+    private JDBCTmpl tmpl;
+    private JDBCOper oper;
 
 
-     /**
+    /**
      * 存放连接数据库的表结构(字段类型)
      */
     Map<String, Map<String, Integer>> dbStruc;
 
 
-
     public DB(DataSource dataSource) {
         this.dataSource = dataSource;
-        this.connProvider = () -> _try( () -> this.dataSource.getConnection() );
+        this.connProvider = () -> _try(() -> this.dataSource.getConnection());
         this.dbStruc = initType();
+        tmpl = new JDBCTmpl(this.dbStruc);
+        oper = new JDBCOper();
     }
 
 
@@ -113,22 +121,43 @@ public final class DB {
 
 
     /**
-     *
      * @param process
      * @param <R>
      * @return
      */
-    public <R> R get(Function<R, JDBCTmpl> process) {
+    public <R> R _get(Function<R, JDBCTmpl> process) {
+        long startTime = S.time();
         try (JDBCTmpl tmpl = this.open()) {
-            return process.apply(tmpl);
+            S.echo("####open:" + (S.time() - startTime));
+            R r = process.apply(tmpl);
+            S.echo("####apply:" + (S.time() - startTime));
+            return r;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void post(Callback<JDBCTmpl>... cbs){
-        try(JDBCTmpl tmpl = this.open()){
-             _for(cbs).each(cb -> cb.apply(tmpl));
+    public <R> R get(Function<R, JDBCTmpl> process) {
+        long startTime = S.time();
+        JDBCTmpl tmpl = null;
+        try {
+            tmpl = this.open();
+            S.echo("####open:" + (S.time() - startTime));
+            R r = process.apply(tmpl);
+            S.echo("####apply:" + (S.time() - startTime));
+            return r;
+        } finally {
+            try {
+                if (tmpl != null) tmpl.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void post(Callback<JDBCTmpl>... cbs) {
+        try (JDBCTmpl tmpl = this.open()) {
+            _for(cbs).each(cb -> cb.apply(tmpl));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -136,10 +165,11 @@ public final class DB {
 
     /**
      * Returns a tmpl
+     *
      * @return
      */
     public JDBCTmpl open() {
-        return new JDBCTmpl(new JDBCOper(connProvider.apply()),this.initType());
+        return tmpl.open(oper.open(connProvider.apply()));
     }
 
 

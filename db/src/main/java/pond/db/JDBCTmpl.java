@@ -46,13 +46,16 @@ public class JDBCTmpl implements Closeable {
         }
         return 0;
     };
-    protected final JDBCOper oper;
+    protected JDBCOper oper;
 
     public JDBCTmpl(
-            JDBCOper oper,
             Map<String, Map<String, Integer>> struc) {
-        this.oper = oper;
         this.dbStructure = struc;
+    }
+
+    public JDBCTmpl open( JDBCOper oper ){
+        this.oper = oper;
+        return this;
     }
 
     public int[] getTypes(String table, String[] keys) {
@@ -176,11 +179,14 @@ public class JDBCTmpl implements Closeable {
         ResultSet rs;
         List<R> list = new ArrayList<>();
         try {
+            long start = S.time();
             rs = oper.query(sql, x);
+            S.echo("####rsTime: "+( S.time() - start));
             while (rs.next()) {
                 //check
                 list.add((R) mapper.apply(rs));
             }
+            S.echo("####queryTime: "+( S.time() - start));
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);

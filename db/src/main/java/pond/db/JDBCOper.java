@@ -25,7 +25,7 @@ public class JDBCOper
 //            Byte.TYPE, Character.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE,
 //            Float.TYPE, Double.TYPE, Boolean.TYPE, String.class, InputStream.class
 //    };
-    public final Connection conn;
+    public Connection conn;
     static Logger logger = LoggerFactory.getLogger(JDBCOper.class);
     private PreparedStatement pstmt = null;
 
@@ -40,8 +40,11 @@ public class JDBCOper
 //	};
     private ResultSet rs = null;
 
-    public JDBCOper(Connection conn) {
+    public JDBCOper() { }
+
+    public JDBCOper open(Connection conn){
         this.conn = conn;
+        return this;
     }
 
     /**
