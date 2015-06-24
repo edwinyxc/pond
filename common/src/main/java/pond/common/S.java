@@ -137,6 +137,8 @@ public class S {
         return dump(o);
     }
 
+    /* delete in future */
+    @Deprecated
     public static void _lazyThrow(Throwable a) {
         throw new RuntimeException(a);
     }

@@ -1,12 +1,12 @@
 package pond.db;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.common.f.Tuple;
 import pond.common.sql.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import pond.common.sql.dialect.Dialect;
 
 import java.io.Closeable;
@@ -49,11 +49,11 @@ public class JDBCTmpl implements Closeable {
     protected JDBCOper oper;
 
     public JDBCTmpl(
-            Map<String, Map<String, Integer>> struc) {
-        this.dbStructure = struc;
+            Map<String, Map<String, Integer>> structure) {
+        this.dbStructure = structure;
     }
 
-    public JDBCTmpl open( JDBCOper oper ){
+    public JDBCTmpl open(JDBCOper oper) {
         this.oper = oper;
         return this;
     }
@@ -69,7 +69,8 @@ public class JDBCTmpl implements Closeable {
     }
 
     public int getType(String table, String field) {
-        if (dbStructure == null) throw new RuntimeException(" dbStructure must not null");
+        if (dbStructure == null)
+            throw new RuntimeException(" dbStructure must not null");
         return dbStructure.getOrDefault(table, Collections.emptyMap()).get(field);
     }
 
@@ -86,7 +87,7 @@ public class JDBCTmpl implements Closeable {
                     int cnt = metaData.getColumnCount();
                     String mainTableName = metaData.getTableName(1);
 
-                    if(S.str.notBlank(mainTableName))
+                    if (S.str.notBlank(mainTableName))
                         ret.table(mainTableName);
 
                     for (int i = 0; i < cnt; i++) {
@@ -119,7 +120,7 @@ public class JDBCTmpl implements Closeable {
                     }
 
                 } catch (SQLException e) {
-                    S._lazyThrow(e);
+                    throw new RuntimeException(e);
                 }
                 return ret;
             };
@@ -181,12 +182,12 @@ public class JDBCTmpl implements Closeable {
         try {
             long start = S.time();
             rs = oper.query(sql, x);
-            S.echo("####rsTime: "+( S.time() - start));
+            S.echo("####rsTime: " + (S.time() - start));
             while (rs.next()) {
                 //check
                 list.add((R) mapper.apply(rs));
             }
-            S.echo("####queryTime: "+( S.time() - start));
+            S.echo("####queryTime: " + (S.time() - start));
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeSQLException(e);
@@ -218,14 +219,13 @@ public class JDBCTmpl implements Closeable {
      */
     public void tx(String... batch) {
         try {
-            synchronized (oper) {
-                oper.transactionStart();
-                for (String sql : batch) {
-                    oper.execute(sql);
-                }
-                oper.transactionCommit();
+            oper.transactionStart();
+            for (String sql : batch) {
+                oper.execute(sql);
             }
-        } catch (SQLException e) {
+            oper.transactionCommit();
+        } catch (Throwable e) {
+            logger.info("Caught throwable [ " + e.getMessage()+" ] IN TRANSACTION, STOP COMMITTING!");
             throw new RuntimeException(e);
         }
     }
@@ -262,7 +262,8 @@ public class JDBCTmpl implements Closeable {
             int[] types = new int[params.length];
             for (int i = 0; i < params.length; i++) {
                 Object o = params[i];
-                if (o == null) throw new IllegalArgumentException("Do not use null values without specify its types.");
+                if (o == null)
+                    throw new IllegalArgumentException("Do not use null values without specify its types.");
                 Class<?> clazz = params[i].getClass();
                 types[i] = default_sql_type(clazz);
             }
@@ -276,10 +277,10 @@ public class JDBCTmpl implements Closeable {
     static int default_sql_type(Class<?> cls) {
         if (cls.equals(Integer.class) || cls.equals(int.class)) {
             return Types.INTEGER;
-        }else if(cls.equals(Long.class) || cls.equals(long.class)){
+        } else if (cls.equals(Long.class) || cls.equals(long.class)) {
             //long -> big int works in mysql
             return Types.BIGINT;
-        }else if (cls.equals(Double.class) || cls.equals(double.class)) {
+        } else if (cls.equals(Double.class) || cls.equals(double.class)) {
             return Types.DOUBLE;
         } else if (cls.equals(Float.class) || cls.equals(float.class)) {
             return Types.FLOAT;
@@ -334,7 +335,6 @@ public class JDBCTmpl implements Closeable {
             throw new RuntimeSQLException(e);
         }
     }
-
 
 
     /*----CURD

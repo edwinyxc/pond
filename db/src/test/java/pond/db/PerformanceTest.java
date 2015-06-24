@@ -18,8 +18,10 @@ import java.util.Map;
 /**
  * Created by ed on 1/28/15.
  */
-public class FastTest {
+@Deprecated
+public class PerformanceTest {
 
+    //tested in our studio server
     public static DataSource localDataSource = SimplePool.Mysql()
             .host("localhost")
             .database("shuimin_map")

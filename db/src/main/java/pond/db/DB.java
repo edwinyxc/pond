@@ -36,7 +36,6 @@ public final class DB {
 
     static Logger logger = LoggerFactory.getLogger(DB.class);
 
-
     public static ConnectionPool SimplePool(Properties config) {
         ConnectionPool cp = new SimplePool();
         cp.loadConfig(config);
@@ -54,24 +53,25 @@ public final class DB {
 
 
     /**
-     * 存放连接数据库的表结构(字段类型)
+     * database structures (types as int)
      */
-    Map<String, Map<String, Integer>> dbStruc;
+    Map<String, Map<String, Integer>> dbStructures;
 
 
     public DB(DataSource dataSource) {
         this.dataSource = dataSource;
-        this.connProvider = () -> _try(() -> this.dataSource.getConnection());
-        this.dbStruc = initType();
-        tmpl = new JDBCTmpl(this.dbStruc);
+        this.connProvider = () -> _try((Function.F0ERR<Connection>)
+                this.dataSource::getConnection);
+        this.dbStructures = getDatabaseStructures();
+        tmpl = new JDBCTmpl(this.dbStructures);
         oper = new JDBCOper();
     }
 
 
     /**
-     * Call once
+     *  This function will be only called ONCE
      */
-    private Map<String, Map<String, Integer>> initType() {
+    private Map<String, Map<String, Integer>> getDatabaseStructures() {
         ResultSet rs_db = null;
         ResultSet rs_table = null;
         Map<String, Map<String, Integer>> table_types =
@@ -82,9 +82,8 @@ public final class DB {
             DatabaseMetaData meta = conn.getMetaData();
             rs_db = meta.getTables(null, "%", "%", new String[]{"TABLE"});
             while (rs_db.next()) {
-                Map<String, Integer> table = new HashMap<>();
                 String tablename = rs_db.getString("TABLE_NAME");
-                table_types.put(tablename, table);
+                table_types.put(tablename, new HashMap<>());
             }
 
             for (Map.Entry<String, Map<String, Integer>> e : table_types.entrySet()) {
@@ -121,30 +120,32 @@ public final class DB {
 
 
     /**
-     * @param process
-     * @param <R>
-     * @return
+     * @param process -- the 'get' process
+     * @param <R> -- the Record type
+     * @return Record or Anything mapped
      */
-    public <R> R _get(Function<R, JDBCTmpl> process) {
+    public <R> R get(Function<R, JDBCTmpl> process) {
         long startTime = S.time();
         try (JDBCTmpl tmpl = this.open()) {
-            S.echo("####open:" + (S.time() - startTime));
+            logger.debug("open db time used: " + (S.time() - startTime));
             R r = process.apply(tmpl);
-            S.echo("####apply:" + (S.time() - startTime));
+            logger.debug("apply process time used: " + (S.time() - startTime));
             return r;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public <R> R get(Function<R, JDBCTmpl> process) {
+    /* going to delete in future
+    @Deprecated
+    public <R> R _get_failback(Function<R, JDBCTmpl> process) {
         long startTime = S.time();
         JDBCTmpl tmpl = null;
         try {
             tmpl = this.open();
-            S.echo("####open:" + (S.time() - startTime));
+            logger.debug("open db time used: " + (S.time() - startTime));
             R r = process.apply(tmpl);
-            S.echo("####apply:" + (S.time() - startTime));
+            logger.debug("apply process time used: " + (S.time() - startTime));
             return r;
         } finally {
             try {
@@ -154,6 +155,7 @@ public final class DB {
             }
         }
     }
+    */
 
     public void post(Callback<JDBCTmpl>... cbs) {
         try (JDBCTmpl tmpl = this.open()) {
