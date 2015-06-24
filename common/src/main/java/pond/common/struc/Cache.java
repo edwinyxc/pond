@@ -7,7 +7,6 @@ import pond.common.struc.cache.FixedCache;
 import pond.common.struc.cache.LRUCache;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 public abstract class Cache<K, V> {
 
@@ -39,11 +38,11 @@ public abstract class Cache<K, V> {
      * </p>
      *
      * @param key
-     * @param doWhenEmpty
      * @return
      */
-    public abstract V get(K key, Function<V, V> doWhenEmpty);
+    public abstract V get(K key, Function<V, Cache> doWhenNotFound);
 
+    public abstract V get(K key, V cache);
     /**
      * <p>
      * Raw put
@@ -61,7 +60,7 @@ public abstract class Cache<K, V> {
 
     public abstract Cache<K, V> removeAll(Iterable<K> key);
 
-    public abstract ConcurrentMap<K, V> asMap();
+    public abstract Map<K, V> asMap();
 
     public abstract Cache<K, V> onNotFound(Function<V, K> nothingFoundListener);
 

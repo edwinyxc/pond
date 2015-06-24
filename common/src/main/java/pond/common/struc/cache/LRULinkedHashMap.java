@@ -19,6 +19,7 @@ public class LRULinkedHashMap<K, V> extends LinkedHashMap<K, V> {
     @SuppressWarnings("unchecked")
     @Override
     public V get(Object key) {
+        if(!this.containsKey(key))return null;
         V v = super.get(key);
         super.remove(key);
         super.put((K) key, v);
@@ -37,7 +38,7 @@ public class LRULinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * </p>
      *
      * @param eldest the <code>Entry</code> in question; this implementation
-     *               doesn'val care what it is, since the implementation is only
+     *               doesn't care what it is, since the implementation is only
      *               dependent on the size of the cache
      * @return <tt>true</tt> if the oldest
      * @see java.util.LinkedHashMap#removeEldestEntry(java.util.Map.Entry)

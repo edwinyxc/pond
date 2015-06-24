@@ -5,9 +5,8 @@ import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.common.struc.Cache;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public abstract class AbstractCache<K, V> extends Cache<K, V> {
 
@@ -46,10 +45,18 @@ public abstract class AbstractCache<K, V> extends Cache<K, V> {
     protected abstract V _get(K key);
 
     @Override
-    public V get(K key, Function<V, V> doWithVal) {
-        synchronized (cache) {
-            return doWithVal.apply(get(key));
+    public V get(K key, Function<V, Cache> doWithCache) {
+        return get(key, doWithCache.apply(this));
+    }
+
+    @Override
+    public V get(K key, V cache) {
+        V ret = this._get(key);
+        if (ret == null) {
+            ret = cache;
+            this.cache.put(key, ret);
         }
+        return ret;
     }
 
     @Override
@@ -64,8 +71,8 @@ public abstract class AbstractCache<K, V> extends Cache<K, V> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public ConcurrentMap<K, V> asMap() {
-        return new ConcurrentHashMap<K, V>(cache);
+    public Map<K, V> asMap() {
+        return new HashMap<>(cache);
     }
 
     @Override
