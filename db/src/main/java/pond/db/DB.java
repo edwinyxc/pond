@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
+import pond.common.sql.dialect.Dialect;
 import pond.db.connpool.ConnectionPool;
 import pond.db.connpool.SimplePool;
 
@@ -19,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static pond.common.S._for;
 import static pond.common.S._try;
 import static pond.common.f.Function.F0;
 
@@ -59,15 +59,19 @@ public final class DB {
      */
     Map<String, Map<String, Integer>> dbStructures;
 
-
-    public DB(DataSource dataSource) {
+    public DB(DataSource dataSource, Dialect dialect) {
         this.dataSource = dataSource;
         this.connProvider = () -> _try((Function.F0ERR<Connection>)
                 this.dataSource::getConnection);
         rule = new MappingRule();
         this.dbStructures = getDatabaseStructures();
-        tmpl = new JDBCTmpl(this.dbStructures,rule);
+        tmpl = new JDBCTmpl(this.dbStructures, rule, dialect);
         oper = new JDBCOper();
+    }
+
+    public DB(DataSource dataSource) {
+        //using mysql dialect as default and do not seek reason
+        this(dataSource,Dialect.mysql);
     }
 
     public DB rule(MappingRule rule) {
@@ -133,18 +137,18 @@ public final class DB {
      * @return Record or Anything mapped
      */
     public <R> R get(Function<R, JDBCTmpl> process) {
-        long startTime = S.time();
+        long startTime = S.now();
         try (JDBCTmpl tmpl = this.open()) {
-            logger.debug("open db time used: " + (S.time() - startTime));
+            logger.debug("open db time used: " + (S.now() - startTime));
             R r = process.apply(tmpl);
-            logger.debug("apply process time used: " + (S.time() - startTime));
+            logger.debug("apply process time used: " + (S.now() - startTime));
             return r;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public List<? extends Record> get(String sql, Object... args) {
+    public List<Record> get(String sql, Object... args) {
         return get(t -> t.query(sql, args));
     }
 
@@ -183,8 +187,6 @@ public final class DB {
 
     /**
      * Returns a tmpl
-     *
-     * @return
      */
     public JDBCTmpl open() {
         return tmpl.open(oper.open(connProvider.apply()));

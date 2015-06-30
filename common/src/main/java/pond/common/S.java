@@ -1,8 +1,3 @@
-/**
- * Face of s-lib
- *
- * @author ed
- */
 package pond.common;
 
 import net.sf.cglib.proxy.Enhancer;
@@ -24,11 +19,9 @@ import pond.common.struc.EnumerationIterable;
 import pond.common.struc.Matrix;
 import pond.common.util.cui.Rect;
 import pond.common.util.logger.Logger;
-import sun.misc.Unsafe;
 
 import java.io.*;
 import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -73,7 +66,7 @@ public class S {
     }
 
     public static String version() {
-        return "v0.0.1 2014";
+        return "this method is a joke, how can i even \"know\" myself";
     }
 
     /**
@@ -108,6 +101,22 @@ public class S {
             if (some.equals(o)) return true;
         }
         return false;
+    }
+
+    private static Set<String> debugModeReg = new HashSet<>();
+
+    public static void _debug(org.slf4j.Logger logger,
+                              Callback<org.slf4j.Logger> debugger){
+        if(debugModeReg.contains(logger.getName()))
+            debugger.apply(logger);
+    }
+
+    public static void _debug_on(Class<?>... clz){
+        debugModeReg.addAll(_for(clz).map(Class::getCanonicalName).toList());
+    }
+
+    public static void _debug_off(Class<?>... clz){
+        debugModeReg.removeAll(_for(clz).map(Class::getCanonicalName).toList());
     }
 
 
@@ -183,9 +192,17 @@ public class S {
         throw new RuntimeException(err);
     }
 
+    /**
+     * will delete in future
+     */
+    @Deprecated
     public static <T> T _avoidNull(T t, Class<T> clazz) {
         if (t == null) return nothing.of(clazz);
         return t;
+    }
+
+    public static <T> T avoidNull(T _check, T _else) {
+        return _check == null? _else : _check;
     }
 
     public static <T> T _notNull(T t) {
@@ -198,20 +215,29 @@ public class S {
         return t;
     }
 
+    /**
+     * use avoidNull instead
+     */
+    @Deprecated
     public static <T> T _notNullElse(T _check, T _else) {
         return _check != null ? _check : _else;
     }
 
+
     /**
      * if - else - then expression
+     * TODO will delete in future
      */
+    @Deprecated
     public static <T> T _return(F0<Boolean> expr, F0<T> retTrue, F0<T> retFalse) {
         return expr.apply() ? retTrue.apply() : retFalse.apply();
     }
 
     /**
      * if - else - then statement
+     * TODO will delete in future
      */
+    @Deprecated
     public static void _do(F0<Boolean> expr, C0 doTrue, C0 doFalse) {
         if (expr.apply()) doTrue.apply();
         else doFalse.apply();
@@ -260,7 +286,7 @@ public class S {
      */
     public static void _assert(Object a) {
         if (a == null) {
-            throw new RuntimeException(new NullPointerException());
+            throw new NullPointerException();
         }
     }
 
@@ -342,13 +368,19 @@ public class S {
 
     /**
      * @return system current time as millseconds
+     * use now() instead
      */
+    @Deprecated
     public static long time() {
         return System.currentTimeMillis();
     }
 
     public static long now() {
-        return time();
+        return System.currentTimeMillis();
+    }
+
+    public static long now_nano(){
+        return System.nanoTime();
     }
 
     public static long time(Callback.C0 cb) {
@@ -491,13 +523,13 @@ public class S {
          * @param list  input list
          * @return array
          */
-        public static Object fromList(Class<?> clazz, List<?> list) {
+        public static <T> T[] fromList(Class<?> clazz, List<?> list) {
             Object array = Array.
                     newInstance(clazz, list.size());
             for (int i = 0; i < list.size(); i++) {
                 Array.set(array, i, list.get(i));
             }
-            return array;
+            return (T[])array;
         }
 
         /**
@@ -578,7 +610,9 @@ public class S {
 
     /**
      * ***************** D ********************
+     * will delete in future
      */
+    @Deprecated
     public static class date {
 
         public static Date fromString(String aDate, String aFormat) throws ParseException {
@@ -1141,6 +1175,7 @@ public class S {
     /**
      * ******************* N **********************
      */
+    @Deprecated
     final public static class nothing {
 
         public final static Boolean _boolean = Boolean.FALSE;

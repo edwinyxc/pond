@@ -1,12 +1,9 @@
 package pond.db;
 
 import org.h2.jdbcx.JdbcDataSource;
-import org.h2.tools.Server;
 import org.junit.Test;
 import pond.common.S;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -22,16 +19,15 @@ public class H2LifeCycleTest {
         ds.setUser("sa");
         ds.setPassword("sa");
         DB db = new DB(ds);
-        db.post(t -> t.exec("drop table t_test if exists"));
-        db.post(t -> t.exec("create table t_test (text varchar(30))"));
-        S._times(() -> db.post(t -> t.exec("insert into t_test values('?')", String.valueOf(Math.random()))), 10);
+        db.post("drop table t_test if exists");
+        db.post("create table t_test (text varchar(30))");
+        S._times(() -> db.post(t -> t.exec("insert into t_test values(?)", String.valueOf(Math.random()))), 10);
         //S._times(() -> db.post(t -> t.execRaw("insert into t_test values('"+Math.random()+"')")), 10);
-        List<Record> result = db.get(t -> t.query("select * from t_test"));
-        List<Record> result1 = db.get(t -> t.query("select * from t_test"));
-        List<Record> result2 = db.get(t -> t.query("select * from t_test"));
+        List<Record> result = db.get("select * from t_test");
+        long cost = S.time(() ->
+            S._times(() -> db.get("select  * from t_test"), 100)
+        );
+        S.echo(cost);
         S.echo(S.dump(result));
-        S.echo(S.dump(result1));
-        S.echo(S.dump(result2
-        ));
     }
 }

@@ -263,26 +263,6 @@ public class JDBCOper
         return execute(sql, new String[0], new int[0]);
     }
 
-    //	/**
-//	 * execute SQL statements to Update,Modify or Delete
-//	 */
-//	public int execute(String sql, String[] params) throws SQLException {
-//		int num = 0;
-//		if (pstmt != null) {
-//			_closeStmt();
-//		}
-//		pstmt = conn.prepareStatement(sql);
-//
-//		if (params != null) {
-//			for (int i = 0; i < params.length; i++) {
-//				pstmt.setString(i + 1, params[i]);
-//			}
-//		}
-//
-//		_debug(pstmt);
-//		num = pstmt.execute();
-//		return num;
-//	}
     public void transactionStart() throws SQLException {
         synchronized (conn) {
             conn.setAutoCommit(false);
@@ -314,7 +294,7 @@ public class JDBCOper
 
     private void _debug(Object o) {
         if (logger != null) {
-            logger.info(dump(o));
+            logger.debug(dump(o));
         }
     }
 
@@ -336,74 +316,4 @@ public class JDBCOper
         }
 
     }
-
-
-    /*
-     This`ve been commented because the dependency of UploadFile have been
-     moved.
-     */
-//    private boolean setParam_try_UploadFile(PreparedStatement pstmt,
-//                                            int idx,
-//                                            Object o) throws SQLException {
-//        if (o instanceof UploadFile) {
-//            pstmt.setBinaryStream(idx, ((UploadFile) o).inputStream());
-//            return true;
-//        }
-//        return false;
-//    }
-
-//    private static boolean setParam_try_common(PreparedStatement pstmt,
-//                                               int idx,
-//                                               Object o) throws SQLException {
-//        if (o instanceof String) {
-//            pstmt.setString(idx, (String) o);
-//            return true;
-//        }
-////        else if (o instanceof Date) {
-////            pstmt.setTimestamp(idx,new Timestamp(((Date) o).getTime()));
-////            return true;
-////        }
-//
-//        if (o instanceof InputStream) {
-//            pstmt.setBinaryStream(idx, (InputStream) o);
-//            return true;
-//        }
-//
-//        return false;
-//    }
-//
-//    private static boolean setParam_try_primitive(PreparedStatement pstmt,
-//                                                  int idx,
-//                                                  Object o) throws SQLException {
-//        if (o instanceof Integer) {
-//            pstmt.setInt(idx, (Integer) o);
-//            return true;
-//        } else if (o instanceof Long) {
-//            pstmt.setLong(idx, (Long) o);
-//            return true;
-//        } else if (o instanceof Short) {
-//            pstmt.setShort(idx, (Short) o);
-//            return true;
-//        } else if (o instanceof Character) {
-//            pstmt.setString(idx, String.valueOf(o));
-//            return true;
-//        } else if (o instanceof Float) {
-//            pstmt.setFloat(idx, (Float) o);
-//            return true;
-//        } else if (o instanceof Double) {
-//            pstmt.setDouble(idx, (Double) o);
-//            return true;
-//        } else if (o instanceof Byte) {
-//            pstmt.setByte(idx, (Byte) o);
-//            return true;
-//        } else if (o instanceof Boolean) {
-//            pstmt.setBoolean(idx, (Boolean) o);
-//            return true;
-//        } else if (o instanceof BigDecimal) {
-//            pstmt.setBigDecimal(idx, (BigDecimal) o);
-//        }
-//        return false;
-//    }
-
-
 }

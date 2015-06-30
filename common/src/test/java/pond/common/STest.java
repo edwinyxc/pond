@@ -4,9 +4,9 @@ package pond.common;
 import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.junit.Test;
 
-import java.io.IOException;
+import java.util.ArrayList;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class STest {
 
@@ -28,21 +28,37 @@ public class STest {
         assertEquals(c[0], b);
     }
 
-    @Ignore
     public void test_http() throws Exception {
+        S.echo("testing http");
         S.http.get("http://www.baidu.com", null, resp -> {
-                S.echo(S.time( () -> S._try(() ->S.stream.write(resp.getEntity().getContent(),System.out)) ));
+            S.echo(S.time(() -> S._try(() -> S.stream.write(resp.getEntity().getContent(), System.out))));
         });
     }
 
+    @Test(expected = Exception.class)
+    public void test_fail() throws Exception {
+        S._fail();
+    }
+
     @Test
-    public void test() {
-        int[] c = {1,2,3,4,5,6,7,8,9,10};
-        int a = new Integer(1);
-        int b = new Integer(2);
-        System.out.println(String.valueOf(c));
-        System.out.println(c);
-        System.out.println(c.hashCode());
+    public void test_avoidNull() throws Exception {
+        assertEquals("else",S.avoidNull(null,"else"));
+    }
+
+    @Test
+    public void test_array_join() {
+        String[] arr = S.array.of(new ArrayList<String>() {{
+            this.add("a");
+            this.add("b");
+            this.add("c");
+            this.add("d");
+        }});
+        assertArrayEquals(new String[]{"a", "b", "c", "d"}, arr);
+    }
+
+    @Test
+    public void test_in(){
+        assertEquals(S._in("a", "a", "b", "c"), true);
     }
 
 }
