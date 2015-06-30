@@ -2,9 +2,9 @@ package pond.db.connpool;
 
 import pond.common.S;
 
-public class MysqlSimplePoolBuilder {
+public class H2SimplePoolBuilder {
 
-    String mysqlDriver = "com.mysql.jdbc.Driver";
+    String mysqlDriver = "org.h2.Driver";
     int capacity = 10;
     String host;
     String database;
@@ -12,35 +12,35 @@ public class MysqlSimplePoolBuilder {
     String username;
     String password;
 
-    public MysqlSimplePoolBuilder() {
+    public H2SimplePoolBuilder() {
     }
 
-    public MysqlSimplePoolBuilder host(String host) {
+    public H2SimplePoolBuilder host(String host) {
         this.host = host;
         return this;
     }
 
-    public MysqlSimplePoolBuilder database(String database) {
+    public H2SimplePoolBuilder database(String database) {
         this.database = database;
         return this;
     }
 
-    public MysqlSimplePoolBuilder query(String query) {
+    public H2SimplePoolBuilder query(String query) {
         this.query = query;
         return this;
     }
 
-    public MysqlSimplePoolBuilder username(String username) {
+    public H2SimplePoolBuilder username(String username) {
         this.username = username;
         return this;
     }
 
-    public MysqlSimplePoolBuilder password(String password) {
+    public H2SimplePoolBuilder password(String password) {
         this.password = password;
         return this;
     }
 
-    public MysqlSimplePoolBuilder capacity(int i) {
+    public H2SimplePoolBuilder capacity(int i) {
         this.capacity = i;
         return this;
     }
@@ -51,7 +51,7 @@ public class MysqlSimplePoolBuilder {
         S._assert(host, "please input host");
         S._assert(database, "please input database");
         return S._tap(new SimplePool().config(mysqlDriver,
-                        String.format("jdbc:mysql://%s/%s?%s", host, database, S._notNullElse(query, "")),
+                        String.format("jdbc:h2://%s/%s?%s", host, database, S._notNullElse(query, "")),
                         username, password),
                 newpool -> newpool.setMaxSize(capacity));
     }

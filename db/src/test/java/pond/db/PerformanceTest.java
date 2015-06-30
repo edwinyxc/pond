@@ -18,7 +18,6 @@ import java.util.Map;
 /**
  * Created by ed on 1/28/15.
  */
-@Deprecated
 public class PerformanceTest {
 
     //tested in our studio server

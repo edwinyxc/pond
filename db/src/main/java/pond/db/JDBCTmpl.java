@@ -35,9 +35,25 @@ public class JDBCTmpl implements Closeable {
 
     static Logger logger = LoggerFactory.getLogger(JDBCTmpl.class);
 
+    //database structure
+    //table_name -> Map<field_name, field_type(java.sql.Type)>
     Map<String, Map<String, Integer>> dbStructure;
 
-    final
+    private Object getObjectAsDefault(ResultSet rs, String table, String field) {
+        Map<String, Integer> struc_table = dbStructure.get(table);
+        if (struc_table == null)
+            throw new RuntimeException("table:"
+                    + table + " doesn't exist. We assume the DB structure is immutable.");
+        Integer type = struc_table.get(field);
+        if (type == null)
+            throw new RuntimeException("field:" + field + " doesn't exist. We assume the DB structure is immutable.");
+        Function.F2<?, ResultSet, String> field_fetch_method = this.rule.getMethod(type);
+        if(field_fetch_method == null)
+            throw new RuntimeException("method fetch failed type:" + type );
+        return field_fetch_method.apply(rs,field);
+    }
+
+    static final
     Function<Integer, ResultSet> counter = rs -> {
         try {
             return (Integer) rs.getInt(1);
@@ -46,11 +62,15 @@ public class JDBCTmpl implements Closeable {
         }
         return 0;
     };
-    protected JDBCOper oper;
+
+    private JDBCOper oper;
+    private MappingRule rule;
 
     public JDBCTmpl(
-            Map<String, Map<String, Integer>> structure) {
+            Map<String, Map<String, Integer>> structure,
+            MappingRule mappingRule) {
         this.dbStructure = structure;
+        this.rule = mappingRule;
     }
 
     public JDBCTmpl open(JDBCOper oper) {
@@ -85,38 +105,42 @@ public class JDBCTmpl implements Closeable {
                 try {
                     ResultSetMetaData metaData = rs.getMetaData();
                     int cnt = metaData.getColumnCount();
-                    String mainTableName = metaData.getTableName(1);
 
-                    if (S.str.notBlank(mainTableName))
-                        ret.table(mainTableName);
+//                    String mainTableName = metaData.getTableName(1);
+//
+//                    if (S.str.notBlank(mainTableName))
+//                        ret.table(mainTableName);
 
+                    String field_name;
+                    int field_type;
+                    int field_idx;
                     for (int i = 0; i < cnt; i++) {
-                        String className = metaData.getColumnClassName(i + 1);
-                        String retTable = metaData.getTableName(i + 1);
-                        Class<?> type = Object.class;
-                        try {
-                            type = Class.forName(className);
-                        } catch (ClassNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                        String colName = metaData.getColumnName(i + 1);
-                        Object val;
+                        field_idx = i + 1;
+                        field_name = metaData.getColumnName(field_idx);
+                        field_type = metaData.getColumnType(field_idx);
+//                        // if it is a binary-stream
+//                        if (type.equals(byte[].class)
+//                                || type.equals(Byte[].class)) {
+//                            val = rs.getBinaryStream(i + 1);
+//                        } else {
+//                            //TODO
+//                            /*
+//                             * if i can use the db type to re-construct the "getObject" method
+//                             * im going to create a sub-layer
+//                             */
+//
+//                            val = JDBCOper.normalizeValue(rs.getObject(i + 1, type));
+//                        }
+//
+////                    S.echo(String.format("NAME : %s ,TYPE : %s", colName,
+////                            val == null ? null : val.getClass()));
+//
+//                        if (S.str.notBlank(retTable) && !retTable.equals(mainTableName))
+//                            ret.setInner(retTable, colName, val);
+//                        else
+//                            ret.set(colName, val);
 
-                        // if it is a binary-stream
-                        if (type.equals(byte[].class)
-                                || type.equals(Byte[].class)) {
-                            val = rs.getBinaryStream(i + 1);
-                        } else {
-                            val = JDBCOper.normalizeValue(rs.getObject(i + 1, type));
-                        }
-
-//                    S.echo(String.format("NAME : %s ,TYPE : %s", colName,
-//                            val == null ? null : val.getClass()));
-
-                        if (S.str.notBlank(retTable) && !retTable.equals(mainTableName))
-                            ret.setInner(retTable, colName, val);
-                        else
-                            ret.set(colName, val);
+                        ret.set(field_name, rule.getMethod(field_type).apply(rs,field_name));
                     }
 
                 } catch (SQLException e) {
@@ -175,23 +199,22 @@ public class JDBCTmpl implements Closeable {
 
     @SuppressWarnings("unchecked")
     public <R> List<R> query(Function<?, ResultSet> mapper,
-                             String sql, Object... x) {
+                             String sql, Object... args) {
 
-        ResultSet rs;
         List<R> list = new ArrayList<>();
-        try {
+        S._try(() -> {
             long start = S.time();
-            rs = oper.query(sql, x);
-            S.echo("####rsTime: " + (S.time() - start));
-            while (rs.next()) {
-                //check
-                list.add((R) mapper.apply(rs));
-            }
-            S.echo("####queryTime: " + (S.time() - start));
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeSQLException(e);
-        }
+            oper.query(sql, args, rs -> {
+                S.echo("####rsTime: " + (S.time() - start));
+                S._try(() -> {
+                    while (rs.next()) {
+                        //check
+                        list.add((R) mapper.apply(rs));
+                    }
+                });
+                S.echo("####queryTime: " + (S.time() - start));
+            });
+        });
         return list;
     }
 
@@ -225,7 +248,7 @@ public class JDBCTmpl implements Closeable {
             }
             oper.transactionCommit();
         } catch (Throwable e) {
-            logger.info("Caught throwable [ " + e.getMessage()+" ] IN TRANSACTION, STOP COMMITTING!");
+            logger.info("Caught throwable [ " + e.getMessage() + " ] IN TRANSACTION, STOP COMMITTING!");
             throw new RuntimeException(e);
         }
     }
@@ -245,6 +268,15 @@ public class JDBCTmpl implements Closeable {
     public int exec(String sql, Object[] params, int[] types) {
         try {
             return oper.execute(sql, params, types);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public int execRaw(String sql) {
+        try {
+            return oper.executeRawSQL(sql);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -272,7 +304,6 @@ public class JDBCTmpl implements Closeable {
             throw new RuntimeException(e);
         }
     }
-
 
     static int default_sql_type(Class<?> cls) {
         if (cls.equals(Integer.class) || cls.equals(int.class)) {
@@ -318,23 +349,25 @@ public class JDBCTmpl implements Closeable {
         exec("TRUNCATE TABLE " + tbName);
     }
 
-    public ResultSet queryRS(String sql) {
-        try {
-            return oper.query(sql);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeSQLException(e);
-        }
+    public void queryRS(String sql, Callback<ResultSet> doWithResultSet) {
+        queryRS(sql, new String[0], doWithResultSet);
     }
 
-    public ResultSet queryRS(String sql, String... x) {
+    public void queryRS(String sql, Object[] args, Callback<ResultSet> doWithResultSet) {
         try {
-            return oper.query(sql, x);
+            oper.query(sql, args, doWithResultSet);
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeSQLException(e);
+            throw new RuntimeException(e);
         }
     }
+//    public ResultSet queryRS(String sql, String... x) {
+//        try {
+//            return oper.query(sql, x);
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            throw new RuntimeSQLException(e);
+//        }
+//    }
 
 
     /*----CURD

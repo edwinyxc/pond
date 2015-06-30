@@ -15,6 +15,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -51,6 +52,7 @@ public final class DB {
     private JDBCTmpl tmpl;
     private JDBCOper oper;
 
+    private MappingRule rule;
 
     /**
      * database structures (types as int)
@@ -62,14 +64,20 @@ public final class DB {
         this.dataSource = dataSource;
         this.connProvider = () -> _try((Function.F0ERR<Connection>)
                 this.dataSource::getConnection);
+        rule = new MappingRule();
         this.dbStructures = getDatabaseStructures();
-        tmpl = new JDBCTmpl(this.dbStructures);
+        tmpl = new JDBCTmpl(this.dbStructures,rule);
         oper = new JDBCOper();
+    }
+
+    public DB rule(MappingRule rule) {
+        this.rule = rule;
+        return this;
     }
 
 
     /**
-     *  This function will be only called ONCE
+     * This function will be only called ONCE
      */
     private Map<String, Map<String, Integer>> getDatabaseStructures() {
         ResultSet rs_db = null;
@@ -121,7 +129,7 @@ public final class DB {
 
     /**
      * @param process -- the 'get' process
-     * @param <R> -- the Record type
+     * @param <R>     -- the Record type
      * @return Record or Anything mapped
      */
     public <R> R get(Function<R, JDBCTmpl> process) {
@@ -134,6 +142,10 @@ public final class DB {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<? extends Record> get(String sql, Object... args) {
+        return get(t -> t.query(sql, args));
     }
 
     /* going to delete in future
@@ -157,12 +169,16 @@ public final class DB {
     }
     */
 
-    public void post(Callback<JDBCTmpl>... cbs) {
+    public void post(Callback<JDBCTmpl> cb) {
         try (JDBCTmpl tmpl = this.open()) {
-            _for(cbs).each(cb -> cb.apply(tmpl));
+            cb.apply(tmpl);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void post(String sql, Object... args) {
+        post(t -> t.exec(sql, args));
     }
 
     /**

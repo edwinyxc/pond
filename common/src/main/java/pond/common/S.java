@@ -48,18 +48,16 @@ public class S {
      */
     private final static Logger logger = Logger.getDefault();
 
-    private final static Unsafe unsafe = ((Function.F0<Unsafe>) () -> {
-        try {
-            Field uf = Unsafe.class.getDeclaredField("theUnsafe");
-            uf.setAccessible(true);
-            return (Unsafe) uf.get(null);
-        } catch (IllegalAccessException | NoSuchFieldException a) {
-            a.printStackTrace();
-        }
-        return null;
-    }).apply();
-
-
+//    private final static Unsafe unsafe = ((Function.F0<Unsafe>) () -> {
+//        try {
+//            Field uf = Unsafe.class.getDeclaredField("theUnsafe");
+//            uf.setAccessible(true);
+//            return (Unsafe) uf.get(null);
+//        } catch (IllegalAccessException | NoSuchFieldException a) {
+//            a.printStackTrace();
+//        }
+//        return null;
+//    }).apply();
 
 
     public static Logger logger() {
@@ -129,6 +127,34 @@ public class S {
         }
     }
 
+//    /**
+//     * TODO: refine comment
+//     * Tap to a self-return function before return
+//     */
+//    public static <E> E _tap(E e, Function<E, E> interceptor) {
+//        return interceptor.apply(e);
+//    }
+
+    /**
+     * TODO: refine comment
+     * Tap to a callback before return
+     */
+    public static <E> E _tap(E e, Callback<E> interceptor) {
+        interceptor.apply(e);
+        return e;
+    }
+
+    public static <E> E tap(E e, Callback<E> interceptor) {
+        return _tap(e,interceptor);
+    }
+
+    public static void _times(C0 c, int times) {
+        for(int i =0; i< times; i++){
+            c.apply();
+        }
+    }
+
+
     public static void _echo(String s) {
         echo(s);
     }
@@ -143,8 +169,10 @@ public class S {
         throw new RuntimeException(a);
     }
 
+    @Deprecated
     public static void _throw(Throwable th) {
-        unsafe.throwException(th);
+        throw new RuntimeException(th);
+        //unsafe.throwException(th);
     }
 
     public static <T> T _fail() {
