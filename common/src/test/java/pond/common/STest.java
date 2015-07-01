@@ -1,9 +1,6 @@
 package pond.common;
 
-
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.junit.Test;
-import pond.common.f.Holder;
 
 import java.util.ArrayList;
 

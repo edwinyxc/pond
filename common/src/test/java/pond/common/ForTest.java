@@ -1,6 +1,5 @@
 package pond.common;
 
-
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -12,7 +11,6 @@ import static pond.common.S.echo;
 
 public class ForTest {
 
-    @Test
     public void testArray() {
         _for(new String[]{"a", "b", "c"})
                 //.map((a) -> a.codePointAt(0))
@@ -26,7 +24,6 @@ public class ForTest {
         List list = Arrays.asList(tmp);
     }
 
-    @Test
     public void testMap() {
 
         Map<String, Integer> map = S.map
@@ -38,7 +35,6 @@ public class ForTest {
         }).each((entry) -> S.echo(entry.getValue()));
     }
 
-    @Test
     public void testBi() {
 
         Integer[] arr = {1, 2, 3, 4, 5, 6, 6, 6344, 3, 2, 2, 3, 4};

@@ -11,7 +11,6 @@ import java.util.List;
  * Created by ed on 15-6-30.
  */
 public class H2LifeCycleTest {
-    @Test
     public void start() throws SQLException, ClassNotFoundException {
         Class.forName("org.h2.Driver");
         JdbcDataSource ds = new JdbcDataSource();

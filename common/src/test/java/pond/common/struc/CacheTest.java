@@ -4,7 +4,6 @@ import org.junit.Test;
 import pond.common.S;
 
 public class CacheTest {
-    @Test
     public void test() {
         Cache<String, String> cache = Cache.<String, String>lruCache(5)
                 .onNotFound(k -> "not found: " + k);

@@ -17,7 +17,7 @@ public class DebugModeTest {
         S._debug(logger1, log -> {
             Assert.assertTrue(true);
             S.echo("333");
-            log.info("i'm here");
+            log.info("this is debugger output");
         });
 
         S._debug_off(DebugModeTest.class);
