@@ -163,7 +163,6 @@ public class S {
         }
     }
 
-
     public static void _echo(String s) {
         echo(s);
     }
@@ -205,24 +204,31 @@ public class S {
         return _check == null? _else : _check;
     }
 
+    /**
+     * Just use {@link #_assert(Object)}
+     */
+    @Deprecated
     public static <T> T _notNull(T t) {
         _assert(t, "noNull assert failure");
         return t;
     }
 
+    /**
+     * Just use {@link #_assert(Object)}
+     */
+    @Deprecated
     public static <T> T _notNull(T t, String err) {
         _assert(t, err);
         return t;
     }
 
     /**
-     * use avoidNull instead
+     * use {@link #avoidNull} instead
      */
     @Deprecated
     public static <T> T _notNullElse(T _check, T _else) {
         return _check != null ? _check : _else;
     }
-
 
     /**
      * if - else - then expression
@@ -243,10 +249,17 @@ public class S {
         else doFalse.apply();
     }
 
+    /**
+     * Please use {@link java.util.Map#getOrDefault(Object, Object)}
+     */
+    @Deprecated
+    @SuppressWarnings("unchecked")
     public static <E> E _getOrDefault(Map m, Object c, E _default) {
-        return (E) _notNullElse(m.get(c), _default);
+        return (E) avoidNull(m.get(c), _default);
     }
 
+
+    @SuppressWarnings("unchecked")
     public static <E> E _getOrSet(Map m, Object c, E e) {
         Holder<E> eHolder = new Holder<E>();
         return _return(() -> (eHolder.val = (E) m.get(c)) != null,
@@ -303,20 +316,12 @@ public class S {
         }
     }
 
-    public static void _assertNotNull(Object... x) {
-        for (Object o : x) {
-            if (o == null) throw new NullPointerException();
-        }
-    }
-
-
     /**
-     * <p>Print somethings to the default logger</p>
-     *
-     * @param o object(s) to print
+     * see {@link System#out}
      */
     public static void echo(Object o) {
-        logger.echo(dump(o));
+        //logger.echo(dump(o));
+        System.out.println(dump(o));
     }
 
     /**
@@ -476,7 +481,7 @@ public class S {
         }
 
         /**
-         * put elements to the left.delete the null ones
+         * Return a new Array without null value
          *
          * @param arr input Object array
          * @return compacted array
@@ -554,6 +559,10 @@ public class S {
      * ***************** C ********************
      */
 
+    /**
+     *
+     */
+    @Deprecated
     public static class collection {
 
         public static class set {

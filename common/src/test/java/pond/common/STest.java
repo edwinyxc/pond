@@ -10,21 +10,22 @@ import static org.junit.Assert.*;
 
 public class STest {
 
-    final int a = 100;
-    final int b = 1000;
-
     @Test
     public void test_return() throws Exception {
+        final int a = 100;
+        final int b = 1000;
 
-        int c = S._return(() ->  a > b,
+        int c = S._return(() -> a > b,
                 () -> a, () -> b);
         assertEquals(c, b);
     }
 
     @Test
     public void test_do() throws Exception {
+        final int a = 100;
+        final int b = 1000;
         int[] c = new int[1];
-        S._do( ()-> a > b, ()-> c[0] = a, ()-> c[0] = b );
+        S._do(() -> a > b, () -> c[0] = a, () -> c[0] = b);
         assertEquals(c[0], b);
     }
 
@@ -42,7 +43,7 @@ public class STest {
 
     @Test
     public void test_avoidNull() throws Exception {
-        assertEquals("else",S.avoidNull(null,"else"));
+        assertEquals("else", S.avoidNull(null, "else"));
     }
 
     @Test
@@ -57,8 +58,9 @@ public class STest {
     }
 
     @Test
-    public void test_in(){
+    public void test_in() {
         assertEquals(S._in("a", "a", "b", "c"), true);
     }
+
 
 }
