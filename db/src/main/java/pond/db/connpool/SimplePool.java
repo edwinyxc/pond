@@ -3,6 +3,7 @@ package pond.db.connpool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pond.common.S;
 
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
@@ -13,7 +14,6 @@ import java.util.List;
 import java.util.Properties;
 
 import static pond.common.S._dump;
-import static pond.common.S._try;
 
 public class SimplePool implements ConnectionPool {
 
@@ -66,7 +66,7 @@ public class SimplePool implements ConnectionPool {
             size = poolMaxSize;
         }
         for (int i = 0; i < size; i++) {
-            connPool.add(_try(() -> createConnection()));
+            connPool.add(S._try_ret(() -> createConnection()));
         }
 
         return this;
@@ -144,7 +144,7 @@ public class SimplePool implements ConnectionPool {
     @Override
     public SimplePool loadConfig(Properties p) {
         String str_poolMaxSize = p.getProperty(ConnectionPool.MAXSIZE, "10");
-        setMaxSize(_try( () -> Integer.parseInt(str_poolMaxSize) ));
+        setMaxSize(S._try_ret( () -> Integer.parseInt(str_poolMaxSize) ));
         String driverClass = p.getProperty(ConnectionPool.DRIVER);
         String url = p.getProperty(ConnectionPool.URL);
         String pass = p.getProperty(ConnectionPool.PASSWORD);

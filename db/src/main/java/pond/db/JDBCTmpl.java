@@ -180,8 +180,8 @@ public class JDBCTmpl implements Closeable {
                              String sql, Object... args) {
 
         List<R> list = new ArrayList<>();
-        S._try(() -> {
-            long start = S.now();
+        long start = S.now();
+        S._try(() ->
             oper.query(sql, args, rs -> {
                 S._debug(logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
                 S._try(() -> {
@@ -191,8 +191,8 @@ public class JDBCTmpl implements Closeable {
                     }
                 });
                 S._debug(logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
-            });
-        });
+            })
+        );
         return list;
     }
 

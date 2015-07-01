@@ -8,7 +8,7 @@ import java.util.*;
 
 import static pond.common.S._assert;
 import static pond.common.S._for;
-import static pond.common.S._try;
+import static pond.common.S._try_ret;
 
 /**
  * Created by ed on 14-5-19.
@@ -97,8 +97,7 @@ public class AbstractRecord extends HashMap<String, Object>
         String name;
 
         Function.F2<E, String, ResultSet> rs_mapper = (name, rs) ->
-                _try(() -> (E) rs.getObject(name));
-
+                _try_ret(() -> (E) rs.getObject(name));
 
         Function<?, E> view = t -> t;
 

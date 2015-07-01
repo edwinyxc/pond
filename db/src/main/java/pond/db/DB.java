@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static pond.common.S._try;
 import static pond.common.f.Function.F0;
 
 
@@ -61,7 +60,7 @@ public final class DB {
 
     public DB(DataSource dataSource, Dialect dialect) {
         this.dataSource = dataSource;
-        this.connProvider = () -> _try((Function.F0ERR<Connection>)
+        this.connProvider = () -> S._try_ret((Function.F0ERR<Connection>)
                 this.dataSource::getConnection);
         rule = new MappingRule();
         this.dbStructures = getDatabaseStructures();

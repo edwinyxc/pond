@@ -3,6 +3,7 @@ package pond.common;
 
 import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.junit.Test;
+import pond.common.f.Holder;
 
 import java.util.ArrayList;
 
@@ -62,5 +63,16 @@ public class STest {
         assertEquals(S._in("a", "a", "b", "c"), true);
     }
 
+    @Test(expected = Exception.class)
+    public void test_try_ret(){
+        String a =  S._try_ret(() -> {
+            throw new Exception();
+        });
+    }
+
+    @Test
+    public void test_try(){
+        S._try(() -> S.echo("sd"));
+    }
 
 }

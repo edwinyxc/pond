@@ -128,6 +128,18 @@ public class S {
         }
     }
 
+    public static <R> R _try_ret(Function.F0ERR<R> f) {
+        try {
+            return f.apply();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * use {@link #_try_ret} instead
+     */
+    @Deprecated
     public static <R> R _try(Function.F0ERR<R> f) {
         try {
             return f.apply();
@@ -876,7 +888,7 @@ public class S {
          * Load properties from the file
          */
         public static Properties loadProperties(File conf) {
-            return _try(() -> {
+            return _try_ret(() -> {
                 Properties config = new Properties();
                 if (conf.exists() && conf.canRead())
                     config.load(new FileInputStream(conf));
@@ -893,7 +905,7 @@ public class S {
          * Load properties from the file, under the classroot
          */
         public static Properties loadProperties(String fileName) {
-            return _try(() -> {
+            return _try_ret(() -> {
                 Properties config = new Properties();
                 File conf = new File(S.path.rootClassPath()
                         + File.separator + fileName);
