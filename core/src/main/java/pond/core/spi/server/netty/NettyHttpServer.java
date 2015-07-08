@@ -89,7 +89,6 @@ public class NettyHttpServer extends AbstractServer {
 
         @Override
         protected void messageReceived(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
-            S.echo("---------------------------");
             S.echo(msg.content().toString(CharsetUtil.US_ASCII));
             //TODO if request is chunked? upload file?
             NettyReqWrapper reqWrapper = new NettyReqWrapper(ctx, msg, NettyHttpServer.this);

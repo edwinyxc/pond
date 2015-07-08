@@ -55,13 +55,12 @@ public class SessionInstaller
 
 
     @Override
-    public void apply(Request request, Response response, Callback.C0 next) {
+    public void apply(Request request, Response response) {
         String uuid;
         if (null == (uuid = checkJSession(request))) {
             uuid = writeSessionId(response);
             response.redirect(request.path());
         }
         request.ctx().put(JSESSIONID, uuid);
-        next.apply();
     }
 }

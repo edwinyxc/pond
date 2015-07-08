@@ -27,13 +27,12 @@ public class Controller extends Router {
                     }
                     this.use(HttpMethod.mask(((Mapping) a).methods()),
                             val,
-                            (req, resp, next) -> {
+                            (req, resp) -> {
                                 Object[] args =
                                  _setReqAndResToMethod(m,req,resp);
                                 try {
                                     m.setAccessible(true);
                                     m.invoke(this,args);
-                                    next.apply();
                                 } catch (IllegalAccessException e) {
                                     throw new RuntimeException(e);
                                 } catch (InvocationTargetException e) {
@@ -73,9 +72,5 @@ public class Controller extends Router {
         };
     }
 
-    @Override
-    public void apply(Request req, Response resp, Callback.C0 next) {
-        super.apply(req, resp, ()->{});
-    }
 }
 

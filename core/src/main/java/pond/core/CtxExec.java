@@ -1,18 +1,18 @@
 package pond.core;
 
-import pond.common.f.Callback;
-import pond.core.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pond.common.S;
+import pond.core.exception.HttpException;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 
 public class CtxExec {
 
-    static Logger logger = LoggerFactory.getLogger(CtxExec.class);
+    static Logger logger = LoggerFactory.getLogger("pond-core");
+
     private static ThreadLocal<Ctx> ctxThreadLocal = new ThreadLocal<>();
 
     public static Ctx get() {
@@ -50,6 +50,7 @@ public class CtxExec {
      * @param ctx
      */
     public void exec(Ctx ctx, List<Mid> additionalMids) {
+
         Mid mid = ctx.getMid();
         ctx.addMids(additionalMids);
         if (mid == null) {
@@ -60,10 +61,14 @@ public class CtxExec {
             ctxThreadLocal.set(ctx);
             if (ctx.handled) return;
             if (mid != null) {
-                logger.debug("Found uri: " + ctx.req.path() + ", mid: " + mid.toString());
-                mid.apply(ctx.req, ctx.resp, () -> exec(ctx));
-            } else logger.debug("Reach the end of mids");
-            //return ctx.isHandled;
+                final Mid finalMid = mid;
+                S._debug(logger, log -> log.debug("Found uri: "
+                        + ctx.req.path() + ", mid: " + finalMid.toString()));
+                mid.apply(ctx.req, ctx.resp);
+                exec(ctx);
+            } //reach the end of mids
+            if(!ctx.handled)
+                ctx.resp.send(404);
         } catch (RuntimeException e) {
             unwrapRuntimeException(e, ctx.resp);
         } catch (Throwable e) {

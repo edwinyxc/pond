@@ -36,7 +36,7 @@ public class Router implements Mid, RouterAPI {
     }
 
     @Override
-    public void apply(Request req, Response resp, Callback.C0 next) {
+    public void apply(Request req, Response resp ) {
 
         HttpMethod method = HttpMethod.of(req.method());
 
@@ -102,7 +102,6 @@ public class Router implements Mid, RouterAPI {
 //            }
 //    }
         //why?
-        next.apply();
     }
 
     @Override

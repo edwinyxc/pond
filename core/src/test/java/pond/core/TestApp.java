@@ -2,9 +2,11 @@ package pond.core;
 
 import pond.common.S;
 import pond.common.f.Holder;
+import pond.core.spi.server.netty.NettyReqWrapper;
 
 import java.util.Map;
 
+import static java.lang.Integer.parseInt;
 import static pond.common.S.file.loadProperties;
 
 /**
@@ -14,28 +16,46 @@ public class TestApp {
 
     public static void basic() {
         Pond app = Pond.init();
-        app.get("/",(req, res, next) -> {
-            req.param("user", "hellosdddaweqweqw" +
-                    "asdasdasdasd" +
-                    "asdqweqwe1231231321");
-            S.echo("####REACH");
-            next.apply();
-        });
-        app.get("/",(req, res ) -> {
-            String user = req.param("user");
-            S.echo("####REACH2");
-            System.out.println(user);
-            res.send("<p>" + user + "</p>");
-        });
+//        app.get("/",(req, res ) -> {
+//            req.param("user", "hellosdddaweqweqw" +
+//                    "asdasdasdasd" +
+//                    "asdqweqwe1231231321");
+//            S.echo("####REACH");
+//        });
+        S._debug_on(NettyReqWrapper.class);
+        app.get("/", (req, res) -> {
+                    req.param("user", "1");
+                    //next.apply();
+                },
+                (req, res) ->{
+                    req.param("user", String.valueOf(parseInt(req.param("user"))+ 1));
+                },
+                (req, res) ->{
+                    req.param("user", String.valueOf(parseInt(req.param("user"))+ 1));
+                },
+                (req, res) ->{
+                    req.param("user", String.valueOf(parseInt(req.param("user"))+ 1));
+                },
+                (req, res) ->{
+                    req.param("user", String.valueOf(parseInt(req.param("user"))+ 1));
+                },
+                (req, res) ->{
+                    req.param("user", String.valueOf(parseInt(req.param("user"))+ 1));
+                },
+                (req, res) -> {
+                    String user = req.param("user");
+                    res.contentType("application/json");
+                    res.send( user );
+                });
         app.listen();
     }
 
     public static void config() {
-        Pond app = Pond.init( p ->
+        Pond app = Pond.init(p ->
                 p.loadConfig(loadProperties("pond.conf")));
 
         app.get("/123", (req, resp) ->
-                resp.send("<p>"+req.ctx().pond.attr("test")+"</p>"));
+                resp.send("<p>" + req.ctx().pond.attr("test") + "</p>"));
 
         app.listen();
     }
@@ -70,7 +90,7 @@ public class TestApp {
 
     public static void tmpl() {
         Pond app = Pond.init().debug();
-        app.get("/",(req, resp) -> {
+        app.get("/", (req, resp) -> {
             resp.render(Render.view("home.view"));
         });
         app.listen();
@@ -79,7 +99,7 @@ public class TestApp {
     public static void test_cross_mid_ctx_continuity() {
         Pond app = Pond.init().debug();
         Holder<Map> tester = new Holder<>();
-        app.get("/",(req, resp) -> {
+        app.get("/", (req, resp) -> {
             req.ctx().put("a", "a");
             System.out.println(req.ctx());
             tester.val = req.ctx();
@@ -96,32 +116,30 @@ public class TestApp {
     public static void test_cross_mid_ctx_continuity_complex() {
         Pond app = Pond.init().debug();
         Holder<Map> tester = new Holder<>();
-        app.get("/users",(req, resp ) -> {
+        app.get("/users", (req, resp) -> {
             req.ctx().put("a", "a");
             System.out.println(req.ctx());
             tester.val = req.ctx();
             req.ctx().put("id", req.ctx());
             resp.send(req.ctx().toString());
         });
-        app.before((req, resp, next) -> {
+        app.before((req, resp ) -> {
             req.ctx().put("val", 1);
-            System.out.println ("here");
-            next.apply();
         });
         app.listen();
     }
 
-    public static void test_min_group_route(){
+    public static void test_min_group_route() {
         Pond app = Pond.init().debug();
-        app.get("/${id}/new",(req,resp)->resp.send(req.param("id")+"/new1"));
-        app.get("/new/${id}",(req,resp)->resp.send("new2/"+req.param("id")));
-        app.get("/new",(req,resp)->resp.send("new"));
-        app.get("/${id}",(req,resp)->resp.send("id="+req.param("id")));
+        app.get("/${id}/new", (req, resp) -> resp.send(req.param("id") + "/new1"));
+        app.get("/new/${id}", (req, resp) -> resp.send("new2/" + req.param("id")));
+        app.get("/new", (req, resp) -> resp.send("new"));
+        app.get("/${id}", (req, resp) -> resp.send("id=" + req.param("id")));
         app.listen();
     }
 
     public static void main(String[] args) {
-        basic();
+       basic();
 //        config();
 //        router();
 //        www();

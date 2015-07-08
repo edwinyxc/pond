@@ -302,7 +302,7 @@ public final class Pond implements RouterAPI {
         else if (e instanceof EnvSPI) {
             ((EnvSPI) e).env(this.config);
         }
-        logger.info("Get " +
+        logger.info("SPI-INJECT" +
                 s.getSimpleName() + ": " + e.getClass().getCanonicalName());
         return e;
     }

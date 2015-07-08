@@ -39,6 +39,9 @@ public class Ctx extends HashMap<String, Object> {
         this.handled = b;
     }
 
+    public boolean hasMoreMids(){
+        return !stack.isEmpty();
+    }
 
     public Request req() {
         return req;

@@ -4,10 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelProgressiveFuture;
-import io.netty.channel.ChannelProgressiveFutureListener;
 import io.netty.handler.codec.http.*;
-import io.netty.util.CharsetUtil;
 import pond.common.S;
 import pond.core.Response;
 
@@ -109,11 +106,13 @@ public class NettyRespWrapper implements Response {
 
     private void _send() {
         writer.flush();
-        S.echo("SENDING CONTENT: ");
-        S.echo(buffer.toString(CharsetUtil.US_ASCII));
-        S._tap(ctx.writeAndFlush(resp), future -> {
+        int contentLen = resp.content().readableBytes();
+        if (contentLen > 0)
+            resp.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, contentLen);
 
+        S._tap(ctx.writeAndFlush(resp), future -> {
             if (!HttpHeaderUtil.isKeepAlive(request)) {
+                resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
                 future.addListener(ChannelFutureListener.CLOSE);
             }
         });

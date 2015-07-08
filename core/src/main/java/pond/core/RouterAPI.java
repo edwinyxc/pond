@@ -16,19 +16,10 @@ public interface RouterAPI {
                 path, mids);
     }
 
-    default RouterAPI get(String path, Callback.C2<Request, Response> mid) {
-        return use(HttpMethod.mask(HttpMethod.GET),
-                path, (req, resp, next) -> mid.apply(req, resp));
-    }
 
     default RouterAPI post(String path, Mid... mids) {
         return use(HttpMethod.mask(HttpMethod.POST),
                 path, mids);
-    }
-
-    default RouterAPI post(String path, Callback.C2<Request, Response> mid) {
-        return use(HttpMethod.mask(HttpMethod.POST),
-                path, (req, resp, next) -> mid.apply(req, resp));
     }
 
     default RouterAPI del(String path, Mid... mids) {
@@ -36,18 +27,9 @@ public interface RouterAPI {
                 path, mids);
     }
 
-    default RouterAPI del(String path, Callback.C2<Request, Response> mid) {
-        return use(HttpMethod.mask(HttpMethod.DELETE),
-                path, (req, resp, next) -> mid.apply(req, resp));
-    }
-
     default RouterAPI put(String path, Mid... mids) {
         return use(HttpMethod.mask(HttpMethod.PUT),
                 path, mids);
     }
 
-    default RouterAPI put(String path, Callback.C2<Request, Response> mid) {
-        return use(HttpMethod.mask(HttpMethod.PUT),
-                path, (req, resp, next) -> mid.apply(req, resp));
-    }
 }
