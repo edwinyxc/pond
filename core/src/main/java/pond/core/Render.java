@@ -21,23 +21,23 @@ import static pond.core.Pond.debug;
  */
 public interface Render {
 
-    static Logger logger = LoggerFactory.getLogger(Render.class);
+    Logger logger = LoggerFactory.getLogger(Render.class);
 
-    public static Render error(int err_code, String msg) {
+    static Render error(int err_code, String msg) {
         String path = "err" + File.separator + err_code;
         return view(path, new HashMap<String, Object>() {{
             this.put("err_msg", msg);
         }});
     }
 
-    public static Render text(String text) {
+    static Render text(String text) {
         return (req, resp) -> {
             resp.write(text);
             resp.send(200);
         };
     }
 
-    public static Render json(Object o) {
+    static Render json(Object o) {
         //JsonService serv = SPILoader.service(JsonService.class);
         return (req, resp) -> {
             resp.contentType("application/json;charset=utf-8");
@@ -46,7 +46,7 @@ public interface Render {
         };
     }
 
-    public static Render file(File f) {
+    static Render file(File f) {
         return (req, resp) -> {
             String filename = f.getName();
             String file_n = S.str.notBlank(filename) ? filename :
@@ -71,7 +71,7 @@ public interface Render {
     /**
      * download
      */
-    public static Render attachment(InputStream file, String filename) {
+    static Render attachment(InputStream file, String filename) {
         return (req, resp) -> {
             String file_n = S.str.notBlank(filename) ? filename :
                     String.valueOf(S.time());
@@ -110,13 +110,13 @@ public interface Render {
         };
     }
 
-    public static Render dump(Object o) {
+    static Render dump(Object o) {
         return (req, resp) ->
                 resp.write(S.dump(o));
     }
 
     @SuppressWarnings("unchecked")
-    public static Render view(String path, Object o) {
+    static Render view(String path, Object o) {
 
         return (req, resp) -> {
             Pond app = req.ctx().pond;
@@ -158,11 +158,11 @@ public interface Render {
         };
     }
 
-    public static Render view(String path) {
+    static Render view(String path) {
         return view(path, null);
     }
 
-    public void render(Request req, Response resp);
+    void render(Request req, Response resp);
 
 
 }

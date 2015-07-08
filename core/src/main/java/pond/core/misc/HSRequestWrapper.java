@@ -1,6 +1,6 @@
 package pond.core.misc;
 
-import pond.core.http.AbstractRequest;
+import pond.core.AbstractRequest;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;

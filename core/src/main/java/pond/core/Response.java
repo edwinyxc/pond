@@ -54,20 +54,10 @@ public interface Response {
 
     /**
      * <p>向客户端写入文件，完成时发送200，此操作立即返回，具体如何发送由底层服务器控制。</p>
-     *
+     * big file
      * @param file attachment
-     * @deprecated v1.0之后请使用 Renderable#attachment
      */
-    @Deprecated
-    default void sendFile(File file) {
-        try (FileInputStream in = new FileInputStream(file)) {
-            S.stream.write(in, this.out());
-            status(200);
-        } catch (IOException e) {
-            status(500);
-            e.printStackTrace();
-        }
-    }
+    void sendFile(File file);
 
     /**
      * @deprecated v1.0之后请使用 Renderable#attachment
@@ -99,6 +89,7 @@ public interface Response {
      *
      * @return outputStream
      */
+    @Deprecated
     OutputStream out();
 
     /**
@@ -145,7 +136,7 @@ public interface Response {
     }
 
     default Ctx ctx(){
-        throw new UnsupportedOperationException("use wrapper");
+        return CtxExec.get();
     }
 
 

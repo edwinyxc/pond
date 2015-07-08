@@ -22,12 +22,12 @@ public class ControllerTest extends Controller {
         resp.render(Render.view("home.view"));
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Pond app = Pond.init().debug();
         app.use("/co", new ControllerTest());
         app.get("/co", (req,resp)->{
                    resp.send("here");
                 });
-        app.listen(8080);
+        app.listen();
     }
 }

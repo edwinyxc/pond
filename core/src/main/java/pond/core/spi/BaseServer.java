@@ -1,33 +1,48 @@
 package pond.core.spi;
 
+import org.slf4j.Logger;
+import pond.common.f.Callback;
 import pond.core.PondAware;
 import pond.core.Request;
 import pond.core.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static pond.common.f.Function.F2;
 
 public interface BaseServer extends PondAware{
-    static Logger logger = LoggerFactory.getLogger(BaseServer.class);
 
-    public void listen(int port);
+    Logger logger = org.slf4j.LoggerFactory.getLogger(BaseServer.class);
 
-    public void stop();
+    //allowed env vars:
+    /**
+     Use SSL, [boolean]  when this option triggered,
+     the port is locked to 443
+     */
+    String SSL = "ssl";
 
-    public void installHandler(F2<Boolean, Request, Response> handler);
+    /**
+     * PORT
+     */
+    String PORT = "port";
 
-    public void installStatic(StaticFileServer server);
+    /*
+     * max in-queue connection
+     */
+    String BACK_LOG = "backlog";
 
-    public StaticFileServer staticFileServer(String str);
+    /**
+     * locale
+     */
+    String LOCALE = "locale";
 
-    public interface StaticFileServer{
+    /**
+     use the registered env("port") to get the listen port
+     */
+    void listen() throws Exception;
 
-        public StaticFileServer allowList(boolean b);
+    //register process handler
+    void handler(Callback.C2<Request, Response> handler);
 
-        public StaticFileServer welcomeFiles(String... files);
+    //set Config
+    BaseServer env(String key, Object whatever);
 
-        public StaticFileServer allowMemFileMapping(boolean b);
-
-    }
+    //get env
+    Object env(String key );
 }

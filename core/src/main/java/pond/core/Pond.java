@@ -20,24 +20,24 @@ import static pond.common.S.*;
 /**
  * Main Class
  */
-public final class Pond implements  RouterAPI {
+public final class Pond implements RouterAPI {
 
     static Logger logger = LoggerFactory.getLogger(Pond.class);
 
     public final static String DEFAULT_DB = "_db";
-    public final static String MULTIPART_RESOLVER= "_multipart_resolver";
+    public final static String MULTIPART_RESOLVER = "_multipart_resolver";
     private SPILoader spiLoader = new SPILoader();
     private BaseServer server;
     private Router rootRouter;
     public final Config config = new Config();
-    public final Map<String,Object> container = new HashMap<>();
+    public final Map<String, Object> container = new HashMap<>();
 
-    public Object component(String k){
+    public Object component(String k) {
         return container.get(k);
     }
 
     public Pond component(String k, Object v) {
-        container.put(k,v);
+        container.put(k, v);
         return this;
     }
 
@@ -72,10 +72,10 @@ public final class Pond implements  RouterAPI {
         String webroot = S.path.detectWebRootPath();
 
         //map properties
-        File configFile = new File( root + File.separator + Config.CONFIG_FILE_NAME);
+        File configFile = new File(root + File.separator + Config.CONFIG_FILE_NAME);
 
-        if ( configFile.exists() && configFile.canRead()) {
-            loadConfig(S.file.loadProperties( configFile ));
+        if (configFile.exists() && configFile.canRead()) {
+            loadConfig(S.file.loadProperties(configFile));
         } else {
             logger.info("config file not exists. using default values");
             //TODO
@@ -115,12 +115,13 @@ public final class Pond implements  RouterAPI {
     }
 
     public Pond _static(String dir) {
-        server.installStatic(server.staticFileServer(dir));
+        //TODO internal static module
+        //server.handler(server.staticFileServer(dir));
         return this;
     }
 
-    public Map<String,Session> sessions() {
-        _assert(sessionManager,"Please use session first");
+    public Map<String, Session> sessions() {
+        _assert(sessionManager, "Please use session first");
         return sessionManager.getAll();
     }
 
@@ -128,8 +129,8 @@ public final class Pond implements  RouterAPI {
      * Returns a MW that handle session
      * see more at com.shuimin.pond.core.mw.session.Session
      */
-    public SessionInstaller useSession () {
-        if ( this.sessionManager == null) {
+    public SessionInstaller useSession() {
+        if (this.sessionManager == null) {
             this.sessionManager = new SessionManager(this);
         }
         return new SessionInstaller(this.sessionManager);
@@ -138,11 +139,11 @@ public final class Pond implements  RouterAPI {
     /**
      * get Session
      */
-    Session session( Ctx ctx ) {
-        if ( this.sessionManager == null ) {
-            throw new RuntimeException( "Please use Pond.before(pond.useSession()) first" );
+    Session session(Ctx ctx) {
+        if (this.sessionManager == null) {
+            throw new RuntimeException("Please use Pond.before(pond.useSession()) first");
         }
-        return this.sessionManager.get( ctx );
+        return this.sessionManager.get(ctx);
     }
 
     //static method
@@ -155,16 +156,15 @@ public final class Pond implements  RouterAPI {
     public MultipartRequestResolver multipart() {
         MultipartRequestResolver ret = (MultipartRequestResolver)
                 this.component(MULTIPART_RESOLVER);
-        if(ret == null) {
+        if (ret == null) {
             ret = spiLoader.service(MultipartRequestResolver.class);
             this.component(MULTIPART_RESOLVER, ret);
         }
         return ret;
     }
 
-    
+
     /**
-     * 
      * Returns JsonService
      */
     public JsonService json() {
@@ -179,7 +179,7 @@ public final class Pond implements  RouterAPI {
     /**
      * Load attributes from properties
      */
-    public Pond loadConfig( Properties conf ) {
+    public Pond loadConfig(Properties conf) {
         config.load(conf);
         return this;
     }
@@ -217,7 +217,6 @@ public final class Pond implements  RouterAPI {
     }
 
 
-
     /**
      * get absolute path relative to g.web_root
      *
@@ -247,7 +246,7 @@ public final class Pond implements  RouterAPI {
         }
         return root + File.separator + path;
     }
-    
+
 
     public ViewEngine viewEngine(String ext) {
         ViewEngine ret = viewEngines.get(ext);
@@ -260,38 +259,26 @@ public final class Pond implements  RouterAPI {
         return this;
     }
 
-    /**
-     * In this case, the port has been set.
-     * @return
-     */
-    public Pond start() {
-        listen(config.getInt(Config.PORT));
-        return this;
-    }
-
-    public Pond listen(int port) {
+    public Pond listen() {
         logger.info("Starting server...");
         //append dispatcher to the chain
-        List<Mid> mids = new LinkedList<>(before);
+        LinkedList<Mid> mids = new LinkedList<>(before);
         mids.add(rootRouter);
-
-        server.installHandler((req, resp) ->
-            executor.exec( new Ctx(req, resp, this, mids),
-                Collections.emptyList()));
-
-        server.listen(port);
-        logger.info("Server binding port: " + port);
+        server.handler((req, resp) -> {
+            Ctx ctx = new Ctx(req, resp, this, mids);
+            executor.exec(ctx);
+        });
+        try {
+            server.listen();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            logger.error(S.dump(e.getStackTrace()));
+        }
         return this;
     }
 
-    public void stop() {
-        logger.info("Stopping server...");
-        server.stop();
-        logger.info("... finished");
-    }
-    
     /**
-     * DO NOT USE 
+     * DO NOT USE
      * MAY BE DELETED IN FUTURE
      */
     @Deprecated
@@ -312,10 +299,10 @@ public final class Pond implements  RouterAPI {
         E e = spiLoader.service(s);
         if (e == null)
             throw new NullPointerException(s.getSimpleName() + "not found");
-        else if ( e instanceof EnvSPI ) {
+        else if (e instanceof EnvSPI) {
             ((EnvSPI) e).env(this.config);
         }
-        logger.info("Get " + 
+        logger.info("Get " +
                 s.getSimpleName() + ": " + e.getClass().getCanonicalName());
         return e;
     }

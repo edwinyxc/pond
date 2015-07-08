@@ -5,9 +5,7 @@ import pond.core.Response;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 
 /**
  * @author ed
@@ -52,6 +50,15 @@ public class HSResponseWrapper implements Response {
             }
         }
         hasSend = true;
+    }
+
+    @Override
+    public void sendFile(File file) {
+        try {
+            S.stream.pipe(new FileInputStream(file),out());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

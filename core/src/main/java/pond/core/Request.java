@@ -66,6 +66,7 @@ public interface Request {
     Cookie cookie(String s);
 
     //    HttpServletRequest raw();
+
     String characterEncoding();
 
     /**
@@ -77,7 +78,7 @@ public interface Request {
     }
 
     default Ctx ctx() {
-        throw new UnsupportedOperationException("use wrapper");
+        return CtxExec.get();
     }
 //    Route route();
 //

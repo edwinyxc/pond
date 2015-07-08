@@ -106,16 +106,16 @@ public class S {
     private static Set<String> debugModeReg = new HashSet<>();
 
     public static void _debug(org.slf4j.Logger logger,
-                              Callback<org.slf4j.Logger> debugger){
-        if(debugModeReg.contains(logger.getName()))
+                              Callback<org.slf4j.Logger> debugger) {
+        if (debugModeReg.contains(logger.getName()))
             debugger.apply(logger);
     }
 
-    public static void _debug_on(Class<?>... clz){
+    public static void _debug_on(Class<?>... clz) {
         debugModeReg.addAll(_for(clz).map(Class::getCanonicalName).toList());
     }
 
-    public static void _debug_off(Class<?>... clz){
+    public static void _debug_off(Class<?>... clz) {
         debugModeReg.removeAll(_for(clz).map(Class::getCanonicalName).toList());
     }
 
@@ -166,11 +166,11 @@ public class S {
     }
 
     public static <E> E tap(E e, Callback<E> interceptor) {
-        return _tap(e,interceptor);
+        return _tap(e, interceptor);
     }
 
     public static void _times(C0 c, int times) {
-        for(int i =0; i< times; i++){
+        for (int i = 0; i < times; i++) {
             c.apply();
         }
     }
@@ -213,7 +213,7 @@ public class S {
     }
 
     public static <T> T avoidNull(T _check, T _else) {
-        return _check == null? _else : _check;
+        return _check == null ? _else : _check;
     }
 
     /**
@@ -396,7 +396,7 @@ public class S {
         return System.currentTimeMillis();
     }
 
-    public static long now_nano(){
+    public static long now_nano() {
         return System.nanoTime();
     }
 
@@ -546,7 +546,7 @@ public class S {
             for (int i = 0; i < list.size(); i++) {
                 Array.set(array, i, list.get(i));
             }
-            return (T[])array;
+            return (T[]) array;
         }
 
         /**
@@ -1421,13 +1421,21 @@ public class S {
         }
 
         /**
-         * write from is to os;
-         *
+         * @link{ #pipe}
+         * @throws IOException
+         */
+        @Deprecated
+        public static void write(final InputStream in, final OutputStream out) throws IOException {
+            pipe(in,out);
+        }
+
+        /**
+         * pipe inputStream & outputStream
          * @param in  inputStream
          * @param out outputStream
          * @throws java.io.IOException
          */
-        public static void write(final InputStream in, final OutputStream out) throws IOException {
+        public static void pipe(final InputStream in, final OutputStream out) throws IOException {
             final byte[] buffer = new byte[BUFFER_SIZE];
             int cnt;
 

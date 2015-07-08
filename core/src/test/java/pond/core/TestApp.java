@@ -14,17 +14,20 @@ public class TestApp {
 
     public static void basic() {
         Pond app = Pond.init();
-        app.get("/",(req, res ) -> {
+        app.get("/",(req, res, next) -> {
             req.param("user", "hellosdddaweqweqw" +
                     "asdasdasdasd" +
                     "asdqweqwe1231231321");
+            S.echo("####REACH");
+            next.apply();
         });
         app.get("/",(req, res ) -> {
             String user = req.param("user");
+            S.echo("####REACH2");
             System.out.println(user);
             res.send("<p>" + user + "</p>");
         });
-        app.listen(8080);
+        app.listen();
     }
 
     public static void config() {
@@ -34,7 +37,7 @@ public class TestApp {
         app.get("/123", (req, resp) ->
                 resp.send("<p>"+req.ctx().pond.attr("test")+"</p>"));
 
-        app.listen(8080);
+        app.listen();
     }
 
     public static void router() {
@@ -52,7 +55,7 @@ public class TestApp {
             resp.send(S.dump(req));
         }).use("/user", router);
 
-        app.listen(8080);
+        app.listen();
     }
 
     public static void www() {
@@ -61,7 +64,7 @@ public class TestApp {
         app.get("/123", (req, resp) -> {
             resp.send("123");
         });
-        app.listen(8080);
+        app.listen();
     }
 
 
@@ -70,7 +73,7 @@ public class TestApp {
         app.get("/",(req, resp) -> {
             resp.render(Render.view("home.view"));
         });
-        app.listen(8080);
+        app.listen();
     }
 
     public static void test_cross_mid_ctx_continuity() {
@@ -87,7 +90,7 @@ public class TestApp {
 
             resp.send(req.ctx().toString());
         });
-        app.listen(8080);
+        app.listen();
     }
 
     public static void test_cross_mid_ctx_continuity_complex() {
@@ -105,7 +108,7 @@ public class TestApp {
             System.out.println ("here");
             next.apply();
         });
-        app.listen(8080);
+        app.listen();
     }
 
     public static void test_min_group_route(){
@@ -114,11 +117,11 @@ public class TestApp {
         app.get("/new/${id}",(req,resp)->resp.send("new2/"+req.param("id")));
         app.get("/new",(req,resp)->resp.send("new"));
         app.get("/${id}",(req,resp)->resp.send("id="+req.param("id")));
-        app.listen(8080);
+        app.listen();
     }
 
     public static void main(String[] args) {
-//        basic();
+        basic();
 //        config();
 //        router();
 //        www();

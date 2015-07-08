@@ -14,7 +14,7 @@ public class TestAppConfig {
                              p -> {
                                  p.get("/123", (req, res) -> res.send("123"))
                                   .get("/234", (req, res) -> res.send("234"));
-                             }).listen(8080);
+                             }).listen();
     }
 
 }
