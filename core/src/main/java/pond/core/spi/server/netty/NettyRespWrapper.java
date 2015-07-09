@@ -2,16 +2,25 @@ package pond.core.spi.server.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.stream.ChunkedFile;
+import io.netty.util.CharsetUtil;
+import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.HttpHeaderValue;
 import pond.common.S;
 import pond.core.Response;
+import pond.core.spi.BaseServer;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.Cookie;
-import java.io.File;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 public class NettyRespWrapper implements Response {
 
@@ -22,7 +31,7 @@ public class NettyRespWrapper implements Response {
     final NettyHttpServer server;
     final FullHttpRequest request;
     final ChannelHandlerContext ctx;
-    final FullHttpResponse resp;
+    final HttpResponse resp;
 
     NettyRespWrapper(ChannelHandlerContext ctx, FullHttpRequest req,
                      NettyHttpServer server) {
@@ -32,9 +41,12 @@ public class NettyRespWrapper implements Response {
         buffer = Unpooled.buffer();
         out = new NettyOutputStream(buffer);
         writer = new PrintWriter(out);
-        resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-                HttpResponseStatus.ACCEPTED, buffer);
-
+        resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                HttpResponseStatus.ACCEPTED);
+        if (HttpHeaderUtil.isKeepAlive(request)) {
+            resp.headers().set(HttpHeaderNames.CONNECTION,
+                    HttpHeaderValues.KEEP_ALIVE);
+        }
     }
 
     @Override
@@ -53,6 +65,81 @@ public class NettyRespWrapper implements Response {
     public void send(int code, String msg) {
         write(msg).status(code);
         _send();
+    }
+
+
+    private static void setContentTypeHeader(Response response, File file) {
+        MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+        response.contentType(mimeTypesMap.getContentType(file.getPath()));
+    }
+
+    @Override
+    public void sendFile(File file, long offset, long length) {
+        resp.setStatus(HttpResponseStatus.OK);
+        HttpHeaderUtil.setContentLength(resp, file.length());
+        setContentTypeHeader(this, file);
+        ctx.write(resp);
+        RandomAccessFile raf;
+        try {
+            raf = new RandomAccessFile(file, "r");
+        } catch (FileNotFoundException ignored) {
+            sendError(404, HttpResponseStatus.NOT_FOUND.toString());
+            return;
+        }
+//        resp.setStatus(HttpResponseStatus.OK);
+//        _send();
+        // Write the content.
+        ChannelFuture sendFileFuture;
+        ChannelFuture lastContentFuture;
+        if (ctx.pipeline().get(SslHandler.class) == null) {
+            sendFileFuture =
+                    ctx.write(new DefaultFileRegion(raf.getChannel(), offset, length), ctx.newProgressivePromise());
+            // Write the end marker.
+            lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+        } else {
+
+            try {
+                sendFileFuture =
+                        ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(raf, offset, length, 8192)),
+                                ctx.newProgressivePromise());
+                lastContentFuture = sendFileFuture;
+
+            } catch (IOException e) {
+                S._debug(BaseServer.logger, logger -> {
+                    e.printStackTrace();
+                    logger.debug(e.getMessage());
+                });
+                sendError(500, HttpResponseStatus.INTERNAL_SERVER_ERROR + ": " + e.getMessage());
+                return;
+            }
+            // HttpChunkedInput will write the end marker (LastHttpContent) for us.
+        }
+
+        sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
+            @Override
+            public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
+                if (total < 0) { // total unknown
+                    S._debug(BaseServer.logger, logger ->
+                            logger.debug(future.channel() + " Transfer progress: " + progress));
+                } else {
+                    S._debug(BaseServer.logger, logger ->
+                            logger.debug(future.channel() + " Transfer progress: " + progress + " / " + total));
+                }
+            }
+
+            @Override
+            public void operationComplete(ChannelProgressiveFuture future) {
+                S._debug(BaseServer.logger, logger ->
+                        logger.debug(future.channel() + " Transfer complete."));
+            }
+        });
+
+        // Decide whether to close the connection or not.
+        if (!HttpHeaderUtil.isKeepAlive(request)) {
+            // Close the connection when the whole content is written out.
+            lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+        }
+
     }
 
     @Override
@@ -105,28 +192,40 @@ public class NettyRespWrapper implements Response {
     }
 
     private void _send() {
+        boolean keepAlive;
+
         writer.flush();
-        int contentLen = resp.content().readableBytes();
-        if (contentLen > 0)
-            resp.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, contentLen);
+        if (keepAlive = HttpHeaderUtil.isKeepAlive(request)) {
+            resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 
-        S._tap(ctx.writeAndFlush(resp), future -> {
-            if (!HttpHeaderUtil.isKeepAlive(request)) {
-                resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-                future.addListener(ChannelFutureListener.CLOSE);
+            if (resp.headers().get(HttpHeaderNames.CONTENT_LENGTH) == null) {
+                int contentLen = buffer.readableBytes();
+                    resp.headers().setLong(HttpHeaderNames.CONTENT_LENGTH, contentLen);
             }
-        });
+        } else {
+            resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+        }
+
+
+        ChannelFuture sendRespFuture, sendBufferFuture, lastContentFuture;
+
+        sendRespFuture = ctx.write(resp);
+        sendBufferFuture = ctx.write(buffer);
+        lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+        if (!keepAlive)
+            lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+//
+//        S._tap(ctx.write(buffer), then -> {
+//            then.addListener(f -> {
+//                S._tap(ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT), future -> {
+//                    if (!keepAlive) {
+//                        future.addListener(ChannelFutureListener.CLOSE);
+//                    }
+//                });
+//            });
+//        });
+
     }
 
-    private void _sendFile() {
-
-    }
-
-    //TODO _send chunked file
-
-
-    public void sendFile(File f) {
-
-    }
 
 }

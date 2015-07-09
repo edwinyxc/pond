@@ -43,10 +43,8 @@ public abstract class AbstractRequest implements Request {
         try {
             return new URL(uri()).getPath();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
-            S._lazyThrow(e);
+            throw  new RuntimeException(e);
         }
-        return null;
     }
 
     @Override

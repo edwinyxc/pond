@@ -27,6 +27,7 @@ public class MimeTypes {
     public static final String MIME_APPLICATION_ODA = "application/oda";
     public static final String MIME_APPLICATION_RDF_XML = "application/rdf+xml";
     public static final String MIME_APPLICATION_JAVA_ARCHIVE = "application/java-archive";
+    public static final String MIME_APPLICATION_JAVASCRIPT = "application/javascript";
     public static final String MIME_APPLICATION_RDF_SMIL = "application/smil";
     public static final String MIME_APPLICATION_SRGS = "application/srgs";
     public static final String MIME_APPLICATION_SRGS_XML = "application/srgs+xml";
@@ -121,6 +122,16 @@ public class MimeTypes {
     public static final String MIME_X_CONFERENCE_X_COOLTALK = "x-conference/x-cooltalk";
 
     private static HashMap<String, String> mimeTypeMapping;
+
+    public static String[] compressible = new String[]{
+            MIME_TEXT_CSS,
+            MIME_TEXT_HTML,
+            MIME_TEXT_PLAIN,
+            MIME_APPLICATION_JSON,
+            MIME_APPLICATION_X_JAVASCRIPT,
+            MIME_APPLICATION_JAVASCRIPT,
+            MIME_APPLICATION_XML,
+    };
 
     static {
         mimeTypeMapping = new HashMap<String, String>(200) {
@@ -299,6 +310,7 @@ public class MimeTypes {
                 put1("dll", MIME_APPLICATION_OCTET_STREAM);
                 put1("class", MIME_APPLICATION_OCTET_STREAM);
                 put1("jar", MIME_APPLICATION_JAVA_ARCHIVE);
+                put1("js", MIME_APPLICATION_JAVASCRIPT);
             }
         };
     }

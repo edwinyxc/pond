@@ -48,6 +48,8 @@ public class NettyReqWrapper extends AbstractRequest {
     }
 
     public NettyReqWrapper(ChannelHandlerContext ctx, FullHttpRequest req,  NettyHttpServer server) {
+
+        //check bad request
         long _parse_start = S.now();
         this.server = server;
         channel = ctx.channel();

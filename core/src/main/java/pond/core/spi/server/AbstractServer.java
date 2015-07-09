@@ -1,5 +1,6 @@
 package pond.core.spi.server;
 
+import pond.common.f.Function;
 import pond.core.Pond;
 import pond.core.spi.BaseServer;
 
@@ -9,17 +10,16 @@ import java.util.Map;
 public abstract class AbstractServer implements BaseServer{
 
     private Pond pond;
-    private Map<String,Object> env = new HashMap<>();
 
+    private Function<Object,String> envGetter = System::getProperty;
     @Override
-    public BaseServer env(String key, Object whatever) {
-        env.put(key,whatever);
-        return this;
+    public void regEnv(Function<Object, String> f) {
+        envGetter = f;
     }
 
     @Override
     public Object env(String key) {
-        return env.get(key);
+        return envGetter.apply(key);
     }
 
     @Override

@@ -34,13 +34,15 @@ public class ResponseWrapper implements Response {
     @Override
     public void send(int code, String msg) {
         wrapped.send(code,msg);
+        setSendFlag();
     }
 
     @Override
-    public void sendFile(File file) {
-        wrapped.sendFile(file);
+    public void sendFile(File file, long offset, long length) {
+        wrapped.sendFile(file, offset, length);
         setSendFlag();
     }
+
 
     @Override
     public Response status(int sc) {

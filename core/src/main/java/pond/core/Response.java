@@ -27,37 +27,43 @@ public interface Response {
      * @param code http status code
      */
     default void send(int code) {
-        send(code,"");
+        send(code, "");
     }
 
     /**
      * <p>Send message to client with code 200</p>
+     *
      * @param msg
      */
     default void send(String msg) {
-        send(200,msg);
+        send(200, msg);
     }
 
     /**
      * <p>此方法用来发送错误码和详细描述</p>
+     *
      * @param code
      * @param msg
      */
     void sendError(int code, String msg);
 
     /**
-     *
      * @param code error code
      * @param msg  error message
      */
     void send(int code, String msg);
 
     /**
-     * <p>向客户端写入文件，完成时发送200，此操作立即返回，具体如何发送由底层服务器控制。</p>
+     * <p>向客户端写入文件，完成时发送200 或者　206 (range)，此操作立即返回，具体如何发送由底层服务器控制。</p>
      * big file
+     *
      * @param file attachment
      */
-    void sendFile(File file);
+    void sendFile(File file, long offset, long length);
+
+    default void sendFile(File file) {
+        sendFile(file, 0, file.length());
+    }
 
     /**
      * @deprecated v1.0之后请使用 Renderable#attachment
@@ -131,11 +137,11 @@ public interface Response {
      */
     Response contentType(String type);
 
-    default void render(Render r){
-        r.render(ctx().req,ctx().resp);
+    default void render(Render r) {
+        r.render(ctx().req, ctx().resp);
     }
 
-    default Ctx ctx(){
+    default Ctx ctx() {
         return CtxExec.get();
     }
 

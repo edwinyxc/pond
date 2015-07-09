@@ -36,6 +36,8 @@ public final class Pond implements RouterAPI {
         return container.get(k);
     }
 
+    public DefaultStaticFileServer staticFileServer;
+
     public Pond component(String k, Object v) {
         container.put(k, v);
         return this;
@@ -86,10 +88,10 @@ public final class Pond implements RouterAPI {
         config.put(Config.ROOT_WEB, webroot);
 
         config.put(Config.WWW_PATH, webroot
-                + File.separator + _notNullElse(
+                + File.separator + avoidNull(
                 config.get(Config.WWW_NAME), "www"));
         config.put(Config.VIEWS_PATH, webroot
-                + File.separator + _notNullElse(
+                + File.separator + avoidNull(
                 config.get(Config.VIEWS_NAME), "views"));
 
 //        this.attr(Global.ROOT, S.path.webRoot()#);
@@ -114,10 +116,11 @@ public final class Pond implements RouterAPI {
 
     }
 
-    public Pond _static(String dir) {
-        //TODO internal static module
-        //server.handler(server.staticFileServer(dir));
-        return this;
+    public Mid _static(String dir) {
+        if(staticFileServer == null){
+            staticFileServer = new DefaultStaticFileServer(dir);
+        }
+        return staticFileServer;
     }
 
     public Map<String, Session> sessions() {

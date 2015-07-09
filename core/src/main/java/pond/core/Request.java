@@ -69,13 +69,6 @@ public interface Request {
 
     String characterEncoding();
 
-    /**
-     * Try to get current session
-     */
-    default Session session() {
-        Ctx c = ctx();
-        return c.pond.session(c);
-    }
 
     default Ctx ctx() {
         return CtxExec.get();

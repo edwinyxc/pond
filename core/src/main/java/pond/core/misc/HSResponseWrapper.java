@@ -28,7 +28,7 @@ public class HSResponseWrapper implements Response {
     @Override
     public void sendError(int code, String msg) {
         try {
-            _resp.sendError(code,msg);
+            _resp.sendError(code, msg);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -42,7 +42,7 @@ public class HSResponseWrapper implements Response {
             _resp.getWriter().print(msg);
         } catch (IOException e) {
             S._lazyThrow(e);
-        }finally {
+        } finally {
             try {
                 _resp.flushBuffer();
             } catch (IOException e) {
@@ -53,9 +53,18 @@ public class HSResponseWrapper implements Response {
     }
 
     @Override
+    public void sendFile(File file, long offset, long length) {
+        try {
+            S.stream.pipe(new FileInputStream(file), out());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public void sendFile(File file) {
         try {
-            S.stream.pipe(new FileInputStream(file),out());
+            S.stream.pipe(new FileInputStream(file), out());
         } catch (IOException e) {
             e.printStackTrace();
         }

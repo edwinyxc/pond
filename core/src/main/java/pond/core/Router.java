@@ -47,7 +47,7 @@ public class Router implements Mid, RouterAPI {
         String path = Pond._ignoreLastSlash(req.path());
 
         logger.debug("Routing path:" + path);
-        long s = S.time();
+        long s = S.now();
 //        List<Route> result = new LinkedList<>();
 //        for (Route node : routes) {
 //            if (node.match(path)) {
@@ -68,7 +68,7 @@ public class Router implements Mid, RouterAPI {
                                     r : r1;
                         });
 
-        logger.debug("Routing time: " + (S.time() - s) + "ms");
+        logger.debug("Routing time: " + (S.now() - s) + "ms");
         if (route_f == null)
             logger.debug("Found nothing");
         else {
@@ -78,7 +78,7 @@ public class Router implements Mid, RouterAPI {
             _for(route_f.urlParams(path)).each(
                     e -> req.param(e.getKey(), e.getValue())
             );
-            req.ctx().put("route", route_f);
+            req.ctx().route = route_f;
             // trigger CtxExec
             exect.exec(req.ctx(), route_f.mids);
         }

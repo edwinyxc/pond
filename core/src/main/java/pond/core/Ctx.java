@@ -15,6 +15,7 @@ public class Ctx extends HashMap<String, Object> {
     Request req;
     Response resp;
     Pond pond;
+    Route route;
     boolean handled = false;
 
     LinkedList<Mid> stack = new LinkedList<>();
@@ -35,12 +36,12 @@ public class Ctx extends HashMap<String, Object> {
                 _for(mids).map(Object::toString).join()));
     }
 
-    void setHandled(boolean b) {
-        this.handled = b;
+    public Route route(){
+        return route;
     }
 
-    public boolean hasMoreMids(){
-        return !stack.isEmpty();
+    void setHandled(boolean b) {
+        this.handled = b;
     }
 
     public Request req() {

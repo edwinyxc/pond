@@ -2,6 +2,7 @@ package pond.core.spi;
 
 import org.slf4j.Logger;
 import pond.common.f.Callback;
+import pond.common.f.Function;
 import pond.core.PondAware;
 import pond.core.Request;
 import pond.core.Response;
@@ -15,22 +16,22 @@ public interface BaseServer extends PondAware{
      Use SSL, [boolean]  when this option triggered,
      the port is locked to 443
      */
-    String SSL = "ssl";
+    String SSL = "BaseServer.ssl";
 
     /**
      * PORT
      */
-    String PORT = "port";
+    String PORT = "BaseServer.port";
 
     /*
      * max in-queue connection
      */
-    String BACK_LOG = "backlog";
+    String BACK_LOG = "BaseServer.backlog";
 
     /**
      * locale
      */
-    String LOCALE = "locale";
+    String LOCALE = "BaseServer.locale";
 
     /**
      use the registered env("port") to get the listen port
@@ -40,9 +41,8 @@ public interface BaseServer extends PondAware{
     //register process handler
     void handler(Callback.C2<Request, Response> handler);
 
-    //set Config
-    BaseServer env(String key, Object whatever);
-
     //get env
     Object env(String key );
+
+    void regEnv(Function<Object, String> f);
 }

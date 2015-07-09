@@ -1,11 +1,13 @@
 package pond.core.spi.server.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http2.HttpUtil;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.stream.ChunkedWriteHandler;
@@ -50,12 +52,12 @@ public class NettyHttpServer extends AbstractServer {
     }
 
     private int port() {
-        return S._tap(ssl() ? 443 : (Integer) S.avoidNull(env(BaseServer.PORT), 8080),
+        return S._tap(ssl() ? 443 : Integer.parseInt((String) S.avoidNull(env(BaseServer.PORT), "8080")),
                 port -> logger.info(String.format("USING PORT %s", port)));
     }
 
     private int backlog() {
-        return S._tap((Integer) S.avoidNull(env(BaseServer.BACK_LOG), 1024),
+        return S._tap(Integer.parseInt((String) S.avoidNull(env(BaseServer.BACK_LOG), "1024")),
                 backlog -> logger.info(String.format("USING BACKLOG %s", backlog)));
     }
 
@@ -89,8 +91,19 @@ public class NettyHttpServer extends AbstractServer {
 
         @Override
         protected void messageReceived(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
-            S.echo(msg.content().toString(CharsetUtil.US_ASCII));
-            //TODO if request is chunked? upload file?
+
+//            if(HttpHeaderUtil.is100ContinueExpected(msg)){
+//                ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
+//                        HttpResponseStatus.CONTINUE));
+//                return;
+//            }
+
+            if (!msg.decoderResult().isSuccess()) {
+                ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                        HttpResponseStatus.BAD_REQUEST));
+                return;
+            }
+
             NettyReqWrapper reqWrapper = new NettyReqWrapper(ctx, msg, NettyHttpServer.this);
             NettyRespWrapper respWrapper = new NettyRespWrapper(ctx, msg, NettyHttpServer.this);
 
@@ -131,13 +144,20 @@ public class NettyHttpServer extends AbstractServer {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             ChannelPipeline pipeline = socketChannel.pipeline();
-                            pipeline.addLast(new HttpRequestDecoder());
-                            pipeline.addLast(new HttpResponseEncoder());
-                            //TODO
+                            pipeline.addLast(new HttpServerCodec());
                             pipeline.addLast(new HttpObjectAggregator(65536));
+                            pipeline.addLast(new HttpContentCompressor() {
+                                @Override
+                                public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+                                    if (msg instanceof ByteBuf) {
+                                        // convert ByteBuf to HttpContent to make it work with compression. This is needed as we use the
+                                        // ChunkedWriteHandler to send files when compression is enabled.
+                                        msg = new DefaultHttpContent((ByteBuf) msg);
+                                    }
+                                    super.write(ctx, msg, promise);
+                                }
+                            });
                             pipeline.addLast(new ChunkedWriteHandler());
-                            // Remove the following line if you don't want automatic content compression.
-                            pipeline.addLast(new HttpContentCompressor());
                             pipeline.addLast(new NettyHttpHandler());
                         }
                     })

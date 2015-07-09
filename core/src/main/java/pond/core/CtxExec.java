@@ -11,8 +11,6 @@ import java.util.List;
 
 public class CtxExec {
 
-    static Logger logger = LoggerFactory.getLogger("pond-core");
-
     private static ThreadLocal<Ctx> ctxThreadLocal = new ThreadLocal<>();
 
     public static Ctx get() {
@@ -62,12 +60,12 @@ public class CtxExec {
             if (ctx.handled) return;
             if (mid != null) {
                 final Mid finalMid = mid;
-                S._debug(logger, log -> log.debug("Found uri: "
+                S._debug(Pond.logger, log -> log.debug("Found uri: "
                         + ctx.req.path() + ", mid: " + finalMid.toString()));
                 mid.apply(ctx.req, ctx.resp);
                 exec(ctx);
             } //reach the end of mids
-            if(!ctx.handled)
+            if(!ctx.handled )
                 ctx.resp.send(404);
         } catch (RuntimeException e) {
             unwrapRuntimeException(e, ctx.resp);
