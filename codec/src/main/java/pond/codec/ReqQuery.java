@@ -41,8 +41,8 @@ public class ReqQuery {
                         .where(req.toQuery(proto.declaredFieldNames()));
 
         Ctx ctx = req.ctx();
-        String N_SORD = _getOrSet(ctx.pond.config, SORD, "_sord");
-        String N_SORDF = _getOrSet(ctx.pond.config, SORDF, "_sordf");
+        String N_SORD = _getOrSet(ctx.pond().config, SORD, "_sord");
+        String N_SORDF = _getOrSet(ctx.pond().config, SORDF, "_sordf");
         // sort
         String sord = req.param(N_SORD);
         String sord_f = req.param(N_SORDF);
@@ -65,7 +65,7 @@ public class ReqQuery {
     }
 
     public static Page queryForPage(Request req, Record p, DB db) {
-        Pond pond = req.ctx().pond;
+        Pond pond = req.ctx().pond();
         return db.get(tmpl -> {
             Page page = Page.of(req);
             SqlSelect select = sqlFromReq(req, p);
@@ -83,7 +83,7 @@ public class ReqQuery {
 
     @Deprecated
     public static Page queryForPage(Request req, Record p) {
-       DB db = (DB) req.ctx().pond.component(Pond.DEFAULT_DB);
+       DB db = (DB) req.ctx().pond().component(Pond.DEFAULT_DB);
         return db.get(tmpl -> {
             Page page = Page.of(req);
             SqlSelect select = sqlFromReq(req, p);
@@ -133,7 +133,7 @@ public class ReqQuery {
 
 
         public static Page of(Request r) {
-            Page page = new Page(r.ctx().pond.config);
+            Page page = new Page(r.ctx().pond().config);
             Integer pgIdx = _notNullElse(r.paramInt(page.N_PG_IDX), 1);
             Integer pgLen = _notNullElse(r.paramInt(page.N_PG_LEN), 0);
             return page.take(pgIdx, pgLen);

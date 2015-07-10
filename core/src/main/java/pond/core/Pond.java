@@ -118,6 +118,12 @@ public final class Pond implements RouterAPI {
 
     }
 
+    public Pond listen(int port){
+        System.setProperty(BaseServer.PORT, String.valueOf(port));
+        listen();
+        return this;
+    }
+
     public Pond listen() {
 
         logger.info("Starting server...");

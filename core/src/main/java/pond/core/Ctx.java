@@ -36,6 +36,10 @@ public class Ctx extends HashMap<String, Object> {
                 _for(mids).map(Object::toString).join()));
     }
 
+    public Pond pond(){
+        return pond;
+    }
+
     public Route route(){
         return route;
     }
