@@ -1,16 +1,15 @@
 package pond.core;
 
 import pond.common.S;
-import pond.core.Request;
 
 import javax.servlet.http.Cookie;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static pond.common.S._notNullElse;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
+import static pond.common.S.avoidNull;
 
 public abstract class AbstractRequest implements Request {
     @Override
@@ -57,7 +56,8 @@ public abstract class AbstractRequest implements Request {
 
     @Override
     public String[] header(String string) {
-        return _notNullElse(headers().get(string),new String[0]);
+        //TODO normalize input and output string
+        return avoidNull(headers().get(string), new String[0]);
     }
 
     @Override

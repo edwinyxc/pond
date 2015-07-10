@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executors;
 
 import static pond.common.S.*;
 
@@ -36,7 +37,7 @@ public final class Pond implements RouterAPI {
         return container.get(k);
     }
 
-    public DefaultStaticFileServer staticFileServer;
+    DefaultStaticFileServer staticFileServer;
 
     public Pond component(String k, Object v) {
         container.put(k, v);
@@ -50,7 +51,7 @@ public final class Pond implements RouterAPI {
     SessionManager sessionManager;
 
     // Executor
-    final CtxExec executor = new CtxExec();
+    final CtxExec ctxExec = new CtxExec();
 
     //After the routing chain
 
@@ -84,24 +85,24 @@ public final class Pond implements RouterAPI {
         }
 
         //do not change these
+        //FIXME ugly
         config.put(Config.ROOT, root);
         config.put(Config.ROOT_WEB, webroot);
 
-        config.put(Config.WWW_PATH, webroot
-                + File.separator + avoidNull(
-                config.get(Config.WWW_NAME), "www"));
-        config.put(Config.VIEWS_PATH, webroot
-                + File.separator + avoidNull(
-                config.get(Config.VIEWS_NAME), "views"));
+        config.put(Config.WWW_PATH, webroot + File.separator + avoidNull(config.get(Config.WWW_NAME), "www"));
+        config.put(Config.VIEWS_PATH, webroot + File.separator + avoidNull(config.get(Config.VIEWS_NAME), "views"));
 
-//        this.attr(Global.ROOT, S.path.webRoot()#);
+//      this.attr(Global.ROOT, S.path.webRoot()#);
 
         logger.info("root : " + root);
         server = spi(BaseServer.class);
         server.pond(this);
+
         //TODO ADD CONFIG
+        //TODO CHANGE CONFIG LAYER
         //router
         rootRouter = new Router();
+
         //engine
         ViewEngine vg = spi(ViewEngine.class);
         try {
@@ -109,6 +110,7 @@ public final class Pond implements RouterAPI {
         } catch (Exception e) {
             debug(e.getMessage());
         }
+
         viewEngines.put("default", vg);
         logger.info("Installing Handler");
         //init handler
@@ -116,8 +118,33 @@ public final class Pond implements RouterAPI {
 
     }
 
+    public Pond listen() {
+
+        logger.info("Starting server...");
+        //append dispatcher to the chain
+        LinkedList<Mid> mids = new LinkedList<>(before);
+        mids.add(rootRouter);
+
+        //TODO CONFIG LAYER
+        server.executor(Executors.newFixedThreadPool(8));
+
+        server.handler((req, resp) -> {
+            Ctx ctx = new Ctx(req, resp, this, mids);
+            ctxExec.exec(ctx);
+        });
+
+        try {
+            server.listen();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            logger.error(S.dump(e.getStackTrace()));
+        }
+
+        return this;
+    }
+
     public Mid _static(String dir) {
-        if(staticFileServer == null){
+        if (staticFileServer == null) {
             staticFileServer = new DefaultStaticFileServer(dir);
         }
         return staticFileServer;
@@ -215,8 +242,8 @@ public final class Pond implements RouterAPI {
     }
 
     public static void debug(Object s) {
-        Logger logger = Pond.logger;
-        logger.debug(S.dump(s));
+        S._debug(logger, log ->
+                log.debug(S.dump(s)));
     }
 
 
@@ -262,23 +289,6 @@ public final class Pond implements RouterAPI {
         return this;
     }
 
-    public Pond listen() {
-        logger.info("Starting server...");
-        //append dispatcher to the chain
-        LinkedList<Mid> mids = new LinkedList<>(before);
-        mids.add(rootRouter);
-        server.handler((req, resp) -> {
-            Ctx ctx = new Ctx(req, resp, this, mids);
-            executor.exec(ctx);
-        });
-        try {
-            server.listen();
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            logger.error(S.dump(e.getStackTrace()));
-        }
-        return this;
-    }
 
     /**
      * DO NOT USE

@@ -7,6 +7,9 @@ import pond.core.PondAware;
 import pond.core.Request;
 import pond.core.Response;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+
 public interface BaseServer extends PondAware{
 
     Logger logger = org.slf4j.LoggerFactory.getLogger(BaseServer.class);
@@ -40,6 +43,8 @@ public interface BaseServer extends PondAware{
 
     //register process handler
     void handler(Callback.C2<Request, Response> handler);
+
+    void executor(ExecutorService executor);
 
     //get env
     Object env(String key );

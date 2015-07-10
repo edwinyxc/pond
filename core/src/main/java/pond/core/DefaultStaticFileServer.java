@@ -3,13 +3,10 @@ package pond.core;
 import pond.common.S;
 import pond.core.spi.BaseServer;
 
-import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 import java.io.PrintWriter;
-import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
@@ -112,7 +109,7 @@ class DefaultStaticFileServer implements Mid {
         }
 
         // Cache Validation
-        String ifModifiedSince = S._for(request.header("if-modified-since")).first();
+        String ifModifiedSince = S._for(request.header("If-Modified-Since")).first();
         if (ifModifiedSince != null && !ifModifiedSince.isEmpty()) {
             SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
             Date ifModifiedSinceDate = S._try_ret(() -> dateFormatter.parse(ifModifiedSince));
@@ -129,7 +126,7 @@ class DefaultStaticFileServer implements Mid {
         }
 
 
-//        setDateAndCacheHeaders(response, file);
+        setDateAndCacheHeaders(response, file);
 
         //TODO Range
 //        //Range
@@ -140,6 +137,7 @@ class DefaultStaticFileServer implements Mid {
 //            return;
 //        }
 
+        //TODO ETag
 
         response.sendFile(file);
 

@@ -3,7 +3,6 @@ package pond.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
-import pond.common.f.Callback;
 import pond.core.http.HttpMethod;
 
 import java.util.Arrays;
@@ -42,7 +41,7 @@ public class Router implements Mid, RouterAPI {
 
         List<Route> routes = this.routes.get(method);
 
-        CtxExec exect = req.ctx().pond.executor;
+        CtxExec exect = req.ctx().pond.ctxExec;
         //ignore trialling slash
         String path = Pond._ignoreLastSlash(req.path());
 

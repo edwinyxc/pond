@@ -29,13 +29,6 @@ import static pond.common.f.Callback.C2;
 
 public class NettyHttpServer extends AbstractServer {
 
-    private C2<Request, Response> executor;
-
-    @Override
-    public void handler(Callback.C2<Request, Response> handler) {
-        executor = handler;
-    }
-
     public NettyHttpServer() {
 
     }
@@ -57,7 +50,7 @@ public class NettyHttpServer extends AbstractServer {
     }
 
     private int backlog() {
-        return S._tap(Integer.parseInt((String) S.avoidNull(env(BaseServer.BACK_LOG), "1024")),
+        return S._tap(Integer.parseInt((String) S.avoidNull(env(BaseServer.BACK_LOG), "128")),
                 backlog -> logger.info(String.format("USING BACKLOG %s", backlog)));
     }
 
@@ -109,7 +102,8 @@ public class NettyHttpServer extends AbstractServer {
 
             //TODO release any refs
             //check for memory leak
-            NettyHttpServer.this.executor.apply(reqWrapper, respWrapper);
+            Runnable actor = NettyHttpServer.super.actor(reqWrapper,respWrapper);
+            NettyHttpServer.super.executor.submit(actor);
         }
 
         @Override
@@ -130,7 +124,7 @@ public class NettyHttpServer extends AbstractServer {
 
     public void listen() throws Exception {
 
-        EventLoopGroup bossGroup = new NioEventLoopGroup();
+        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         try {
@@ -146,17 +140,8 @@ public class NettyHttpServer extends AbstractServer {
                             ChannelPipeline pipeline = socketChannel.pipeline();
                             pipeline.addLast(new HttpServerCodec());
                             pipeline.addLast(new HttpObjectAggregator(65536));
-                            pipeline.addLast(new HttpContentCompressor() {
-                                @Override
-                                public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-                                    if (msg instanceof ByteBuf) {
-                                        // convert ByteBuf to HttpContent to make it work with compression. This is needed as we use the
-                                        // ChunkedWriteHandler to send files when compression is enabled.
-                                        msg = new DefaultHttpContent((ByteBuf) msg);
-                                    }
-                                    super.write(ctx, msg, promise);
-                                }
-                            });
+                            //FIXME combine with the chunked writer
+                            //pipeline.addLast(new HttpContentCompressor() );
                             pipeline.addLast(new ChunkedWriteHandler());
                             pipeline.addLast(new NettyHttpHandler());
                         }
