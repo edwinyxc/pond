@@ -12,10 +12,7 @@ import pond.db.sql.dialect.Dialect;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
 import static pond.common.f.Function.F0;
@@ -45,11 +42,39 @@ public final class DB {
     }
 
     private DataSource dataSource;
-    private F0<Connection> connProvider;
-    private JDBCTmpl tmpl;
-    private JDBCOper oper;
 
-    private MappingRule rule;
+    F0<Connection> connProvider;
+    MappingRule rule;
+    Dialect dialect;
+    /**
+     * * default query
+     * TODO: ugly implement
+     */
+    final Function<AbstractRecord, ResultSet> _default_rm =
+
+            (ResultSet rs) -> {
+                AbstractRecord ret = Record.newValue(AbstractRecord.class);
+                try {
+                    ResultSetMetaData metaData = rs.getMetaData();
+                    int cnt = metaData.getColumnCount();
+
+                    String field_name;
+                    int field_type;
+                    int field_idx;
+                    for (int i = 0; i < cnt; i++) {
+                        field_idx = i + 1;
+                        field_name = metaData.getColumnName(field_idx);
+                        field_type = metaData.getColumnType(field_idx);
+
+                        S._assert(ret);
+                        ret.set(field_name, rule.getMethod(field_type).apply(rs, field_name));
+                    }
+
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+                return ret;
+            };
 
     /**
      * database structures (types as int)
@@ -61,8 +86,6 @@ public final class DB {
         this.connProvider = () -> S._try_ret(this.dataSource::getConnection);
         rule = new MappingRule();
         this.dbStructures = getDatabaseStructures();
-        tmpl = new JDBCTmpl(this.dbStructures, rule, dialect);
-        oper = new JDBCOper();
     }
 
     public DB(DataSource dataSource) {
@@ -81,8 +104,13 @@ public final class DB {
     /**
      * Returns a tmpl
      */
-    JDBCTmpl newTmpl() throws SQLException {
-        return tmpl.open(connProvider.apply());
+    JDBCTmpl open() throws SQLException {
+        long s = S.now();
+        Connection connection = connProvider.apply();
+        S.echo("get connection time usage: " + (S.now() - s));
+        JDBCTmpl tmp = new JDBCTmpl(this, connection);
+        S.echo("build tmpl: " + (S.now() - s));
+        return tmp;
     }
 
     /**
@@ -143,16 +171,18 @@ public final class DB {
      */
     public <R> R get(Function<R, JDBCTmpl> process) {
         long startTime = S.now();
-        try (JDBCTmpl tmpl = this.newTmpl()) {
+        R r;
+        try (JDBCTmpl tmpl = open()) {
             S._debug(logger, log -> log.debug(("newTmpl db time used: " + (S.now() - startTime))));
             tmpl.txStart();
-            R r = process.apply(tmpl);
+            r = process.apply(tmpl);
             tmpl.txCommit();
             S._debug(logger, log -> log.debug("apply process time used: " + (S.now() - startTime)));
             return r;
-        } catch (IOException | SQLException e) {
+        } catch (SQLException | IOException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     public List<Record> get(String sql, Object... args) {
@@ -161,11 +191,11 @@ public final class DB {
 
 
     public void post(Callback<JDBCTmpl> cb) {
-        try (JDBCTmpl tmpl = this.newTmpl()) {
+        try (JDBCTmpl tmpl = open()) {
             tmpl.txStart();
             cb.apply(tmpl);
             tmpl.txCommit();
-        } catch (IOException | SQLException e) {
+        } catch (SQLException | IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -174,11 +204,12 @@ public final class DB {
      * post all arguments as sql
      */
     public void batch(String... posts) {
-        try (JDBCTmpl tmpl = this.newTmpl()) {
+
+        try (JDBCTmpl tmpl = open()) {
             tmpl.txStart();
             S._for(posts).each(tmpl::exec);
             tmpl.txCommit();
-        } catch (IOException | SQLException e) {
+        } catch (SQLException | IOException e) {
             throw new RuntimeException(e);
         }
     }

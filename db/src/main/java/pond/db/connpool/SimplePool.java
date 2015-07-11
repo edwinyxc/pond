@@ -82,7 +82,7 @@ public class SimplePool implements ConnectionPool {
     }
 
     public Connection physicalConnection() throws SQLException {
-         return DriverManager.getConnection(url, username, pass);
+        return DriverManager.getConnection(url, username, pass);
     }
 
     private ConnectionWrapper createWrapper() throws SQLException {
@@ -93,12 +93,8 @@ public class SimplePool implements ConnectionPool {
     public void releaseConnection(ConnectionWrapper connection) {
 
         try {
-            if (!connection.isPhysicallyClosed()) {
-                availableConnections.put(connection);
-            } else {
-                availableConnections.put(createWrapper());
-            }
-        } catch (InterruptedException | SQLException e) {
+            availableConnections.put(connection);
+        } catch (InterruptedException e) {
             S._debug(DB.logger, logger -> {
                 logger.debug(e.toString());
                 e.printStackTrace();

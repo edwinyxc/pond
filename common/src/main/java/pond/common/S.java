@@ -1,5 +1,6 @@
 package pond.common;
 
+import com.sun.istack.internal.NotNull;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
@@ -169,7 +170,7 @@ public class S {
         return _tap(e, interceptor);
     }
 
-    public static void _times(C0 c, int times) {
+    public static void _repeat(C0 c, int times) {
         for (int i = 0; i < times; i++) {
             c.apply();
         }
@@ -1428,22 +1429,13 @@ public class S {
         }
 
         /**
-         * @throws IOException
-         * @link{ #pipe}
-         */
-        @Deprecated
-        public static void write(final InputStream in, final OutputStream out) throws IOException {
-            pipe(in, out);
-        }
-
-        /**
-         * pipe inputStream & outputStream
+         * write from is to os;
          *
          * @param in  inputStream
          * @param out outputStream
          * @throws java.io.IOException
          */
-        public static void pipe(final InputStream in, final OutputStream out) throws IOException {
+        public static void write(final InputStream in, final OutputStream out) throws IOException {
             final byte[] buffer = new byte[BUFFER_SIZE];
             int cnt;
 

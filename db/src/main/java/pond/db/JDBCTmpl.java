@@ -11,7 +11,10 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.*;
 
 import static pond.common.S._for;
@@ -31,24 +34,7 @@ public class JDBCTmpl implements Closeable {
     //table_name -> Map<field_name, field_type(java.sql.Type)>
     Map<String, Map<String, Integer>> dbStructure;
 
-
-//
-//
-//    private Object getObjectAsDefault(ResultSet rs, String table, String field) {
-//        Map<String, Integer> struc_table = dbStructure.get(table);
-//        if (struc_table == null)
-//            throw new RuntimeException("table:"
-//                    + table + " doesn't exist. We assume the DB structure is immutable.");
-//        Integer type = struc_table.get(field);
-//        if (type == null)
-//            throw new RuntimeException("field:" + field + " doesn't exist. We assume the DB structure is immutable.");
-//        Function.F2<?, ResultSet, String> field_fetch_method = this.rule.getMethod(type);
-//        if (field_fetch_method == null)
-//            throw new RuntimeException("method fetch failed type:" + type);
-//        return field_fetch_method.apply(rs, field);
-//    }
-
-    static final
+    private static final
     Function<Integer, ResultSet> counter = rs -> {
         try {
             return (Integer) rs.getInt(1);
@@ -59,24 +45,13 @@ public class JDBCTmpl implements Closeable {
     };
 
     private final JDBCOper oper;
-    private MappingRule rule;
-    private Dialect dialect;
+    private final DB db;
 
-    JDBCTmpl(
-            Map<String, Map<String, Integer>> structure,
-            MappingRule mappingRule,
-            Dialect dialect) {
-
-        this.dbStructure = structure;
-        this.rule = mappingRule;
-        this.dialect = dialect;
-        this.oper = new JDBCOper();
+    JDBCTmpl(DB db, Connection connection) {
+        this.db = db;
+        this.oper = new JDBCOper(connection);
     }
 
-    JDBCTmpl open(Connection conn) throws SQLException {
-        oper.open(conn);
-        return this;
-    }
 
     //protected tx control functions
 
@@ -105,43 +80,14 @@ public class JDBCTmpl implements Closeable {
         return dbStructure.getOrDefault(table, Collections.emptyMap()).get(field);
     }
 
-    /**
-     * default query
-     * TODO: ugly implement
-     */
-    final Function<AbstractRecord, ResultSet> _default_rm =
-
-            (ResultSet rs) -> {
-                AbstractRecord ret = Record.newValue(AbstractRecord.class);
-                try {
-                    ResultSetMetaData metaData = rs.getMetaData();
-                    int cnt = metaData.getColumnCount();
-
-                    String field_name;
-                    int field_type;
-                    int field_idx;
-                    for (int i = 0; i < cnt; i++) {
-                        field_idx = i + 1;
-                        field_name = metaData.getColumnName(field_idx);
-                        field_type = metaData.getColumnType(field_idx);
-
-                        S._assert(ret);
-                        ret.set(field_name, rule.getMethod(field_type).apply(rs, field_name));
-                    }
-
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-                return ret;
-            };
 
     public List<Record> query(String sql, Object... x) {
-        return this.query(_default_rm, sql, x);
+        return this.query(db._default_rm, sql, x);
     }
 
 
     public List<Record> query(String sql) {
-        return this.query(_default_rm, sql);
+        return this.query(db._default_rm, sql);
     }
 
     @SuppressWarnings("unchecked")
@@ -322,7 +268,7 @@ public class JDBCTmpl implements Closeable {
         String[] keys = _for(values).map(t -> t._a).join();
 
         //TODO
-        SqlInsert sql = Sql.insert().dialect(dialect);
+        SqlInsert sql = Sql.insert().dialect(this.db.dialect);
         sql.into(record.table()).values(S.array.of(values));
         S._debug(DB.logger, logger -> logger.debug(sql.debug()));
         try {
@@ -336,7 +282,7 @@ public class JDBCTmpl implements Closeable {
 
     public boolean del(Record record) {
         //TODO
-        SqlDelete sql = Sql.delete().dialect(dialect);
+        SqlDelete sql = Sql.delete().dialect(this.db.dialect);
         sql.from(record.table())
                 .where(record.idName(), Criterion.EQ, (String) record.id());
         S._debug(DB.logger, logger -> logger.debug(sql.debug()));
@@ -358,7 +304,7 @@ public class JDBCTmpl implements Closeable {
         _for(db).each(e -> sets.add(Tuple.t2(e.getKey(), e.getValue())));
         String[] keys = _for(sets).map(t -> t._a).join();
         //TODO
-        SqlUpdate sql = Sql.update(record.table()).dialect(dialect);
+        SqlUpdate sql = Sql.update(record.table()).dialect(this.db.dialect);
         sql.set(S.array.of(sets))
                 .where(record.idName(), Criterion.EQ, (String) record.id());
         S._debug(DB.logger, logger -> logger.debug(sql.debug()));

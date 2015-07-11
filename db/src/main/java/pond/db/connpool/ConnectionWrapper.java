@@ -28,8 +28,8 @@ public class ConnectionWrapper implements Connection {
     }
 
     public ConnectionWrapper refresh() throws SQLException {
-        if(connection == null || connection.isClosed()){
-               connection = connPool.physicalConnection();
+        if (connection == null || connection.isClosed()) {
+            connection = connPool.physicalConnection();
         }
         isClosed = false;
         return this;

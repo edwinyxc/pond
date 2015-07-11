@@ -1,5 +1,7 @@
 package pond.common.f;
 
+import java.util.concurrent.ExecutionException;
+
 public interface Callback<A> {
 
     public void apply(A t);

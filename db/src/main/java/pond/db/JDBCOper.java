@@ -24,19 +24,16 @@ class JDBCOper implements Closeable {
 //            Float.TYPE, Double.TYPE, Boolean.TYPE, String.class, InputStream.class
 //    };
 
-    private Connection conn;
+    final private Connection conn;
 
-    JDBCOper() { }
+    JDBCOper(Connection conn) {
 
-    JDBCOper open(Connection conn) throws SQLException {
-//        synchronized (this){
-            if (conn != null) {
-                _closeConn();
-            }
-            this.conn = conn;
-            return this;
-//        }
+        if (conn != null) {
+            _closeConn();
+        }
+        this.conn = conn;
     }
+
 
 //
 //    /**
@@ -77,7 +74,6 @@ class JDBCOper implements Closeable {
             if (conn != null && !conn.isClosed()) {
                 conn.close();
             }
-            conn = null;
         } catch (SQLException e) {
             _debug("sql except when closing conn");
         }
@@ -176,7 +172,6 @@ class JDBCOper implements Closeable {
                 //这个函数有缺陷
 //                setParam(pstmt, i + 1, params[i],tpyes[i]);
             }
-            S.echo("pstmt"+pstmt.toString());
             return S._tap(pstmt.executeUpdate(), affectedLineNum -> _debug("executed lines: [" + affectedLineNum + "]"));
         }
 
@@ -215,7 +210,7 @@ class JDBCOper implements Closeable {
     public void transactionStart() throws SQLException {
 
         if (!conn.getAutoCommit()) {
-            DB.logger.warn("try to start a transaction on non-autocommit connection.");
+            DB.logger.warn("autocommit has already been set to false.");
             S._debug(DB.logger, logger -> {
                 logger.debug(dump(conn));
             });

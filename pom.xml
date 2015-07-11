@@ -7,7 +7,7 @@
     <groupId>com.shuimin</groupId>
     <artifactId>pond-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
 
     <name>Pond</name>
     <url>http://www.shuimin.com</url>
