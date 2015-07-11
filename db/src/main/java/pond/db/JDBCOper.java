@@ -1,8 +1,6 @@
 package pond.db;
 
 import pond.common.S;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import pond.common.f.Callback;
 
 import java.io.Closeable;
@@ -19,22 +17,25 @@ import static pond.common.S.dump;
  *     jdbc operator
  * </pre>
  */
-public class JDBCOper
-        implements Closeable {
+class JDBCOper implements Closeable {
 
     //    private static final Type[] SUPPORTED_TYPES = new Type[]{
 //            Byte.TYPE, Character.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE,
 //            Float.TYPE, Double.TYPE, Boolean.TYPE, String.class, InputStream.class
 //    };
 
-    public Connection conn;
-    static Logger logger = LoggerFactory.getLogger(JDBCOper.class);
+    private Connection conn;
 
-    public JDBCOper() {}
+    JDBCOper() { }
 
-    public JDBCOper open(Connection conn) {
-        this.conn = conn;
-        return this;
+    JDBCOper open(Connection conn) throws SQLException {
+//        synchronized (this){
+            if (conn != null) {
+                _closeConn();
+            }
+            this.conn = conn;
+            return this;
+//        }
     }
 
 //
@@ -72,17 +73,19 @@ public class JDBCOper
 
 
     private void _closeConn() {
-        if (conn != null) {
-            try {
+        try {
+            if (conn != null && !conn.isClosed()) {
                 conn.close();
-            } catch (SQLException e) {
-                _debug("sql except when closing conn");
             }
+            conn = null;
+        } catch (SQLException e) {
+            _debug("sql except when closing conn");
         }
     }
 
     /**
      * Get table names for the conn
+     *
      * @throws SQLException
      */
     public Set<String> getTableNames() throws SQLException {
@@ -123,63 +126,8 @@ public class JDBCOper
         execute(String.format("DROP INDEX %s", name));
     }
 
-//    @SuppressWarnings("unchecked")
-//    public int execute(String sql, Callback.C3[] paramFuncs, Object[] params)
-//            throws SQLException {
-//        if (paramFuncs == null || params == null ||
-//                paramFuncs.length != params.length) {
-//            throw new IllegalArgumentException("functions,parameters must be non-none and with same length");
-//        }
-//        if (pstmt != null) {
-//            _closeStmt();
-//        }
-//        pstmt = conn.prepareStatement(sql);
-//        _debug(sql + "\n"
-//                + S.dump(params));
-//        for (int i = 0; i < params.length; i++) {
-//            paramFuncs[i].apply(pstmt, i + 1, params[i]);
-//        }
-//
-//        if (mapper != null) {
-//            _closeRs();
-//        }
-//        return pstmt.executeUpdate();
-//    }
-
-
-//    public int execute(String sql,Object[] params) throws SQLException {
-//        if (pstmt != null) {
-//            _closeStmt();
-//        }
-//        pstmt = conn.prepareStatement(sql);
-//
-//        _debug(sql + "\n"
-//                + S.dump(params));
-//
-//        if (params != null) {
-//            for (int i = 0; i < params.length; i++) {
-//                if (params[i] == null)
-//                    pstmt.setNull(i + 1, types[i]);
-//                else
-//                    pstmt.setObject(i + 1, params[i], types[i]);
-//                //这个函数有缺陷
-////                setParam(pstmt, i + 1, params[i],tpyes[i]);
-//            }
-//        }
-//
-//        if (rs != null) {
-//            _closeRs();
-//        }
-//        return pstmt.executeUpdate();
-//    }
-
-
     /**
      * DANGER: SQL-INJECTION RISK
-     *
-     * @param sql
-     * @return
-     * @throws SQLException
      */
     public int executeRawSQL(String sql) throws SQLException {
         boolean suc;
@@ -198,9 +146,6 @@ public class JDBCOper
      * @param sql    sql
      * @param params 对象数组，用于按顺序放置到sql模板中,支持InputStream 和 基本数据类型
      */
-//     * @deprecated Deprecated because we cannot distinguish 'null' value for 'set it null' or for 'leave it for now'.
-//     * Use execute(String sql, Functions, params) instead
-//    @Deprecated
     public int execute(String sql, Object[] params, int[] types) throws SQLException {
 
         if (params == null) {
@@ -209,6 +154,10 @@ public class JDBCOper
 
         if (params.length != types.length) {
             throw new IllegalArgumentException("Illegal arguments. Parameters and Types must have same length.");
+        }
+
+        if (conn == null || conn.isClosed()) {
+            throw new SQLException("conn is already closed for this JDBCOper" + dump(this));
         }
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -222,14 +171,15 @@ public class JDBCOper
                 else if (params[i] instanceof InputStream)
                     pstmt.setBinaryStream(i + 1, (InputStream) params[i]);
                 else
+                    //TODO add configure
                     pstmt.setObject(i + 1, params[i], types[i]);
                 //这个函数有缺陷
 //                setParam(pstmt, i + 1, params[i],tpyes[i]);
             }
+            S.echo("pstmt"+pstmt.toString());
             return S._tap(pstmt.executeUpdate(), affectedLineNum -> _debug("executed lines: [" + affectedLineNum + "]"));
-        } catch (SQLException e) {
-            throw e;
         }
+
 
     }
 
@@ -242,8 +192,7 @@ public class JDBCOper
      */
     public void query(String sql, Object[] params, Callback<ResultSet> cb) throws SQLException {
 
-        _debug(sql + "\n"
-                + S.dump(params));
+        _debug(sql + "\n" + S.dump(params));
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             if (params != null) {
@@ -252,7 +201,7 @@ public class JDBCOper
                     pstmt.setObject(i + 1, params[i]);
                 }
             }
-            try( ResultSet rs = pstmt.executeQuery()) {
+            try (ResultSet rs = pstmt.executeQuery()) {
                 _debug(rs.toString());
                 cb.apply(rs);
             }
@@ -264,56 +213,27 @@ public class JDBCOper
     }
 
     public void transactionStart() throws SQLException {
-        synchronized (conn) {
-            conn.setAutoCommit(false);
+
+        if (!conn.getAutoCommit()) {
+            DB.logger.warn("try to start a transaction on non-autocommit connection.");
+            S._debug(DB.logger, logger -> {
+                logger.debug(dump(conn));
+            });
         }
+
+        conn.setAutoCommit(false);
+
     }
 
     public void transactionCommit() throws SQLException {
-        try {
-            synchronized (conn) {
-                conn.commit();
-            }
-        } catch (SQLException e) {
-            conn.rollback();
-            throw e;
-        } finally {
-            synchronized (conn) {
-                conn.setAutoCommit(true);
-            }
-        }
-    }
-
-    /**
-     * <p>调用jdbc 的 RollBack
-     * </p>
-     */
-    public void rollback() throws SQLException {
-        conn.rollback();
+        conn.commit();
+        //S.echo(conn.toString() + "closed :" + conn.isClosed());
+        conn.setAutoCommit(true);
     }
 
     private void _debug(Object o) {
-        if (logger != null) {
-            logger.debug(dump(o));
-        }
+        S._debug(DB.logger, logger -> logger.debug(dump(o)));
     }
 
-    void setParam(PreparedStatement pstmt, int idx, Object val, int type)
-            throws SQLException {
-//        if (val == null)
-//            //这里这样处理是因为实在区分不出默认情况下，null值是用于“清除值”还是“未改变”
-//            //所以最简单的办法就是留给用户处理
-//            throw new NullPointerException("Please use default value instead of null");
-        /**
-         * 2014-8-20更新：
-         * 出现null值就意味着需要置空。
-         * 表示不改变不是jdbcOper的责任，应该由SQL层负责
-         */
-        if (val == null) {
-            pstmt.setNull(idx, type);
-        } else {
-            pstmt.setObject(idx, val, type);
-        }
 
-    }
 }

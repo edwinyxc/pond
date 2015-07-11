@@ -1,4 +1,4 @@
-package pond.common.sql;
+package pond.db.sql;
 
 import pond.common.f.Tuple;
 

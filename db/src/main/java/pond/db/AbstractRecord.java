@@ -6,9 +6,7 @@ import pond.common.f.Function;
 import java.sql.ResultSet;
 import java.util.*;
 
-import static pond.common.S._assert;
-import static pond.common.S._for;
-import static pond.common.S._try_ret;
+import static pond.common.S.*;
 
 /**
  * Created by ed on 14-5-19.

@@ -1,22 +1,17 @@
 package pond.db;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.common.f.Tuple;
-import pond.common.sql.*;
-import pond.common.sql.dialect.Dialect;
+import pond.db.sql.*;
+import pond.db.sql.dialect.Dialect;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.*;
 
 import static pond.common.S._for;
@@ -32,25 +27,26 @@ import static pond.common.S._for;
  */
 public class JDBCTmpl implements Closeable {
 
-    static Logger logger = LoggerFactory.getLogger(JDBCTmpl.class);
-
     //database structure
     //table_name -> Map<field_name, field_type(java.sql.Type)>
     Map<String, Map<String, Integer>> dbStructure;
 
-    private Object getObjectAsDefault(ResultSet rs, String table, String field) {
-        Map<String, Integer> struc_table = dbStructure.get(table);
-        if (struc_table == null)
-            throw new RuntimeException("table:"
-                    + table + " doesn't exist. We assume the DB structure is immutable.");
-        Integer type = struc_table.get(field);
-        if (type == null)
-            throw new RuntimeException("field:" + field + " doesn't exist. We assume the DB structure is immutable.");
-        Function.F2<?, ResultSet, String> field_fetch_method = this.rule.getMethod(type);
-        if (field_fetch_method == null)
-            throw new RuntimeException("method fetch failed type:" + type);
-        return field_fetch_method.apply(rs, field);
-    }
+
+//
+//
+//    private Object getObjectAsDefault(ResultSet rs, String table, String field) {
+//        Map<String, Integer> struc_table = dbStructure.get(table);
+//        if (struc_table == null)
+//            throw new RuntimeException("table:"
+//                    + table + " doesn't exist. We assume the DB structure is immutable.");
+//        Integer type = struc_table.get(field);
+//        if (type == null)
+//            throw new RuntimeException("field:" + field + " doesn't exist. We assume the DB structure is immutable.");
+//        Function.F2<?, ResultSet, String> field_fetch_method = this.rule.getMethod(type);
+//        if (field_fetch_method == null)
+//            throw new RuntimeException("method fetch failed type:" + type);
+//        return field_fetch_method.apply(rs, field);
+//    }
 
     static final
     Function<Integer, ResultSet> counter = rs -> {
@@ -62,11 +58,11 @@ public class JDBCTmpl implements Closeable {
         return 0;
     };
 
-    private JDBCOper oper;
+    private final JDBCOper oper;
     private MappingRule rule;
     private Dialect dialect;
 
-    public JDBCTmpl(
+    JDBCTmpl(
             Map<String, Map<String, Integer>> structure,
             MappingRule mappingRule,
             Dialect dialect) {
@@ -74,12 +70,24 @@ public class JDBCTmpl implements Closeable {
         this.dbStructure = structure;
         this.rule = mappingRule;
         this.dialect = dialect;
+        this.oper = new JDBCOper();
     }
 
-    public JDBCTmpl open(JDBCOper oper) {
-        this.oper = oper;
+    JDBCTmpl open(Connection conn) throws SQLException {
+        oper.open(conn);
         return this;
     }
+
+    //protected tx control functions
+
+    void txStart() throws SQLException {
+        oper.transactionStart();
+    }
+
+    void txCommit() throws SQLException {
+        oper.transactionCommit();
+    }
+
 
     public int[] getTypes(String table, String[] keys) {
         S._assert(table);
@@ -179,56 +187,21 @@ public class JDBCTmpl implements Closeable {
     public <R> List<R> query(Function<?, ResultSet> mapper,
                              String sql, Object... args) {
 
+
         List<R> list = new ArrayList<>();
         long start = S.now();
-        S._try(() ->
-            oper.query(sql, args, rs -> {
-                S._debug(logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
-                S._try(() -> {
-                    while (rs.next()) {
-                        //check
-                        list.add((R) mapper.apply(rs));
-                    }
-                });
-                S._debug(logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
-            })
+        S._try(() -> oper.query(sql, args, rs -> {
+                    S._debug(DB.logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
+                    S._try(() -> {
+                        while (rs.next()) {
+                            //check
+                            list.add((R) mapper.apply(rs));
+                        }
+                    });
+                    S._debug(DB.logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
+                })
         );
         return list;
-    }
-
-    /**
-     * run callback(s) in a transaction
-     *
-     * @param callback callback(s)
-     */
-    public void tx(Callback<JDBCTmpl>... callback) {
-        try {
-            synchronized (oper) {
-                oper.transactionStart();
-                _for(callback).each(c -> c.apply(this));
-                oper.transactionCommit();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * run batch(s) in a transaction
-     *
-     * @param batch sql(s)
-     */
-    public void tx(String... batch) {
-        try {
-            oper.transactionStart();
-            for (String sql : batch) {
-                oper.execute(sql);
-            }
-            oper.transactionCommit();
-        } catch (Throwable e) {
-            logger.info("Caught throwable [ " + e.getMessage() + " ] IN TRANSACTION, STOP COMMITTING!");
-            throw new RuntimeException(e);
-        }
     }
 
 
@@ -349,9 +322,9 @@ public class JDBCTmpl implements Closeable {
         String[] keys = _for(values).map(t -> t._a).join();
 
         //TODO
-        SqlInsert sql = Sql.insert().dialect(Dialect.mysql);
+        SqlInsert sql = Sql.insert().dialect(dialect);
         sql.into(record.table()).values(S.array.of(values));
-        logger.debug(sql.debug());
+        S._debug(DB.logger, logger -> logger.debug(sql.debug()));
         try {
             return oper.execute(sql.preparedSql(), sql.params(),
                     getTypes(record.table(), keys)) > 0;
@@ -363,10 +336,10 @@ public class JDBCTmpl implements Closeable {
 
     public boolean del(Record record) {
         //TODO
-        SqlDelete sql = Sql.delete().dialect(Dialect.mysql);
+        SqlDelete sql = Sql.delete().dialect(dialect);
         sql.from(record.table())
                 .where(record.idName(), Criterion.EQ, (String) record.id());
-        logger.debug(sql.debug());
+        S._debug(DB.logger, logger -> logger.debug(sql.debug()));
         try {
             return oper.execute(sql.preparedSql(), sql.params(),
                     new int[]{getType(record.table(), record.idName())}) > 0;
@@ -385,10 +358,10 @@ public class JDBCTmpl implements Closeable {
         _for(db).each(e -> sets.add(Tuple.t2(e.getKey(), e.getValue())));
         String[] keys = _for(sets).map(t -> t._a).join();
         //TODO
-        SqlUpdate sql = Sql.update(record.table()).dialect(Dialect.mysql);
+        SqlUpdate sql = Sql.update(record.table()).dialect(dialect);
         sql.set(S.array.of(sets))
                 .where(record.idName(), Criterion.EQ, (String) record.id());
-        logger.debug(sql.debug());
+        S._debug(DB.logger, logger -> logger.debug(sql.debug()));
         // 多出来的最后一个类型是id
         // types = [types_of_set, $ types_of id]
         int[] types_of_sets = getTypes(record.table(), keys);
@@ -418,16 +391,6 @@ public class JDBCTmpl implements Closeable {
             e.printStackTrace();
             throw new RuntimeSQLException(e);
         }
-    }
-
-    /**
-     * in case ...
-     *
-     * @return oper
-     */
-    @Deprecated
-    public JDBCOper oper() {
-        return this.oper;
     }
 
 }

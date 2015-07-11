@@ -2,7 +2,6 @@ package pond.db;
 
 import pond.common.S;
 import pond.common.f.Function;
-import pond.common.f.Holder;
 
 import java.sql.ResultSet;
 import java.util.HashMap;
@@ -20,8 +19,7 @@ import java.util.Set;
 public interface Record {
 
 
-
-    public interface Field<E> {
+    interface Field<E> {
 
         /**
          * Returns the name of this field.
@@ -70,17 +68,14 @@ public interface Record {
     <E> Field<E> field(String name);
 
 
-    final static String DEFAULT_PRI_KEY = "id";
+    String DEFAULT_PRI_KEY = "id";
 
     /**
      * default pk_provider
      */
-    static Holder<Function.F0<Object>> PK_PROVIDER =
-            new Holder<Function.F0<Object>>().init(S.uuid::vid);
-
-//    static void primaryKeySupplier(Function.F0<Object> supplier) {
-//        PK_PROVIDER.val = supplier;
-//    }
+    static String defaultPrimaryKey() {
+        return S.uuid.vid();
+    }
 
     /**
      * Static builder for subclasses
@@ -92,8 +87,8 @@ public interface Record {
      */
     @SuppressWarnings("unchecked")
     static <T extends Record> T newEntity(Class<T> recordClass) {
-        Record t = (Record) newValue(recordClass);
-        t.setId(PK_PROVIDER.val.apply());
+        Record t = newValue(recordClass);
+        t.setId(defaultPrimaryKey());
         return (T) t;
     }
 
@@ -112,39 +107,42 @@ public interface Record {
             return (T) t.init();
         } catch (InstantiationException
                 | IllegalAccessException e) {
-            e.printStackTrace();
+            S._debug(DB.logger, logger -> {
+                e.printStackTrace();
+            });
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
 
     /**
      * declared field-names that should be same as declared in db
      * readonly
+     *
      * @return
      */
-    public Set<String> declaredFieldNames();
+    Set<String> declaredFieldNames();
 
     /**
-     *
      * declared fields that should be same as declared in db
+     *
      * @return
      */
-    public Set<Field> declaredFields();
+    Set<Field> declaredFields();
 
     /**
      * Returns all fields
      *
      * @return
      */
-    public Set<String> fields();
+    Set<String> fields();
 
     /**
      * get primary key -value
      *
      * @return value
      */
-    public <E> E id();
+    <E> E id();
 
     /**
      * set primary key
@@ -244,19 +242,18 @@ public interface Record {
 
     //AR -QUICK
 
-
     /**
      * Quick add
      */
     default void add() {
-        _getDB().post( t -> t.add(this));
+        _getDB().post(t -> t.add(this));
     }
 
     /**
      * Quick update
      */
     default void update() {
-        _getDB().post( tmpl -> tmpl.upd(this));
+        _getDB().post(tmpl -> tmpl.upd(this));
     }
 
 
@@ -284,8 +281,6 @@ public interface Record {
         }
         return ret;
     }
-
-
 
 
 }

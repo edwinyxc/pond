@@ -4,7 +4,7 @@ import pond.common.S;
 
 public class H2SimplePoolBuilder {
 
-    String mysqlDriver = "org.h2.Driver";
+    String driver = "org.h2.Driver";
     int capacity = 10;
     String host;
     String database;
@@ -50,7 +50,7 @@ public class H2SimplePoolBuilder {
         S._assert(password, "please input password");
         S._assert(host, "please input host");
         S._assert(database, "please input database");
-        return S._tap(new SimplePool().config(mysqlDriver,
+        return S._tap(new SimplePool().config(driver,
                         String.format("jdbc:h2://%s/%s?%s", host, database, S._notNullElse(query, "")),
                         username, password),
                 newpool -> newpool.setMaxSize(capacity));

@@ -1,10 +1,10 @@
-package pond.common.sql;
+package pond.db.sql;
 
 import pond.common.f.Function;
-import pond.common.sql.dialect.Dialect;
+import pond.db.sql.dialect.Dialect;
 
-import static pond.common.S._for;
 import static java.lang.String.format;
+import static pond.common.S._for;
 
 /**
  * Created by ed on 14-5-22.

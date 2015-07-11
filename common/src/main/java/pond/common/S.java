@@ -1,5 +1,6 @@
 package pond.common;
 
+import com.sun.istack.internal.NotNull;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
@@ -106,16 +107,16 @@ public class S {
     private static Set<String> debugModeReg = new HashSet<>();
 
     public static void _debug(org.slf4j.Logger logger,
-                              Callback<org.slf4j.Logger> debugger){
-        if(debugModeReg.contains(logger.getName()))
+                              Callback<org.slf4j.Logger> debugger) {
+        if (debugModeReg.contains(logger.getName()))
             debugger.apply(logger);
     }
 
-    public static void _debug_on(Class<?>... clz){
+    public static void _debug_on(Class<?>... clz) {
         debugModeReg.addAll(_for(clz).map(Class::getCanonicalName).toList());
     }
 
-    public static void _debug_off(Class<?>... clz){
+    public static void _debug_off(Class<?>... clz) {
         debugModeReg.removeAll(_for(clz).map(Class::getCanonicalName).toList());
     }
 
@@ -166,11 +167,11 @@ public class S {
     }
 
     public static <E> E tap(E e, Callback<E> interceptor) {
-        return _tap(e,interceptor);
+        return _tap(e, interceptor);
     }
 
     public static void _times(C0 c, int times) {
-        for(int i =0; i< times; i++){
+        for (int i = 0; i < times; i++) {
             c.apply();
         }
     }
@@ -213,7 +214,14 @@ public class S {
     }
 
     public static <T> T avoidNull(T _check, T _else) {
-        return _check == null? _else : _check;
+        return _check == null ? _else : _check;
+    }
+
+    /**
+     * return nullable -- if the 1st arg is null, invoke the 2nd function with the first arg
+     */
+    public static <R, N> R _tap_nullable(N nullable, Function<R, N> ifNotNull) {
+        return nullable == null ? null : ifNotNull.apply(nullable);
     }
 
     /**
@@ -396,7 +404,7 @@ public class S {
         return System.currentTimeMillis();
     }
 
-    public static long now_nano(){
+    public static long now_nano() {
         return System.nanoTime();
     }
 
@@ -546,7 +554,7 @@ public class S {
             for (int i = 0; i < list.size(); i++) {
                 Array.set(array, i, list.get(i));
             }
-            return (T[])array;
+            return (T[]) array;
         }
 
         /**

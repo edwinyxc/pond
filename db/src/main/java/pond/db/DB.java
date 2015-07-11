@@ -5,9 +5,10 @@ import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
-import pond.common.sql.dialect.Dialect;
+import pond.common.f.Tuple;
 import pond.db.connpool.ConnectionPool;
 import pond.db.connpool.SimplePool;
+import pond.db.sql.dialect.Dialect;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -15,10 +16,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static pond.common.f.Function.F0;
 
@@ -34,7 +32,7 @@ import static pond.common.f.Function.F0;
  */
 public final class DB {
 
-    static Logger logger = LoggerFactory.getLogger(DB.class);
+    public static Logger logger = LoggerFactory.getLogger(DB.class);
 
     public static ConnectionPool SimplePool(Properties config) {
         ConnectionPool cp = new SimplePool();
@@ -60,8 +58,7 @@ public final class DB {
 
     public DB(DataSource dataSource, Dialect dialect) {
         this.dataSource = dataSource;
-        this.connProvider = () -> S._try_ret((Function.F0ERR<Connection>)
-                this.dataSource::getConnection);
+        this.connProvider = () -> S._try_ret(this.dataSource::getConnection);
         rule = new MappingRule();
         this.dbStructures = getDatabaseStructures();
         tmpl = new JDBCTmpl(this.dbStructures, rule, dialect);
@@ -70,14 +67,23 @@ public final class DB {
 
     public DB(DataSource dataSource) {
         //using mysql dialect as default and do not seek reason
-        this(dataSource,Dialect.mysql);
+        this(dataSource, Dialect.mysql);
     }
 
+    /**
+     * for the purpose of reconfigure the mapping rule
+     */
     public DB rule(MappingRule rule) {
         this.rule = rule;
         return this;
     }
 
+    /**
+     * Returns a tmpl
+     */
+    JDBCTmpl newTmpl() throws SQLException {
+        return tmpl.open(connProvider.apply());
+    }
 
     /**
      * This function will be only called ONCE
@@ -137,12 +143,14 @@ public final class DB {
      */
     public <R> R get(Function<R, JDBCTmpl> process) {
         long startTime = S.now();
-        try (JDBCTmpl tmpl = this.open()) {
-            logger.debug("open db time used: " + (S.now() - startTime));
+        try (JDBCTmpl tmpl = this.newTmpl()) {
+            S._debug(logger, log -> log.debug(("newTmpl db time used: " + (S.now() - startTime))));
+            tmpl.txStart();
             R r = process.apply(tmpl);
-            logger.debug("apply process time used: " + (S.now() - startTime));
+            tmpl.txCommit();
+            S._debug(logger, log -> log.debug("apply process time used: " + (S.now() - startTime)));
             return r;
-        } catch (IOException e) {
+        } catch (IOException | SQLException e) {
             throw new RuntimeException(e);
         }
     }
@@ -151,44 +159,35 @@ public final class DB {
         return get(t -> t.query(sql, args));
     }
 
-    /* going to delete in future
-    @Deprecated
-    public <R> R _get_failback(Function<R, JDBCTmpl> process) {
-        long startTime = S.time();
-        JDBCTmpl tmpl = null;
-        try {
-            tmpl = this.open();
-            logger.debug("open db time used: " + (S.time() - startTime));
-            R r = process.apply(tmpl);
-            logger.debug("apply process time used: " + (S.time() - startTime));
-            return r;
-        } finally {
-            try {
-                if (tmpl != null) tmpl.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    */
 
     public void post(Callback<JDBCTmpl> cb) {
-        try (JDBCTmpl tmpl = this.open()) {
+        try (JDBCTmpl tmpl = this.newTmpl()) {
+            tmpl.txStart();
             cb.apply(tmpl);
-        } catch (IOException e) {
+            tmpl.txCommit();
+        } catch (IOException | SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void post(String sql, Object... args) {
-        post(t -> t.exec(sql, args));
+    /**
+     * post all arguments as sql
+     */
+    public void batch(String... posts) {
+        try (JDBCTmpl tmpl = this.newTmpl()) {
+            tmpl.txStart();
+            S._for(posts).each(tmpl::exec);
+            tmpl.txCommit();
+        } catch (IOException | SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
-     * Returns a tmpl
+     * Quick post with args
      */
-    public JDBCTmpl open() {
-        return tmpl.open(oper.open(connProvider.apply()));
+    public void post(String sql, Object... args) {
+        post(t -> t.exec(sql, args));
     }
 
 

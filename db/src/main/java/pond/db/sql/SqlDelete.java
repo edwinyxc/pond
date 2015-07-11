@@ -1,4 +1,4 @@
-package pond.common.sql;
+package pond.db.sql;
 
 /**
  * Created by ed on 2014/4/30.

@@ -2,27 +2,28 @@ package pond.db.connpool;
 
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import pond.common.S;
+import pond.db.DB;
+import pond.db.RuntimeSQLException;
 
-import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.LinkedBlockingQueue;
 
-import static pond.common.S._dump;
-
+//TODO JNDI
 public class SimplePool implements ConnectionPool {
 
-    static private Logger logger = LoggerFactory.getLogger(SimplePool.class);
 
-    private List<Connection> connPool;
+    LinkedBlockingQueue<ConnectionWrapper> availableConnections;
+
+//    ConcurrentLinkedQueue<Connection> workingConnections;
+//    ConcurrentLinkedQueue<Connection> tempCreatedConnections;
+
     private int poolMaxSize = 10;
 
-    private String driverClass;
+    //    private String driverClass;
     private String url;
     private String username;
     private String pass;
@@ -31,23 +32,22 @@ public class SimplePool implements ConnectionPool {
     }
 
     public void setLogger(Logger logger) {
-        this.logger = logger;
+
     }
 
 
-    public SimplePool config ( String driver, String url, String username,
-            String password ) {
+    public SimplePool config(String driver, String url, String username,
+                             String password) {
 
-        this.driverClass = driver;
 
         try {
-            Class.forName(driverClass);
+            Class.forName(driver);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
 
 
-        logger.info("driver_class ->" + driverClass);
+        DB.logger.info("driver_class ->" + driver);
 
         this.username = username;
 
@@ -55,9 +55,8 @@ public class SimplePool implements ConnectionPool {
 
         this.url = url;
 
-        logger.info("conn_url ->" + url);
+        DB.logger.info("conn_url ->" + url);
 
-        connPool = new ArrayList<>();
         int size;
         int defaultInitSize = 5;
         if (poolMaxSize > defaultInitSize) {
@@ -65,96 +64,78 @@ public class SimplePool implements ConnectionPool {
         } else {
             size = poolMaxSize;
         }
-        for (int i = 0; i < size; i++) {
-            connPool.add(S._try_ret(() -> createConnection()));
+
+        availableConnections = new LinkedBlockingQueue<>(size);
+
+        try {
+            for (int i = 0; i < size; i++) {
+                availableConnections.put(S._try_ret(this::createWrapper));
+            }
+        } catch (InterruptedException e) {
+            S._debug(DB.logger, logger -> {
+                logger.debug("InterruptedException when initializing SimplePool");
+                e.printStackTrace();
+            });
         }
 
         return this;
     }
 
-
-    private Connection createConnection() throws SQLException {
-        Connection connection;
-        connection = DriverManager.getConnection(url, username, pass);
-        return connection;
+    public Connection physicalConnection() throws SQLException {
+         return DriverManager.getConnection(url, username, pass);
     }
 
-    public synchronized void releaseConnection(Connection connection) {
-        int size = connPool.size();
-        if (size > poolMaxSize) {
-            try {
-                ConnectionProxy handler = (ConnectionProxy) Proxy
-                        .getInvocationHandler(connection);
-                handler.getConnection().close();// THE REAL
-                // CLOSE
-            } catch (SQLException e) {
-                if (logger != null) {
-                    logger.debug("connection can not close :");
-                    logger.debug(_dump(connection));
-                }
-                // do nothing
-            }
-            return;
-        }
-        connPool.add(connection);
+    private ConnectionWrapper createWrapper() throws SQLException {
+
+        return new ConnectionWrapper(physicalConnection(), this);
     }
 
-    public synchronized Connection getConnection() {
-        if( connPool == null
-            || driverClass == null
-            || url == null
-            || username == null
-            || pass == null
-        ) throw new RuntimeException("Please config first");
+    public void releaseConnection(ConnectionWrapper connection) {
+
         try {
-            ConnectionProxy connectionProxy = new ConnectionProxy(this);
-            int size = connPool.size();
-            if (connPool.size() == 0 || size > poolMaxSize) {
-                connectionProxy.setConnection(createConnection());
-                return connectionProxy.proxyBind();
-            }
-            Connection connection;
-            int i = 1;
-            for (connection = connPool.get(size - i); i <= size; i++) {
-                if (connection.isClosed()) {
-                    connPool.remove(size - i);
-                } else {
-                    break;
-                }
-            }
-            if (!connection.isClosed()) {
-                connectionProxy.setConnection(connection);
+            if (!connection.isPhysicallyClosed()) {
+                availableConnections.put(connection);
             } else {
-                connectionProxy.setConnection(createConnection());
+                availableConnections.put(createWrapper());
             }
-            return connectionProxy.proxyBind();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (InterruptedException | SQLException e) {
+            S._debug(DB.logger, logger -> {
+                logger.debug(e.toString());
+                e.printStackTrace();
+            });
+        }
+    }
+
+    public Connection getConnection() throws SQLException {
+        try {
+            return availableConnections.take().refresh();
+        } catch (InterruptedException e) {
+            throw new RuntimeSQLException(e);
         }
     }
 
 
     @Override
     public void setMaxSize(Integer maxSize) {
-        if( maxSize < 0 || maxSize > 200) throw new RuntimeException("Invalid maxSize");
-        logger.info("maxSize -> "+ maxSize);
+        if (maxSize < 0) throw new RuntimeException("Invalid maxSize");
+        DB.logger.info("maxSize -> " + maxSize);
         this.poolMaxSize = maxSize;
     }
 
     @Override
     public SimplePool loadConfig(Properties p) {
         String str_poolMaxSize = p.getProperty(ConnectionPool.MAXSIZE, "10");
-        setMaxSize(S._try_ret( () -> Integer.parseInt(str_poolMaxSize) ));
+        setMaxSize(S._try_ret(() -> Integer.parseInt(str_poolMaxSize)));
         String driverClass = p.getProperty(ConnectionPool.DRIVER);
         String url = p.getProperty(ConnectionPool.URL);
         String pass = p.getProperty(ConnectionPool.PASSWORD);
         String username = p.getProperty(ConnectionPool.USERNAME);
-        config(driverClass,url,username,pass);
+        config(driverClass, url, username, pass);
         return this;
     }
 
 
-    public static MysqlSimplePoolBuilder Mysql(){
+    public static MysqlSimplePoolBuilder Mysql() {
         return new MysqlSimplePoolBuilder();
     }
 

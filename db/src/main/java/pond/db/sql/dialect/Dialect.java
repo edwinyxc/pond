@@ -1,6 +1,4 @@
-package pond.common.sql.dialect;
-
-import pond.common.f.Function;
+package pond.db.sql.dialect;
 
 /**
  * Created by ed on 2014/5/4.
