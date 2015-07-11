@@ -71,7 +71,8 @@ public class ConcurrentTest {
                         db.post(tmpl -> {
                             tmpl.exec("USE POND_DB_TEST;");
                             for (int i = 0; i < 400; i++)
-                                tmpl.exec("INSERT INTO test values(?,?)", String.valueOf(Math.random()), String.valueOf(val.accum()));
+                                tmpl.exec("INSERT INTO test values(?,?)",
+                                        String.valueOf(Math.random()), String.valueOf(val.accum()));
                         });
 
                     }, executorService));
@@ -84,7 +85,7 @@ public class ConcurrentTest {
                     return t.query("SELECT count(*) FROM test");
                 })).each(S::echo);
                 S.echo("ALL FINISHED : time usage " + (S.now() - s));
-            }).get();
+            }) .get();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {

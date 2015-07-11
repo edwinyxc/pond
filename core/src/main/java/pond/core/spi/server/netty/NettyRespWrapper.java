@@ -104,7 +104,7 @@ public class NettyRespWrapper implements Response {
                 sendError(500, HttpResponseStatus.INTERNAL_SERVER_ERROR + ": " + e.getMessage());
                 return;
             }
-            // HttpChunkedInput will write the end marker (LastHttpContent) for us.
+            // HttpChunkedInput will pipe the end marker (LastHttpContent) for us.
         }
 
         sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
@@ -207,7 +207,7 @@ public class NettyRespWrapper implements Response {
         if (!keepAlive)
             lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 //
-//        S._tap(ctx.write(buffer), then -> {
+//        S._tap(ctx.pipe(buffer), then -> {
 //            then.addListener(f -> {
 //                S._tap(ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT), future -> {
 //                    if (!keepAlive) {

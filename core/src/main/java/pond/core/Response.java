@@ -74,7 +74,7 @@ public interface Response {
                 String.valueOf(S.time());
         header("Content-disposition", "attachment;filename=" + filen);
         try {
-            S.stream.write(in, this.out());
+            S.stream.pipe(in, this.out());
             status(200);
         } catch (IOException e) {
             status(500);

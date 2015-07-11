@@ -1,6 +1,5 @@
 package pond.common;
 
-import com.sun.istack.internal.NotNull;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
@@ -15,6 +14,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import pond.common.f.*;
+import pond.common.f.Callback.C0;
+import pond.common.f.Function.F0;
 import pond.common.struc.Cache;
 import pond.common.struc.EnumerationIterable;
 import pond.common.struc.Matrix;
@@ -31,9 +32,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
-
-import pond.common.f.Function.F0;
-import pond.common.f.Callback.C0;
 
 public class S {
 
@@ -1428,14 +1426,18 @@ public class S {
             return baos.toByteArray();
         }
 
+
+        public static void write(InputStream in, OutputStream out) throws IOException {
+            pipe(in, out);
+        }
         /**
-         * write from is to os;
+         * pipe from is to os;
          *
          * @param in  inputStream
          * @param out outputStream
          * @throws java.io.IOException
          */
-        public static void write(final InputStream in, final OutputStream out) throws IOException {
+        public static void pipe(final InputStream in, final OutputStream out) throws IOException {
             final byte[] buffer = new byte[BUFFER_SIZE];
             int cnt;
 

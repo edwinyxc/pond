@@ -2,7 +2,6 @@ package pond.core;
 
 
 import pond.common.f.Tuple;
-import pond.db.sql.Criterion;
 import pond.core.http.UploadFile;
 import pond.core.spi.MultipartRequestResolver;
 
@@ -79,35 +78,6 @@ public interface Request {
 //
     //TODO
 
-    /**
-     * Parse a query from Request
-     * @param declaredFields
-     * @return
-     */
-    default List<Tuple.T3<String, Criterion, Object[]>>
-            toQuery( Iterable<String> declaredFields)
-    {
-        List<Tuple.T3<String, Criterion, Object[]>>
-                conditions = new ArrayList<>();
-        for (String f : declaredFields) {
-            String ori_c_and_v = this.param(f);
-            if (ori_c_and_v == null) continue;
-            String[] c_and_v = ori_c_and_v.split(",");
-            if (c_and_v.length > 0) {
-                if (c_and_v.length == 1) {
-                    //&uid=xxx;
-                    //eq
-                    conditions.add(Tuple.t3(f, Criterion.EQ, c_and_v));
-                } else {
-                    conditions.add(Tuple.t3(f,
-                            Criterion.of(c_and_v[0]),
-                            Arrays.copyOfRange(c_and_v, 1, c_and_v.length)
-                    ));
-                }
-            }
-        }
-        return conditions;
-    }
 
 
     default Map<String, Object> toMap() {

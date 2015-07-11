@@ -60,7 +60,7 @@ public interface Render {
                 resp.header("Content-Type",
                         "application/octet-stream");
             try {
-                S.stream.write(new FileInputStream(f), resp.out());
+                S.stream.pipe(new FileInputStream(f), resp.out());
                 resp.out().flush();
             } catch (IOException e) {
                 S._lazyThrow(e);
@@ -102,7 +102,7 @@ public interface Render {
             } catch (UnsupportedEncodingException ignored) {
             }
             try {
-                S.stream.write(file, resp.out());
+                S.stream.pipe(file, resp.out());
                 resp.out().flush();
             } catch (IOException e) {
                 S._lazyThrow(e);

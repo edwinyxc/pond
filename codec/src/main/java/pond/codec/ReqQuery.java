@@ -6,11 +6,9 @@ import pond.core.Ctx;
 import pond.core.Pond;
 import pond.core.Request;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import pond.db.sql.Criterion;
 import pond.db.sql.SqlSelect;
 import pond.db.sql.Sql;
 import pond.db.DB;
@@ -31,6 +29,36 @@ public class ReqQuery {
     public static final String PG_SIZE = "ReqQuery.pg_size";
     public static final String REC_SIZE = "ReqQuery.rec_size";
 
+    /**
+     * Parse a query from Request
+     *
+     * @param declaredFields
+     * @return
+     */
+    public static List<Tuple.T3<String, Criterion, Object[]>> reqToQuery(Request req,
+                                                                         Iterable<String> declaredFields) {
+        List<Tuple.T3<String, Criterion, Object[]>>
+                conditions = new ArrayList<>();
+        for (String f : declaredFields) {
+            String ori_c_and_v = req.param(f);
+            if (ori_c_and_v == null) continue;
+            String[] c_and_v = ori_c_and_v.split(",");
+            if (c_and_v.length > 0) {
+                if (c_and_v.length == 1) {
+                    //&uid=xxx;
+                    //eq
+                    conditions.add(Tuple.t3(f, Criterion.EQ, c_and_v));
+                } else {
+                    conditions.add(Tuple.t3(f,
+                            Criterion.of(c_and_v[0]),
+                            Arrays.copyOfRange(c_and_v, 1, c_and_v.length)
+                    ));
+                }
+            }
+        }
+        return conditions;
+    }
+
     public static SqlSelect sqlFromReq(Request req, Record proto) {
         String tb_name = proto.table();
         Set<String> fields = proto.declaredFieldNames();
@@ -38,7 +66,7 @@ public class ReqQuery {
         SqlSelect sql =
                 Sql.select(fields.toArray(new String[fields.size()]))
                         .from(tb_name)
-                        .where(req.toQuery(proto.declaredFieldNames()));
+                        .where(reqToQuery(req, proto.declaredFieldNames()));
 
         Ctx ctx = req.ctx();
         String N_SORD = _getOrSet(ctx.pond().config, SORD, "_sord");
@@ -83,7 +111,7 @@ public class ReqQuery {
 
     @Deprecated
     public static Page queryForPage(Request req, Record p) {
-       DB db = (DB) req.ctx().pond().component(Pond.DEFAULT_DB);
+        DB db = (DB) req.ctx().pond().component(Pond.DEFAULT_DB);
         return db.get(tmpl -> {
             Page page = Page.of(req);
             SqlSelect select = sqlFromReq(req, p);
@@ -103,13 +131,13 @@ public class ReqQuery {
 
 
         final String N_DATA;
-        final String N_PG_IDX ;
-        final String N_PG_LEN ;
-        final String N_PG_SIZE ;
-        final String N_REC_SIZE ;
+        final String N_PG_IDX;
+        final String N_PG_LEN;
+        final String N_PG_SIZE;
+        final String N_REC_SIZE;
         Map config;
 
-        public Page( Map config ) {
+        public Page(Map config) {
             this.config = config;
             N_DATA = _getOrSet(config, DATA, "rows");
             N_PG_IDX = _getOrSet(config, PG_IDX, "page");
@@ -120,7 +148,7 @@ public class ReqQuery {
 
         public Page(Integer pgIdx, Integer pgLen, Map config) {
             this(config);
-            this.take(pgIdx,pgLen);
+            this.take(pgIdx, pgLen);
         }
 
         public Page take(Integer pgIdx, Integer pgLen) {

@@ -30,7 +30,7 @@ public class STest {
     public void test_http() throws Exception {
         S.echo("testing http");
         S.http.get("http://www.baidu.com", null, resp -> {
-            S.echo(S.time(() -> S._try(() -> S.stream.write(resp.getEntity().getContent(), System.out))));
+            S.echo(S.time(() -> S._try(() -> S.stream.pipe(resp.getEntity().getContent(), System.out))));
         });
     }
 

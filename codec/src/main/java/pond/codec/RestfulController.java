@@ -36,7 +36,7 @@ public class RestfulController<E extends Record> extends Controller {
 //        Set<String> fields = proto.declaredFieldNames();
 //        SqlSelect sql =
 //            Sql.select(fields.toArray(new String[fields.size()])).from(tb_name)
-//                .where(req.toQuery(proto.declaredFieldNames()));
+//                .where(req.reqToQuery(proto.declaredFieldNames()));
 //        String sord = req.param(SORD);
 //        String sord_f = req.param(SORDF);
 //        if (S.str.notBlank(sord)
