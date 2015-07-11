@@ -2,6 +2,7 @@ package pond.db;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import pond.common.S;
 import pond.common.f.Holder;
@@ -58,6 +59,7 @@ public class ConcurrentTest {
     }
 
 
+    @Ignore
     @Test
     public void testExecTx() {
         Holder.AccumulatorInt val = new Holder.AccumulatorInt(0);

@@ -67,7 +67,7 @@ public class NettyReqWrapper extends AbstractRequest {
         String cookieString = String.valueOf(S.avoidNull(n_headers.get(HttpHeaderNames.COOKIE), ""));
         if (S.str.notBlank(cookieString)) {
             java.util.Set<io.netty.handler.codec.http.Cookie> decodedCookies = ServerCookieDecoder.decode(cookieString);
-            this.cookies = S._for(decodedCookies).map(c -> {
+            this.cookies = S._for(decodedCookies).compact().map(c -> {
                 Cookie ret = new Cookie(c.name(), c.value());
                 ret.setComment(c.comment());
                 ret.setDomain(c.domain());
