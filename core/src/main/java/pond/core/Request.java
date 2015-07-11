@@ -2,7 +2,7 @@ package pond.core;
 
 
 import pond.common.f.Tuple;
-import pond.common.sql.Criterion;
+import pond.db.sql.Criterion;
 import pond.core.http.UploadFile;
 import pond.core.spi.MultipartRequestResolver;
 

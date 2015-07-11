@@ -1,7 +1,5 @@
 package pond.db.connpool;
 
-import pond.common.f.Function;
-
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -21,57 +19,57 @@ public interface ConnectionPool extends DataSource {
     /**
      * in-properties label
      */
-    public static String DRIVER = "ConnectionPool.driver";
-    public static String URL= "ConnectionPool.url";
-    public static String PASSWORD = "ConnectionPool.password";
-    public static String USERNAME = "ConnectionPool.username";
-    public static String MAXSIZE = "ConnectionPool.maxsize";
 
-    public void setMaxSize(Integer maxSize);
+    String DRIVER = "ConnectionPool.driver";
+    String URL = "ConnectionPool.url";
+    String PASSWORD = "ConnectionPool.password";
+    String USERNAME = "ConnectionPool.username";
+    String MAXSIZE = "ConnectionPool.maxsize";
 
-//    public void setCache(Function<Connection,String>, );
+    void setMaxSize(Integer maxSize);
 
-    public ConnectionPool loadConfig(Properties p);
+
+    ConnectionPool loadConfig(Properties p);
 
     Connection getConnection() throws SQLException;
 
-    @Override default
-    Connection getConnection(String username, String password) throws SQLException {
-        return  getConnection();
+    @Override
+    default Connection getConnection(String username, String password) throws SQLException {
+        return getConnection();
     }
 
-    @Override default
-    PrintWriter getLogWriter() throws SQLException {
+    @Override
+    default PrintWriter getLogWriter() throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    @Override default
-    void setLogWriter(PrintWriter out) throws SQLException {
+    @Override
+    default void setLogWriter(PrintWriter out) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    @Override default
-    void setLoginTimeout(int seconds) throws SQLException {
+    @Override
+    default void setLoginTimeout(int seconds) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    @Override default
-    int getLoginTimeout() throws SQLException {
+    @Override
+    default int getLoginTimeout() throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    @Override default
-    Logger getParentLogger() throws SQLFeatureNotSupportedException{
+    @Override
+    default Logger getParentLogger() throws SQLFeatureNotSupportedException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    @Override default
-    <T> T unwrap(Class<T> iface) throws SQLException {
+    @Override
+    default <T> T unwrap(Class<T> iface) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    @Override default
-    boolean isWrapperFor(Class<?> iface) throws SQLException {
+    @Override
+    default boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 }

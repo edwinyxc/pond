@@ -1,10 +1,9 @@
 package pond.db;
 
-import static pond.common.f.Function.F2;
-
+import java.sql.ResultSet;
 import java.sql.Types;
 
-import java.sql.ResultSet;
+import static pond.common.f.Function.F2;
 
 public class MappingRule {
     /*BASIC JDBC types*/

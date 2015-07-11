@@ -217,6 +217,13 @@ public class S {
     }
 
     /**
+     * return nullable -- if the 1st arg is null, invoke the 2nd function with the first arg
+     */
+    public static <R, N> R _tap_nullable(N nullable, Function<R, N> ifNotNull) {
+        return nullable == null ? null : ifNotNull.apply(nullable);
+    }
+
+    /**
      * Just use {@link #_assert(Object)}
      */
     @Deprecated
@@ -1421,16 +1428,17 @@ public class S {
         }
 
         /**
-         * @link{ #pipe}
          * @throws IOException
+         * @link{ #pipe}
          */
         @Deprecated
         public static void write(final InputStream in, final OutputStream out) throws IOException {
-            pipe(in,out);
+            pipe(in, out);
         }
 
         /**
          * pipe inputStream & outputStream
+         *
          * @param in  inputStream
          * @param out outputStream
          * @throws java.io.IOException

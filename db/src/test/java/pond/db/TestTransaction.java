@@ -19,8 +19,7 @@ public class TestTransaction {
 
     public static void main(String[] args) {
         DB db = new DB(localDataSource);
-        db.post(tmpl -> tmpl.tx("update user_group set gid = '0' "
-                ,"update user_group ddd"));
+        db.post("update user_group set gid = '0' " ,"update user_group ddd");
     }
 
 }

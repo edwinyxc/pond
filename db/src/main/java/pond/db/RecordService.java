@@ -1,9 +1,9 @@
 package pond.db;
 
 import pond.common.f.Tuple;
-import pond.common.sql.Criterion;
-import pond.common.sql.Sql;
-import pond.common.sql.SqlSelect;
+import pond.db.sql.Criterion;
+import pond.db.sql.Sql;
+import pond.db.sql.SqlSelect;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +16,7 @@ import static pond.common.f.Tuple.t2;
 /**
  * Created by ed on 14-5-20.
  */
+@Deprecated
 public abstract class RecordService<E extends Record> {
 
     public static <E extends Record> RecordService<E> build(Class<E> clazz) {

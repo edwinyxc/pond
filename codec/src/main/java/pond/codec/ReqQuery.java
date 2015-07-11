@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import pond.common.sql.SqlSelect;
-import pond.common.sql.Sql;
+import pond.db.sql.SqlSelect;
+import pond.db.sql.Sql;
 import pond.db.DB;
 import pond.db.Record;
 

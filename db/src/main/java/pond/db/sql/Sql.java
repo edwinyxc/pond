@@ -1,7 +1,7 @@
-package pond.common.sql;
+package pond.db.sql;
 
 import pond.common.f.Tuple;
-import pond.common.sql.dialect.Dialect;
+import pond.db.sql.dialect.Dialect;
 
 import static pond.common.S._notNullElse;
 

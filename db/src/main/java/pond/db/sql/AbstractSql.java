@@ -1,6 +1,6 @@
-package pond.common.sql;
+package pond.db.sql;
 
-import pond.common.sql.dialect.Dialect;
+import pond.db.sql.dialect.Dialect;
 
 import java.util.ArrayList;
 import java.util.List;

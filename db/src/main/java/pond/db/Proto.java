@@ -1,7 +1,5 @@
 package pond.db;
 
-import pond.common.f.Tuple;
-
 import java.util.HashMap;
 import java.util.Map;
 

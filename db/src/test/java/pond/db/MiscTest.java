@@ -51,14 +51,14 @@ INSERT INTO test values('2334','2333334');*/
 
         this.db = new DB(dataSource);
 
-        db.post( tmpl -> tmpl.tx(
+        db.post(
                 "DROP DATABASE IF EXISTS POND_DB_TEST;",
                 "CREATE DATABASE POND_DB_TEST;",
                 "USE POND_DB_TEST;",
                 "CREATE TABLE test ( id varchar(64) primary key, `value` varchar(2000) );",
                 "INSERT INTO test values('2333','233333');",
                 "INSERT INTO test values('2334','2333334');"
-        ));
+        );
     }
 
     @Ignore
@@ -67,7 +67,7 @@ INSERT INTO test values('2334','2333334');*/
 
         List<Record> rlist = this.db.get(t -> t.query("select `value` from test where id = '2333'"));
 
-        String v = _for(rlist).first().get("value");
+        String v = S._tap_nullable(_for(rlist).first(), f -> f.get("value"));
 
         Assert.assertEquals("233333",v);
 
