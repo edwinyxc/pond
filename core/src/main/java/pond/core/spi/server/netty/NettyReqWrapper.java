@@ -47,7 +47,7 @@ public class NettyReqWrapper extends AbstractRequest {
         DiskAttribute.baseDirectory = null; // system temp directory
     }
 
-    public NettyReqWrapper(ChannelHandlerContext ctx, FullHttpRequest req,  NettyHttpServer server) {
+    public NettyReqWrapper(ChannelHandlerContext ctx, FullHttpRequest req, NettyHttpServer server) {
 
         //check bad request
         long _parse_start = S.now();
@@ -67,10 +67,10 @@ public class NettyReqWrapper extends AbstractRequest {
         String cookieString = String.valueOf(S.avoidNull(n_headers.get(HttpHeaderNames.COOKIE), ""));
         if (S.str.notBlank(cookieString)) {
             java.util.Set<io.netty.handler.codec.http.Cookie> decodedCookies = ServerCookieDecoder.decode(cookieString);
-            this.cookies = S._for(decodedCookies).compact().map(c -> {
+            this.cookies = S._for(decodedCookies).map(c -> {
                 Cookie ret = new Cookie(c.name(), c.value());
                 ret.setComment(c.comment());
-                ret.setDomain(c.domain());
+                if (S.str.notBlank(c.domain())) ret.setDomain(c.domain());
                 ret.setHttpOnly(c.isHttpOnly());
                 ret.setMaxAge((int) c.maxAge());
                 ret.setSecure(c.isSecure());
