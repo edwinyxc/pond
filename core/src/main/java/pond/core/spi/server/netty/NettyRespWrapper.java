@@ -207,6 +207,9 @@ public class NettyRespWrapper implements Response {
         writer.flush();
 
         S._debug(BaseServer.logger, log -> {
+            log.debug("----SEND STATUS---");
+            log.debug(S.dump(resp.status()));
+
             log.debug("----SEND HEADERS---");
             log.debug(S.dump(resp.headers()));
 
