@@ -44,19 +44,19 @@ public interface Request {
         return S._try_ret(() -> new URI(uri()).getPath());
     }
 
-    default Cookie cookie(String s){
+    default Cookie cookie(String s) {
         return cookies().get(s);
     }
 
-    default List<String> headers(String string){
+    default List<String> headers(String string) {
         return headers().get(string);
     }
 
-    default String header(String string){
+    default String header(String string) {
         return S._for(headers(string)).first();
     }
 
-    default List<String> params(String para){
+    default List<String> params(String para) {
         return params().get(para);
     }
 
@@ -64,7 +64,7 @@ public interface Request {
         return S._for(params(para)).first();
     }
 
-    default void param(String key , String val) {
+    default void param(String key, String val) {
         HttpUtils.appendToMap(params(), key, val);
     }
 
@@ -77,52 +77,60 @@ public interface Request {
     }
 
     //upload File
-    default List<UploadFile> files(String file){
+    default List<UploadFile> files(String file) {
         return files().get(file);
     }
 
-    default UploadFile file(String file){
+    default UploadFile file(String file) {
         return S._for(files(file)).first();
     }
 
-    default Integer paramInt(String para){
+    default Integer paramInt(String para) {
         return S._try_ret(() -> Integer.parseInt(param(para)));
     }
 
-    default Boolean paramBool(String para){
+    default Boolean paramBool(String para) {
         return S._try_ret(() -> Boolean.parseBoolean(param(para)));
     }
 
-    default Double paramDouble(String para){
+    default Double paramDouble(String para) {
         return S._try_ret(() -> Double.parseDouble(param(para)));
     }
 
-    default Long paramLong(String para){
+    default Long paramLong(String para) {
         return S._try_ret(() -> Long.parseLong(param(para)));
     }
 
-    default Integer attrInt(String para){
+    default Integer attrInt(String para) {
         return S._try_ret(() -> Integer.parseInt(attr(para)));
     }
 
-    default Boolean attrBool(String para){
+    default Boolean attrBool(String para) {
         return S._try_ret(() -> Boolean.parseBoolean(attr(para)));
     }
 
-    default Double attrDouble(String para){
+    default Double attrDouble(String para) {
         return S._try_ret(() -> Double.parseDouble(attr(para)));
     }
 
-    default Long attrLong(String para){
+    default Long attrLong(String para) {
         return S._try_ret(() -> Long.parseLong(attr(para)));
+    }
+
+    default String argument(String arg) {
+        String ret;
+        ret = param(arg);
+        if (ret == null)
+            ret = attr(arg);
+        return ret;
     }
 
     default Ctx ctx() {
         return CtxExec.get();
     }
 
-    default Map<String,Object> toMap(){
-        Map<String,Object> ret = new HashMap<>();
+    default Map<String, Object> toMap() {
+        Map<String, Object> ret = new HashMap<>();
         ret.putAll(S._for(attrs()).map(attr -> S._for(attr).first()).val());
         ret.putAll(S._for(params()).map(param -> S._for(param).first()).val());
         return ret;
