@@ -9,11 +9,11 @@ import javax.servlet.WriteListener;
 import java.io.IOException;
 
 
-public class NettyOutputStream extends ServletOutputStream {
+public class NettyOutputServletStream extends ServletOutputStream {
 
     private final ByteBufOutputStream out;
 
-    public NettyOutputStream(ByteBuf buffer
+    public NettyOutputServletStream(ByteBuf buffer
     ) {
         this.out = new ByteBufOutputStream(buffer);
     }
@@ -54,5 +54,11 @@ public class NettyOutputStream extends ServletOutputStream {
     @Override
     public void setWriteListener(WriteListener writeListener) {
 
+    }
+
+    @Override
+    public void close() throws IOException {
+        out.close();
+        super.close();
     }
 }

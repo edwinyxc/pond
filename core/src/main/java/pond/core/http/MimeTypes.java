@@ -1,4 +1,4 @@
-package pond.core.misc;
+package pond.core.http;
 
 // Copyright (c) 2003-2011, Jodd Team (jodd.org). All Rights Reserved.
 

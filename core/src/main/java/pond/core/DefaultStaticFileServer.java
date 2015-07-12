@@ -109,7 +109,7 @@ class DefaultStaticFileServer implements Mid {
         }
 
         // Cache Validation
-        String ifModifiedSince = S._for(request.header("If-Modified-Since")).first();
+        String ifModifiedSince = request.header("If-Modified-Since");
         if (ifModifiedSince != null && !ifModifiedSince.isEmpty()) {
             SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
             Date ifModifiedSinceDate = S._try_ret(() -> dateFormatter.parse(ifModifiedSince));

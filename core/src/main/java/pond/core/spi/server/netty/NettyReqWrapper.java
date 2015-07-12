@@ -1,6 +1,7 @@
 package pond.core.spi.server.netty;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.AsciiString;
@@ -9,65 +10,124 @@ import io.netty.handler.codec.http.multipart.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
-import pond.core.AbstractRequest;
+import pond.core.Request;
+import pond.core.http.HttpUtils;
 import pond.core.spi.BaseServer;
 
 import javax.servlet.http.Cookie;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.*;
 
-public class NettyReqWrapper extends AbstractRequest {
+public class NettyReqWrapper implements Request {
 
     final static Logger logger = LoggerFactory.getLogger(NettyReqWrapper.class);
 
     NettyHttpServer server;
-    FullHttpRequest n_req;
+    HttpRequest n_req;
+
+    ByteBuf content;
 
     HttpHeaders n_headers;
-    Channel channel;
-    QueryStringDecoder uriDecoder;
-    Map<String, String[]> headers = new HashMap<>();
-    Map<String, String[]> params = new HashMap<>();
-    Iterable<Cookie> cookies;
+    final Channel channel;
+    final QueryStringDecoder uriDecoder;
+    final Map<String, List<String>> headers = new HashMap<>();
+    //merge attrs without replacing the origin
+    final Map<String, List<String>> params = new HashMap<>();
+    final Map<String, List<String>> attrs = new HashMap<>();
+    final Map<String, List<UploadFile>> uploads = new HashMap<>();
+    final Map<String, Cookie> cookies = new HashMap<>();
 
-    HttpPostRequestDecoder postRequestDecoder;
+    class NettyUploadFile implements Request.UploadFile {
+        FileUpload file;
 
-    //multipart configuration
-    private static final HttpDataFactory factory =
-            new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE); // Disk if size exceed
-    //useful for upload
-    private HttpData partialContent;
+        NettyUploadFile(FileUpload nettyUpload) {
+            file = nettyUpload;
+        }
 
-    static {
-        DiskFileUpload.deleteOnExitTemporaryFile = true; // should delete file on exit (in normal exit)
-        DiskFileUpload.baseDirectory = null; // system temp directory
-        DiskAttribute.deleteOnExitTemporaryFile = true; // should delete file on exit (in normal exit)
-        DiskAttribute.baseDirectory = null; // system temp directory
+        @Override
+        public String name() {
+            return file.getName();
+        }
+
+        @Override
+        public String filename() {
+            return file.getFilename();
+        }
+
+        @Override
+        public InputStream inputStream() throws IOException {
+            return new ByteBufInputStream(file.getByteBuf());
+        }
+
+        @Override
+        public File file() throws IOException {
+            return file.getFile();
+        }
     }
 
-    public NettyReqWrapper(ChannelHandlerContext ctx, FullHttpRequest req, NettyHttpServer server) {
 
-        //check bad request
-        long _parse_start = S.now();
+    public NettyReqWrapper(ChannelHandlerContext ctx,
+                           HttpRequest req,
+                           NettyHttpServer server,
+                           List<Attribute> parsedAttributes,
+                           List<UploadFile> fileUploads
+    ) {
+
         this.server = server;
         channel = ctx.channel();
         n_req = req;
         n_headers = req.headers();
-        HttpMethod method = req.method();
         uriDecoder = new QueryStringDecoder(n_req.uri());
 
-        //parse headers
-        S._for(n_headers.names()).each(name ->
-                        headers.put(name.toString(), S._for(n_headers.getAllAndConvert(name)).join())
-        );
+        S._for(parsedAttributes).each(attr -> {
+            String name = attr.getName();
+            String value = S._try_ret(attr::getValue);
 
+            HttpUtils.appendToMap(attrs, name, value);
+        });
+
+        S._for(fileUploads).each(fileUpload -> {
+            String name = fileUpload.name();
+            HttpUtils.appendToMap(uploads, name, fileUpload);
+        });
+
+    }
+
+
+    public NettyReqWrapper(ChannelHandlerContext ctx,
+                           HttpRequest req,
+                           NettyHttpServer server
+    ) {
+        this(ctx, req, server, null, null);
+    }
+
+    NettyReqWrapper init() {
+        long _parse_start = S.now();
+        parseHeaders();
+        parseCookies();
+        parseQueries();
+        S._debug(logger, log -> log.debug("parse_time:" + (S.now() - _parse_start)));
+        return this;
+    }
+
+    void parseHeaders() {
+        S._for(n_headers.names()).each(name -> HttpUtils.appendToMap(headers, name.toString(), n_headers.getAndConvert(name)));
+    }
+
+    void parseQueries() {
+        //parse query strings
+        params.putAll(S._for(uriDecoder.parameters()).val());
+    }
+
+    void parseCookies() {
         //parse cookie
         String cookieString = String.valueOf(S.avoidNull(n_headers.get(HttpHeaderNames.COOKIE), ""));
         if (S.str.notBlank(cookieString)) {
             java.util.Set<io.netty.handler.codec.http.Cookie> decodedCookies = ServerCookieDecoder.decode(cookieString);
-            this.cookies = S._for(decodedCookies).map(c -> {
+            S._for(decodedCookies).map(c -> {
                 Cookie ret = new Cookie(c.name(), c.value());
                 ret.setComment(c.comment());
                 if (S.str.notBlank(c.domain())) ret.setDomain(c.domain());
@@ -77,36 +137,10 @@ public class NettyReqWrapper extends AbstractRequest {
                 ret.setPath(c.path());
                 ret.setVersion(c.version());
                 return ret;
-            }).val();
+            }).each(cookie -> cookies.put(cookie.getName(), cookie));
         }
 
-        //parse query strings
-        params.putAll(S._for(uriDecoder.parameters()).map(list -> list.toArray(new String[list.size()])).val());
-
-        //parse message body (content)
-        ByteBuf content = n_req.content();
-        if (HttpMethod.POST.equals(method)
-                || HttpMethod.PUT.equals(method)
-                || HttpMethod.PATCH.equals(method)) {
-            //parse content
-
-            //Multipart
-            //TODO
-        }
-
-        req.content();
-
-        S._debug(logger, log -> {
-            log.debug("parse_time:" + (S.now() - _parse_start));
-        });
     }
-
-    @Override
-    @Deprecated
-    public InputStream in() throws IOException {
-        throw new UnsupportedOperationException("netty server doesn't provide input stream");
-    }
-
 
     private String fullUri() {
         AsciiString protocol = HttpVersion.HTTP_1_1.protocolName();
@@ -127,26 +161,36 @@ public class NettyReqWrapper extends AbstractRequest {
         return fullUri();
     }
 
-    @Override
-    public Locale locale() {
-        String sc = S.avoidNull(n_headers.get(HttpHeaderNames.ACCEPT_LANGUAGE), "").toString();
-        String[] parsed;
-        if (S.str.isBlank(sc)) {
-            sc = (String) S.avoidNull(server.env(BaseServer.LOCALE), "zh_CN");
-        }
-        if ((parsed = sc.split("-")).length >= 2) {
-            return new Locale(parsed[0], parsed[1]);
-        } else return new Locale("en", "US");
-    }
+//    @Override
+//    public Locale locale() {
+//        String sc = S.avoidNull(n_headers.get(HttpHeaderNames.ACCEPT_LANGUAGE), "").toString();
+//        String[] parsed;
+//        if (S.str.isBlank(sc)) {
+//            sc = (String) S.avoidNull(server.env(BaseServer.LOCALE), "zh_CN");
+//        }
+//        if ((parsed = sc.split("-")).length >= 2) {
+//            return new Locale(parsed[0], parsed[1]);
+//        } else return new Locale("en", "US");
+//    }
 
     @Override
-    public Map<String, String[]> headers() {
+    public Map<String, List<String>> headers() {
         return headers;
     }
 
     @Override
-    public Map<String, String[]> params() {
+    public Map<String, List<String>> params() {
         return params;
+    }
+
+    @Override
+    public Map<String, List<UploadFile>> files() {
+        return uploads;
+    }
+
+    @Override
+    public Map<String, List<String>> attrs() {
+        return attrs;
     }
 
     @Override
@@ -171,7 +215,7 @@ public class NettyReqWrapper extends AbstractRequest {
     }
 
     @Override
-    public Iterable<Cookie> cookies() {
+    public Map<String, Cookie> cookies() {
         return cookies;
     }
 

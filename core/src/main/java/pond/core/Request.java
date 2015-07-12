@@ -1,16 +1,16 @@
 package pond.core;
 
 
-import pond.common.f.Tuple;
-import pond.core.http.UploadFile;
-import pond.core.spi.MultipartRequestResolver;
+import pond.common.S;
+import pond.core.http.HttpUtils;
 
 import javax.servlet.http.Cookie;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
-
-import static pond.common.S._for;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 /**
  * event
@@ -19,83 +19,128 @@ import static pond.common.S._for;
  */
 public interface Request {
 
-    InputStream in() throws IOException;
-
-    String path();
-
-    String uri();
-
-    @Deprecated
-    Locale locale();
-
-    Map<String, String[]> headers();
-
-    String[] header(String string);
-
-    Map<String, String[]> params();
-
-    String param(String para);
-
-    default UploadFile paramFile(String name) {
-        Object ret = this.toMap().get(name);
-        if ( ret instanceof UploadFile ) {
-            return (UploadFile) ret;
-        }
-        throw new RuntimeException("" + name + " is not a file");
-    }
-
-    Integer paramInt(String para);
-
-    Boolean paramBool(String para);
-
-    Double paramDouble(String para);
-
-    Long paramLong(String para);
-
-    Request param(String para, String value);
-
-    String[] params(String para);
-
     String method();
 
     String remoteIp();
 
-    Iterable<Cookie> cookies();
-
-    Cookie cookie(String s);
-
-    //    HttpServletRequest raw();
-
     String characterEncoding();
 
+    //InputStream in() throws IOException;
+
+    String uri();
+
+    Map<String, List<String>> headers();
+
+    Map<String, List<String>> params();
+
+    Map<String, List<String>> attrs();
+
+    Map<String, List<UploadFile>> files();
+
+    Map<String, Cookie> cookies();
+
+    default String path() {
+        return S._try_ret(() -> new URI(uri()).getPath());
+    }
+
+    default Cookie cookie(String s){
+        return cookies().get(s);
+    }
+
+    default List<String> headers(String string){
+        return headers().get(string);
+    }
+
+    default String header(String string){
+        return S._for(headers(string)).first();
+    }
+
+    default List<String> params(String para){
+        return params().get(para);
+    }
+
+    default String param(String para) {
+        return S._for(params(para)).first();
+    }
+
+    default void param(String key , String val) {
+        HttpUtils.appendToMap(params(), key, val);
+    }
+
+    default List<String> attrs(String attr) {
+        return attrs().get(attr);
+    }
+
+    default String attr(String attr) {
+        return S._for(attrs(attr)).first();
+    }
+
+    //upload File
+    default List<UploadFile> files(String file){
+        return files().get(file);
+    }
+
+    default UploadFile file(String file){
+        return S._for(files(file)).first();
+    }
+
+    default Integer paramInt(String para){
+        return S._try_ret(() -> Integer.parseInt(param(para)));
+    }
+
+    default Boolean paramBool(String para){
+        return S._try_ret(() -> Boolean.parseBoolean(param(para)));
+    }
+
+    default Double paramDouble(String para){
+        return S._try_ret(() -> Double.parseDouble(param(para)));
+    }
+
+    default Long paramLong(String para){
+        return S._try_ret(() -> Long.parseLong(param(para)));
+    }
+
+    default Integer attrInt(String para){
+        return S._try_ret(() -> Integer.parseInt(attr(para)));
+    }
+
+    default Boolean attrBool(String para){
+        return S._try_ret(() -> Boolean.parseBoolean(attr(para)));
+    }
+
+    default Double attrDouble(String para){
+        return S._try_ret(() -> Double.parseDouble(attr(para)));
+    }
+
+    default Long attrLong(String para){
+        return S._try_ret(() -> Long.parseLong(attr(para)));
+    }
 
     default Ctx ctx() {
         return CtxExec.get();
     }
-//    Route route();
-//
-//    Route route(Route r);
-//
-    //TODO
 
+    interface UploadFile {
+        /**
+         * attr name
+         */
+        String name();
 
+        /**
+         * original filename provided by client
+         */
+        String filename();
 
-    default Map<String, Object> toMap() {
-        /*multi-part request*/
-        MultipartRequestResolver mResolver  = ctx().pond.multipart();
-        if (mResolver.isMultipart(this)) {
-            return mResolver.resolve(this);
-        }
+        /**
+         * input for file
+         */
+        InputStream inputStream() throws IOException;
 
-        Map<String, Object> map = new HashMap<>();
-        _for(params()).each(e -> {
-            Object val = e.getValue() != null && e.getValue().length > 0
-                    ? e.getValue()[0]
-                    : null;
-            map.put(e.getKey(), val);
-        });
-
-        return map;
+        /**
+         * File
+         */
+        File file() throws IOException;
     }
+
 
 }

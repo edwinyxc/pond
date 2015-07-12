@@ -466,6 +466,21 @@ public class S {
             return (T[]) array;
         }
 
+
+        public static <T> T[] concat(T[] first, T[]... rest) {
+            int totalLength = first.length;
+            for (T[] array : rest) {
+                totalLength += array.length;
+            }
+            T[] result = Arrays.copyOf(first, totalLength);
+            int offset = first.length;
+            for (T[] array : rest) {
+                System.arraycopy(array, 0, result, offset, array.length);
+                offset += array.length;
+            }
+            return result;
+        }
+
         /**
          * check if an array contains something
          *
@@ -680,7 +695,8 @@ public class S {
         private final Map<K, V> map;
 
         protected ForMap(Map<K, V> map) {
-            this.map = map;
+            if (map == null) this.map = Collections.emptyMap();
+            else this.map = map;
         }
 
         public ForMap<K, V> filter(Function<Boolean, Entry<K, V>> grepFunc) {
@@ -805,11 +821,13 @@ public class S {
         private final Iterable<E> iter;
 
         public ForIt(Iterable<E> e) {
-            iter = e;
+            if (e == null) iter = Collections.emptyList();
+            else iter = e;
         }
 
         public ForIt(E[] e) {
-            iter = list.one(e);
+            if (e == null) iter = Collections.emptyList();
+            else iter = list.one(e);
         }
 
         private <R> Collection<R> _initCollection(Class<?> itClass) {
@@ -851,10 +869,12 @@ public class S {
             return new ForIt<>(c);
         }
 
-        public E reduce(final Function.F2<E, E, E> reduceLeft) {
-            list.FList<E> l = list.one(iter);
-            if (l.size() == 0) return null;
-            return l.reduceLeft(reduceLeft);
+        public E reduce(Function.F2<E, E, E> f2, E init) {
+            return list.one(iter).reduceLeft(f2, init);
+        }
+
+        public E reduce(Function.F2<E, E, E> f2) {
+            return list.one(iter).reduceLeft(f2, null);
         }
 
         public Iterable<E> val() {
@@ -1069,14 +1089,26 @@ public class S {
             }
 
             public T reduceLeft(Function.F2<T, T, T> reduceFunc) {
-                if (this.size() == 1) {
-                    return this.get(0);
+                return reduceLeft(reduceFunc, null);
+            }
+
+            public T reduceLeft(Function.F2<T, T, T> reduceFunc, T addtionalHead) {
+                if (addtionalHead != null) {
+                    T result = addtionalHead;
+                    if (this.size() == 0) return addtionalHead;
+                    for (int i = 1; i < this.size(); i++) {
+                        result = reduceFunc.apply(result, this.get(i));
+                    }
+                    return result;
+                } else {
+                    if (this.size() == 0) return null;
+                    T result = this.get(0);
+                    if (this.size() == 1) return result;
+                    for (int i = 1; i < this.size(); i++) {
+                        result = reduceFunc.apply(result, this.get(i));
+                    }
+                    return result;
                 }
-                T result = this.get(0);
-                for (int i = 1; i < this.size(); i++) {
-                    result = reduceFunc.apply(result, this.get(i));
-                }
-                return result;
             }
 
             public String join(String sep) {
@@ -1430,6 +1462,7 @@ public class S {
         public static void write(InputStream in, OutputStream out) throws IOException {
             pipe(in, out);
         }
+
         /**
          * pipe from is to os;
          *

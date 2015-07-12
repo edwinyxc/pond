@@ -17,21 +17,21 @@ import java.io.*;
 public class NettyRespWrapper implements Response {
 
     ByteBuf buffer;
-    NettyOutputStream out;
+    NettyOutputServletStream out;
     PrintWriter writer;
 
     final NettyHttpServer server;
-    final FullHttpRequest request;
+    final HttpRequest request;
     final ChannelHandlerContext ctx;
     final HttpResponse resp;
 
-    NettyRespWrapper(ChannelHandlerContext ctx, FullHttpRequest req,
+    NettyRespWrapper(ChannelHandlerContext ctx, HttpRequest req,
                      NettyHttpServer server) {
         this.server = server;
         this.request = req;
         this.ctx = ctx;
         buffer = Unpooled.buffer();
-        out = new NettyOutputStream(buffer);
+        out = new NettyOutputServletStream(buffer);
         writer = new PrintWriter(out);
         resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                 HttpResponseStatus.ACCEPTED);

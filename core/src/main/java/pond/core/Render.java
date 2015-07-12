@@ -2,7 +2,7 @@ package pond.core;
 
 import pond.common.JSON;
 import pond.common.S;
-import pond.core.misc.MimeTypes;
+import pond.core.http.MimeTypes;
 import pond.core.spi.ViewEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +86,7 @@ public interface Render {
                 resp.header("Content-Type",
                         "application/octet-stream");
             try {
-                String agent = _for(req.header("User-Agent")).first();
+                String agent = req.header("User-Agent");
                 String encodedFileName;
                 if (agent.toLowerCase().contains("msie")
                         ||agent.toLowerCase().contains("safari")) {

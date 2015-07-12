@@ -182,23 +182,6 @@ public final class Pond implements RouterAPI {
         return this.sessionManager.get(ctx);
     }
 
-    //static method
-    //
-    //
-
-    /**
-     * Returns MultipartResolver
-     */
-    public MultipartRequestResolver multipart() {
-        MultipartRequestResolver ret = (MultipartRequestResolver)
-                this.component(MULTIPART_RESOLVER);
-        if (ret == null) {
-            ret = spiLoader.service(MultipartRequestResolver.class);
-            this.component(MULTIPART_RESOLVER, ret);
-        }
-        return ret;
-    }
-
 
     /**
      * Returns JsonService
