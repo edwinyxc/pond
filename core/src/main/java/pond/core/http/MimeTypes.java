@@ -45,7 +45,7 @@ public class MimeTypes {
     public static final String MIME_APPLICATION_X_FUTURESPLASH = "application/x-futuresplash";
     public static final String MIME_APPLICATION_X_GTAR = "application/x-gtar";
     public static final String MIME_APPLICATION_X_HDF = "application/x-hdf";
-    public static final String MIME_APPLICATION_X_JAVASCRIPT = "application/x-javascript";
+//    public static final String MIME_APPLICATION_X_JAVASCRIPT = "application/x-javascript";
     public static final String MIME_APPLICATION_X_KOAN = "application/x-koan";
     public static final String MIME_APPLICATION_X_LATEX = "application/x-latex";
     public static final String MIME_APPLICATION_X_NETCDF = "application/x-netcdf";
@@ -128,7 +128,6 @@ public class MimeTypes {
             MIME_TEXT_HTML,
             MIME_TEXT_PLAIN,
             MIME_APPLICATION_JSON,
-            MIME_APPLICATION_X_JAVASCRIPT,
             MIME_APPLICATION_JAVASCRIPT,
             MIME_APPLICATION_XML,
     };
@@ -227,7 +226,6 @@ public class MimeTypes {
                 put1("skt", MIME_APPLICATION_X_KOAN);
                 put1("skd", MIME_APPLICATION_X_KOAN);
                 put1("skp", MIME_APPLICATION_X_KOAN);
-                put1("js", MIME_APPLICATION_X_JAVASCRIPT);
                 put1("hdf", MIME_APPLICATION_X_HDF);
                 put1("gtar", MIME_APPLICATION_X_GTAR);
                 put1("spl", MIME_APPLICATION_X_FUTURESPLASH);
