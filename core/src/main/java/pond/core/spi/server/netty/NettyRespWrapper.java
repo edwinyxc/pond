@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
+import io.netty.util.CharsetUtil;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.core.Response;
@@ -205,6 +206,14 @@ public class NettyRespWrapper implements Response {
 
         writer.flush();
 
+        S._debug(BaseServer.logger, log -> {
+            log.debug("----SEND HEADERS---");
+            log.debug(S.dump(resp.headers()));
+
+            log.debug("----SEND BUFFER DUMP---");
+            log.debug(buffer.toString(CharsetUtil.UTF_8));
+        });
+
         if (keepAlive = HttpHeaderUtil.isKeepAlive(request)) {
             resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 
@@ -217,10 +226,10 @@ public class NettyRespWrapper implements Response {
         }
 
 
-        ChannelFuture sendRespFuture, sendBufferFuture, lastContentFuture;
+        ChannelFuture  lastContentFuture;
 
-        sendRespFuture = ctx.write(resp);
-        sendBufferFuture = ctx.write(buffer);
+        ctx.write(resp);
+        ctx.write(buffer);
         lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
         lastContentFuture.addListener(future -> {
             if (doClean != null) {
