@@ -103,6 +103,7 @@ public interface Response {
      *
      * @return printWriter
      */
+    @Deprecated
     PrintWriter writer();
 
     /**

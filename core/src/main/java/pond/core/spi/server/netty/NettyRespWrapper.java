@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
+import io.netty.util.CharsetUtil;
 import pond.common.S;
 import pond.core.Response;
 import pond.core.spi.BaseServer;
@@ -147,12 +148,15 @@ public class NettyRespWrapper implements Response {
 
     @Override
     public PrintWriter writer() {
-        return writer;
+//        return writer;
+        return null;
     }
+
 
     @Override
     public Response write(String s) {
-        writer.print(s);
+//        writer.print(s);
+        ctx.write(Unpooled.copiedBuffer(s, CharsetUtil.UTF_8));
         return this;
     }
 
@@ -186,7 +190,12 @@ public class NettyRespWrapper implements Response {
     private void _send() {
         boolean keepAlive;
 
-        writer.flush();
+        //writer.flush();
+        try {
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         if (keepAlive = HttpHeaderUtil.isKeepAlive(request)) {
             resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 
