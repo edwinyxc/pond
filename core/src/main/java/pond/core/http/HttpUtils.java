@@ -12,6 +12,6 @@ public class HttpUtils {
     public static <E> void appendToMap(Map<String, List<E>> map, String name, E value) {
         List<E> values;
         if ((values = map.get(name)) != null) values.add(value);
-        map.put(name, new ArrayList<E>());
+        map.put(name, new ArrayList<E>(){{this.add(value);}});
     }
 }
