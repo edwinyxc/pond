@@ -174,12 +174,12 @@ public class NettyHttpServer extends AbstractServer {
                                     S._debug(logger, log -> log.debug(" 100% (FinalSize: " + partialContent.length() + ")" + " 100% (FinalSize: " + partialContent.length() + ")"));
                                     partialContent = null;
                                 }
-                                try {
+//                                try {
                                     // build values
                                     processHttpData(data);
-                                } finally {
-                                    data.release();
-                                }
+//                                } finally {
+//                                    data.release();
+//                                }
                             }
                         }
                     } catch (HttpPostRequestDecoder.EndOfDataDecoderException e1) {

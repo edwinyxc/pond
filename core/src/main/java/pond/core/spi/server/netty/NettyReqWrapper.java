@@ -16,6 +16,7 @@ import pond.core.spi.BaseServer;
 
 import javax.servlet.http.Cookie;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -59,7 +60,13 @@ public class NettyReqWrapper implements Request {
 
         @Override
         public InputStream inputStream() throws IOException {
-            return new ByteBufInputStream(file.getByteBuf());
+            return new ByteBufInputStream(file.getByteBuf()){
+                @Override
+                public void close() throws IOException {
+                    super.close();
+                    if(file.refCnt() > 0) file.release();
+                }
+            };
         }
 
         @Override
