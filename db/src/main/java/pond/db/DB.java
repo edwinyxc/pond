@@ -37,10 +37,6 @@ public final class DB {
         return cp;
     }
 
-    public static <E extends Record> RecordService<E> dao(Class<E> cls) {
-        return Proto.dao(cls);
-    }
-
     private DataSource dataSource;
 
     F0<Connection> connProvider;

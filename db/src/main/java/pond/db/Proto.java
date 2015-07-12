@@ -9,7 +9,6 @@ import java.util.Map;
 class Proto {
     static Map<Class<? extends Record>, Record> protos = new HashMap<>();
 
-    static Map<Class,RecordService> daos = new HashMap();
 
     static <E extends Record> E proto(Class<E> cls) {
         Record t = protos.get(cls);
@@ -22,14 +21,6 @@ class Proto {
         return (E) t;
     }
 
-    static <E extends Record> RecordService<E> dao(Class<E> cls) {
-        RecordService<E> eServ = (RecordService<E>) Proto.daos.get(cls);
-        if( eServ == null ){
-            eServ = RecordService.build( cls );
-            Proto.daos.put(cls,eServ);
-        }
-        return eServ;
-    }
 
 
 

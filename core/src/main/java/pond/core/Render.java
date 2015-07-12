@@ -23,6 +23,7 @@ public interface Render {
 
     Logger logger = LoggerFactory.getLogger(Render.class);
 
+    @Deprecated
     static Render error(int err_code, String msg) {
         String path = "err" + File.separator + err_code;
         return view(path, new HashMap<String, Object>() {{
@@ -46,6 +47,7 @@ public interface Render {
         };
     }
 
+    @Deprecated
     static Render file(File f) {
         return (req, resp) -> {
             String filename = f.getName();
@@ -71,10 +73,11 @@ public interface Render {
     /**
      * download
      */
+    @Deprecated
     static Render attachment(InputStream file, String filename) {
         return (req, resp) -> {
             String file_n = S.str.notBlank(filename) ? filename :
-                    String.valueOf(S.time());
+                    String.valueOf(S.now());
             String file_ext = S.file.fileExt(file_n);
             String mime_type;
 
@@ -104,8 +107,9 @@ public interface Render {
             try {
                 S.stream.pipe(file, resp.out());
                 resp.out().flush();
+                //resp.sendFile(file);
             } catch (IOException e) {
-                S._lazyThrow(e);
+                throw new RuntimeException(e);
             }
         };
     }
@@ -116,6 +120,7 @@ public interface Render {
     }
 
     @SuppressWarnings("unchecked")
+    @Deprecated
     static Render view(String path, Object o) {
 
         return (req, resp) -> {

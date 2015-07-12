@@ -5,7 +5,6 @@ import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.common.f.Tuple;
 import pond.db.sql.*;
-import pond.db.sql.dialect.Dialect;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -124,6 +123,11 @@ public class JDBCTmpl implements Closeable {
 //        return page.fulfill(r, count);
 //    }
 
+    public <R extends Record> List<R> query(Class<R> clazz,
+                             Tuple<String, Object[]> mix) {
+        return query(Proto.proto(clazz), mix._a, mix._b);
+    }
+
     public <R> List<R> query(Function<?, ResultSet> mapper,
                              Tuple<String, Object[]> mix) {
         return query(mapper, mix._a, mix._b);
@@ -241,21 +245,90 @@ public class JDBCTmpl implements Closeable {
     }
 
 
+    public <E extends Record> E recordById(Class<E> clazz, String id) {
+        Record r = Proto.proto(clazz);
+        String tableName = r.table();
+        String pkLbl = r.idName();
+        SqlSelect select =
+                Sql.select().from(tableName).where(pkLbl, Criterion.EQ, id);
+        return  S._for(this.query(clazz, select.tuple())).first();
+
+    }
+
+
     /*----CURD
     Record#db
     -------*/
+
+    public <E extends Record> List<E> recordsQuery(Class<E> clazz, Object... args) {
+        E proto = (E) Proto.proto(clazz);
+        SqlSelect sqlSelect;
+        Set<String> d_fields = proto.declaredFieldNames();
+        String[] fields = new String[d_fields.size()];
+        fields = d_fields.toArray(fields);
+        sqlSelect = Sql.select(fields).from(proto.table());
+        if (args.length == 0) {
+            //do nothing for query all
+        } else if (args.length == 1) {
+            sqlSelect.where((String) args[0]);
+        } else if (args.length > 2) {
+            //1. split args by criterion
+            List<List<Object>> arg_groups = new ArrayList<>();
+            List<Object> group = new ArrayList<>();
+            Object cur;
+            Object last;
+            for (int i = 0; i < args.length; i++) {
+                cur = args[i];
+                last = (i - 1) >= 0 ? args[i - 1] : null;
+                if (last != null && cur instanceof Criterion) {
+                    //size > 2 is the valid size
+                    if (group.size() > 2) {
+                        //put queryRS group into groups
+                        //[key,cri,args...,(key),(cri)]
+                        //remove the redundant key
+                        group.remove(group.size() - 1);
+                        arg_groups.add(group);
+                    }
+                    //new an array for put
+                    group = new ArrayList<>();
+                    //insertRecord key
+                    group.add(last);
+                    //insertRecord criterion
+                    group.add(cur);
+                } else {
+                    group.add(cur);
+                }
+            }
+            arg_groups.add(group);
+            //2.make queryRS
+            for (List q_group : arg_groups) {
+                if (q_group.size() > 2) {
+                    sqlSelect.where((String) q_group.remove(0),
+                            (Criterion) q_group.remove(0),
+                            (String[]) q_group.toArray(new String[q_group.size()]));
+                }
+                //else ignore illegal arguments
+            }
+        } else {
+            throw new RuntimeException(
+                    "argument length should be >3 or 1 or 0"
+            );
+        }
+
+        return this.query(proto.mapper(), sqlSelect.tuple());
+    }
 
     /*
      *
      * Using mysql as dialect for now ...
      */
 
-    public boolean add(Record record) {
+    public boolean recordInsert(Record record) {
         List<Tuple<String, Object>> values = new ArrayList<>();
 //        for (String f : r.declaredFieldNames()) {
 //            Object val = r.get(f);
 //            if (val != null) {
-//                values.add(Tuple.t2(f, val));
+//                values.insertRecord(Tuple.t2(f, val));
 //            }
 //        }
         Map<String, Object> db = record.db();
@@ -280,7 +353,7 @@ public class JDBCTmpl implements Closeable {
         }
     }
 
-    public boolean del(Record record) {
+    public boolean recordDelete(Record record) {
         //TODO
         SqlDelete sql = Sql.delete().dialect(this.db.dialect);
         sql.from(record.table())
@@ -296,7 +369,7 @@ public class JDBCTmpl implements Closeable {
     }
 
 
-    public boolean upd(Record record) {
+    public boolean recordUpdate(Record record) {
         List<Tuple<String, Object>> sets = new ArrayList<>();
 
         Map<String, Object> db = record.db();
@@ -324,6 +397,7 @@ public class JDBCTmpl implements Closeable {
             throw new RuntimeSQLException(e);
         }
     }
+
 
     @Override
     public void close() throws IOException {

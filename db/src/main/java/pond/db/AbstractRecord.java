@@ -283,16 +283,4 @@ public class AbstractRecord extends HashMap<String, Object>
         }
     }
 
-    @Override
-    public DB _getDB() {
-        _assert( _db ,"Oops! Please use Record#db for setting db first.");
-        return _db;
-    }
-
-    @Override
-    public Record db(DB db) {
-        this._db = db;
-        return this;
-    }
-
 }

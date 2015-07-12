@@ -236,34 +236,6 @@ public interface Record {
      */
     <E> Record mapper(Function<E, ResultSet> mapper);
 
-    DB _getDB();
-
-    Record db(DB db);
-
-    //AR -QUICK
-
-    /**
-     * Quick add
-     */
-    default void add() {
-        _getDB().post(t -> t.add(this));
-    }
-
-    /**
-     * Quick update
-     */
-    default void update() {
-        _getDB().post(tmpl -> tmpl.upd(this));
-    }
-
-
-    /**
-     * Quick delete
-     */
-    default void delete() {
-        _getDB().post((tmpl) -> tmpl.del(this));
-    }
-
 
     default Map<String, Object> view() {
         Map<String, Object> ret = new HashMap<>();

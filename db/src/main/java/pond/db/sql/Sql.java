@@ -4,6 +4,7 @@ import pond.common.f.Tuple;
 import pond.db.sql.dialect.Dialect;
 
 import static pond.common.S._notNullElse;
+import static pond.common.S.avoidNull;
 
 /**
  * Created by ed on 2014/4/28.
@@ -36,7 +37,7 @@ public interface Sql {
         Object[] p = params();
         String[] _debug = new String[p.length];
         for(int i =0; i< p.length; i++){
-            _debug[i] = _notNullElse(p[i],"").toString();
+            _debug[i] = avoidNull(p[i], "").toString();
         }
         return String.format("{ sql: %s, params: [ %s ]}",
                 preparedSql(),

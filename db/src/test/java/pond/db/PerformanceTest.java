@@ -52,9 +52,9 @@ public class PerformanceTest {
 
     public static void useNativeJdbc() {
         try {
-            long start = S.time();
+            long start = S.now();
             Connection conn = localDataSource.getConnection();
-            long time_conn = S.time();
+            long time_conn = S.now();
             ResultSet rs = conn.
                     prepareStatement("SELECT title, count(*)  percent FROM t_mgmt GROUP BY title")
                     .executeQuery();
@@ -63,10 +63,11 @@ public class PerformanceTest {
                 Tuple<String, Integer> result = Tuple.t2(rs.getString("title"), rs.getInt("percent"));
                 r.add(result);
             }
-            long time_data_fetch = S.time();
+            long time_data_fetch = S.now();
             conn.close();
             S.echo(r);
-            long time_conn_close = S.time();
+            long time_conn_close = S.now();
+
 
             S.echo("conn_creation:" + String.valueOf(time_conn - start));
             S.echo("data_fetch:" + String.valueOf(time_data_fetch - time_conn));

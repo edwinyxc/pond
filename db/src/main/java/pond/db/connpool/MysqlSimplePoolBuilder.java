@@ -51,7 +51,7 @@ public class MysqlSimplePoolBuilder {
         S._assert(host, "please input host");
         S._assert(database, "please input database");
         return S._tap(new SimplePool().config(mysqlDriver,
-                        String.format("jdbc:mysql://%s/%s?%s", host, database, S._notNullElse(query, "")),
+                        String.format("jdbc:mysql://%s/%s?%s", host, database, S.avoidNull(query, "")),
                         username, password),
                 newpool -> newpool.setMaxSize(capacity));
     }

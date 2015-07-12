@@ -16,7 +16,8 @@
     <properties>
         <quickbuild>true</quickbuild>
         <generatedSourceDir>${project.build.directory}/src</generatedSourceDir>
-        <dependencyVersionDir>${project.build.directory}/src</dependencyVersionDir>
+        <dependencyVersionDir>${project.build.directory}/src
+        </dependencyVersionDir>
     </properties>
 
     <dependencies>
@@ -29,10 +30,16 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>pond-codec</artifactId>
+            <artifactId>pond-table</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!--<dependency>-->
+        <!--<groupId>${project.groupId}</groupId>-->
+        <!--<artifactId>pond-codec</artifactId>-->
+        <!--<version>${project.version}</version>-->
+        <!--<scope>compile</scope>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>${project.groupId}</groupId>
