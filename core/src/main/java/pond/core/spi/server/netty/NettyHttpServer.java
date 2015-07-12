@@ -34,7 +34,7 @@ public class NettyHttpServer extends AbstractServer {
     }
 
     private static final HttpDataFactory factory =
-            new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE); // Disk if size exceed
+            new DefaultHttpDataFactory(DefaultHttpDataFactory.MAXSIZE); // Disk if size exceed
 
     public NettyHttpServer() {
 
