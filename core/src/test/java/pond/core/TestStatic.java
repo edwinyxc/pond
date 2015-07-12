@@ -23,6 +23,8 @@ public class TestStatic {
                         "wwwwwwwwwwwwwwwwwwwwww" +
                         "wwwwwwwwwwwwwwwwwwwwww" +
                         "wwwwwwwwwwwwwwwwwwwwwwwwww" +
+                        "中文测试" +
+
                         "");
             }).get("/static/.*", p._static("www"));
         }).listen();
