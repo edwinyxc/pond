@@ -14,12 +14,10 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.ReferenceCountUtil;
 import pond.common.S;
-import pond.common.f.Callback;
 import pond.core.spi.BaseServer;
 import pond.core.spi.server.AbstractServer;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 
@@ -81,12 +79,6 @@ public class NettyHttpServer extends AbstractServer {
 
     class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
-        List<Callback<ChannelHandlerContext>> channelInactiveHooks = new LinkedList<>();
-        List<Callback<ChannelHandlerContext>> channelActiveHooks = new LinkedList<>();
-        List<Callback.C2<ChannelHandlerContext, Throwable>> exceptionCaughtHooks = new LinkedList<>();
-
-        private boolean readingChunks;
-
         private HttpData partialContent;
 
         private HttpPostRequestDecoder decoder;
@@ -138,7 +130,7 @@ public class NettyHttpServer extends AbstractServer {
                     sendBadRequest(ctx);
                     return;
                 }
-                readingChunks = HttpHeaderUtil.isTransferEncodingChunked(request);
+                //readingChunks = HttpHeaderUtil.isTransferEncodingChunked(request);
 //                if (readingChunks) {
 //                    readingChunks = true;
 //                }
@@ -175,15 +167,15 @@ public class NettyHttpServer extends AbstractServer {
                                     partialContent = null;
                                 }
 //                                try {
-                                    // build values
-                                    processHttpData(data);
+                                // build values
+                                processHttpData(data);
 //                                } finally {
 //                                    data.release();
 //                                }
                             }
                         }
                     } catch (HttpPostRequestDecoder.EndOfDataDecoderException e1) {
-                        S.echo("end");
+                        //S.echo("end");
                     }
 
                     //end of message
@@ -204,27 +196,20 @@ public class NettyHttpServer extends AbstractServer {
                             }
                         }
 
-                        if (decoder != null) {
-                            decoder.destroy();
-                            decoder = null;
-                        }
-
-                        S.echo("###" + chunks);
-                        ByteBuf[] chunks_arr = chunks.toArray(new ByteBuf[chunks.size()]);
-                        ByteBuf aggregatedContent = Unpooled.copiedBuffer(chunks_arr);
-                        releaseChunks();
-
                         NettyReqWrapper reqWrapper =
                                 new NettyReqWrapper(ctx, httpRequest, NettyHttpServer.this, attrs, fileUploads);
                         reqWrapper.init();
                         NettyRespWrapper respWrapper =
-                                new NettyRespWrapper(ctx, httpRequest, NettyHttpServer.this);
+                                new NettyRespWrapper(ctx, httpRequest,
+                                        NettyHttpServer.this,
+                                        () -> {
+                                            resetDecoder();
+                                            releaseChunks();
+                                        });
 
                         //release httpRequest Ref
                         httpRequest = null;
                         resetDecoder();
-                        //TODO release any refs
-                        //check for memory leak
                         Runnable actor = NettyHttpServer.super.actor(reqWrapper, respWrapper);
                         NettyHttpServer.super.executor.submit(actor);
                     }
@@ -279,10 +264,6 @@ public class NettyHttpServer extends AbstractServer {
 
         }
 
-        @Override
-        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-            S._for(channelInactiveHooks).each(hook -> hook.apply(ctx));
-        }
     }
 
 

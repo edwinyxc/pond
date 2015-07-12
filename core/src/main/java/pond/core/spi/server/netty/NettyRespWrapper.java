@@ -7,11 +7,11 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
 import pond.common.S;
+import pond.common.f.Callback;
 import pond.core.Response;
 import pond.core.http.MimeTypes;
 import pond.core.spi.BaseServer;
 
-import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.Cookie;
 import java.io.*;
 import java.nio.charset.Charset;
@@ -26,9 +26,10 @@ public class NettyRespWrapper implements Response {
     final HttpRequest request;
     final ChannelHandlerContext ctx;
     final HttpResponse resp;
+    final Callback.C0ERR doClean;
 
     NettyRespWrapper(ChannelHandlerContext ctx, HttpRequest req,
-                     NettyHttpServer server) {
+                     NettyHttpServer server, Callback.C0ERR doClean) {
         this.server = server;
         this.request = req;
         this.ctx = ctx;
@@ -42,6 +43,7 @@ public class NettyRespWrapper implements Response {
             resp.headers().set(HttpHeaderNames.CONNECTION,
                     HttpHeaderValues.KEEP_ALIVE);
         }
+        this.doClean = doClean;
     }
 
     @Override
@@ -68,10 +70,9 @@ public class NettyRespWrapper implements Response {
 //        response.contentType(mimeTypesMap.getContentType(file.getName()));
         String filename = file.getName();
         int dot_pos = filename.lastIndexOf(".");
-        if(dot_pos != -1 && dot_pos < filename.length() -1){
+        if (dot_pos != -1 && dot_pos < filename.length() - 1) {
             response.contentType(MimeTypes.getMimeType(filename.substring(dot_pos + 1)));
-        }
-        else {
+        } else {
             response.contentType(MimeTypes.MIME_APPLICATION_OCTET_STREAM);
         }
     }
@@ -131,9 +132,12 @@ public class NettyRespWrapper implements Response {
             }
 
             @Override
-            public void operationComplete(ChannelProgressiveFuture future) {
+            public void operationComplete(ChannelProgressiveFuture future) throws Exception {
                 S._debug(BaseServer.logger, logger ->
                         logger.debug(future.channel() + " Transfer complete."));
+                if(doClean != null){
+                    doClean.apply();
+                }
             }
         });
 
@@ -198,6 +202,7 @@ public class NettyRespWrapper implements Response {
         boolean keepAlive;
 
         writer.flush();
+
         if (keepAlive = HttpHeaderUtil.isKeepAlive(request)) {
             resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 
@@ -215,6 +220,11 @@ public class NettyRespWrapper implements Response {
         sendRespFuture = ctx.write(resp);
         sendBufferFuture = ctx.write(buffer);
         lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+        lastContentFuture.addListener(future -> {
+            if (doClean != null) {
+                doClean.apply();
+            }
+        });
         if (!keepAlive)
             lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 //
