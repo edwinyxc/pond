@@ -81,7 +81,9 @@ public class NettyRespWrapper implements Response {
     public void sendFile(File file, long offset, long length) {
         resp.setStatus(HttpResponseStatus.OK);
         HttpHeaderUtil.setContentLength(resp, file.length());
-        setContentTypeHeader(this, file);
+        if (resp.headers().get(HttpHeaderNames.CONTENT_TYPE) == null) {
+            setContentTypeHeader(this, file);
+        }
         ctx.write(resp);
         RandomAccessFile raf;
         try {
@@ -135,7 +137,7 @@ public class NettyRespWrapper implements Response {
             public void operationComplete(ChannelProgressiveFuture future) throws Exception {
                 S._debug(BaseServer.logger, logger ->
                         logger.debug(future.channel() + " Transfer complete."));
-                if(doClean != null){
+                if (doClean != null) {
                     doClean.apply();
                 }
             }
