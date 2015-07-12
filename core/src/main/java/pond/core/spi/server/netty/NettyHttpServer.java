@@ -143,8 +143,13 @@ public class NettyHttpServer extends AbstractServer {
                     return;
                 }
                 ByteBuf chunk;
-                if ((chunk = httpContent.content()).isReadable())
+                if ((chunk = httpContent.content()).isReadable()){
+                    S._debug(BaseServer.logger, log -> {
+                        logger.debug("Reading chunk...");
+                        logger.debug(S.dump(chunk));
+                    });
                     chunks.add(chunk);
+                }
 
                 if (decoder != null) {
                     try {
@@ -283,7 +288,7 @@ public class NettyHttpServer extends AbstractServer {
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             ChannelPipeline pipeline = socketChannel.pipeline();
                             pipeline.addLast(new HttpServerCodec());
-                            pipeline.addLast(new HttpObjectAggregator(65536));
+                            //pipeline.addLast(new HttpObjectAggregator(65536));
                             //FIXME combine with the chunked writer
                             //pipeline.addLast(new HttpContentCompressor() );
                             pipeline.addLast(new ChunkedWriteHandler());
