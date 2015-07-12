@@ -1,24 +1,21 @@
-package pond.codec;
+package pond.db.util;
 
 import pond.common.S;
 import pond.common.f.Tuple;
-import pond.core.Ctx;
-import pond.core.Pond;
-import pond.core.Request;
+import pond.db.DB;
+import pond.db.Record;
+import pond.db.sql.Criterion;
+import pond.db.sql.Sql;
+import pond.db.sql.SqlSelect;
 
 import java.util.*;
 
-import pond.db.sql.Criterion;
-import pond.db.sql.SqlSelect;
-import pond.db.sql.Sql;
-import pond.db.DB;
-import pond.db.Record;
-
 import static pond.common.S._for;
 import static pond.common.S._getOrSet;
-import static pond.common.S._notNullElse;
 
 public class ReqQuery {
+
+    static Map CONFIG = new HashMap<>();
 
     public static final String SORD = "ReqQuery.sord";
     public static final String SORDF = "ReqQuery.sordf";
@@ -35,12 +32,12 @@ public class ReqQuery {
      * @param declaredFields
      * @return
      */
-    public static List<Tuple.T3<String, Criterion, Object[]>> reqToQuery(Request req,
-                                                                         Iterable<String> declaredFields) {
+    public static List<Tuple.T3<String, Criterion, Object[]>>
+    reqToQuery(Map<String, Object> req, Iterable<String> declaredFields) {
         List<Tuple.T3<String, Criterion, Object[]>>
                 conditions = new ArrayList<>();
         for (String f : declaredFields) {
-            String ori_c_and_v = req.param(f);
+            String ori_c_and_v = (String) req.getOrDefault(f, "");
             if (ori_c_and_v == null) continue;
             String[] c_and_v = ori_c_and_v.split(",");
             if (c_and_v.length > 0) {
@@ -59,7 +56,7 @@ public class ReqQuery {
         return conditions;
     }
 
-    public static SqlSelect sqlFromReq(Request req, Record proto) {
+    public static SqlSelect sqlFromReq(Map<String, Object> req, Record proto) {
         String tb_name = proto.table();
         Set<String> fields = proto.declaredFieldNames();
 
@@ -68,12 +65,13 @@ public class ReqQuery {
                         .from(tb_name)
                         .where(reqToQuery(req, proto.declaredFieldNames()));
 
-        Ctx ctx = req.ctx();
-        String N_SORD = _getOrSet(ctx.pond().config, SORD, "_sord");
-        String N_SORDF = _getOrSet(ctx.pond().config, SORDF, "_sordf");
+        //Ctx ctx = req.ctx();
+        String N_SORD = _getOrSet(CONFIG, SORD, "_sord");
+        String N_SORDF = _getOrSet(CONFIG, SORDF, "_sordf");
+
         // sort
-        String sord = req.param(N_SORD);
-        String sord_f = req.param(N_SORDF);
+        String sord = (String) req.get(N_SORD);
+        String sord_f = (String) req.get(N_SORDF);
 
         if (S.str.notBlank(sord)
                 && S.str.notBlank(sord_f)
@@ -92,8 +90,7 @@ public class ReqQuery {
         return sql;
     }
 
-    public static Page queryForPage(Request req, Record p, DB db) {
-        Pond pond = req.ctx().pond();
+    public static Page queryForPage(Map req, Record p, DB db) {
         return db.get(tmpl -> {
             Page page = Page.of(req);
             SqlSelect select = sqlFromReq(req, p);
@@ -110,8 +107,7 @@ public class ReqQuery {
     }
 
     @Deprecated
-    public static Page queryForPage(Request req, Record p) {
-        DB db = (DB) req.ctx().pond().component(Pond.DEFAULT_DB);
+    public static Page queryForPage(DB db, Map req, Record p) {
         return db.get(tmpl -> {
             Page page = Page.of(req);
             SqlSelect select = sqlFromReq(req, p);
@@ -160,23 +156,23 @@ public class ReqQuery {
         }
 
 
-        public static Page of(Request r) {
-            Page page = new Page(r.ctx().pond().config);
-            Integer pgIdx = _notNullElse(r.paramInt(page.N_PG_IDX), 1);
-            Integer pgLen = _notNullElse(r.paramInt(page.N_PG_LEN), 0);
+        public static Page of(Map r) {
+            Page page = new Page(CONFIG);
+            Integer pgIdx = Integer.parseInt((String) r.getOrDefault(page.N_PG_IDX, "1"));
+            Integer pgLen = Integer.parseInt((String) r.getOrDefault(page.N_PG_LEN, "0"));
             return page.take(pgIdx, pgLen);
         }
 
-        public int getLimit(Request req) {
-            return _notNullElse(req.paramInt(N_PG_LEN), 0);
+        public int getLimit(Map req) {
+            return Integer.parseInt((String) req.getOrDefault(N_PG_LEN, "0"));
         }
 
-        public int getOffset(Request req) {
-            return getLimit(req) * (_notNullElse(req.paramInt(N_PG_IDX), 1) - 1);
+        public int getOffset(Map req) {
+            return getLimit(req) * (Integer.parseInt((String) req.getOrDefault(N_PG_IDX, "1")) - 1);
         }
 
-        public boolean allowPage(Request req) {
-            return req.param(N_PG_LEN) != null;
+        public boolean allowPage(Map req) {
+            return req.get(N_PG_LEN) != null;
         }
 
         public Page fulfill(Tuple<List<Map<String, Object>>, Integer> x) {

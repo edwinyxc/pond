@@ -259,7 +259,27 @@ public class JDBCTmpl implements Closeable {
     /*----CURD
     Record#db
     -------*/
-
+    /**
+     * <pre>
+     * Query record(s) on specified arguments
+     * if there is no arguments, return Select all;
+     *
+     * if only one argument, the argument will treated as raw sql
+     *  i.e. queryRS("id = '123' AND something LIKE '%else%' ")
+     *      => Select ... from ... where id = '123' AND something LIKE '%else%';
+     *
+     * if arguments has a 3-multiple length and each 3 has a form of
+     * (String,Criterion,String)  or (String,Criterion,String[])
+     *  i.e.
+     *  recordsQuery("id", Criterion.EQ, "13")
+     *      => Select ... from  ... where id = '13'
+     *  recordsQuery("id",Criterion.IN, {"1","2","3","4"})
+     *      => Select ... from ... where id IN ("1","2","3","4");
+     * </pre>
+     *
+     * @param args
+     * @return
+     */
     public <E extends Record> List<E> recordsQuery(Class<E> clazz, Object... args) {
         E proto = (E) Proto.proto(clazz);
         SqlSelect sqlSelect;

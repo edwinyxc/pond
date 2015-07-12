@@ -25,7 +25,6 @@
         <module>all</module>
         <module>common</module>
         <module>core</module>
-        <!--<module>codec</module>-->
         <module>table</module>
         <module>db</module>
     </modules>

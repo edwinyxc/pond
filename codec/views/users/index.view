@@ -1,5 +1,0 @@
-<p>index.view</p>
-<#list rows as i>
-    <p>name = ${i.name}</p>
-    <p>id = ${i.id}</p>
-</#list>

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -118,6 +119,13 @@ public interface Request {
 
     default Ctx ctx() {
         return CtxExec.get();
+    }
+
+    default Map<String,Object> toMap(){
+        Map<String,Object> ret = new HashMap<>();
+        ret.putAll(S._for(attrs()).map(attr -> S._for(attr).first()).val());
+        ret.putAll(S._for(params()).map(param -> S._for(param).first()).val());
+        return ret;
     }
 
     interface UploadFile {
