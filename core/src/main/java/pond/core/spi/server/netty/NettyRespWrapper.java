@@ -8,6 +8,7 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
 import pond.common.S;
 import pond.core.Response;
+import pond.core.http.MimeTypes;
 import pond.core.spi.BaseServer;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -63,8 +64,16 @@ public class NettyRespWrapper implements Response {
 
 
     private static void setContentTypeHeader(Response response, File file) {
-        MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-        response.contentType(mimeTypesMap.getContentType(file.getName()));
+//        MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+//        response.contentType(mimeTypesMap.getContentType(file.getName()));
+        String filename = file.getName();
+        int dot_pos = filename.lastIndexOf(".");
+        if(dot_pos != -1 && dot_pos < filename.length() -1){
+            response.contentType(MimeTypes.getMimeType(filename.substring(dot_pos + 1)));
+        }
+        else {
+            response.contentType(MimeTypes.MIME_APPLICATION_OCTET_STREAM);
+        }
     }
 
     @Override
