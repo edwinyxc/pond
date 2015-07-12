@@ -41,7 +41,7 @@ public final class DB {
 
     F0<Connection> connProvider;
     MappingRule rule;
-    Dialect dialect;
+    final Dialect dialect;
     /**
      * * default query
      * TODO: ugly implement
@@ -82,6 +82,7 @@ public final class DB {
         this.connProvider = () -> S._try_ret(this.dataSource::getConnection);
         rule = new MappingRule();
         this.dbStructures = getDatabaseStructures();
+        this.dialect = dialect;
     }
 
     public DB(DataSource dataSource) {
