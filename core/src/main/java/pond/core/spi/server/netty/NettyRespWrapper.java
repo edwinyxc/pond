@@ -33,7 +33,8 @@ public class NettyRespWrapper implements Response {
         this.ctx = ctx;
         buffer = Unpooled.buffer();
         out = new NettyOutputServletStream(buffer);
-        writer = new PrintWriter( new OutputStreamWriter(out,Charset.forName("UTF-8")));
+        Charset charset = Charset.forName(S.avoidNull(System.getProperty("file.encoding"), "UTF-8"));
+        writer = new PrintWriter(new OutputStreamWriter(out, charset));
         resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                 HttpResponseStatus.ACCEPTED);
         if (HttpHeaderUtil.isKeepAlive(request)) {
@@ -63,7 +64,7 @@ public class NettyRespWrapper implements Response {
 
     private static void setContentTypeHeader(Response response, File file) {
         MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-        response.contentType(mimeTypesMap.getContentType(file.getPath()));
+        response.contentType(mimeTypesMap.getContentType(file.getName()));
     }
 
     @Override
@@ -193,7 +194,7 @@ public class NettyRespWrapper implements Response {
 
             if (resp.headers().get(HttpHeaderNames.CONTENT_LENGTH) == null) {
                 int contentLen = buffer.readableBytes();
-                    resp.headers().setLong(HttpHeaderNames.CONTENT_LENGTH, contentLen);
+                resp.headers().setLong(HttpHeaderNames.CONTENT_LENGTH, contentLen);
             }
         } else {
             resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
