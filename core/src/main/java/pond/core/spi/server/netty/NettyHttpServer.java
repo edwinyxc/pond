@@ -203,13 +203,12 @@ public class NettyHttpServer extends AbstractServer {
                                 new NettyRespWrapper(ctx, httpRequest,
                                         NettyHttpServer.this,
                                         () -> {
+                                            httpRequest = null;
                                             resetDecoder();
                                             releaseChunks();
                                         });
 
                         //release httpRequest Ref
-                        httpRequest = null;
-                        resetDecoder();
                         Runnable actor = NettyHttpServer.super.actor(reqWrapper, respWrapper);
                         NettyHttpServer.super.executor.submit(actor);
                     }
