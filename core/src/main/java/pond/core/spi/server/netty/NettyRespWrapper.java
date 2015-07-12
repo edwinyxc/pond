@@ -13,6 +13,7 @@ import pond.core.spi.BaseServer;
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.Cookie;
 import java.io.*;
+import java.nio.charset.Charset;
 
 public class NettyRespWrapper implements Response {
 
@@ -32,7 +33,7 @@ public class NettyRespWrapper implements Response {
         this.ctx = ctx;
         buffer = Unpooled.buffer();
         out = new NettyOutputServletStream(buffer);
-        writer = new PrintWriter(out);
+        writer = new PrintWriter( new OutputStreamWriter(out,Charset.forName("UTF-8")));
         resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                 HttpResponseStatus.ACCEPTED);
         if (HttpHeaderUtil.isKeepAlive(request)) {
