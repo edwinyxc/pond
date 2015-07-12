@@ -31,7 +31,7 @@ public class JDBCTmpl implements Closeable {
 
     //database structure
     //table_name -> Map<field_name, field_type(java.sql.Type)>
-    Map<String, Map<String, Integer>> dbStructure;
+    final Map<String, Map<String, Integer>> dbStructure;
 
     private static final
     Function<Integer, ResultSet> counter = rs -> {
@@ -49,6 +49,7 @@ public class JDBCTmpl implements Closeable {
     JDBCTmpl(DB db, Connection connection) {
         this.db = db;
         this.oper = new JDBCOper(connection);
+        this.dbStructure = db.dbStructures;
     }
 
 
@@ -273,7 +274,7 @@ public class JDBCTmpl implements Closeable {
      *  i.e.
      *  recordsQuery("id", Criterion.EQ, "13")
      *      => Select ... from  ... where id = '13'
-     *  recordsQuery("id",Criterion.IN, {"1","2","3","4"})
+     *  recordsQuer("id",Criterion.IN, {"1","2","3","4"})
      *      => Select ... from ... where id IN ("1","2","3","4");
      * </pre>
      *
