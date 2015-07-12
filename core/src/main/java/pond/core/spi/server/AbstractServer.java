@@ -19,8 +19,6 @@ public abstract class AbstractServer implements BaseServer{
     protected ExecutorService executor;
     protected Runnable actor(Request req, Response resp){
         return () ->{
-            S.echo("beginnnnnn");
-            S.echo(this.handler);
             this.handler.apply(req, resp);
         };
     }

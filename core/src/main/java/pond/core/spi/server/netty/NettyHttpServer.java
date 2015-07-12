@@ -18,8 +18,9 @@ import pond.common.f.Callback;
 import pond.core.spi.BaseServer;
 import pond.core.spi.server.AbstractServer;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 
 public class NettyHttpServer extends AbstractServer {
@@ -214,7 +215,8 @@ public class NettyHttpServer extends AbstractServer {
                         releaseChunks();
 
                         NettyReqWrapper reqWrapper =
-                                new NettyReqWrapper(ctx, httpRequest, NettyHttpServer.this);
+                                new NettyReqWrapper(ctx, httpRequest, NettyHttpServer.this, attrs, fileUploads);
+                        reqWrapper.init();
                         NettyRespWrapper respWrapper =
                                 new NettyRespWrapper(ctx, httpRequest, NettyHttpServer.this);
 
@@ -240,7 +242,7 @@ public class NettyHttpServer extends AbstractServer {
                 Attribute attr = (Attribute) data;
                 attrs.add(attr);
             }
-            if(data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
+            if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
                 FileUpload fileUpload = (FileUpload) data;
                 fileUploads.add(fileUpload);
             }
@@ -248,7 +250,7 @@ public class NettyHttpServer extends AbstractServer {
         }
 
         void resetDecoder() {
-            if(decoder != null){
+            if (decoder != null) {
 
                 decoder.destroy();
                 decoder = null;

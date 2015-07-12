@@ -73,7 +73,7 @@ public class NettyReqWrapper implements Request {
                            HttpRequest req,
                            NettyHttpServer server,
                            List<Attribute> parsedAttributes,
-                           List<UploadFile> fileUploads
+                           List<FileUpload> fileUploads
     ) {
 
         this.server = server;
@@ -90,8 +90,8 @@ public class NettyReqWrapper implements Request {
         });
 
         S._for(fileUploads).each(fileUpload -> {
-            String name = fileUpload.name();
-            HttpUtils.appendToMap(uploads, name, fileUpload);
+            String name = fileUpload.getName();
+            HttpUtils.appendToMap(uploads, name, new NettyUploadFile(fileUpload));
         });
 
     }
