@@ -1,22 +1,8 @@
 package pond.common;
 
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
-import org.apache.http.Consts;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.*;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import pond.common.f.*;
 import pond.common.f.Callback.C0;
 import pond.common.f.Function.F0;
-import pond.common.struc.Cache;
 import pond.common.struc.EnumerationIterable;
 import pond.common.struc.Matrix;
 import pond.common.util.cui.Rect;
@@ -24,8 +10,6 @@ import pond.common.util.logger.Logger;
 
 import java.io.*;
 import java.lang.reflect.Array;
-import java.lang.reflect.Method;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.text.ParseException;
@@ -34,27 +18,6 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class S {
-
-    /**
-     * ***************** logger *****************
-     */
-    private final static Logger logger = Logger.getDefault();
-
-//    private final static Unsafe unsafe = ((Function.F0<Unsafe>) () -> {
-//        try {
-//            Field uf = Unsafe.class.getDeclaredField("theUnsafe");
-//            uf.setAccessible(true);
-//            return (Unsafe) uf.get(null);
-//        } catch (IllegalAccessException | NoSuchFieldException a) {
-//            a.printStackTrace();
-//        }
-//        return null;
-//    }).apply();
-
-
-    public static Logger logger() {
-        return logger;
-    }
 
     /**
      * ***************** meta *****************
@@ -66,21 +29,6 @@ public class S {
 
     public static String version() {
         return "this method is a joke, how can i even \"know\" myself";
-    }
-
-    /**
-     * ***************** _ *****************
-     */
-    /**
-     * @param <T> Type val
-     * @param t   value of type T
-     */
-    public static <T> Some<T> _some(T t) {
-        return Option.some(t);
-    }
-
-    public static <T> None<T> _none() {
-        return Option.none();
     }
 
     public static void _assert(boolean b) {
@@ -147,25 +95,12 @@ public class S {
         }
     }
 
-//    /**
-//     * TODO: refine comment
-//     * Tap to a self-return function before return
-//     */
-//    public static <E> E _tap(E e, Function<E, E> interceptor) {
-//        return interceptor.apply(e);
-//    }
-
     /**
-     * TODO: refine comment
      * Tap to a callback before return
      */
     public static <E> E _tap(E e, Callback<E> interceptor) {
         interceptor.apply(e);
         return e;
-    }
-
-    public static <E> E tap(E e, Callback<E> interceptor) {
-        return _tap(e, interceptor);
     }
 
     public static void _repeat(C0 c, int times) {
@@ -174,41 +109,20 @@ public class S {
         }
     }
 
-    public static void _echo(String s) {
-        echo(s);
-    }
-
-    public static String _dump(Object o) {
-        return dump(o);
-    }
-
-    /* delete in future */
-    @Deprecated
-    public static void _lazyThrow(Throwable a) {
-        throw new RuntimeException(a);
-    }
-
-    @Deprecated
+    /**
+     * Throw new RuntimeException
+     * @param th
+     */
     public static void _throw(Throwable th) {
         throw new RuntimeException(th);
-        //unsafe.throwException(th);
     }
 
     public static <T> T _fail() {
-        throw new RuntimeException("BUG OCCUR, CONTACT ME:" + author());
+        throw new RuntimeException("S._fail has been triggered");
     }
 
     public static <T> T _fail(String err) {
         throw new RuntimeException(err);
-    }
-
-    /**
-     * will delete in future
-     */
-    @Deprecated
-    public static <T> T _avoidNull(T t, Class<T> clazz) {
-        if (t == null) return nothing.of(clazz);
-        return t;
     }
 
     public static <T> T avoidNull(T _check, T _else) {
@@ -754,68 +668,6 @@ public class S {
 
     }
 
-    /**
-     * ******************* G **********************
-     */
-    /**
-     * ******************* H **********************
-     */
-    public final static class http {
-
-        public static void get(String uri, Map<String, Object> params, Callback<HttpResponse> cb) {
-            send(new HttpGet(uri), params, cb);
-        }
-
-        public static void post(String uri, Map<String, Object> params, Callback<HttpResponse> cb) {
-            send(new HttpPost(uri), params, cb);
-        }
-
-        public static void put(String uri, Map<String, Object> params, Callback<HttpResponse> cb) {
-            send(new HttpPut(uri), params, cb);
-        }
-
-        public static void delete(String uri, Map<String, Object> params, Callback<HttpResponse> cb) {
-            send(new HttpDelete(uri), params, cb);
-        }
-
-        public static void send(HttpUriRequest request, Map<String, Object> params, Callback<HttpResponse> cb) {
-            if (params == null) params = Collections.emptyMap();
-            List<NameValuePair> dummyform = new ArrayList<>();
-            _for(params).each((e) -> {
-                dummyform.add(new BasicNameValuePair(e.getKey(), String.valueOf(e.getValue())));
-            });
-
-            if (request instanceof HttpPost ||
-                    request instanceof HttpPut) {
-                ((HttpEntityEnclosingRequest) request).setEntity(new UrlEncodedFormEntity(dummyform, Consts.UTF_8));
-            } else {
-                String uri = request.getURI().toString();
-                String query = URLEncodedUtils.format(dummyform, Consts.UTF_8);
-                if (S.str.notBlank(query)) {
-                    uri += "?" + query;
-                }
-                ((HttpRequestBase) request).setURI(URI.create(uri));
-            }
-
-            try (CloseableHttpClient client = HttpClients.createDefault();
-                 CloseableHttpResponse resp = client.execute(request);
-            ) {
-                cb.apply(resp);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-    /**
-     * ******************* I **********************
-     */
-    /**
-     * ******************* J **********************
-     */
-    /**
-     * ******************* K **********************
-     */
-
     public final static class ForIt<E> {
 
         private final Iterable<E> iter;
@@ -1221,100 +1073,6 @@ public class S {
                 }
             }
             return new Matrix(ret);
-        }
-    }
-
-    /**
-     * ******************* O **********************
-     */
-    /**
-     * ******************* P **********************
-     */
-
-    /**
-     * ******************* N **********************
-     */
-    @Deprecated
-    final public static class nothing {
-
-        public final static Boolean _boolean = Boolean.FALSE;
-        public final static Character _char = (char) '\0';
-        public final static Byte _byte = (byte) 0;
-        public final static Integer _int = 0;
-        public final static Short _short = (short) 0;// ???
-        public final static Long _long = (long) 0;
-        public final static Float _float = (float) 0;
-        public final static Double _double = (double) 0;
-
-        final static Cache<Class<?>, Object> _nothingValues = Cache.<Class<?>, Object>defaultCache().onNotFound(
-                a -> Enhancer.create(_notNull(a), (MethodInterceptor) (Object obj, Method method, Object[] args, MethodProxy proxy) -> null));
-
-        static {
-            _nothingValues.put(String.class, "")
-                    .put(Boolean.class, _boolean).put(Integer.class, _int)
-                    .put(Byte.class, _byte).put(Character.class, _char).put(Short.class, _short).put(Long.class, _long)
-                    .put(Float.class, _float).put(Double.class, _double).put(Object.class, new Object());
-        }
-
-        final private Class<?> proxyClass;
-
-        protected nothing(Class<?> clazz) {
-            proxyClass = clazz;
-        }
-
-        @SuppressWarnings("unchecked")
-        public static <T> T of(Class<T> t) {
-            return (T) new nothing(t).proxy();
-        }
-
-        protected Object proxy() {
-            return _nothingValues.get(proxyClass);
-        }
-
-    }
-
-    /**
-     * @param <T>
-     */
-    @SuppressWarnings("unchecked")
-    final public static class proxy<T> {
-
-        final Map<String, Function<Object, Object[]>> _mm = new HashMap<>(5);
-        final private Class<T> _clazz;
-        final private T _t;
-
-        private proxy(Class<T> clazz, T t) {
-            _clazz = clazz;
-            _t = t;
-        }
-
-        public static <T> proxy<T> one(Class<T> clazz) throws InstantiationException, IllegalAccessException {
-            return new proxy(clazz, S.<T>_one(clazz));
-        }
-
-        public static <T> proxy<T> of(T t) {
-            return new proxy(t.getClass(), t);
-        }
-
-        public T origin() {
-            return _t;
-        }
-
-        public Class<T> originClass() {
-            return _clazz;
-        }
-
-        public proxy<T> method(String methodName, Function<Object, Object[]> method) {
-            _mm.put(methodName, method);
-            return this;
-        }
-
-        public T create() {
-            return (T) Enhancer.create(_clazz,
-                    (MethodInterceptor) (obj, method, args, proxy) ->
-                            _avoidNull(_mm.get(method.getName()), Function.class).apply(args)
-            );
-
         }
     }
 

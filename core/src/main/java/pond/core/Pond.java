@@ -2,6 +2,7 @@ package pond.core;
 
 import pond.common.S;
 import pond.common.spi.JsonService;
+import pond.common.spi.SPILoader;
 import pond.core.exception.PondException;
 import pond.core.session.SessionManager;
 import pond.core.spi.*;
@@ -27,7 +28,6 @@ public final class Pond implements RouterAPI {
 
     public final static String DEFAULT_DB = "_db";
     public final static String MULTIPART_RESOLVER = "_multipart_resolver";
-    private SPILoader spiLoader = new SPILoader();
     private BaseServer server;
     private Router rootRouter;
     public final Config config = new Config();
@@ -187,7 +187,7 @@ public final class Pond implements RouterAPI {
      * Returns JsonService
      */
     public JsonService json() {
-        return spiLoader.service(JsonService.class);
+        return SPILoader.service(JsonService.class);
     }
 
     public Pond loadConfigFromCmdLine(String[] args) {
@@ -298,7 +298,7 @@ public final class Pond implements RouterAPI {
     }
 
     public <E> E spi(Class<E> s) {
-        E e = spiLoader.service(s);
+        E e = SPILoader.service(s);
         if (e == null)
             throw new NullPointerException(s.getSimpleName() + "not found");
         else if (e instanceof EnvSPI) {

@@ -1,19 +1,11 @@
 Pond - 灵活，快速的web开发框架 （基于java 8)
 ====
-Pond 由以下模块
 
-* pond-common - 底层库，包括快速开发使用的工具和一些函数式编程特性。
+####pond-common 
+
+pond-common 提供了一些函数式编程特性和一些有用的工具类
 
 ```java  
-Map<Integer, String> testMap = map.hashMap(new Object[][]{
-            {1, "one"}, {2, "two"}, {3, "weee"}, {4, "weee"}
-    });
-_for(testMap).map((s) -> s + "_new").each((entry) -> echo(entry.getValue()));
-
-for (int i = 0; i < 100; i++) {
-    testMap.put(i, String.valueOf(i));
-}
-_for(testMap).grep((entry) -> (entry.getKey() > 50)).each(S::echo);
 ```  
 
 * pond-core - 框架核心
