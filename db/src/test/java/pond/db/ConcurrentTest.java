@@ -59,7 +59,6 @@ public class ConcurrentTest {
     }
 
 
-    @Ignore
     @Test
     public void testExecTx() {
         Holder.AccumulatorInt val = new Holder.AccumulatorInt(0);
@@ -82,10 +81,12 @@ public class ConcurrentTest {
 
         try {
             CompletableFuture.allOf(S._for(futures).join()).thenRun(() -> {
+                long beforeSelect = S.now();
                 S._for((List<Record>) db.get(t -> {
                     t.exec("USE POND_DB_TEST;");
-                    return t.query("SELECT count(*) FROM test");
-                })).each(S::echo);
+                    return t.query("SELECT * FROM test");
+                }));
+                S.echo("Query time:" + (S.now() - beforeSelect));
                 S.echo("ALL FINISHED : time usage " + (S.now() - s));
             }) .get();
         } catch (InterruptedException e) {

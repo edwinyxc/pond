@@ -46,18 +46,7 @@ public class RichLayout {
         return sb.toString();
     }
 
-    public static void main(String[] args) {
 
-        final int max = list.<Integer>one(new Integer[]{1, 1, 2, 3,
-                4, 2, 5})
-                .reduceLeft((a, b) -> S.math.max(a, b));
-        S.echo(max);
-        // System.out.println(RichLayout.horizontal(new Rect(new String[] {
-        // "123123", "-----------", "sdsds" }), new Rect(new String[] {
-        // "123123sdsd", "-----------", "sdsdas", "23123", "sdas" }),
-        // new Rect(new String[] { "123123sdsd", "---xxxxsdsd",
-        // "sdasd56^&*(" })));
-    }
 
     public static class matrixHelper {
 

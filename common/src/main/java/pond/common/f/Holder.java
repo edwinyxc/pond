@@ -1,10 +1,10 @@
 package pond.common.f;
 
 /**
- * Created by ed on 2014/4/24.
+ * A final holder for non-final value
  */
 public class Holder<T> {
-    public T val;
+    protected T val;
 
     public Holder<T> init(T t) {
         this.val = t;
