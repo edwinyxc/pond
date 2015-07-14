@@ -38,7 +38,7 @@ public class ReqQuery {
                 conditions = new ArrayList<>();
         for (String f : declaredFields) {
             String ori_c_and_v = (String) req.getOrDefault(f, "");
-            if (ori_c_and_v == null) continue;
+            if (ori_c_and_v == null || S.str.isBlank(ori_c_and_v)) continue;
             String[] c_and_v = ori_c_and_v.split(",");
             if (c_and_v.length > 0) {
                 if (c_and_v.length == 1) {
