@@ -24,13 +24,15 @@ public abstract class AbstractCache<K, V> extends Cache<K, V> {
 
     @Override
     public Cache<K, V> onNotFound(Function<V, K> nothingFoundListener) {
-        onNothingFound = S._notNull(nothingFoundListener);
+        S._assert(nothingFoundListener);
+        onNothingFound = nothingFoundListener;
         return this;
     }
 
     @Override
     public Cache<K, V> onRemove(Callback.C2<K, V> removeListener) {
-        onRemove = S._notNull(removeListener);
+        S._assert(removeListener);
+        onRemove = removeListener;
         return this;
     }
 
@@ -50,6 +52,7 @@ public abstract class AbstractCache<K, V> extends Cache<K, V> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public V get(K key, V cache) {
         V ret = this._get(key);
         if (ret == null) {
