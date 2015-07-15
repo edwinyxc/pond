@@ -26,8 +26,6 @@ public final class Pond implements RouterAPI {
 
     static Logger logger = LoggerFactory.getLogger(Pond.class);
 
-    public final static String DEFAULT_DB = "_db";
-    public final static String MULTIPART_RESOLVER = "_multipart_resolver";
     private BaseServer server;
     private Router rootRouter;
     public final Config config = new Config();

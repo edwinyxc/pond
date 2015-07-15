@@ -103,7 +103,7 @@ public interface Record {
     @SuppressWarnings("unchecked")
     static <T extends Record> T newValue(Class<T> recordClass) {
         try {
-            T t = S._one(recordClass);
+            T t = S.newInstance(recordClass);
             return (T) t.init();
         } catch (InstantiationException
                 | IllegalAccessException e) {

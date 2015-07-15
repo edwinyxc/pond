@@ -1,16 +1,17 @@
 package pond.common;
 
-import pond.common.f.*;
+import pond.common.f.Callback;
 import pond.common.f.Callback.C0;
-import pond.common.f.Function.F0;
+import pond.common.f.Function;
+import pond.common.f.Holder;
 import pond.common.struc.EnumerationIterable;
 import pond.common.struc.Matrix;
 import pond.common.util.cui.Rect;
-import pond.common.util.logger.Logger;
 
 import java.io.*;
 import java.lang.reflect.Array;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,6 +31,32 @@ public class S {
     public static String version() {
         return "this method is a joke, how can i even \"know\" myself";
     }
+
+    /**
+     * Assert an object is non-null, if not throw an RuntimeException
+     * with input err string.
+     *
+     * @param a   potential null value
+     * @param err err value
+     */
+    public static void _assert(Object a, String err) {
+        if (a == null) {
+            throw new RuntimeException(err);
+        }
+    }
+
+    /**
+     * see {@link System#out}
+     */
+    public static void echo(Object... args) {
+        //logger.echo(dump(o));
+        for (Object o : args) {
+            System.out.print(dump(o));
+            System.out.print(" ");
+        }
+        System.out.println();
+    }
+
 
     public static void _assert(boolean b) {
         _assert(b, "assert failure, something`s wrong");
@@ -84,25 +111,16 @@ public class S {
     }
 
     /**
-     * use {@link #_try_ret} instead
-     */
-    @Deprecated
-    public static <R> R _try(Function.F0ERR<R> f) {
-        try {
-            return f.apply();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Tap to a callback before return
+     * Tap to a callback  before return the first argument
      */
     public static <E> E _tap(E e, Callback<E> interceptor) {
         interceptor.apply(e);
         return e;
     }
 
+    /**
+     * Run a Callback for sevaral times
+     */
     public static void _repeat(C0 c, int times) {
         for (int i = 0; i < times; i++) {
             c.apply();
@@ -111,74 +129,65 @@ public class S {
 
     /**
      * Throw new RuntimeException
+     *
      * @param th
      */
     public static void _throw(Throwable th) {
         throw new RuntimeException(th);
     }
 
+
+    /**
+     * Unwrap the runtimeexception to get the cause, if the second argument set to true,
+     * returns the first available non-runtime-exception.
+     */
+    public static Throwable _unwrapRuntimeException(Throwable e) {
+        return _unwrapRuntimeException(e, false);
+    }
+
+    /**
+     * Unwrap the runtimeexception to get the cause, if the second argument set to true,
+     * returns the first available non-runtime-exception.
+     */
+    public static Throwable _unwrapRuntimeException(Throwable e, boolean recursive) {
+        if (!(e instanceof RuntimeException)) {
+            return e;
+        }
+        Throwable ret = e.getCause();
+        if (recursive) {
+            while (ret instanceof RuntimeException) {
+                ret = ret.getCause();
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * fail immediatly
+     */
     public static <T> T _fail() {
         throw new RuntimeException("S._fail has been triggered");
     }
 
+    /**
+     * fail with hint
+     */
     public static <T> T _fail(String err) {
         throw new RuntimeException(err);
     }
 
+    /**
+     * avoid returnning null values
+     */
     public static <T> T avoidNull(T _check, T _else) {
         return _check == null ? _else : _check;
     }
 
     /**
-     * return nullable -- if the 1st arg is null, invoke the 2nd function with the first arg
+     * Tap on nullable object -- invoke the function bingding the first arg if the input is not null
      */
     public static <R, N> R _tap_nullable(N nullable, Function<R, N> ifNotNull) {
         return nullable == null ? null : ifNotNull.apply(nullable);
-    }
-
-    /**
-     * Just use {@link #_assert(Object)}
-     */
-    @Deprecated
-    public static <T> T _notNull(T t) {
-        _assert(t, "noNull assert failure");
-        return t;
-    }
-
-    /**
-     * Just use {@link #_assert(Object)}
-     */
-    @Deprecated
-    public static <T> T _notNull(T t, String err) {
-        _assert(t, err);
-        return t;
-    }
-
-    /**
-     * use {@link #avoidNull} instead
-     */
-    @Deprecated
-    public static <T> T _notNullElse(T _check, T _else) {
-        return _check != null ? _check : _else;
-    }
-
-    /**
-     * if - else - then expression
-     * TODO will delete in future
-     */
-    @Deprecated
-    public static <T> T _return(F0<Boolean> expr, F0<T> retTrue, F0<T> retFalse) {
-        return expr.apply() ? retTrue.apply() : retFalse.apply();
-    }
-
-    /**
-     * if - else - then statement
-     * TODO will delete in future
-     */
-    @Deprecated
-    public static void _do(F0<Boolean> expr, C0 doTrue, C0 doFalse) {
-        if (expr.apply()) doTrue.apply();
-        else doFalse.apply();
     }
 
     /**
@@ -193,14 +202,11 @@ public class S {
 
     @SuppressWarnings("unchecked")
     public static <E> E _getOrSet(Map m, Object c, E e) {
-        Holder<E> eHolder = new Holder<E>();
-        return _return(() -> (eHolder.val = (E) m.get(c)) != null,
-                () -> eHolder.val,
-                () -> {
-                    m.put(c, e);
-                    return e;
-                });
+        Holder<E> eHolder = new Holder<>();
+        return null != (eHolder.val((E) m.get(c))) ? eHolder.val() : S._tap(e, _e -> m.put(c, _e));
     }
+
+    //FOR
 
     public static <E> ForIt<E> _for(Iterable<E> c) {
         return new ForIt<>(c);
@@ -219,7 +225,7 @@ public class S {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T _one(Class<?> clazz) throws InstantiationException,
+    public static <T> T newInstance(Class<?> clazz) throws InstantiationException,
             IllegalAccessException {
         return (T) clazz.newInstance();
     }
@@ -233,27 +239,6 @@ public class S {
         if (a == null) {
             throw new NullPointerException();
         }
-    }
-
-    /**
-     * Assert an object is non-null, if not throw an RuntimeException
-     * with input err string.
-     *
-     * @param a   potential null value
-     * @param err err value
-     */
-    public static void _assert(Object a, String err) {
-        if (a == null) {
-            throw new RuntimeException(err);
-        }
-    }
-
-    /**
-     * see {@link System#out}
-     */
-    public static void echo(Object o) {
-        //logger.echo(dump(o));
-        System.out.println(dump(o));
     }
 
     /**
@@ -271,7 +256,7 @@ public class S {
         } else if (o instanceof Iterable) {
             return "["
                     + String.join(",",
-                    _notNullElse(_for((Iterable) o).
+                    avoidNull(_for((Iterable) o).
                                     map((i) -> (dump(i))).val(),
                             list.one()))
                     + "]";
@@ -564,37 +549,6 @@ public class S {
         }
     }
 
-    /**
-     * ***************** D ********************
-     * will delete in future
-     */
-    @Deprecated
-    public static class date {
-
-        public static Date fromString(String aDate, String aFormat) throws ParseException {
-            return new SimpleDateFormat(aFormat).parse(aDate);
-        }
-
-        public static Date fromLong(String aDate) {
-            return new Date(parse.toLong(aDate));
-        }
-
-        public static String fromLong(Long aDate, String aFormat) {
-            return toString(new Date(aDate), aFormat);
-        }
-
-        public static String fromLong(String aDate, String aFormat) {
-            return toString(new Date(parse.toLong(aDate)), aFormat);
-        }
-
-        public static String toString(Date aDate, String aFormat) {
-            return new SimpleDateFormat(aFormat).format(aDate);
-        }
-
-        public static Long stringToLong(String aDate, String aFormat) throws ParseException {
-            return fromString(aDate, aFormat).getTime();
-        }
-    }
 
     /**
      * ******************* F
@@ -687,7 +641,7 @@ public class S {
                     && !itClass.getSimpleName().startsWith("Unmodifiable")
                     && !itClass.getSimpleName().startsWith("Empty")) {
                 try {
-                    return S._one(itClass);
+                    return S.newInstance(itClass);
                 } catch (InstantiationException | IllegalAccessException e) {
                     return list.one();
                 }
@@ -759,131 +713,7 @@ public class S {
 
     }
 
-    public static class file {
-
-        /**
-         * (Util method)
-         * Load properties from the file
-         */
-        public static Properties loadProperties(File conf) {
-            return _try_ret(() -> {
-                Properties config = new Properties();
-                if (conf.exists() && conf.canRead())
-                    config.load(new FileInputStream(conf));
-                    //using default settings;
-                else
-                    System.out.println(
-                            "Can`t read properties file, using default.");
-                return config;
-            });
-        }
-
-        /**
-         * (Util method)
-         * Load properties from the file, under the classroot
-         */
-        public static Properties loadProperties(String fileName) {
-            return _try_ret(() -> {
-                Properties config = new Properties();
-                File conf = new File(S.path.rootClassPath()
-                        + File.separator + fileName);
-                if (conf.exists() && conf.canRead())
-                    config.load(new FileInputStream(conf));
-                    //using default settings;
-                else
-                    System.out.println(
-                            "Can`t read properties file, using default.");
-                return config;
-            });
-        }
-
-        public static void inputStreamToFile(InputStream ins, File file) throws IOException {
-            OutputStream os = new FileOutputStream(file);
-            int bytesRead = 0;
-            byte[] buffer = new byte[8192];
-            while ((bytesRead = ins.read(buffer, 0, 8192)) != -1) {
-                os.write(buffer, 0, bytesRead);
-            }
-            os.close();
-            ins.close();
-        }
-
-        public static String fileNameFromPath(String path) {
-            return path.substring(path.lastIndexOf("\\") + 1);
-        }
-
-        /**
-         * Returns file extension name,
-         * return null if it has no extension.
-         *
-         * @param fileName
-         * @return
-         */
-        public static String fileExt(String fileName) {
-            String[] filename = splitFileName(fileName);
-            return filename[filename.length - 1];
-        }
-
-        public static String[] splitFileName(String filename) {
-            int idx_dot = filename.lastIndexOf('.');
-            if (idx_dot <= 0 || idx_dot == filename.length()) {
-                return new String[]{filename, null};
-            }
-            return new String[]{filename.substring(0, idx_dot), filename.substring(idx_dot + 1)};
-        }
-
-        /**
-         * abc.txt => [abc, txt] abc.def.txt => [abc.def, txt] abc. =>
-         * [abc.,null] .abc => [.abc,null] abc => [abc,null]
-         *
-         * @param file file
-         * @return string array with size of 2, first is the filename, remain the suffix;
-         */
-        public static String[] splitFileName(File file) {
-            return splitFileName(file.getName());
-        }
-
-        public static File mkdir(File par, String name) throws IOException {
-            final String path = par.getAbsolutePath() + File.separatorChar + name;
-            File f = new File(path);
-            if (f.mkdirs() && f.createNewFile()) {
-                return f;
-            }
-            return null;
-        }
-
-        public static File touch(File par, String name) throws IOException {
-            final String path = par.getAbsolutePath() + File.separatorChar + name;
-            File f = new File(path);
-            if (f.createNewFile()) {
-                return f;
-            }
-            return null;
-        }
-
-        /**
-         * Delete a dir recursively deleting anything inside it.
-         *
-         * @param file The dir to delete
-         * @return true if the dir was successfully deleted
-         */
-        public static boolean rm(File file) {
-            if (!file.exists() || !file.isDirectory()) {
-                return false;
-            }
-
-            String[] files = file.list();
-            for (String file1 : files) {
-                File f = new File(file, file1);
-                if (f.isDirectory()) {
-                    rm(f);
-                } else {
-                    f.delete();
-                }
-            }
-            return file.delete();
-        }
-    }
+    public static FILE file = new FILE();
 
     final static public class list {
 
@@ -1076,168 +906,14 @@ public class S {
         }
     }
 
-    public static class path {
+    public static PATH path = new PATH();
 
-
-        @SuppressWarnings("ConstantConditions")
-        public static String rootAbsPath(Object caller) {
-            return caller.getClass().getClassLoader().getResource("/").getPath();
-        }
-
-        @SuppressWarnings("ConstantConditions")
-        public static String rootAbsPath(Class<?> callerClass) {
-            return callerClass.getClassLoader().getResource("/").getPath();
-        }
-
-        @SuppressWarnings("rawtypes")
-        public static String get(Class clazz) {
-            String path = clazz.getResource("").getPath();
-            return new File(path).getAbsolutePath();
-        }
-
-        public static String get(Object object) {
-            String path = object.getClass().getResource("").getPath();
-            return new File(path).getAbsolutePath();
-        }
-
-        @SuppressWarnings("ConstantConditions")
-        public static String rootClassPath() {
-            try {
-                String path = S.class.getClassLoader().getResource("").toURI().getPath();
-                return new File(path).getAbsolutePath();
-            } catch (URISyntaxException e) {
-                String path = S.class.getClassLoader().getResource("").getPath();
-                return new File(path).getAbsolutePath();
-            }
-        }
-
-        public static String packageOf(Object object) {
-            Package p = object.getClass().getPackage();
-            return p != null ? p.getName().replaceAll("\\.", "/") : "";
-        }
-
-        /**
-         * Normally return the source dir path under the current project
-         *
-         * @return the source dir path under the current project
-         */
-        public static String detectWebRootPath() {
-            try {
-                String path = S.class.getResource("/").toURI().getPath();
-                return new File(path).getParentFile().getParentFile().getCanonicalPath();
-            } catch (URISyntaxException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public static Boolean isAbsolute(String path) {
-            _assert(path);
-            return path.startsWith("/") ||
-                    path.indexOf(":") == 1;
-        }
-
-    }
-
-    /**
-     * ******************* Q **********************
-     */
-    /**
-     * ******************* R **********************
-     */
-
-//    public static class reflect {
-//        public static boolean isPrimitive(Object o){
-//            Class c = o.getClass();
-//            //TODO?
-//            return c.isPrimitive();
-//        }
-//    }
-
-    /**
-     * ******************* S **********************
-     */
-
-    public static class parse {
-
-        /**
-         * <p>
-         * WARNING!!! ONLY POSITIVE VALUES WILL BE RETURN
-         * </p>
-         *
-         * @param value input value
-         * @return above zero
-         */
-        public static int toUnsigned(String value) {
-            int ret = 0;
-            if (value == null || value.isEmpty()) {
-                return 0;
-            }
-            char tmp;
-            for (int i = 0; i < value.length(); i++) {
-                tmp = value.charAt(i);
-                if (!Character.isDigit(tmp)) {
-                    return 0;
-                }
-                ret = ret * 10 + ((int) tmp - (int) '0');
-            }
-            return ret;
-        }
-
-        public static long toLong(String value) throws NumberFormatException {
-            return Long.parseLong(value);
-        }
-    }
 
     /**
      * @author ed
      */
-    public static class stream {
+    public static STREAM stream = new STREAM();
 
-        private static final int BUFFER_SIZE = 8192;
-
-        public static String readFully(InputStream inputStream, Charset encoding)
-                throws IOException {
-            return new String(readFully(inputStream), encoding);
-        }
-
-        public static String readFully(InputStream inputStream, String encoding)
-                throws IOException {
-            return new String(readFully(inputStream), encoding);
-        }
-
-        private static byte[] readFully(InputStream inputStream)
-                throws IOException {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            int length = 0;
-            while ((length = inputStream.read(buffer)) != -1) {
-                baos.write(buffer, 0, length);
-            }
-            return baos.toByteArray();
-        }
-
-
-        public static void write(InputStream in, OutputStream out) throws IOException {
-            pipe(in, out);
-        }
-
-        /**
-         * pipe from is to os;
-         *
-         * @param in  inputStream
-         * @param out outputStream
-         * @throws java.io.IOException
-         */
-        public static void pipe(final InputStream in, final OutputStream out) throws IOException {
-            final byte[] buffer = new byte[BUFFER_SIZE];
-            int cnt;
-
-            while ((cnt = in.read(buffer)) != -1) {
-                out.write(buffer, 0, cnt);
-//            }
-            }
-        }
-    }
 
     /**
      * ******************* T **********************

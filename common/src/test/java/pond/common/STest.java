@@ -1,37 +1,54 @@
 package pond.common;
 
 import org.junit.Test;
+import pond.common.f.Holder;
 
+import java.nio.channels.UnsupportedAddressTypeException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class STest {
 
     @Test
-    public void test_return() throws Exception {
-        final int a = 100;
-        final int b = 1000;
-
-        int c = S._return(() -> a > b,
-                () -> a, () -> b);
-        assertEquals(c, b);
+    public void test_tap() {
+        assertEquals(S._tap(new HashMap<>(), map -> map.put("test", 1)).get("test"), 1);
     }
 
     @Test
-    public void test_do() throws Exception {
-        final int a = 100;
-        final int b = 1000;
-        int[] c = new int[1];
-        S._do(() -> a > b, () -> c[0] = a, () -> c[0] = b);
-        assertEquals(c[0], b);
+    public void test_unwrapRuntimeException() {
+        RuntimeException e
+                = new RuntimeException(
+                new RuntimeException(
+                        new RuntimeException(new Exception("here"))));
+        assertEquals("here", S._unwrapRuntimeException(e, true).getMessage());
     }
 
-    public void test_http() throws Exception {
-        S.echo("testing http");
-        S.http.get("http://www.baidu.com", null, resp -> {
-            S.echo(S.time(() -> S._try(() -> S.stream.pipe(resp.getEntity().getContent(), System.out))));
+    @Test
+    public void test_repeat() {
+        Holder.AccumulatorInt acc = new Holder.AccumulatorInt(10);
+        S._repeat(acc::accum, 10);
+        assertEquals((int) acc.val(), 20);
+    }
+
+    @Test
+    public void test_getOrSet() throws Exception {
+        Map map = new HashMap<>();
+        S._getOrSet(map, "e", "set!");
+        assertEquals(map.get("e"), "set!");
+    }
+
+    @Test
+    public void test_getOrDefault() throws Exception {
+        Map map =S._tap(new HashMap<>(), m -> {
+            m.put("a", "aa");
+            m.put("b", "bb");
+            m.put("c", "cc");
         });
+        assertEquals("dd", S._getOrDefault(map, "d", "dd"));
     }
 
     @Test(expected = Exception.class)
@@ -61,15 +78,123 @@ public class STest {
     }
 
     @Test(expected = Exception.class)
-    public void test_try_ret(){
-        String a =  S._try_ret(() -> {
+    public void test_try_ret() {
+        String a = S._try_ret(() -> {
             throw new Exception();
         });
     }
 
     @Test
-    public void test_try(){
-        S._try(() -> S.echo("sd"));
+    public void test_try() {
+        assertEquals("a", S._try_ret(() -> "a"));
     }
 
+    @Test
+    public void testAuthor() throws Exception {
+
+    }
+
+    @Test
+    public void testVersion() throws Exception {
+
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void test_assert() throws Exception {
+        S._assert(false);
+    }
+
+    @Test(expected =  RuntimeException.class)
+    public void test_assert1() throws Exception {
+        S._assert(false,"runtime assert failure");
+    }
+
+
+    @Test(expected = Exception.class)
+    public void test_throw() throws Exception {
+        S._throw(new UnsupportedAddressTypeException());
+    }
+
+    @Test
+    public void testAvoidNull() throws Exception {
+        assertEquals("a", S.avoidNull(null, "a"));
+    }
+
+    @Test
+    public void test_tap_nullable() throws Exception {
+        String a = S._tap_nullable(null, s -> {
+            S.echo("this will not be executed");
+            return "a";
+        });
+        Map map = new HashMap<>();
+        map.put("as","as");
+        assertEquals("as", S._tap_nullable(map, m -> m.get("as")));
+    }
+
+
+    @Test
+    public void test_for() throws Exception {
+
+    }
+
+    @Test
+    public void test_for1() throws Exception {
+
+    }
+
+    @Test
+    public void test_for2() throws Exception {
+
+    }
+
+    @Test
+    public void test_for3() throws Exception {
+
+    }
+
+    @Test
+    public void test_one() throws Exception {
+
+    }
+
+
+    @Test
+    public void testEcho() throws Exception {
+
+    }
+
+    @Test
+    public void testDump() throws Exception {
+
+    }
+
+    @Test
+    public void testList() throws Exception {
+
+    }
+
+    @Test
+    public void testTime() throws Exception {
+
+    }
+
+    @Test
+    public void testNow() throws Exception {
+
+    }
+
+    @Test
+    public void testNow_nano() throws Exception {
+
+    }
+
+    @Test
+    public void testTime1() throws Exception {
+
+    }
+
+    @Test
+    public void testTime_nano() throws Exception {
+
+    }
 }
