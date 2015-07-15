@@ -1,11 +1,11 @@
 package pond.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pond.common.JSON;
 import pond.common.S;
 import pond.core.http.MimeTypes;
 import pond.core.spi.ViewEngine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URLEncoder;
@@ -13,7 +13,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-import static pond.common.S._for;
 import static pond.core.Pond.debug;
 
 /**

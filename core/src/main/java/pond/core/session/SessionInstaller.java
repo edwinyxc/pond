@@ -1,7 +1,6 @@
 package pond.core.session;
 
 import pond.common.S;
-import pond.common.f.Callback;
 import pond.core.Mid;
 import pond.core.Pond;
 import pond.core.Request;

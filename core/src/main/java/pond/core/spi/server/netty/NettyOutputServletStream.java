@@ -2,7 +2,6 @@ package pond.core.spi.server.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
-import io.netty.handler.codec.http.FullHttpResponse;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;

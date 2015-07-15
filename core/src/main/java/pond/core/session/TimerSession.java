@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static pond.core.Pond.debug;
 import static pond.common.f.Function.F0;
+import static pond.core.Pond.debug;
 
 
 /**
