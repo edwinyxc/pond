@@ -1,7 +1,6 @@
-package pond.common.util.cui;
+package pond.common.cui;
 
 import org.junit.Test;
-import pond.common.S;
 
 import static org.junit.Assert.assertEquals;
 

@@ -1,4 +1,4 @@
-package pond.common.util.cui;
+package pond.common.cui;
 
 import pond.common.S;
 import pond.common.struc.Matrix;

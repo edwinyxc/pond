@@ -3,8 +3,8 @@ package pond.common.struc.tree;
 import pond.common.S;
 import pond.common.f.Function;
 import pond.common.struc.Matrix;
-import pond.common.util.cui.Rect;
-import pond.common.util.cui.RichLayout;
+import pond.common.cui.Rect;
+import pond.common.cui.RichLayout;
 
 import java.util.*;
 

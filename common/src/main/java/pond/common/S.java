@@ -6,15 +6,9 @@ import pond.common.f.Function;
 import pond.common.f.Holder;
 import pond.common.struc.EnumerationIterable;
 import pond.common.struc.Matrix;
-import pond.common.util.cui.Rect;
+import pond.common.cui.Rect;
 
-import java.io.*;
 import java.lang.reflect.Array;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 
