@@ -1,6 +1,7 @@
 package pond.core;
 
-import static pond.common.S.file.loadProperties;
+
+import static pond.common.FILE.loadProperties;
 
 /**
  * Created by ed on 11/13/14.

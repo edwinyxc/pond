@@ -1,12 +1,12 @@
 package pond.core;
 
+import pond.common.PATH;
 import pond.common.S;
+import pond.common.f.Callback;
 import pond.common.spi.JsonService;
 import pond.common.spi.SPILoader;
 import pond.core.exception.PondException;
-import pond.core.session.SessionManager;
 import pond.core.spi.*;
-import pond.core.session.SessionInstaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +45,6 @@ public final class Pond implements RouterAPI {
     //Before the routing chain
     final List<Mid> before = new LinkedList<>();
 
-    //Session Manager (could be null)
-    SessionManager sessionManager;
 
     // Executor
     final CtxExec ctxExec = new CtxExec();
@@ -154,32 +152,6 @@ public final class Pond implements RouterAPI {
         return staticFileServer;
     }
 
-    public Map<String, Session> sessions() {
-        _assert(sessionManager, "Please use session first");
-        return sessionManager.getAll();
-    }
-
-    /**
-     * Returns a MW that handle session
-     * see more at com.shuimin.pond.core.mw.session.Session
-     */
-    public SessionInstaller useSession() {
-        if (this.sessionManager == null) {
-            this.sessionManager = new SessionManager(this);
-        }
-        return new SessionInstaller(this.sessionManager);
-    }
-
-    /**
-     * get Session
-     */
-    Session session(Ctx ctx) {
-        if (this.sessionManager == null) {
-            throw new RuntimeException("Please use Pond.before(pond.useSession()) first");
-        }
-        return this.sessionManager.get(ctx);
-    }
-
 
     /**
      * Returns JsonService
@@ -208,12 +180,12 @@ public final class Pond implements RouterAPI {
      * @return
      */
     @SafeVarargs
-    public static Pond init(pond.common.abs.Config<Pond>... configs) {
+    public static Pond init(Callback<Pond>... configs) {
         try {
             Pond pond = new Pond();
 
-            for (pond.common.abs.Config<Pond> conf : configs) {
-                conf.config(pond);
+            for (Callback<Pond> conf : configs) {
+                conf.apply(pond);
             }
 
             return pond;
@@ -243,7 +215,7 @@ public final class Pond implements RouterAPI {
     public String pathRelWebRoot(String path) {
         String root = config.get(Config.ROOT_WEB);
         if (path == null) return null;
-        if (S.path.isAbsolute(path)) {
+        if (PATH.isAbsolute(path)) {
             return path;
         }
         return root + File.separator + path;

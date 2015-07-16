@@ -20,11 +20,11 @@ public class STREAM {
         return new String(readFully(inputStream), encoding);
     }
 
-    private static byte[] readFully(InputStream inputStream)
+    public static byte[] readFully(InputStream inputStream)
             throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
-        int length = 0;
+        int length;
         while ((length = inputStream.read(buffer)) != -1) {
             baos.write(buffer, 0, length);
         }

@@ -1,7 +1,6 @@
 package pond.core;
 
-import pond.common.JSON;
-import pond.common.S;
+import pond.common.*;
 import pond.core.http.MimeTypes;
 import pond.core.spi.ViewEngine;
 import org.slf4j.Logger;
@@ -13,7 +12,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-import static pond.common.S._for;
 import static pond.core.Pond.debug;
 
 /**
@@ -51,9 +49,9 @@ public interface Render {
     static Render file(File f) {
         return (req, resp) -> {
             String filename = f.getName();
-            String file_n = S.str.notBlank(filename) ? filename :
+            String file_n = STRING.notBlank(filename) ? filename :
                     String.valueOf(S.time());
-            String file_ext = S.file.fileExt(file_n);
+            String file_ext = FILE.fileExt(file_n);
             String mime_type;
             if (file_ext != null
                     && (mime_type = MimeTypes.getMimeType(file_ext)) != null) {
@@ -62,10 +60,10 @@ public interface Render {
                 resp.header("Content-Type",
                         "application/octet-stream");
             try {
-                S.stream.pipe(new FileInputStream(f), resp.out());
+                STREAM.pipe(new FileInputStream(f), resp.out());
                 resp.out().flush();
             } catch (IOException e) {
-                S._lazyThrow(e);
+                S._throw(e);
             }
         };
     }
@@ -76,9 +74,9 @@ public interface Render {
     @Deprecated
     static Render attachment(InputStream file, String filename) {
         return (req, resp) -> {
-            String file_n = S.str.notBlank(filename) ? filename :
+            String file_n = STRING.notBlank(filename) ? filename :
                     String.valueOf(S.now());
-            String file_ext = S.file.fileExt(file_n);
+            String file_ext = FILE.fileExt(file_n);
             String mime_type;
 
             //TODO refactor
