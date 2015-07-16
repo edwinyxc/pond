@@ -54,7 +54,7 @@ public class CtxExec {
         }
         try {
             //bind localthread-context
-            ctxThreadLocal.set(ctx);
+            if(ctxThreadLocal.get() == null) ctxThreadLocal.set(ctx);
             if (ctx.handled) return;
             if (mid != null) {
                 final Mid finalMid = mid;
@@ -62,8 +62,9 @@ public class CtxExec {
                         + ctx.req.path() + ", mid: " + finalMid.toString()));
                 mid.apply(ctx.req, ctx.resp);
                 exec(ctx);
-            } //reach the end of mids
-            if(!ctx.handled )
+            }
+            //reach the end of mids
+            if (!ctx.handled)
                 ctx.resp.send(404);
         } catch (RuntimeException e) {
             unwrapRuntimeException(e, ctx.resp);
@@ -71,7 +72,13 @@ public class CtxExec {
             e.printStackTrace();
             ctx.resp.send(500, e.getMessage());
         } finally {
-            ctxThreadLocal.remove();
+            Ctx thctx;
+            if ((thctx = ctxThreadLocal.get()) != null) {
+                S._debug(Pond.logger, logger -> {
+                    logger.debug("Ctx costs: " + (S.now() - (long) thctx.get("_start_time")) + "ms");
+                });
+                ctxThreadLocal.remove();
+            }
         }
         //return false;
     }

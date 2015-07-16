@@ -22,6 +22,7 @@ public class NettyRespWrapper implements Response {
     ByteBuf buffer;
     NettyOutputServletStream out;
     PrintWriter writer;
+    long _start_time;
 
     final NettyHttpServer server;
     final HttpRequest request;
@@ -45,6 +46,10 @@ public class NettyRespWrapper implements Response {
                     HttpHeaderValues.KEEP_ALIVE);
         }
         this.doClean = doClean;
+        S._debug(BaseServer.logger, logger -> {
+            this._start_time = S.now();
+            logger.debug("resp build at " + _start_time);
+        });
     }
 
     @Override
@@ -80,6 +85,8 @@ public class NettyRespWrapper implements Response {
 
     @Override
     public void sendFile(File file, long offset, long length) {
+        S._debug(BaseServer.logger, logger ->
+                logger.debug("user porcess costs: " + (S.now() - _start_time) + "ms"));
         resp.setStatus(HttpResponseStatus.OK);
         HttpHeaderUtil.setContentLength(resp, file.length());
         if (resp.headers().get(HttpHeaderNames.CONTENT_TYPE) == null) {
@@ -141,6 +148,8 @@ public class NettyRespWrapper implements Response {
                 if (doClean != null) {
                     doClean.apply();
                 }
+                S._debug(BaseServer.logger, logger ->
+                        logger.debug("all costs: " + (S.now() - _start_time) + "ms"));
             }
         });
 
@@ -202,6 +211,10 @@ public class NettyRespWrapper implements Response {
     }
 
     private void _send() {
+
+        S._debug(BaseServer.logger, logger ->
+                logger.debug("user porcess costs: " + (S.now() - _start_time) + "ms"));
+
         boolean keepAlive;
 
         writer.flush();
@@ -229,7 +242,7 @@ public class NettyRespWrapper implements Response {
         }
 
 
-        ChannelFuture  lastContentFuture;
+        ChannelFuture lastContentFuture;
 
         ctx.write(resp);
         ctx.write(buffer);
@@ -238,6 +251,8 @@ public class NettyRespWrapper implements Response {
             if (doClean != null) {
                 doClean.apply();
             }
+            S._debug(BaseServer.logger, logger ->
+                    logger.debug("all costs: " + (S.now() - _start_time) + "ms"));
         });
         if (!keepAlive)
             lastContentFuture.addListener(ChannelFutureListener.CLOSE);

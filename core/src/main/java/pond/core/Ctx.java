@@ -2,6 +2,7 @@ package pond.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pond.common.S;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -13,7 +14,6 @@ import static pond.common.S._for;
  * Execution Context, attached to a single thread.
  */
 public class Ctx extends HashMap<String, Object> {
-    final static Logger logger = LoggerFactory.getLogger(Ctx.class);
     Request req;
     Response resp;
     Pond pond;
@@ -34,8 +34,12 @@ public class Ctx extends HashMap<String, Object> {
             stack.add(mid);
         }
 
-        logger.debug("Main ctx route:" + String.join("->",
-                _for(mids).map(Object::toString).join()));
+        S._debug(Pond.logger, log -> {
+            log.debug("Main ctx route: " + String.join("->",
+                    _for(mids).map(Object::toString).join()));
+            this.put("_start_time", S.now());
+            log.debug("ctx starts at: " + this.get("_start_time"));
+        });
     }
 
     public Pond pond(){
