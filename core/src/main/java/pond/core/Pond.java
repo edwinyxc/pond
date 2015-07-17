@@ -1,23 +1,21 @@
 package pond.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pond.common.PATH;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.spi.JsonService;
 import pond.common.spi.SPILoader;
 import pond.core.exception.PondException;
-import pond.core.spi.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import pond.core.spi.BaseServer;
+import pond.core.spi.ViewEngine;
 
 import java.io.File;
 import java.util.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.Executors;
 
-import static pond.common.S.*;
+import static pond.common.S.avoidNull;
 
 /**
  * Main Class

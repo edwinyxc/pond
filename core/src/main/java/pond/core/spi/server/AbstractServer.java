@@ -1,6 +1,5 @@
 package pond.core.spi.server;
 
-import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.core.Pond;
@@ -8,7 +7,7 @@ import pond.core.Request;
 import pond.core.Response;
 import pond.core.spi.BaseServer;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
 
 public abstract class AbstractServer implements BaseServer{
 

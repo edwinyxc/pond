@@ -2,7 +2,6 @@ package pond.core.spi.server.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -240,7 +239,7 @@ public class NettyHttpServer extends AbstractServer {
 
         void resetDecoder() {
             if (decoder != null) {
-
+                decoder.cleanFiles();
                 decoder.destroy();
                 decoder = null;
             }

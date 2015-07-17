@@ -1,7 +1,6 @@
 package pond.core;
 
 import pond.common.S;
-import pond.common.f.Callback;
 import pond.core.http.HttpMethod;
 
 import java.lang.annotation.*;

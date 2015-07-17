@@ -1,6 +1,5 @@
 package pond.core;
 
-import pond.common.f.Callback;
 import pond.core.http.HttpMethod;
 
 /**

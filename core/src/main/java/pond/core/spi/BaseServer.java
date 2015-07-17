@@ -7,7 +7,6 @@ import pond.core.PondAware;
 import pond.core.Request;
 import pond.core.Response;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 public interface BaseServer extends PondAware{
