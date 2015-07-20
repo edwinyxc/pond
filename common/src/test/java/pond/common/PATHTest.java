@@ -23,9 +23,6 @@ public class PATHTest {
     }
 
 
-    public static  void main(String[] args){
-    }
-
     @Test
     public void testRootClassPath() throws Exception {
 
