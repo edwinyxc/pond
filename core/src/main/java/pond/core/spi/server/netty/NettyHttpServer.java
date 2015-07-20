@@ -45,8 +45,8 @@ public class NettyHttpServer extends AbstractServer {
     private static final HttpDataFactory factory =
             new DefaultHttpDataFactory(DefaultHttpDataFactory.MAXSIZE); // Disk if size exceed
 
-    //executorServices -- for user threads
-    private ExecutorService executorService = Executors.newCachedThreadPool();
+//    //executorServices -- for user threads
+//    private ExecutorService executorService = Executors.newCachedThreadPool();
 
     public NettyHttpServer() {
 
@@ -234,7 +234,7 @@ public class NettyHttpServer extends AbstractServer {
                                 actionCompleteNotification.setCause(th);
                             }
                             return actionCompleteNotification;
-                        }, executorService).thenAcceptAsync(acn -> {
+                        }, ctx.executor()).thenAcceptAsync(acn -> {
                             if (acn.isSuccess()) {
                                 switch (acn.type()) {
                                     case ActionCompleteNotification.UNHANDLED: {
