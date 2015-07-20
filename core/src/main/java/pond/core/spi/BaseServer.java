@@ -3,13 +3,11 @@ package pond.core.spi;
 import org.slf4j.Logger;
 import pond.common.f.Callback;
 import pond.common.f.Function;
-import pond.core.PondAware;
+import pond.core.Pond;
 import pond.core.Request;
 import pond.core.Response;
 
-import java.util.concurrent.ExecutorService;
-
-public interface BaseServer extends PondAware{
+public interface BaseServer{
 
     Logger logger = org.slf4j.LoggerFactory.getLogger(BaseServer.class);
 
@@ -43,10 +41,14 @@ public interface BaseServer extends PondAware{
     //register process handler
     void handler(Callback.C2<Request, Response> handler);
 
-    void executor(ExecutorService executor);
 
     //get env
     Object env(String key );
 
     void regEnv(Function<Object, String> f);
+
+    void pond(Pond pond);
+
+    Pond pond();
+
 }

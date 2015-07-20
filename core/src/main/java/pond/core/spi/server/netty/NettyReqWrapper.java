@@ -12,9 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.core.Request;
+import pond.core.http.Cookie;
 import pond.core.http.HttpUtils;
 
-import javax.servlet.http.Cookie;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

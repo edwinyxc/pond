@@ -1,13 +1,11 @@
 package pond.core;
 
-import javax.servlet.http.Cookie;
+import pond.core.http.Cookie;
+
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-/**
- * Created by ed on 15-7-8.
- */
 public class ResponseWrapper implements Response {
 
     Response wrapped;
@@ -33,7 +31,7 @@ public class ResponseWrapper implements Response {
 
     @Override
     public void send(int code, String msg) {
-        wrapped.send(code,msg);
+        wrapped.send(code, msg);
         setSendFlag();
     }
 

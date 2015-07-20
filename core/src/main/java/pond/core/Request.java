@@ -2,9 +2,9 @@ package pond.core;
 
 
 import pond.common.S;
+import pond.core.http.Cookie;
 import pond.core.http.HttpUtils;
 
-import javax.servlet.http.Cookie;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

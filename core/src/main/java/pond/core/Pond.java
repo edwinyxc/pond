@@ -12,7 +12,6 @@ import pond.core.spi.ViewEngine;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.Executors;
 
 import static pond.common.S._assert;
 import static pond.common.S.avoidNull;
@@ -129,9 +128,6 @@ public final class Pond implements RouterAPI {
         //append dispatcher to the chain
         LinkedList<Mid> mids = new LinkedList<>(before);
         mids.add(rootRouter);
-
-        //TODO CONFIG LAYER
-        server.executor(Executors.newFixedThreadPool(8));
 
         server.handler((req, resp) -> {
             Ctx ctx = new Ctx(req, resp, this, mids);

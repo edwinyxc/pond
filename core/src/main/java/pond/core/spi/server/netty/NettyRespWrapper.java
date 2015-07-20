@@ -1,55 +1,52 @@
 package pond.core.spi.server.netty;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.stream.ChunkedFile;
-import io.netty.util.CharsetUtil;
 import pond.common.S;
-import pond.common.f.Callback;
 import pond.core.Response;
+import pond.core.http.Cookie;
 import pond.core.http.MimeTypes;
 import pond.core.spi.BaseServer;
 
-import javax.servlet.http.Cookie;
 import java.io.*;
 import java.nio.charset.Charset;
 
 public class NettyRespWrapper implements Response {
 
     ByteBuf buffer;
-    NettyOutputServletStream out;
+    OutputStream out;
     PrintWriter writer;
     long _start_time;
 
     final NettyHttpServer server;
     final HttpRequest request;
-    final ChannelHandlerContext ctx;
     final HttpResponse resp;
-    final Callback.C0ERR doClean;
+    ActionCompleteNotification acn;
 
-    NettyRespWrapper(ChannelHandlerContext ctx, HttpRequest req,
-                     NettyHttpServer server, Callback.C0ERR doClean) {
+
+    NettyRespWrapper(HttpRequest req, NettyHttpServer server) {
         this.server = server;
         this.request = req;
-        this.ctx = ctx;
+
         buffer = Unpooled.buffer();
-        out = new NettyOutputServletStream(buffer);
+        this.out = new ByteBufOutputStream(buffer);
+
         Charset charset = Charset.forName(S.avoidNull(System.getProperty("file.encoding"), "UTF-8"));
         writer = new PrintWriter(new OutputStreamWriter(out, charset));
+
         resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                 HttpResponseStatus.ACCEPTED);
-        if (HttpHeaderUtil.isKeepAlive(request)) {
-            resp.headers().set(HttpHeaderNames.CONNECTION,
-                    HttpHeaderValues.KEEP_ALIVE);
-        }
-        this.doClean = doClean;
+
         S._debug(BaseServer.logger, logger -> {
             this._start_time = S.now();
             logger.debug("resp build at " + _start_time);
         });
+    }
+
+    public void acn(ActionCompleteNotification acn) {
+        this.acn = acn;
     }
 
     @Override
@@ -61,38 +58,37 @@ public class NettyRespWrapper implements Response {
     @Override
     public void sendError(int code, String msg) {
         write(msg).status(code);
-        _send();
+        sendNormal();
     }
 
     @Override
     public void send(int code, String msg) {
         write(msg).status(code);
-        _send();
+        sendNormal();
     }
 
-
-    private static void setContentTypeHeader(Response response, File file) {
-//        MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-//        response.contentType(mimeTypesMap.getContentType(file.getName()));
-        String filename = file.getName();
-        int dot_pos = filename.lastIndexOf(".");
-        if (dot_pos != -1 && dot_pos < filename.length() - 1) {
-            response.contentType(MimeTypes.getMimeType(filename.substring(dot_pos + 1)));
-        } else {
-            response.contentType(MimeTypes.MIME_APPLICATION_OCTET_STREAM);
-        }
-    }
 
     @Override
     public void sendFile(File file, long offset, long length) {
         S._debug(BaseServer.logger, logger ->
                 logger.debug("user porcess costs: " + (S.now() - _start_time) + "ms"));
         resp.setStatus(HttpResponseStatus.OK);
+
+        if (HttpHeaderUtil.isKeepAlive(request)) HttpHeaderUtil.setKeepAlive(resp, true);
+
         HttpHeaderUtil.setContentLength(resp, file.length());
+
         if (resp.headers().get(HttpHeaderNames.CONTENT_TYPE) == null) {
-            setContentTypeHeader(this, file);
+            String filename = file.getName();
+            int dot_pos = filename.lastIndexOf(".");
+            if (dot_pos != -1 && dot_pos < filename.length() - 1) {
+                this.contentType(MimeTypes.getMimeType(filename.substring(dot_pos + 1)));
+            } else {
+                this.contentType(MimeTypes.MIME_APPLICATION_OCTET_STREAM);
+            }
         }
-        ctx.write(resp);
+
+
         RandomAccessFile raf;
         try {
             raf = new RandomAccessFile(file, "r");
@@ -100,64 +96,9 @@ public class NettyRespWrapper implements Response {
             sendError(404, HttpResponseStatus.NOT_FOUND.toString());
             return;
         }
-//        resp.setStatus(HttpResponseStatus.OK);
-//        _send();
-        // Write the content.
-        ChannelFuture sendFileFuture;
-        ChannelFuture lastContentFuture;
-        if (ctx.pipeline().get(SslHandler.class) == null) {
-            sendFileFuture =
-                    ctx.write(new DefaultFileRegion(raf.getChannel(), offset, length), ctx.newProgressivePromise());
-            // Write the end marker.
-            lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        } else {
 
-            try {
-                sendFileFuture =
-                        ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(raf, offset, length, 8192)),
-                                ctx.newProgressivePromise());
-                lastContentFuture = sendFileFuture;
+        acn.file(raf, offset, length);
 
-            } catch (IOException e) {
-                S._debug(BaseServer.logger, logger -> {
-                    e.printStackTrace();
-                    logger.debug(e.getMessage());
-                });
-                sendError(500, HttpResponseStatus.INTERNAL_SERVER_ERROR + ": " + e.getMessage());
-                return;
-            }
-            // HttpChunkedInput will pipe the end marker (LastHttpContent) for us.
-        }
-
-        sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
-            @Override
-            public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
-                if (total < 0) { // total unknown
-                    S._debug(BaseServer.logger, logger ->
-                            logger.debug(future.channel() + " Transfer progress: " + progress));
-                } else {
-                    S._debug(BaseServer.logger, logger ->
-                            logger.debug(future.channel() + " Transfer progress: " + progress + " / " + total));
-                }
-            }
-
-            @Override
-            public void operationComplete(ChannelProgressiveFuture future) throws Exception {
-                S._debug(BaseServer.logger, logger ->
-                        logger.debug(future.channel() + " Transfer complete."));
-                if (doClean != null) {
-                    doClean.apply();
-                }
-                S._debug(BaseServer.logger, logger ->
-                        logger.debug("all costs: " + (S.now() - _start_time) + "ms"));
-            }
-        });
-
-        // Decide whether to close the connection or not.
-        if (!HttpHeaderUtil.isKeepAlive(request)) {
-            // Close the connection when the whole content is written out.
-            lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-        }
 
     }
 
@@ -201,7 +142,7 @@ public class NettyRespWrapper implements Response {
     @Override
     public void redirect(String url) {
         resp.headers().add(HttpHeaderNames.LOCATION, url);
-        _send();
+        sendNormal();
     }
 
     @Override
@@ -210,27 +151,19 @@ public class NettyRespWrapper implements Response {
         return this;
     }
 
-    private void _send() {
+    private void sendNormal() {
 
         S._debug(BaseServer.logger, logger ->
                 logger.debug("user porcess costs: " + (S.now() - _start_time) + "ms"));
+        writer.flush();
+
+        //sendNormal
 
         boolean keepAlive;
 
-        writer.flush();
-
-        S._debug(BaseServer.logger, log -> {
-            log.debug("----SEND STATUS---");
-            log.debug(S.dump(resp.status()));
-
-            log.debug("----SEND HEADERS---");
-            log.debug(S.dump(resp.headers()));
-
-            log.debug("----SEND BUFFER DUMP---");
-            log.debug(buffer.toString(CharsetUtil.UTF_8));
-        });
 
         if (keepAlive = HttpHeaderUtil.isKeepAlive(request)) {
+
             resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 
             if (resp.headers().get(HttpHeaderNames.CONTENT_LENGTH) == null) {
@@ -241,21 +174,10 @@ public class NettyRespWrapper implements Response {
             resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
         }
 
+        //set acn to normal state
+        acn.normal(out);
 
-        ChannelFuture lastContentFuture;
 
-        ctx.write(resp);
-        ctx.write(buffer);
-        lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        lastContentFuture.addListener(future -> {
-            if (doClean != null) {
-                doClean.apply();
-            }
-            S._debug(BaseServer.logger, logger ->
-                    logger.debug("all costs: " + (S.now() - _start_time) + "ms"));
-        });
-        if (!keepAlive)
-            lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 //
 //        S._tap(ctx.pipe(buffer), then -> {
 //            then.addListener(f -> {

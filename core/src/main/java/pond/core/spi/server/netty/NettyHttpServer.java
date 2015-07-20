@@ -2,6 +2,7 @@ package pond.core.spi.server.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -9,15 +10,24 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import io.netty.handler.stream.ChunkedFile;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
 import pond.common.S;
+import pond.core.Response;
 import pond.core.spi.BaseServer;
 import pond.core.spi.server.AbstractServer;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class NettyHttpServer extends AbstractServer {
@@ -34,6 +44,9 @@ public class NettyHttpServer extends AbstractServer {
 
     private static final HttpDataFactory factory =
             new DefaultHttpDataFactory(DefaultHttpDataFactory.MAXSIZE); // Disk if size exceed
+
+    //executorServices -- for user threads
+    private ExecutorService executorService = Executors.newCachedThreadPool();
 
     public NettyHttpServer() {
 
@@ -142,7 +155,7 @@ public class NettyHttpServer extends AbstractServer {
                     return;
                 }
                 ByteBuf chunk;
-                if ((chunk = httpContent.content()).isReadable()){
+                if ((chunk = httpContent.content()).isReadable()) {
                     S._debug(BaseServer.logger, log -> {
                         logger.debug("Reading chunk...");
                         logger.debug(S.dump(chunk));
@@ -200,28 +213,157 @@ public class NettyHttpServer extends AbstractServer {
                             }
                         }
 
+
                         NettyReqWrapper reqWrapper =
                                 new NettyReqWrapper(ctx, httpRequest, NettyHttpServer.this, attrs, fileUploads);
+
                         reqWrapper.init();
-                        NettyRespWrapper respWrapper =
-                                new NettyRespWrapper(ctx, httpRequest,
-                                        NettyHttpServer.this,
-                                        () -> {
-                                            httpRequest = null;
-                                            resetDecoder();
-                                            releaseChunks();
-                                        });
+
+                        NettyRespWrapper respWrapper = new NettyRespWrapper(httpRequest, NettyHttpServer.this);
+
+                        final ActionCompleteNotification actionCompleteNotification =
+                                new ActionCompleteNotification(reqWrapper, respWrapper);
+                        respWrapper.acn(actionCompleteNotification);
+
 
                         //release httpRequest Ref
-                        Runnable actor = NettyHttpServer.super.actor(reqWrapper, respWrapper);
-                        NettyHttpServer.super.executor.submit(actor);
+                        CompletableFuture.supplyAsync(() -> {
+                            try {
+                                NettyHttpServer.this.handler().apply(reqWrapper, respWrapper);
+                            } catch (Throwable th) {
+                                actionCompleteNotification.setCause(th);
+                            }
+                            return actionCompleteNotification;
+                        }, executorService).thenAcceptAsync(acn -> {
+                            if (acn.isSuccess()) {
+                                switch (acn.type()) {
+                                    case ActionCompleteNotification.UNHANDLED: {
+                                        clean();
+                                        return;
+                                    }
+                                    case ActionCompleteNotification.NORMAL: {
+                                        sendNormal(ctx, acn.response());
+                                        return;
+                                    }
+                                    case ActionCompleteNotification.STATIC_FILE: {
+                                        sendFile(ctx, acn.response(), acn.sendfile(),
+                                                acn.sendFileOffset(), acn.sendFileOffset());
+                                    }
+                                }
+                            } else {
+                                //maybe reset, timeout ....
+                                ctx.fireExceptionCaught(acn.getCause());
+                            }
+                        }, ctx.executor());
                     }
                 }
-
 
             }
 
 
+        }
+
+        void sendFile(ChannelHandlerContext ctx, Response response, RandomAccessFile raf, Long sendoffset, Long sendlength) {
+            NettyRespWrapper wrapper = ((NettyRespWrapper) response);
+
+            long offset = sendoffset == null ? 0l : sendoffset;
+            long length = sendlength == null ? 0l : sendlength;
+
+            HttpResponse resp = wrapper.resp;
+            ByteBuf content = wrapper.buffer;
+
+            ctx.write(resp);
+//        resp.setStatus(HttpResponseStatus.OK);
+//        sendNormal();
+            // Write the content.
+            ChannelFuture sendFileFuture;
+            ChannelFuture lastContentFuture;
+            if (ctx.pipeline().get(SslHandler.class) == null) {
+                sendFileFuture =
+                        ctx.write(new DefaultFileRegion(raf.getChannel(), offset, length), ctx.newProgressivePromise());
+                // Write the end marker.
+                lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+            } else {
+                try {
+                    sendFileFuture =
+                            ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(raf, offset, length, 65536)),
+                                    ctx.newProgressivePromise());
+                    lastContentFuture = sendFileFuture;
+
+                } catch (IOException e) {
+                    ctx.fireExceptionCaught(e);
+                    return;
+                }
+                // HttpChunkedInput will pipe the end marker (LastHttpContent) for us.
+            }
+
+            sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
+                @Override
+                public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
+                    if (total < 0) { // total unknown
+                        S._debug(BaseServer.logger, logger ->
+                                logger.debug(future.channel() + " Transfer progress: " + progress));
+                    } else {
+                        S._debug(BaseServer.logger, logger ->
+                                logger.debug(future.channel() + " Transfer progress: " + progress + " / " + total));
+                    }
+                }
+
+                @Override
+                public void operationComplete(ChannelProgressiveFuture future) throws Exception {
+                    S._debug(BaseServer.logger, logger ->
+                            logger.debug(future.channel() + " Transfer complete."));
+                    clean();
+                    S._debug(BaseServer.logger, logger ->
+                            logger.debug("all costs: " + (S.now() - wrapper._start_time) + "ms"));
+                }
+            });
+
+            // Decide whether to close the connection or not.
+            if (!HttpHeaderUtil.isKeepAlive(wrapper.request)) {
+                // Close the connection when the whole content is written out.
+                lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+            }
+        }
+
+        void sendNormal(ChannelHandlerContext ctx, Response response) {
+            NettyRespWrapper wrapper = ((NettyRespWrapper) response);
+
+            HttpResponse resp = wrapper.resp;
+            ByteBuf content = wrapper.buffer;
+
+            S._debug(BaseServer.logger, log -> {
+                log.debug("----SEND STATUS---");
+                log.debug(S.dump(resp.status()));
+
+                log.debug("----SEND HEADERS---");
+                log.debug(S.dump(resp.headers()));
+
+                log.debug("----SEND BUFFER DUMP---");
+                log.debug(content.toString(CharsetUtil.UTF_8));
+            });
+            ChannelFuture lastContentFuture;
+
+            //write head
+            ctx.write(resp);
+            //write content
+            ctx.write(content);
+
+            lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+            lastContentFuture.addListener(future -> {
+                clean();
+                S._debug(BaseServer.logger, logger ->
+                        logger.debug("all costs: " + (S.now() - wrapper._start_time) + "ms"));
+            });
+
+            if (!HttpHeaderUtil.isKeepAlive(wrapper.request))
+                lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+        }
+
+        void clean() {
+            httpRequest = null;
+            resetDecoder();
+            releaseChunks();
         }
 
         void processHttpData(InterfaceHttpData data) {
@@ -258,11 +400,20 @@ public class NettyHttpServer extends AbstractServer {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            releaseChunks();
-            cause.printStackTrace();
+            clean();
+
+            S._debug(BaseServer.logger, logger -> {
+                logger.debug(cause.getMessage());
+                cause.printStackTrace();
+            });
+
             if (ctx.channel().isActive()) {
-                //TODO sendError
-                ctx.close();
+                //send error and close
+                ctx.writeAndFlush(new DefaultFullHttpResponse(
+                        HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                        Unpooled.copiedBuffer(cause.getMessage(), CharsetUtil.UTF_8
+                        )))
+                        .addListener(ChannelFutureListener.CLOSE);
             }
 
         }

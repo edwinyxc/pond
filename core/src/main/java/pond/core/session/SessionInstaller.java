@@ -5,8 +5,8 @@ import pond.core.Mid;
 import pond.core.Pond;
 import pond.core.Request;
 import pond.core.Response;
+import pond.core.http.Cookie;
 
-import javax.servlet.http.Cookie;
 
 /**
  * Created by ed on 2014/4/21.

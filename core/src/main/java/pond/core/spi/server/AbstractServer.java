@@ -7,25 +7,25 @@ import pond.core.Request;
 import pond.core.Response;
 import pond.core.spi.BaseServer;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
-public abstract class AbstractServer implements BaseServer{
+public abstract class AbstractServer implements BaseServer {
 
     private Pond pond;
     private Callback.C2<Request, Response> handler;
-    private Function<Object,String> envGetter = System::getProperty;
+    private Function<Object, String> envGetter = System::getProperty;
 
-    protected ExecutorService executor;
-    protected Runnable actor(Request req, Response resp){
-        return () ->{
-            this.handler.apply(req, resp);
-        };
+    protected Callback.C2<Request, Response> handler(){
+        return this.handler;
     }
 
     @Override
     public void regEnv(Function<Object, String> f) {
         envGetter = f;
     }
+
 
     @Override
     public Object env(String key) {
@@ -47,8 +47,4 @@ public abstract class AbstractServer implements BaseServer{
         this.handler = handler;
     }
 
-    @Override
-    public void executor(ExecutorService executor) {
-        this.executor = executor;
-    }
 }
