@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.spi.JsonService;
-import pond.core.exception.PondException;
 import pond.core.session.SessionInstaller;
 import pond.core.session.SessionManager;
 import pond.core.spi.BaseServer;
@@ -116,7 +115,7 @@ public final class Pond implements RouterAPI {
 
     }
 
-    public Pond listen(int port){
+    public Pond listen(int port) {
         System.setProperty(BaseServer.PORT, String.valueOf(port));
         listen();
         return this;
@@ -206,17 +205,14 @@ public final class Pond implements RouterAPI {
      */
     @SafeVarargs
     public static Pond init(pond.common.abs.Config<Pond>... configs) {
-        try {
-            Pond pond = new Pond();
+        Pond pond = new Pond();
 
-            for (pond.common.abs.Config<Pond> conf : configs) {
-                conf.config(pond);
-            }
-
-            return pond;
-        } catch (PondException t) {
-            throw new RuntimeException(t.toString(), t);
+        for (pond.common.abs.Config<Pond> conf : configs) {
+            conf.config(pond);
         }
+
+        return pond;
+
     }
 
     public static String _ignoreLastSlash(String path) {

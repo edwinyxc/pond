@@ -93,6 +93,8 @@ public class NettyRespWrapper implements Response {
         try {
             raf = new RandomAccessFile(file, "r");
         } catch (FileNotFoundException ignored) {
+            //TODO
+            ignored.printStackTrace();
             sendError(404, HttpResponseStatus.NOT_FOUND.toString());
             return;
         }
@@ -141,6 +143,7 @@ public class NettyRespWrapper implements Response {
 
     @Override
     public void redirect(String url) {
+        resp.setStatus(HttpResponseStatus.MOVED_PERMANENTLY);
         resp.headers().add(HttpHeaderNames.LOCATION, url);
         sendNormal();
     }

@@ -26,8 +26,6 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 public class NettyHttpServer extends AbstractServer {
@@ -108,13 +106,7 @@ public class NettyHttpServer extends AbstractServer {
         }
 
         @Override
-        public void channelReadComplete(ChannelHandlerContext ctx) {
-            ctx.flush();
-        }
-
-
-        @Override
-        protected void messageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
+        protected void messageReceived(ChannelHandlerContext ctx, Object msg)  {
             if (msg instanceof HttpRequest) {
                 HttpRequest request = (HttpRequest) msg;
 
@@ -136,9 +128,7 @@ public class NettyHttpServer extends AbstractServer {
                     decoder = new HttpPostRequestDecoder(factory, request);
                 } catch (HttpPostRequestDecoder.ErrorDataDecoderException err) {
                     logger.error(err.getMessage());
-                    S._debug(logger, log -> {
-                        err.printStackTrace();
-                    });
+                    S._debug(logger, log -> err.printStackTrace());
                     sendBadRequest(ctx);
                     return;
                 }
@@ -247,7 +237,7 @@ public class NettyHttpServer extends AbstractServer {
                                     }
                                     case ActionCompleteNotification.STATIC_FILE: {
                                         sendFile(ctx, acn.response(), acn.sendfile(),
-                                                acn.sendFileOffset(), acn.sendFileOffset());
+                                                acn.sendFileOffset(), acn.sendFileLength());
                                     }
                                 }
                             } else {
@@ -267,10 +257,14 @@ public class NettyHttpServer extends AbstractServer {
             NettyRespWrapper wrapper = ((NettyRespWrapper) response);
 
             long offset = sendoffset == null ? 0l : sendoffset;
-            long length = sendlength == null ? 0l : sendlength;
+            long length = 0;
+            try {
+                length = sendlength == null ? raf.length() : sendlength;
+            } catch (IOException e) {
+                ctx.fireExceptionCaught(e);
+            }
 
             HttpResponse resp = wrapper.resp;
-            ByteBuf content = wrapper.buffer;
 
             ctx.write(resp);
 //        resp.setStatus(HttpResponseStatus.OK);
