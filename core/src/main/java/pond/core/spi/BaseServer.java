@@ -6,6 +6,7 @@ import pond.common.f.Function;
 import pond.core.Pond;
 import pond.core.Request;
 import pond.core.Response;
+import pond.core.spi.server.HttpContentParser;
 
 public interface BaseServer{
 
@@ -46,6 +47,8 @@ public interface BaseServer{
     Object env(String key );
 
     void regEnv(Function<Object, String> f);
+
+    void regContentParser(HttpContentParser parser);
 
     void pond(Pond pond);
 

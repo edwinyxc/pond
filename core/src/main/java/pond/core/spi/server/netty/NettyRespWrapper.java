@@ -101,7 +101,6 @@ public class NettyRespWrapper implements Response {
 
         acn.file(raf, offset, length);
 
-
     }
 
     @Override

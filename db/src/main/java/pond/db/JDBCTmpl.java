@@ -277,9 +277,6 @@ public class JDBCTmpl implements Closeable {
      *  recordsQuer("id",Criterion.IN, {"1","2","3","4"})
      *      => Select ... from ... where id IN ("1","2","3","4");
      * </pre>
-     *
-     * @param args
-     * @return
      */
     public <E extends Record> List<E> recordsQuery(Class<E> clazz, Object... args) {
         E proto = (E) Proto.proto(clazz);
@@ -287,53 +284,56 @@ public class JDBCTmpl implements Closeable {
         Set<String> d_fields = proto.declaredFieldNames();
         String[] fields = new String[d_fields.size()];
         fields = d_fields.toArray(fields);
-        sqlSelect = Sql.select(fields).from(proto.table());
-        if (args.length == 0) {
-            //do nothing for query all
-        } else if (args.length == 1) {
-            sqlSelect.where((String) args[0]);
-        } else if (args.length > 2) {
-            //1. split args by criterion
-            List<List<Object>> arg_groups = new ArrayList<>();
-            List<Object> group = new ArrayList<>();
-            Object cur;
-            Object last;
-            for (int i = 0; i < args.length; i++) {
-                cur = args[i];
-                last = (i - 1) >= 0 ? args[i - 1] : null;
-                if (last != null && cur instanceof Criterion) {
-                    //size > 2 is the valid size
-                    if (group.size() > 2) {
-                        //put queryRS group into groups
-                        //[key,cri,args...,(key),(cri)]
-                        //remove the redundant key
-                        group.remove(group.size() - 1);
-                        arg_groups.add(group);
+
+        //create basic select
+        sqlSelect = Sql.select(fields).from(proto.table()).dialect(this.db.dialect);
+
+        if (args.length != 0) {
+            if (args.length == 1) {
+                sqlSelect.where((String) args[0]);
+            } else if (args.length > 2) {
+                //1. split args by criterion
+                List<List<Object>> arg_groups = new ArrayList<>();
+                List<Object> group = new ArrayList<>();
+                Object cur;
+                Object last;
+                for (int i = 0; i < args.length; i++) {
+                    cur = args[i];
+                    last = (i - 1) >= 0 ? args[i - 1] : null;
+                    if (last != null && cur instanceof Criterion) {
+                        //size > 2 is the valid size
+                        if (group.size() > 2) {
+                            //put queryRS group into groups
+                            //[key,cri,args...,(key),(cri)]
+                            //remove the redundant key
+                            group.remove(group.size() - 1);
+                            arg_groups.add(group);
+                        }
+                        //new an array for put
+                        group = new ArrayList<>();
+                        //insertRecord key
+                        group.add(last);
+                        //insertRecord criterion
+                        group.add(cur);
+                    } else {
+                        group.add(cur);
                     }
-                    //new an array for put
-                    group = new ArrayList<>();
-                    //insertRecord key
-                    group.add(last);
-                    //insertRecord criterion
-                    group.add(cur);
-                } else {
-                    group.add(cur);
                 }
-            }
-            arg_groups.add(group);
-            //2.make queryRS
-            for (List q_group : arg_groups) {
-                if (q_group.size() > 2) {
-                    sqlSelect.where((String) q_group.remove(0),
-                            (Criterion) q_group.remove(0),
-                            (String[]) q_group.toArray(new String[q_group.size()]));
+                arg_groups.add(group);
+                //2.make queryRS
+                for (List q_group : arg_groups) {
+                    if (q_group.size() > 2) {
+                        sqlSelect.where((String) q_group.remove(0),
+                                (Criterion) q_group.remove(0),
+                                (String[]) q_group.toArray(new String[q_group.size()]));
+                    }
+                    //else ignore illegal arguments
                 }
-                //else ignore illegal arguments
+            } else {
+                throw new RuntimeException(
+                        "argument length should be >3 or 1 or 0"
+                );
             }
-        } else {
-            throw new RuntimeException(
-                    "argument length should be >3 or 1 or 0"
-            );
         }
 
         return this.query(proto.mapper(), sqlSelect.tuple());

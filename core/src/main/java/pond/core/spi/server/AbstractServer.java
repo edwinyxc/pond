@@ -1,12 +1,18 @@
 package pond.core.spi.server;
 
+import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.core.Pond;
 import pond.core.Request;
 import pond.core.Response;
+import pond.core.http.AbstractRequest;
 import pond.core.spi.BaseServer;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
@@ -15,6 +21,7 @@ public abstract class AbstractServer implements BaseServer {
 
     private Pond pond;
     private Callback.C2<Request, Response> handler;
+    private Map<String,HttpContentParser> parsers = new HashMap<>();
     private Function<Object, String> envGetter = System::getProperty;
 
     protected Callback.C2<Request, Response> handler(){
@@ -25,7 +32,6 @@ public abstract class AbstractServer implements BaseServer {
     public void regEnv(Function<Object, String> f) {
         envGetter = f;
     }
-
 
     @Override
     public Object env(String key) {
@@ -47,4 +53,13 @@ public abstract class AbstractServer implements BaseServer {
         this.handler = handler;
     }
 
+    @Override
+    public void regContentParser(HttpContentParser parser) {
+        parsers.put(parser.contentType, parser);
+    }
+
+    protected void parseBody(String contentType, AbstractRequest req){
+        HttpContentParser parser = parsers.get(contentType.toLowerCase());
+        if(parser != null) parser.parse(req);
+    }
 }
