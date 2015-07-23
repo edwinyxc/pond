@@ -13,11 +13,7 @@ import javax.sql.DataSource;
 import java.util.List;
 
 import static pond.common.S._for;
-import static pond.common.S.file.loadProperties;
 
-/**
- * Created by ed on 10/31/14.
- */
 public class MiscTest {
 
     DB db;

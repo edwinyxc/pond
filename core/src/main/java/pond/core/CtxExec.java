@@ -1,7 +1,6 @@
 package pond.core;
 
 import pond.common.S;
-import pond.core.exception.HttpException;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,9 +23,6 @@ public class CtxExec {
             e.printStackTrace();
             resp.send(500, e.getMessage());
             return;
-        }
-        if (t instanceof HttpException) {
-            resp.send(((HttpException) t).code(), t.getMessage());
         }
         if (t instanceof RuntimeException) {
             unwrapRuntimeException((RuntimeException) t, resp);
@@ -54,7 +50,7 @@ public class CtxExec {
         }
         try {
             //bind localthread-context
-            if(ctxThreadLocal.get() == null) ctxThreadLocal.set(ctx);
+            if (ctxThreadLocal.get() == null) ctxThreadLocal.set(ctx);
             if (ctx.handled) return;
             if (mid != null) {
                 final Mid finalMid = mid;

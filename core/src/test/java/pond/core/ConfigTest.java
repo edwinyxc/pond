@@ -12,7 +12,7 @@ public class ConfigTest {
                 p.loadConfig(loadProperties("pond.conf")));
 
         app.get("/123", (req, resp) ->
-                resp.send("<p>"+req.ctx().pond.attr("test")+"</p>"));
+                resp.send("<p>"+req.ctx().pond.config("test")+"</p>"));
 
         app.listen();
     }

@@ -2,18 +2,17 @@ package pond.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pond.common.FILE;
 import pond.common.PATH;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.spi.JsonService;
 import pond.common.spi.SPILoader;
-import pond.core.exception.PondException;
 import pond.core.spi.BaseServer;
 import pond.core.spi.ViewEngine;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.Executors;
 
 import static pond.common.S.avoidNull;
 
@@ -29,20 +28,10 @@ public final class Pond implements RouterAPI {
     public final Config config = new Config();
     public final Map<String, Object> container = new HashMap<>();
 
-    public Object component(String k) {
-        return container.get(k);
-    }
-
     DefaultStaticFileServer staticFileServer;
-
-    public Pond component(String k, Object v) {
-        container.put(k, v);
-        return this;
-    }
 
     //Before the routing chain
     final List<Mid> before = new LinkedList<>();
-
 
     // Executor
     final CtxExec ctxExec = new CtxExec();
@@ -65,14 +54,14 @@ public final class Pond implements RouterAPI {
 //    }
 
     private Pond() {
-        String root = S.path.rootClassPath();
-        String webroot = S.path.detectWebRootPath();
+        String root = PATH.rootClassPath();
+        String webroot = PATH.detectWebRootPath();
 
         //map properties
         File configFile = new File(root + File.separator + Config.CONFIG_FILE_NAME);
 
         if (configFile.exists() && configFile.canRead()) {
-            loadConfig(S.file.loadProperties(configFile));
+            loadConfig(FILE.loadProperties(configFile));
         } else {
             logger.info("config file not exists. using default values");
             //TODO
@@ -112,7 +101,7 @@ public final class Pond implements RouterAPI {
 
     }
 
-    public Pond listen(int port){
+    public Pond listen(int port) {
         System.setProperty(BaseServer.PORT, String.valueOf(port));
         listen();
         return this;
@@ -124,9 +113,6 @@ public final class Pond implements RouterAPI {
         //append dispatcher to the chain
         LinkedList<Mid> mids = new LinkedList<>(before);
         mids.add(rootRouter);
-
-        //TODO CONFIG LAYER
-        server.executor(Executors.newFixedThreadPool(8));
 
         server.handler((req, resp) -> {
             Ctx ctx = new Ctx(req, resp, this, mids);
@@ -172,24 +158,23 @@ public final class Pond implements RouterAPI {
     }
 
     /**
+     * Get config
+     */
+    public String config(String name) {
+        return config.get(name);
+    }
+
+    /**
      * Custom initialization
-     *
-     * @param configs
-     * @return
      */
     @SafeVarargs
     public static Pond init(Callback<Pond>... configs) {
-        try {
-            Pond pond = new Pond();
+        Pond pond = new Pond();
 
-            for (Callback<Pond> conf : configs) {
-                conf.apply(pond);
-            }
-
-            return pond;
-        } catch (PondException t) {
-            throw new RuntimeException(t.toString(), t);
+        for (Callback<Pond> conf : configs) {
+            conf.apply(pond);
         }
+        return pond;
     }
 
     public static String _ignoreLastSlash(String path) {
@@ -228,7 +213,7 @@ public final class Pond implements RouterAPI {
     public String pathRelRoot(String path) {
         String root = config.get(Config.ROOT);
         if (path == null) return null;
-        if (S.path.isAbsolute(path)) {
+        if (PATH.isAbsolute(path)) {
             return path;
         }
         return root + File.separator + path;
@@ -251,10 +236,8 @@ public final class Pond implements RouterAPI {
      * DO NOT USE
      * MAY BE DELETED IN FUTURE
      */
-    @Deprecated
     public Pond debug() {
-        //FIXME
-        LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        S._debug_on(Pond.class, BaseServer.class);
         return this;
     }
 
@@ -277,11 +260,6 @@ public final class Pond implements RouterAPI {
         return e;
     }
 
-
-    @Deprecated
-    public Object attr(String s) {
-        return this.config.get(s);
-    }
 
     @Override
     public RouterAPI use(int mask, String path, Mid... mids) {

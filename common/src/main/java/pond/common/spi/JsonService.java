@@ -10,5 +10,4 @@ public interface JsonService {
 
     <E> E fromString(Class<E> clazz, String s);
 
-
 }

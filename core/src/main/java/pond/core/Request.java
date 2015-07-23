@@ -2,9 +2,9 @@ package pond.core;
 
 
 import pond.common.S;
+import pond.core.http.Cookie;
 import pond.core.http.HttpUtils;
 
-import javax.servlet.http.Cookie;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +24,7 @@ public interface Request {
 
     String remoteIp();
 
-    String characterEncoding();
+//    String characterEncoding();
 
     //InputStream in() throws IOException;
 
@@ -34,7 +34,7 @@ public interface Request {
 
     Map<String, List<String>> params();
 
-    Map<String, List<String>> attrs();
+//    Map<String, List<String>> attrs();
 
     Map<String, List<UploadFile>> files();
 
@@ -68,13 +68,13 @@ public interface Request {
         HttpUtils.appendToMap(params(), key, val);
     }
 
-    default List<String> attrs(String attr) {
-        return attrs().get(attr);
-    }
+//    default List<String> attrs(String attr) {
+//        return attrs().get(attr);
+//    }
 
-    default String attr(String attr) {
-        return S._for(attrs(attr)).first();
-    }
+//    default String attr(String attr) {
+//        return S._for(attrs(attr)).first();
+//    }
 
     //upload File
     default List<UploadFile> files(String file) {
@@ -101,27 +101,26 @@ public interface Request {
         return S._try_ret(() -> Long.parseLong(param(para)));
     }
 
-    default Integer attrInt(String para) {
-        return S._try_ret(() -> Integer.parseInt(attr(para)));
-    }
+//    default Integer attrInt(String para) {
+//        return S._try_ret(() -> Integer.parseInt(attr(para)));
+//    }
+//
+//    default Boolean attrBool(String para) {
+//        return S._try_ret(() -> Boolean.parseBoolean(attr(para)));
+//    }
+//
+//    default Double attrDouble(String para) {
+//        return S._try_ret(() -> Double.parseDouble(attr(para)));
+//    }
+//
+//    default Long attrLong(String para) {
+//        return S._try_ret(() -> Long.parseLong(attr(para)));
+//    }
 
-    default Boolean attrBool(String para) {
-        return S._try_ret(() -> Boolean.parseBoolean(attr(para)));
-    }
-
-    default Double attrDouble(String para) {
-        return S._try_ret(() -> Double.parseDouble(attr(para)));
-    }
-
-    default Long attrLong(String para) {
-        return S._try_ret(() -> Long.parseLong(attr(para)));
-    }
-
+    @Deprecated
     default String argument(String arg) {
         String ret;
         ret = param(arg);
-        if (ret == null)
-            ret = attr(arg);
         return ret;
     }
 
@@ -131,7 +130,7 @@ public interface Request {
 
     default Map<String, Object> toMap() {
         Map<String, Object> ret = new HashMap<>();
-        ret.putAll(S._for(attrs()).map(attr -> S._for(attr).first()).val());
+        //ret.putAll(S._for(attrs()).map(attr -> S._for(attr).first()).val());
         ret.putAll(S._for(params()).map(param -> S._for(param).first()).val());
         return ret;
     }
@@ -156,6 +155,7 @@ public interface Request {
          * File
          */
         File file() throws IOException;
+
     }
 
 

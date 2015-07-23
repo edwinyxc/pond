@@ -1,5 +1,6 @@
 package pond.core;
 
+import pond.common.PATH;
 import pond.common.S;
 import pond.core.spi.BaseServer;
 
@@ -20,7 +21,7 @@ class DefaultStaticFileServer implements Mid {
     File root;
 
     DefaultStaticFileServer(String dir) {
-        String _root = S.path.isAbsolute(dir) ? dir : S.path.detectWebRootPath().concat(File.separator).concat(dir);
+        String _root = PATH.isAbsolute(dir) ? dir : PATH.detectWebRootPath().concat(File.separator).concat(dir);
         root = new File(_root);
         if (!root.exists() || !root.canRead()) throw new RuntimeException("Invalid static file server root : " + _root);
     }

@@ -1,6 +1,7 @@
 package pond.core.http;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -13,5 +14,16 @@ public class HttpUtils {
         List<E> values;
         if ((values = map.get(name)) != null) values.add(value);
         map.put(name, new ArrayList<E>(){{this.add(value);}});
+    }
+
+    public static <E> void appendToMap(Map<String, List<E>> map, String name, List<E> values) {
+        for( E val : values){
+            appendToMap(map,name,val);
+        }
+    }
+
+    public static <K,V> Map<K,V> lockMap(Map<K,V> map){
+        if(map == null) return Collections.emptyMap();
+        return Collections.unmodifiableMap(map);
     }
 }

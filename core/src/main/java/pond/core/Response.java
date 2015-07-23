@@ -1,8 +1,8 @@
 package pond.core;
 
 import pond.common.S;
+import pond.core.http.Cookie;
 
-import javax.servlet.http.Cookie;
 import java.io.*;
 
 /**
@@ -95,7 +95,6 @@ public interface Response {
      *
      * @return outputStream
      */
-    @Deprecated
     OutputStream out();
 
     /**
@@ -103,7 +102,6 @@ public interface Response {
      *
      * @return printWriter
      */
-    @Deprecated
     PrintWriter writer();
 
     /**

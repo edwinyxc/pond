@@ -1,7 +1,5 @@
 package pond.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import pond.common.S;
 
 import java.util.HashMap;
@@ -14,6 +12,7 @@ import static pond.common.S._for;
  * Execution Context, attached to a single thread.
  */
 public class Ctx extends HashMap<String, Object> {
+
     Request req;
     Response resp;
     Pond pond;

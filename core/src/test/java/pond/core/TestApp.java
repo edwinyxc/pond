@@ -9,9 +9,6 @@ import java.util.Map;
 import static java.lang.Integer.parseInt;
 import static pond.common.FILE.loadProperties;
 
-/**
- * Created by ed on 7/9/14.
- */
 public class TestApp {
 
     public static void basic() {
@@ -55,7 +52,7 @@ public class TestApp {
                 p.loadConfig(loadProperties("pond.conf")));
 
         app.get("/123", (req, resp) ->
-                resp.send("<p>" + req.ctx().pond.attr("test") + "</p>"));
+                resp.send("<p>" + req.ctx().pond.config("test") + "</p>"));
 
         app.listen();
     }
@@ -87,14 +84,6 @@ public class TestApp {
         app.listen();
     }
 
-
-    public static void tmpl() {
-        Pond app = Pond.init().debug();
-        app.get("/", (req, resp) -> {
-            resp.render(Render.view("home.view"));
-        });
-        app.listen();
-    }
 
     public static void test_cross_mid_ctx_continuity() {
         Pond app = Pond.init().debug();
