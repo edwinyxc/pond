@@ -14,13 +14,13 @@ import java.util.Map;
 public abstract class AbstractRequest implements Request {
 
 
-    protected Map<String, List<String>> headers = new HashMap<>();
+    final protected Map<String, List<String>> headers = new HashMap<>();
 
-    protected Map<String, List<String>> params = new HashMap<>();
+    final protected Map<String, List<String>> params = new HashMap<>();
 
-    protected Map<String, List<UploadFile>> uploadFiles = new HashMap<>();
+    final protected Map<String, List<UploadFile>> uploadFiles = new HashMap<>();
 
-    protected Map<String, Cookie> cookies = new HashMap<>();
+    final protected Map<String, Cookie> cookies = new HashMap<>();
 
     public AbstractRequest updateParams(Callback<Map<String, List<String>>> b) {
         b.apply(params);
@@ -39,14 +39,6 @@ public abstract class AbstractRequest implements Request {
 
     public AbstractRequest updateCookies(Callback<Map<String,Cookie>> b) {
         b.apply(cookies);
-        return this;
-    }
-
-    public AbstractRequest lock() {
-        headers = HttpUtils.lockMap(headers);
-        params = HttpUtils.lockMap(params);
-        uploadFiles = HttpUtils.lockMap(uploadFiles);
-        cookies = HttpUtils.lockMap(cookies);
         return this;
     }
 

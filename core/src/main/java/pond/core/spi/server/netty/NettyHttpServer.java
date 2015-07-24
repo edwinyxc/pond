@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -117,7 +118,7 @@ public class NettyHttpServer extends AbstractServer {
                 HttpRequest request = (HttpRequest) msg;
 
                 S._debug(logger, log -> {
-                    log.debug("GOT HTTP CONTENT:");
+                    log.debug("GOT HTTP REQUEST:");
                     log.debug(request.toString());
                 });
 
@@ -146,7 +147,14 @@ public class NettyHttpServer extends AbstractServer {
                 );
 
                 //uri-queries
-                reqWrapper.updateParams(params -> params.putAll(new QueryStringDecoder(httpRequest.uri()).parameters()));
+                Map<String, List<String>> parsedParams = new QueryStringDecoder(httpRequest.uri()).parameters();
+
+                S._debug(logger, log-> {
+                    log.debug("QUERY STRING: " + httpRequest.uri());
+                    log.debug("PARSED PARAMS: " + S._dump(parsedParams));
+                });
+
+                reqWrapper.updateParams(params -> params.putAll(parsedParams));
 
                 //parse cookies
                 reqWrapper.updateCookies(cookies ->
@@ -224,13 +232,18 @@ public class NettyHttpServer extends AbstractServer {
                     }
                 } else if (contentType == null ||
                         contentType.toLowerCase().contains(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toLowerCase())) {
+                    String postData = httpContent.content().toString(CharsetUtil.UTF_8);
+
                     //default x-www-form-urlencoded parse
-                    S._for(new QueryStringDecoder(httpContent.content().toString(CharsetUtil.UTF_8)).parameters())
-                            .each(entry -> {
-                                String key = entry.getKey();
-                                List<String> value = entry.getValue();
-                                reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
-                            });
+                    Map<String,List<String>> postParams = new QueryStringDecoder(postData, CharsetUtil.UTF_8, false).parameters();
+
+                    S._debug(logger, log -> log.debug(S.dump(postParams)));
+                    S._for(postParams).each(entry -> {
+                        String key = entry.getKey();
+                        List<String> value = entry.getValue();
+                        S._debug(logger, log -> log.debug(key + S._dump(value)));
+                        reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
+                    });
                 } else {
                     //TODO TEST CONFIG
                     parseBody(contentType, reqWrapper);
@@ -264,6 +277,7 @@ public class NettyHttpServer extends AbstractServer {
                     //build the response
                     NettyRespWrapper respWrapper = new NettyRespWrapper(httpRequest, NettyHttpServer.this);
 
+                    S._debug(logger, log -> log.debug(reqWrapper.toString()));
 
                     //execution context
                     final ActionCompleteNotification actionCompleteNotification =
