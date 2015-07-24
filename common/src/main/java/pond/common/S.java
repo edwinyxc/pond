@@ -35,7 +35,7 @@ public class S {
      */
     public static void _assert(Object a, String err) {
         if (a == null) {
-            throw new RuntimeException(err);
+            throw new NullPointerException(err);
         }
     }
 
@@ -718,7 +718,7 @@ public class S {
 
         public static Matrix fromString(String... s) {
             S.echo(s);
-            final int maxLen = list.one(array.<String>of(array.compact(s))).reduceLeft(
+            final int maxLen = list.one(ARRAY.<String>of(ARRAY.compact(s))).reduceLeft(
                     (String a, String b) -> {
                         if (a == null || b == null) {
                             return "";

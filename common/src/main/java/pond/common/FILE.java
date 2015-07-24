@@ -33,7 +33,7 @@ public class FILE {
     public static Properties loadProperties(String fileName) {
         return _try_ret(() -> {
             Properties config = new Properties();
-            File conf = new File(S.path.rootClassPath()
+            File conf = new File(S.path.classpathRoot()
                     + File.separator + fileName);
             if (conf.exists() && conf.canRead())
                 config.load(new FileInputStream(conf));

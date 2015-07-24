@@ -19,19 +19,34 @@ public class PATH {
     }
 
 
-    public static String rootClassPath() {
-        String path = S._tap_nullable(S.class.getClassLoader().getResource(""), URL::getPath);
-        return new File(path).getAbsolutePath();
+    public static String classpathRoot () {
+        return classpathRoot(S.class);
+    }
+
+    public static String classpathRoot (Class clazz) {
+        S._assert(clazz);
+        URL resource = clazz.getResource("/");
+        if(resource == null)
+            throw new RuntimeException(
+                    "cannot get resource / of " + clazz.getCanonicalName());
+        return resource.getPath();
     }
 
     /**
+     * <p>
      * Normally return the source dir path under the current project
+     * <br>
+     * <strong>It is important to put the build folder under the project root directly
+     * </strong>
+     * </p>
      *
      * @return the source dir path under the current project
      */
+    @Deprecated
     public static String detectWebRootPath() {
         try {
             String path = S.class.getResource("/").toURI().getPath();
+
             return new File(path).getParentFile().getParentFile().getCanonicalPath();
         } catch (URISyntaxException | IOException e) {
             throw new RuntimeException(e);
@@ -43,4 +58,5 @@ public class PATH {
         //unix & windows platform
         return path.startsWith("/") || path.indexOf(":") == 1;
     }
+
 }

@@ -54,7 +54,7 @@ public final class Pond implements RouterAPI {
 //    }
 
     private Pond() {
-        String root = PATH.rootClassPath();
+        String root = PATH.classpathRoot();
         String webroot = PATH.detectWebRootPath();
 
         //map properties
