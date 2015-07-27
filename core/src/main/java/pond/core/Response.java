@@ -95,7 +95,6 @@ public interface Response {
      *
      * @return outputStream
      */
-    @Deprecated
     OutputStream out();
 
     /**
@@ -103,7 +102,6 @@ public interface Response {
      *
      * @return printWriter
      */
-    @Deprecated
     PrintWriter writer();
 
     /**

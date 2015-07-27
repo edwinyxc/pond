@@ -16,12 +16,6 @@ public class ControllerTest extends Controller {
         resp.send("b");
     }
 
-    @Mapping
-    public void c(Request req, Response resp){
-        req.ctx().put("test", S.list.one("123333", "sss","2333","gf"));
-        resp.render(Render.view("home.view"));
-    }
-
     public static void main(String[] args) throws Exception {
         Pond app = Pond.init().debug();
         app.use("/co", new ControllerTest());

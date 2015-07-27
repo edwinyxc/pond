@@ -2,17 +2,18 @@ package pond.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pond.common.FILE;
+import pond.common.PATH;
 import pond.common.S;
+import pond.common.f.Callback;
 import pond.common.spi.JsonService;
-import pond.core.session.SessionInstaller;
-import pond.core.session.SessionManager;
+import pond.common.spi.SPILoader;
 import pond.core.spi.BaseServer;
 import pond.core.spi.ViewEngine;
 
 import java.io.File;
 import java.util.*;
 
-import static pond.common.S._assert;
 import static pond.common.S.avoidNull;
 
 /**
@@ -22,30 +23,15 @@ public final class Pond implements RouterAPI {
 
     static Logger logger = LoggerFactory.getLogger(Pond.class);
 
-    public final static String DEFAULT_DB = "_db";
-    public final static String MULTIPART_RESOLVER = "_multipart_resolver";
-    private SPILoader spiLoader = new SPILoader();
     private BaseServer server;
     private Router rootRouter;
     public final Config config = new Config();
     public final Map<String, Object> container = new HashMap<>();
 
-    public Object component(String k) {
-        return container.get(k);
-    }
-
     DefaultStaticFileServer staticFileServer;
-
-    public Pond component(String k, Object v) {
-        container.put(k, v);
-        return this;
-    }
 
     //Before the routing chain
     final List<Mid> before = new LinkedList<>();
-
-    //Session Manager (could be null)
-    SessionManager sessionManager;
 
     // Executor
     final CtxExec ctxExec = new CtxExec();
@@ -68,14 +54,14 @@ public final class Pond implements RouterAPI {
 //    }
 
     private Pond() {
-        String root = S.path.rootClassPath();
-        String webroot = S.path.detectWebRootPath();
+        String root = PATH.classpathRoot();
+        String webroot = PATH.detectWebRootPath();
 
         //map properties
         File configFile = new File(root + File.separator + Config.CONFIG_FILE_NAME);
 
         if (configFile.exists() && configFile.canRead()) {
-            loadConfig(S.file.loadProperties(configFile));
+            loadConfig(FILE.loadProperties(configFile));
         } else {
             logger.info("config file not exists. using default values");
             //TODO
@@ -150,38 +136,12 @@ public final class Pond implements RouterAPI {
         return staticFileServer;
     }
 
-    public Map<String, Session> sessions() {
-        _assert(sessionManager, "Please use session first");
-        return sessionManager.getAll();
-    }
-
-    /**
-     * Returns a MW that handle session
-     * see more at com.shuimin.pond.core.mw.session.Session
-     */
-    public SessionInstaller useSession() {
-        if (this.sessionManager == null) {
-            this.sessionManager = new SessionManager(this);
-        }
-        return new SessionInstaller(this.sessionManager);
-    }
-
-    /**
-     * get Session
-     */
-    Session session(Ctx ctx) {
-        if (this.sessionManager == null) {
-            throw new RuntimeException("Please use Pond.before(pond.useSession()) first");
-        }
-        return this.sessionManager.get(ctx);
-    }
-
 
     /**
      * Returns JsonService
      */
     public JsonService json() {
-        return spiLoader.service(JsonService.class);
+        return SPILoader.service(JsonService.class);
     }
 
     public Pond loadConfigFromCmdLine(String[] args) {
@@ -198,21 +158,23 @@ public final class Pond implements RouterAPI {
     }
 
     /**
+     * Get config
+     */
+    public String config(String name) {
+        return config.get(name);
+    }
+
+    /**
      * Custom initialization
-     *
-     * @param configs
-     * @return
      */
     @SafeVarargs
-    public static Pond init(pond.common.abs.Config<Pond>... configs) {
+    public static Pond init(Callback<Pond>... configs) {
         Pond pond = new Pond();
 
-        for (pond.common.abs.Config<Pond> conf : configs) {
-            conf.config(pond);
+        for (Callback<Pond> conf : configs) {
+            conf.apply(pond);
         }
-
         return pond;
-
     }
 
     public static String _ignoreLastSlash(String path) {
@@ -236,7 +198,7 @@ public final class Pond implements RouterAPI {
     public String pathRelWebRoot(String path) {
         String root = config.get(Config.ROOT_WEB);
         if (path == null) return null;
-        if (S.path.isAbsolute(path)) {
+        if (PATH.isAbsolute(path)) {
             return path;
         }
         return root + File.separator + path;
@@ -251,7 +213,7 @@ public final class Pond implements RouterAPI {
     public String pathRelRoot(String path) {
         String root = config.get(Config.ROOT);
         if (path == null) return null;
-        if (S.path.isAbsolute(path)) {
+        if (PATH.isAbsolute(path)) {
             return path;
         }
         return root + File.separator + path;
@@ -274,10 +236,8 @@ public final class Pond implements RouterAPI {
      * DO NOT USE
      * MAY BE DELETED IN FUTURE
      */
-    @Deprecated
     public Pond debug() {
-        //FIXME
-        LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        S._debug_on(Pond.class, BaseServer.class);
         return this;
     }
 
@@ -289,7 +249,7 @@ public final class Pond implements RouterAPI {
     }
 
     public <E> E spi(Class<E> s) {
-        E e = spiLoader.service(s);
+        E e = SPILoader.service(s);
         if (e == null)
             throw new NullPointerException(s.getSimpleName() + "not found");
         else if (e instanceof EnvSPI) {
@@ -300,11 +260,6 @@ public final class Pond implements RouterAPI {
         return e;
     }
 
-
-    @Deprecated
-    public Object attr(String s) {
-        return this.config.get(s);
-    }
 
     @Override
     public RouterAPI use(int mask, String path, Mid... mids) {

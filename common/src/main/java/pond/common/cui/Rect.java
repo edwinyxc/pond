@@ -1,4 +1,4 @@
-package pond.common.util.cui;
+package pond.common.cui;
 
 import pond.common.S;
 import pond.common.f.Function;
@@ -48,24 +48,15 @@ public class Rect {
         data = new Matrix(tmp);
     }
 
-    // public String toString() {
-    // StringBuilder sb = new StringBuilder();
-    // int rf_cnt = 0;
-    // for (String s : data) {
-    // sb.append(s);
-    // if (s.length() < width) {
-    // for (int i = 0; i < width - s.length(); i++) {
-    // sb.append(" ");
-    // }
-    // }
-    // sb.append("\n");
-    // rf_cnt++;
-    // }
-    // if (rf_cnt < height) {
-    // for (int i = 0; i < height - rf_cnt; i++) {
-    // sb.append("\n");
-    // }
-    // }
-    // return sb.toString();
-    // }
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("");
+        for(int i = 0; i< data.rows(); i++){
+            for(int j = 0; j< data.cols(); j++) {
+                sb.append((char) data.get(i, j));
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
 }

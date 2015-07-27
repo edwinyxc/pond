@@ -1,6 +1,7 @@
 package pond.core;
 
-import static pond.common.S.file.loadProperties;
+
+import static pond.common.FILE.loadProperties;
 
 /**
  * Created by ed on 11/13/14.
@@ -11,7 +12,7 @@ public class ConfigTest {
                 p.loadConfig(loadProperties("pond.conf")));
 
         app.get("/123", (req, resp) ->
-                resp.send("<p>"+req.ctx().pond.attr("test")+"</p>"));
+                resp.send("<p>"+req.ctx().pond.config("test")+"</p>"));
 
         app.listen();
     }

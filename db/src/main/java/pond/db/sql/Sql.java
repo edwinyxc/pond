@@ -3,7 +3,6 @@ package pond.db.sql;
 import pond.common.f.Tuple;
 import pond.db.sql.dialect.Dialect;
 
-import static pond.common.S._notNullElse;
 import static pond.common.S.avoidNull;
 
 /**
@@ -11,27 +10,27 @@ import static pond.common.S.avoidNull;
  */
 public interface Sql {
 
-    public <T> T dialect(Dialect d);
+    <T> T dialect(Dialect d);
 
-    public static SqlInsert insert() {
+    static SqlInsert insert() {
         return new TSqlInsert();
     }
 
-    public static SqlUpdate update(String table) {
+    static SqlUpdate update(String table) {
         return new TSqlUpdate(table);
     }
 
-    public static SqlSelect select(String... cols) {
+    static SqlSelect select(String... cols) {
         return new TSqlSelect(cols);
     }
 
-    public static SqlDelete delete() {
+    static SqlDelete delete() {
         return new TSqlDelete();
     }
 
-    public String preparedSql();
+    String preparedSql();
 
-    public Object[] params();
+    Object[] params();
 
     default public String debug() {
         Object[] p = params();
@@ -45,7 +44,7 @@ public interface Sql {
         );
     }
 
-    default public Tuple<String, Object[]>
+    default Tuple<String, Object[]>
     tuple() {
         return Tuple.t2(preparedSql(), params());
     }

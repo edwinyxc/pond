@@ -26,7 +26,7 @@ public final class TimeExpiredCache<K, V> extends AbstractCache<K, V> {
     @SuppressWarnings("unchecked")
     @Override
     protected void _put(K key, V val) {
-        cache.put(key, new VWithTime(val, S.time()));
+        cache.put(key, new VWithTime(val, S.now()));
     }
 
     class VWithTime {
@@ -39,7 +39,7 @@ public final class TimeExpiredCache<K, V> extends AbstractCache<K, V> {
         }
 
         public boolean needExpire(long interval) {
-            return interval < (S.time() - putInTime);
+            return interval < (S.now() - putInTime);
         }
     }
 }

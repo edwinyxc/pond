@@ -7,11 +7,8 @@ import pond.core.spi.server.netty.NettyReqWrapper;
 import java.util.Map;
 
 import static java.lang.Integer.parseInt;
-import static pond.common.S.file.loadProperties;
+import static pond.common.FILE.loadProperties;
 
-/**
- * Created by ed on 7/9/14.
- */
 public class TestApp {
 
     public static void basic() {
@@ -27,25 +24,25 @@ public class TestApp {
                     req.param("user", "1");
                     //next.apply();
                 },
-                (req, res) ->{
-                    req.param("user", String.valueOf(parseInt(req.param("user"))+ 1));
+                (req, res) -> {
+                    req.param("user", String.valueOf(parseInt(req.param("user")) + 1));
                 },
-                (req, res) ->{
-                    req.param("user", String.valueOf(parseInt(req.param("user"))+ 1));
+                (req, res) -> {
+                    req.param("user", String.valueOf(parseInt(req.param("user")) + 1));
                 },
-                (req, res) ->{
-                    req.param("user", String.valueOf(parseInt(req.param("user"))+ 1));
+                (req, res) -> {
+                    req.param("user", String.valueOf(parseInt(req.param("user")) + 1));
                 },
-                (req, res) ->{
-                    req.param("user", String.valueOf(parseInt(req.param("user"))+ 1));
+                (req, res) -> {
+                    req.param("user", String.valueOf(parseInt(req.param("user")) + 1));
                 },
-                (req, res) ->{
-                    req.param("user", String.valueOf(parseInt(req.param("user"))+ 1));
+                (req, res) -> {
+                    req.param("user", String.valueOf(parseInt(req.param("user")) + 1));
                 },
                 (req, res) -> {
                     String user = req.param("user");
                     res.contentType("application/json");
-                    res.send( user );
+                    res.send(user);
                 });
         app.listen();
     }
@@ -55,7 +52,7 @@ public class TestApp {
                 p.loadConfig(loadProperties("pond.conf")));
 
         app.get("/123", (req, resp) ->
-                resp.send("<p>" + req.ctx().pond.attr("test") + "</p>"));
+                resp.send("<p>" + req.ctx().pond.config("test") + "</p>"));
 
         app.listen();
     }
@@ -88,25 +85,17 @@ public class TestApp {
     }
 
 
-    public static void tmpl() {
-        Pond app = Pond.init().debug();
-        app.get("/", (req, resp) -> {
-            resp.render(Render.view("home.view"));
-        });
-        app.listen();
-    }
-
     public static void test_cross_mid_ctx_continuity() {
         Pond app = Pond.init().debug();
         Holder<Map> tester = new Holder<>();
         app.get("/", (req, resp) -> {
             req.ctx().put("a", "a");
             System.out.println(req.ctx());
-            tester.val = req.ctx();
+            tester.val(req.ctx());
             req.ctx().put("id", req.ctx());
         });
         app.get("/", (req, resp) -> {
-            System.out.println(req.ctx() == tester.val);
+            System.out.println(req.ctx() == tester.val());
 
             resp.send(req.ctx().toString());
         });
@@ -119,11 +108,11 @@ public class TestApp {
         app.get("/users", (req, resp) -> {
             req.ctx().put("a", "a");
             System.out.println(req.ctx());
-            tester.val = req.ctx();
+            tester.val(req.ctx());
             req.ctx().put("id", req.ctx());
             resp.send(req.ctx().toString());
         });
-        app.before((req, resp ) -> {
+        app.before((req, resp) -> {
             req.ctx().put("val", 1);
         });
         app.listen();
@@ -139,12 +128,6 @@ public class TestApp {
     }
 
     public static void main(String[] args) {
-       basic();
-//        config();
-//        router();
-//        www();
-//        tmpl();
-//        test_cross_mid_ctx_continuity_complex();
-//        test_min_group_route();
+        basic();
     }
 }

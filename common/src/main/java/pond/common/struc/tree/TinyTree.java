@@ -3,8 +3,8 @@ package pond.common.struc.tree;
 import pond.common.S;
 import pond.common.f.Function;
 import pond.common.struc.Matrix;
-import pond.common.util.cui.Rect;
-import pond.common.util.cui.RichLayout;
+import pond.common.cui.Rect;
+import pond.common.cui.RichLayout;
 
 import java.util.*;
 
@@ -327,34 +327,8 @@ public class TinyTree<E> implements Tree<E> {
         String ret = "\n" + RichLayout.mkStr(new Rect(_lines()));
         long e = S.time();
 
-//		S.echo((e - s) + "ms");
         return ret + "\nrendered in " + (e - s) + " ms";
 
-        // /*"┏┣┗━━━ "*/
-        // Iterator<Tree<E>> iter = this.dfs();
-        // StringBuilder str= new StringBuilder("\n");
-        // str.append(this.name()).append(":\n");
-        // String[][] out=new String[999][999];
-        // int h=0;
-        // while(iter.hasNext()){
-        // Tree<E> val =iter.next();
-        // StringBuilder _s = new StringBuilder();
-        // int p_l = val.path().length - this.path().length;
-        // for(int i = 0; i<p_l-1;i++){
-        // _s.append("  ┣");
-        // out[h][i]="  ┣";
-        // }
-        // if(((LinkedList)val.siblings()).getLast() == val){
-        // for(int i=h;i<0;i--){
-        // if(out)
-        // }
-        // if(_s.length()>1)
-        // _s.replace(_s.length()-1, _s.length(), "┗");
-        // }
-        // _s.append("━━").append(val.name());
-        // str.append(_s).append('\n');
-        // }
-        // return str.toString();
     }
 
     private class BFS implements Iterator<Tree<E>> {
