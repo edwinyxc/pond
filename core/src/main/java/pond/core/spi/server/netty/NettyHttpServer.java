@@ -234,6 +234,8 @@ public class NettyHttpServer extends AbstractServer {
                         contentType.toLowerCase().contains(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toLowerCase())) {
                     String postData = httpContent.content().toString(CharsetUtil.UTF_8);
 
+                    S._debug(logger, log -> log.debug("postData: " + postData));
+
                     //default x-www-form-urlencoded parse
                     Map<String,List<String>> postParams = new QueryStringDecoder(postData, CharsetUtil.UTF_8, false).parameters();
 
@@ -244,6 +246,7 @@ public class NettyHttpServer extends AbstractServer {
                         S._debug(logger, log -> log.debug(key + S._dump(value)));
                         reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
                     });
+
                 } else {
                     //TODO TEST CONFIG
                     parseBody(contentType, reqWrapper);
