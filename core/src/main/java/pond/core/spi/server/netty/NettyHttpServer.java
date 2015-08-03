@@ -8,7 +8,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
@@ -18,8 +17,8 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.CharsetUtil;
 import pond.common.S;
 import pond.core.Response;
-import pond.core.http.*;
 import pond.core.http.Cookie;
+import pond.core.http.HttpUtils;
 import pond.core.spi.BaseServer;
 import pond.core.spi.server.AbstractServer;
 
@@ -149,7 +148,7 @@ public class NettyHttpServer extends AbstractServer {
                 //uri-queries
                 Map<String, List<String>> parsedParams = new QueryStringDecoder(httpRequest.uri()).parameters();
 
-                S._debug(logger, log-> {
+                S._debug(logger, log -> {
                     log.debug("QUERY STRING: " + httpRequest.uri());
                     log.debug("PARSED PARAMS: " + S._dump(parsedParams));
                 });
@@ -167,7 +166,8 @@ public class NettyHttpServer extends AbstractServer {
                                                     c.setVersion(cookie.version());
                                                     c.setMaxAge((int) cookie.maxAge());
                                                     c.setHttpOnly(cookie.isHttpOnly());
-                                                    if (S.str.notBlank(cookie.domain())) c.setDomain(cookie.domain());
+                                                    if (S.str.notBlank(cookie.domain()))
+                                                        c.setDomain(cookie.domain());
                                                     c.setComment(cookie.comment());
                                                 }))
 
@@ -224,6 +224,12 @@ public class NettyHttpServer extends AbstractServer {
                 if (decoder != null && HttpPostRequestDecoder.isMultipart(httpRequest)) {
                     try {
                         decodeHttpContent(decoder, httpContent);
+                        reqWrapper.updateUploadFiles(files ->
+                                S._for(fileUploads).each(fileUpload ->
+                                        HttpUtils.appendToMap(files,
+                                                fileUpload.getName(),
+                                                new NettyUploadFile(fileUpload))));
+
                     } catch (Exception e1) {
                         logger.error(e1.getMessage(), e1);
                         S._debug(logger, log -> log.debug(e1.getMessage(), e1));
@@ -237,7 +243,7 @@ public class NettyHttpServer extends AbstractServer {
                     S._debug(logger, log -> log.debug("postData: " + postData));
 
                     //default x-www-form-urlencoded parse
-                    Map<String,List<String>> postParams = new QueryStringDecoder(postData, CharsetUtil.UTF_8, false).parameters();
+                    Map<String, List<String>> postParams = new QueryStringDecoder(postData, CharsetUtil.UTF_8, false).parameters();
 
                     S._debug(logger, log -> log.debug(S.dump(postParams)));
                     S._for(postParams).each(entry -> {
