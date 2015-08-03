@@ -2,6 +2,7 @@ package pond.core.spi.server.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -92,7 +93,7 @@ public class NettyHttpServer extends AbstractServer {
 
         NettyReqWrapper reqWrapper = null;
 
-        List<ByteBuf> chunks = new ArrayList<>();
+        CompositeByteBuf content;
 
         String contentType;
 
@@ -165,6 +166,7 @@ public class NettyHttpServer extends AbstractServer {
                 );
 
 
+                contentType = httpRequest.headers().getAndConvert(HttpHeaderNames.CONTENT_TYPE);
                 //TODO test the raw "multipart"
                 //build the multipart decoder
                 if (HttpPostRequestDecoder.isMultipart(httpRequest)) {
@@ -186,10 +188,10 @@ public class NettyHttpServer extends AbstractServer {
                         sendBadRequest(ctx);
                         return;
                     }
+                }else {
+                    S._assert(content == null);
+                    content = Unpooled.compositeBuffer();
                 }
-
-                contentType = httpRequest.headers().getAndConvert(HttpHeaderNames.CONTENT_TYPE);
-
             }
 
             if (msg instanceof HttpContent) {
@@ -235,13 +237,14 @@ public class NettyHttpServer extends AbstractServer {
                         return;
                     }
 
-                } else if (contentType == null || contentType.toLowerCase().contains(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toLowerCase())) {
-
-                    chunks.add(httpContent.content());
-
                 } else {
-                    //TODO TEST CONFIG
-                    parseBody(contentType, reqWrapper);
+                    //merge chunks
+                    ByteBuf chunk = httpContent.content();
+                    if (chunk.isReadable()) {
+                        chunk.retain();
+                        content.addComponent(httpContent.content());
+                        content.writerIndex(content.writerIndex() + chunk.readableBytes());
+                    }
                 }
 
                 //end of message
@@ -256,7 +259,6 @@ public class NettyHttpServer extends AbstractServer {
                     }
 
                     //trailing headers
-
                     if (!trailer.trailingHeaders().isEmpty()) {
                         for (CharSequence name : trailer.trailingHeaders().names()) {
                             for (CharSequence value : trailer.trailingHeaders().getAll(name)) {
@@ -268,9 +270,10 @@ public class NettyHttpServer extends AbstractServer {
                         }
                     }
 
+                    //handle the http content TODO add hooks
                     if (contentType == null || contentType.toLowerCase().contains(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toLowerCase())) {
 
-                        String postData = httpContent.content().toString(CharsetUtil.UTF_8);
+                        String postData = content.toString(CharsetUtil.UTF_8);
 
                         S._debug(logger, log -> log.debug("postData: " + postData));
 
@@ -284,7 +287,6 @@ public class NettyHttpServer extends AbstractServer {
                             S._debug(logger, log -> log.debug(key + S._dump(value)));
                             reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
                         });
-
                     }
 
                     //build the response
@@ -497,16 +499,16 @@ public class NettyHttpServer extends AbstractServer {
         void clean() {
             httpRequest = null;
             reqWrapper = null;
+
             resetDecoder();
+
+            if(content.refCnt() > 0){
+                content.release(content.refCnt());
+            }
+
+            content = null;
         }
 
-        void clearChunks() {
-            S._for(chunks).each(chunk -> {
-                if (chunk.refCnt() > 0)
-                    chunk.release();
-            });
-            chunks.clear();
-        }
 
         void resetDecoder() {
             if (decoder != null) {
