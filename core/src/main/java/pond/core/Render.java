@@ -95,8 +95,9 @@ public interface Render {
     }
 
     static Render dump(Object o) {
-        return (req, resp) ->
-                resp.write(S.dump(o));
+        return (req, resp) -> {
+            resp.send(S.dump(o));
+        };
     }
 
     void render(Request req, Response resp);

@@ -18,7 +18,8 @@ public class TestMultipart {
         Pond.init(p -> {
             p.post("/multipart", (req, resp) -> {
                 Request.UploadFile f  = req.file("content");
-                resp.send("<pre>"+dump(req)+  "</pre><br><pre>" + dump(f) +"</pre>");
+                //resp.render(Render.json("<pre>"+dump(req)+  "</pre><br><pre>" + dump(f) +"</pre>"));
+                resp.send(200,"OK");
             }).get("/.*", p._static("www"));
         }).listen();
     }

@@ -1,5 +1,7 @@
 package pond.core.spi.server.netty;
 
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.util.CharsetUtil;
 import pond.core.Request;
 import pond.core.Response;
 
@@ -25,38 +27,38 @@ public class ActionCompleteNotification {
 
     Throwable cause;
 
-    public ActionCompleteNotification(Request req, Response resp){
+    public ActionCompleteNotification(Request req, Response resp) {
         this.req = req;
         this.resp = resp;
     }
 
-    public ActionCompleteNotification normal(OutputStream out){
+    public ActionCompleteNotification normal(OutputStream out) {
         this.type = NORMAL;
         this.out = out;
         return this;
     }
 
-    public int type(){
+    public int type() {
         return type;
     }
 
-    public RandomAccessFile sendfile(){
+    public RandomAccessFile sendfile() {
         return sendfile;
     }
 
-    public Long sendFileLength(){
+    public Long sendFileLength() {
         return sendfile_length;
     }
 
-    public Long sendFileOffset(){
+    public Long sendFileOffset() {
         return sendfile_offset;
     }
 
-    public OutputStream out(){
+    public OutputStream out() {
         return out;
     }
 
-    public ActionCompleteNotification file(RandomAccessFile file, Long offset, Long length){
+    public ActionCompleteNotification file(RandomAccessFile file, Long offset, Long length) {
         sendfile = file;
         sendfile_offset = offset;
         sendfile_length = length;
@@ -64,23 +66,31 @@ public class ActionCompleteNotification {
         return this;
     }
 
-    public boolean isSuccess(){
-        return  type != ERROR;
+    public boolean isSuccess() {
+        return type != ERROR;
     }
 
-    public Request request(){
+    public Request request() {
         return req;
     }
 
-    public Response response(){
+    public Response response() {
         return resp;
     }
 
-    public void setCause(Throwable cause){
+    public void setCause(Throwable cause) {
         this.cause = cause;
     }
 
-    public Throwable getCause(){
+    public Throwable getCause() {
         return cause;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder ret = new StringBuilder(super.toString());
+        ret.append("TYPE: ").append(type).append("\n");
+        ret.append("OUT: ").append(((ByteBufOutputStream) out).buffer().toString(CharsetUtil.UTF_8)).append("\n");
+        return ret.toString();
     }
 }

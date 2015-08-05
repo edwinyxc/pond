@@ -2,24 +2,23 @@ package pond.core.spi.server.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.multipart.*;
-import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.CharsetUtil;
 import pond.common.S;
+import pond.common.f.Tuple;
 import pond.core.Response;
-import pond.core.http.*;
 import pond.core.http.Cookie;
+import pond.core.http.HttpUtils;
 import pond.core.spi.BaseServer;
 import pond.core.spi.server.AbstractServer;
 
@@ -84,15 +83,6 @@ public class NettyHttpServer extends AbstractServer {
                 });
     }
 
-    //util
-    @Deprecated
-    SslContext buildSslContext() throws Exception {
-        if (ssl()) {
-            SelfSignedCertificate ssc = new SelfSignedCertificate();
-        }
-        return null;
-    }
-
     class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
         private HttpData partialContent;
@@ -103,8 +93,9 @@ public class NettyHttpServer extends AbstractServer {
 
         NettyReqWrapper reqWrapper = null;
 
-        List<Attribute> attrs = new ArrayList<>();
-        List<FileUpload> fileUploads = new ArrayList<>();
+        CompositeByteBuf content;
+
+        String contentType;
 
         private void sendBadRequest(ChannelHandlerContext ctx) {
             ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
@@ -149,7 +140,7 @@ public class NettyHttpServer extends AbstractServer {
                 //uri-queries
                 Map<String, List<String>> parsedParams = new QueryStringDecoder(httpRequest.uri()).parameters();
 
-                S._debug(logger, log-> {
+                S._debug(logger, log -> {
                     log.debug("QUERY STRING: " + httpRequest.uri());
                     log.debug("PARSED PARAMS: " + S._dump(parsedParams));
                 });
@@ -167,13 +158,15 @@ public class NettyHttpServer extends AbstractServer {
                                                     c.setVersion(cookie.version());
                                                     c.setMaxAge((int) cookie.maxAge());
                                                     c.setHttpOnly(cookie.isHttpOnly());
-                                                    if (S.str.notBlank(cookie.domain())) c.setDomain(cookie.domain());
+                                                    if (S.str.notBlank(cookie.domain()))
+                                                        c.setDomain(cookie.domain());
                                                     c.setComment(cookie.comment());
                                                 }))
 
                 );
 
 
+                contentType = httpRequest.headers().getAndConvert(HttpHeaderNames.CONTENT_TYPE);
                 //TODO test the raw "multipart"
                 //build the multipart decoder
                 if (HttpPostRequestDecoder.isMultipart(httpRequest)) {
@@ -195,18 +188,14 @@ public class NettyHttpServer extends AbstractServer {
                         sendBadRequest(ctx);
                         return;
                     }
+                } else {
+                    S._assert(content == null);
+                    content = Unpooled.compositeBuffer();
                 }
-
             }
 
             if (msg instanceof HttpContent) {
-
                 HttpContent httpContent = (HttpContent) msg;
-
-                S._debug(logger, log -> {
-                    log.debug("GOT HTTP CONTENT:");
-                    log.debug(httpContent.content().toString(CharsetUtil.UTF_8));
-                });
 
                 if (!httpContent.decoderResult().isSuccess()) {
                     sendBadRequest(ctx);
@@ -218,35 +207,44 @@ public class NettyHttpServer extends AbstractServer {
                     return;
                 }
 
-                String contentType = httpRequest.headers().getAndConvert(HttpHeaderNames.CONTENT_TYPE);
-
                 //multipart
                 if (decoder != null && HttpPostRequestDecoder.isMultipart(httpRequest)) {
                     try {
-                        decodeHttpContent(decoder, httpContent);
+                        Tuple<List<Attribute>, List<FileUpload>>
+                                tuple = decodeHttpContent(decoder, httpContent);
+
+                        reqWrapper.updateUploadFiles(files ->
+                                        S._for(tuple._b).each(fileUpload ->
+                                                        HttpUtils.appendToMap(files,
+                                                                fileUpload.getName(),
+                                                                new NettyUploadFile(fileUpload))
+                                        )
+                        );
+
+                        reqWrapper.updateParams(params ->
+                                        S._for(tuple._a).each(attr -> {
+                                            String k = attr.getName();
+                                            String v = S._try_ret(attr::getValue);
+                                            S._debug(logger, log -> log.debug(k + " " + S._dump(v)));
+                                            HttpUtils.appendToMap(params, k, v);
+                                        })
+                        );
+
                     } catch (Exception e1) {
                         logger.error(e1.getMessage(), e1);
                         S._debug(logger, log -> log.debug(e1.getMessage(), e1));
                         sendBadRequest(ctx);
                         return;
                     }
-                } else if (contentType == null ||
-                        contentType.toLowerCase().contains(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toLowerCase())) {
-                    String postData = httpContent.content().toString(CharsetUtil.UTF_8);
 
-                    //default x-www-form-urlencoded parse
-                    Map<String,List<String>> postParams = new QueryStringDecoder(postData, CharsetUtil.UTF_8, false).parameters();
-
-                    S._debug(logger, log -> log.debug(S.dump(postParams)));
-                    S._for(postParams).each(entry -> {
-                        String key = entry.getKey();
-                        List<String> value = entry.getValue();
-                        S._debug(logger, log -> log.debug(key + S._dump(value)));
-                        reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
-                    });
                 } else {
-                    //TODO TEST CONFIG
-                    parseBody(contentType, reqWrapper);
+                    //merge chunks
+                    ByteBuf chunk = httpContent.content();
+                    if (chunk.isReadable()) {
+                        chunk.retain();
+                        content.addComponent(httpContent.content());
+                        content.writerIndex(content.writerIndex() + chunk.readableBytes());
+                    }
                 }
 
                 //end of message
@@ -261,7 +259,6 @@ public class NettyHttpServer extends AbstractServer {
                     }
 
                     //trailing headers
-
                     if (!trailer.trailingHeaders().isEmpty()) {
                         for (CharSequence name : trailer.trailingHeaders().names()) {
                             for (CharSequence value : trailer.trailingHeaders().getAll(name)) {
@@ -273,6 +270,24 @@ public class NettyHttpServer extends AbstractServer {
                         }
                     }
 
+                    //handle the http content TODO add hooks
+                    if (contentType == null || contentType.toLowerCase().contains(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toLowerCase())) {
+
+                        String postData = content.toString(CharsetUtil.UTF_8);
+
+                        S._debug(logger, log -> log.debug("postData: " + postData));
+
+                        //default x-www-form-urlencoded parse
+                        Map<String, List<String>> postParams = new QueryStringDecoder(postData, CharsetUtil.UTF_8, false).parameters();
+
+                        S._debug(logger, log -> log.debug(S.dump(postParams)));
+                        S._for(postParams).each(entry -> {
+                            String key = entry.getKey();
+                            List<String> value = entry.getValue();
+                            S._debug(logger, log -> log.debug(key + S._dump(value)));
+                            reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
+                        });
+                    }
 
                     //build the response
                     NettyRespWrapper respWrapper = new NettyRespWrapper(httpRequest, NettyHttpServer.this);
@@ -280,8 +295,8 @@ public class NettyHttpServer extends AbstractServer {
                     S._debug(logger, log -> log.debug(reqWrapper.toString()));
 
                     //execution context
-                    final ActionCompleteNotification actionCompleteNotification =
-                            new ActionCompleteNotification(reqWrapper, respWrapper);
+                    final ActionCompleteNotification actionCompleteNotification
+                            = new ActionCompleteNotification(reqWrapper, respWrapper);
                     respWrapper.acn(actionCompleteNotification);
 
                     //release httpRequest Ref
@@ -292,28 +307,30 @@ public class NettyHttpServer extends AbstractServer {
                         } catch (Throwable th) {
                             actionCompleteNotification.setCause(th);
                             return actionCompleteNotification;
-                        } finally {
-                            clean();
                         }
                     }, executorService).thenAccept(acn -> {
-                        if (acn.isSuccess()) {
-                            switch (acn.type()) {
-                                case ActionCompleteNotification.UNHANDLED: {
-                                    logger.warn("unhandled request reach.");
-                                    return;
+                        try {
+                            if (acn.isSuccess()) {
+                                switch (acn.type()) {
+                                    case ActionCompleteNotification.UNHANDLED: {
+                                        logger.warn("unhandled request reach.");
+                                        return;
+                                    }
+                                    case ActionCompleteNotification.NORMAL: {
+                                        sendNormal(ctx, acn.response());
+                                        return;
+                                    }
+                                    case ActionCompleteNotification.STATIC_FILE: {
+                                        sendFile(ctx, acn.response(), acn.sendfile(),
+                                                acn.sendFileOffset(), acn.sendFileLength());
+                                    }
                                 }
-                                case ActionCompleteNotification.NORMAL: {
-                                    sendNormal(ctx, acn.response());
-                                    return;
-                                }
-                                case ActionCompleteNotification.STATIC_FILE: {
-                                    sendFile(ctx, acn.response(), acn.sendfile(),
-                                            acn.sendFileOffset(), acn.sendFileLength());
-                                }
+                            } else {
+                                //maybe reset, timeout ....
+                                ctx.fireExceptionCaught(acn.getCause());
                             }
-                        } else {
-                            //maybe reset, timeout ....
-                            ctx.fireExceptionCaught(acn.getCause());
+                        } finally {
+                            clean();
                         }
                     });
                 }
@@ -325,11 +342,16 @@ public class NettyHttpServer extends AbstractServer {
         }
 
 
-        void decodeHttpContent(HttpPostRequestDecoder decoder, HttpContent httpContent)
+        Tuple<List<Attribute>, List<FileUpload>> decodeHttpContent(HttpPostRequestDecoder decoder, HttpContent httpContent)
                 throws HttpPostRequestDecoder.ErrorDataDecoderException,
                 HttpPostRequestDecoder.EndOfDataDecoderException,
                 HttpPostRequestDecoder.NotEnoughDataDecoderException {
+
             decoder.offer(httpContent);
+
+            List<Attribute> attrs = new ArrayList<>();
+            List<FileUpload> fileUploads = new ArrayList<>();
+            Tuple<List<Attribute>, List<FileUpload>> ret = Tuple.t2(attrs, fileUploads);
 
             while (decoder.hasNext()) {
                 InterfaceHttpData data = decoder.next();
@@ -339,9 +361,44 @@ public class NettyHttpServer extends AbstractServer {
                         S._debug(logger, log -> log.debug(" 100% (FinalSize: " + partialContent.length() + ")" + " 100% (FinalSize: " + partialContent.length() + ")"));
                         partialContent = null;
                     }
-                    processHttpData(data);
+
+                    InterfaceHttpData.HttpDataType type = data.getHttpDataType();
+
+
+                    switch (type) {
+                        case Attribute: {
+                            Attribute attr = (Attribute) data;
+
+                            S._debug(logger, log -> {
+                                try {
+                                    log.debug("PARSE ATTR: " + attr.getName() + " : " + attr.getValue());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+
+                            attrs.add(attr);
+                            break;
+                        }
+                        case FileUpload: {
+                            FileUpload fileUpload = (FileUpload) data;
+                            S._debug(logger, log -> {
+                                try {
+                                    log.debug("PARSE FILE: " + fileUpload.getName()
+                                            + " : " + fileUpload.getFilename()
+                                            + " : " + fileUpload.getFile().getAbsolutePath());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                            fileUploads.add(fileUpload);
+                            break;
+                        }
+                        //TODO internal attribute
+                    }
                 }
             }
+            return ret;
         }
 
         void sendFile(ChannelHandlerContext ctx, Response response, RandomAccessFile raf, Long sendoffset, Long sendlength) {
@@ -444,47 +501,16 @@ public class NettyHttpServer extends AbstractServer {
         void clean() {
             httpRequest = null;
             reqWrapper = null;
+
             resetDecoder();
-        }
 
-        void processHttpData(InterfaceHttpData data) {
-
-            InterfaceHttpData.HttpDataType type = data.getHttpDataType();
-
-
-            switch (type) {
-                case Attribute: {
-                    Attribute attr = (Attribute) data;
-
-                    S._debug(logger, log -> {
-                        try {
-                            log.debug("PARSE ATTR: " + attr.getName() + " : " + attr.getValue());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
-
-                    attrs.add(attr);
-                    return;
-                }
-                case FileUpload: {
-                    FileUpload fileUpload = (FileUpload) data;
-                    S._debug(logger, log -> {
-                        try {
-                            log.debug("PARSE FILE: " + fileUpload.getName()
-                                    + " : " + fileUpload.getFilename()
-                                    + " : " + fileUpload.getFile().getAbsolutePath());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
-                    fileUploads.add(fileUpload);
-                }
-
+            if (content.refCnt() > 0) {
+                content.release(content.refCnt());
             }
 
-            //TODO internal attribute
+            content = null;
         }
+
 
         void resetDecoder() {
             if (decoder != null) {
@@ -492,8 +518,6 @@ public class NettyHttpServer extends AbstractServer {
                 decoder.destroy();
                 decoder = null;
             }
-            attrs.clear();
-            fileUploads.clear();
         }
 
         @Override
