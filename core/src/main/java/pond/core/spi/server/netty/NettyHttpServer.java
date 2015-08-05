@@ -188,7 +188,7 @@ public class NettyHttpServer extends AbstractServer {
                         sendBadRequest(ctx);
                         return;
                     }
-                }else {
+                } else {
                     S._assert(content == null);
                     content = Unpooled.compositeBuffer();
                 }
@@ -303,32 +303,35 @@ public class NettyHttpServer extends AbstractServer {
                     CompletableFuture.supplyAsync(() -> {
                         try {
                             NettyHttpServer.this.handler().apply(reqWrapper, respWrapper);
+                            S.echo(actionCompleteNotification.toString());
                             return actionCompleteNotification;
                         } catch (Throwable th) {
                             actionCompleteNotification.setCause(th);
                             return actionCompleteNotification;
-                        } finally {
-                            clean();
                         }
                     }, executorService).thenAccept(acn -> {
-                        if (acn.isSuccess()) {
-                            switch (acn.type()) {
-                                case ActionCompleteNotification.UNHANDLED: {
-                                    logger.warn("unhandled request reach.");
-                                    return;
+                        try {
+                            if (acn.isSuccess()) {
+                                switch (acn.type()) {
+                                    case ActionCompleteNotification.UNHANDLED: {
+                                        logger.warn("unhandled request reach.");
+                                        return;
+                                    }
+                                    case ActionCompleteNotification.NORMAL: {
+                                        sendNormal(ctx, acn.response());
+                                        return;
+                                    }
+                                    case ActionCompleteNotification.STATIC_FILE: {
+                                        sendFile(ctx, acn.response(), acn.sendfile(),
+                                                acn.sendFileOffset(), acn.sendFileLength());
+                                    }
                                 }
-                                case ActionCompleteNotification.NORMAL: {
-                                    sendNormal(ctx, acn.response());
-                                    return;
-                                }
-                                case ActionCompleteNotification.STATIC_FILE: {
-                                    sendFile(ctx, acn.response(), acn.sendfile(),
-                                            acn.sendFileOffset(), acn.sendFileLength());
-                                }
+                            } else {
+                                //maybe reset, timeout ....
+                                ctx.fireExceptionCaught(acn.getCause());
                             }
-                        } else {
-                            //maybe reset, timeout ....
-                            ctx.fireExceptionCaught(acn.getCause());
+                        } finally {
+                            clean();
                         }
                     });
                 }
@@ -502,7 +505,7 @@ public class NettyHttpServer extends AbstractServer {
 
             resetDecoder();
 
-            if(content.refCnt() > 0){
+            if (content.refCnt() > 0) {
                 content.release(content.refCnt());
             }
 
