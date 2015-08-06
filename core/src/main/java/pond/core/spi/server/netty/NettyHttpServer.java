@@ -148,8 +148,8 @@ public class NettyHttpServer extends AbstractServer {
                 reqWrapper.updateParams(params -> params.putAll(parsedParams));
 
                 //parse cookies
-                reqWrapper.updateCookies(cookies ->
-
+                reqWrapper.updateCookies(
+                        cookies ->
                                 S._for(ServerCookieDecoder.decode(S.avoidNull(request.headers().getAndConvert(HttpHeaderNames.COOKIE), "")))
                                         .each(cookie -> S._tap(new Cookie(cookie.name(), cookie.value()),
                                                 c -> {
@@ -567,14 +567,7 @@ public class NettyHttpServer extends AbstractServer {
                             pipeline.addLast(new ChunkedWriteHandler());
                             pipeline.addLast(new NettyHttpHandler());
                         }
-                    })
-
-                            //TODO configurations here
-                            //TODO interceptors here
-                            //TODO fail-back http server here?
-                            //TODO baseServer here (discard jetty & the oio or recreate a abstraction FP(req,res) layer?)
-                            //TODO
-                    .childOption(ChannelOption.SO_KEEPALIVE, keepAlive())
+                    }).childOption(ChannelOption.SO_KEEPALIVE, keepAlive())
             ;
 
             ChannelFuture f = b.bind(port()).sync();
