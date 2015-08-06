@@ -15,6 +15,7 @@ import io.netty.handler.stream.ChunkedFile;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.CharsetUtil;
 import pond.common.S;
+import pond.common.STRING;
 import pond.common.f.Tuple;
 import pond.core.Response;
 import pond.core.http.Cookie;
@@ -142,26 +143,25 @@ public class NettyHttpServer extends AbstractServer {
 
                 S._debug(logger, log -> {
                     log.debug("QUERY STRING: " + httpRequest.uri());
-                    log.debug("PARSED PARAMS: " + S._dump(parsedParams));
+                    log.debug("PARSED PARAMS: " + S.dump(parsedParams));
                 });
 
                 reqWrapper.updateParams(params -> params.putAll(parsedParams));
 
                 //parse cookies
-                reqWrapper.updateCookies(cookies ->
-
-                                S._for(ServerCookieDecoder.decode(S.avoidNull(request.headers().getAndConvert(HttpHeaderNames.COOKIE), "")))
-                                        .each(cookie -> S._tap(new Cookie(cookie.name(), cookie.value()),
+                reqWrapper.updateCookies(cookies -> S._for(ServerCookieDecoder.decode(S.avoidNull(request.headers().getAndConvert(HttpHeaderNames.COOKIE), "")))
+                                .each(cookie -> S._tap(new Cookie(cookie.name(), cookie.value()),
                                                 c -> {
                                                     c.setSecure(cookie.isSecure());
                                                     c.setPath(cookie.path());
                                                     c.setVersion(cookie.version());
                                                     c.setMaxAge((int) cookie.maxAge());
                                                     c.setHttpOnly(cookie.isHttpOnly());
-                                                    if (S.str.notBlank(cookie.domain()))
+                                                    if (STRING.notBlank(cookie.domain()))
                                                         c.setDomain(cookie.domain());
                                                     c.setComment(cookie.comment());
-                                                }))
+                                                })
+                                )
 
                 );
 
@@ -225,7 +225,7 @@ public class NettyHttpServer extends AbstractServer {
                                         S._for(tuple._a).each(attr -> {
                                             String k = attr.getName();
                                             String v = S._try_ret(attr::getValue);
-                                            S._debug(logger, log -> log.debug(k + " " + S._dump(v)));
+                                            S._debug(logger, log -> log.debug(k + " " + S.dump(v)));
                                             HttpUtils.appendToMap(params, k, v);
                                         })
                         );
@@ -284,7 +284,7 @@ public class NettyHttpServer extends AbstractServer {
                         S._for(postParams).each(entry -> {
                             String key = entry.getKey();
                             List<String> value = entry.getValue();
-                            S._debug(logger, log -> log.debug(key + S._dump(value)));
+                            S._debug(logger, log -> log.debug(key + S.dump(value)));
                             reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
                         });
                     }
@@ -489,10 +489,8 @@ public class NettyHttpServer extends AbstractServer {
             ctx.write(content);
 
             lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-            lastContentFuture.addListener(future -> {
-                S._debug(BaseServer.logger, logger ->
-                        logger.debug("all costs: " + (S.now() - wrapper._start_time) + "ms"));
-            });
+            lastContentFuture.addListener(future -> S._debug(BaseServer.logger, logger ->
+                    logger.debug("all costs: " + (S.now() - wrapper._start_time) + "ms")));
 
             if (!HttpHeaderUtil.isKeepAlive(wrapper.request))
                 lastContentFuture.addListener(ChannelFutureListener.CLOSE);
@@ -532,10 +530,10 @@ public class NettyHttpServer extends AbstractServer {
             if (ctx.channel().isActive()) {
                 //send error and close
                 ctx.writeAndFlush(new DefaultFullHttpResponse(
-                        HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                        Unpooled.copiedBuffer(cause.getMessage(), CharsetUtil.UTF_8
-                        )))
-                        .addListener(ChannelFutureListener.CLOSE);
+                        HttpVersion.HTTP_1_1,
+                        HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                        Unpooled.copiedBuffer(cause.getMessage(), CharsetUtil.UTF_8)
+                )).addListener(ChannelFutureListener.CLOSE);
             }
 
         }
@@ -545,14 +543,17 @@ public class NettyHttpServer extends AbstractServer {
 
     public void listen() throws Exception {
 
+        //since we only listen on single port
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         try {
             ServerBootstrap b = new ServerBootstrap();
+
             //max concurrent income connections in queue
             b.option(ChannelOption.SO_BACKLOG, backlog())
                     .option(ChannelOption.SO_REUSEADDR, true);
+
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
@@ -579,6 +580,7 @@ public class NettyHttpServer extends AbstractServer {
             ChannelFuture f = b.bind(port()).sync();
 
             f.channel().closeFuture().sync();
+
         } finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
