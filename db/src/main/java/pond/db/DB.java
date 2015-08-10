@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
-import pond.common.f.Tuple;
 import pond.db.connpool.ConnectionPool;
 import pond.db.connpool.SimplePool;
 import pond.db.sql.dialect.Dialect;
