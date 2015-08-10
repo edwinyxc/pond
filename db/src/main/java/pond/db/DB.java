@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
+import pond.common.f.Tuple;
 import pond.db.connpool.ConnectionPool;
 import pond.db.connpool.SimplePool;
 import pond.db.sql.dialect.Dialect;
@@ -12,10 +13,7 @@ import pond.db.sql.dialect.Dialect;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static pond.common.f.Function.F0;
 
@@ -106,7 +104,7 @@ public final class DB {
     JDBCTmpl open() throws SQLException {
         Connection connection = connProvider.apply();
         return new JDBCTmpl(this, connection);
-
+    }
 
     /**
      * This function will be only called ONCE
