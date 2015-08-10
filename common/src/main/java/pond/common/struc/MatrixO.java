@@ -80,7 +80,7 @@ public class MatrixO {
 
     public Object[] getRow(int row) {
         Object[] ret = new Object[cols];
-        System.arraycopy(data, row * cols + 0, ret, 0, cols);
+        System.arraycopy(data, row * cols, ret, 0, cols);
         return ret;
     }
 

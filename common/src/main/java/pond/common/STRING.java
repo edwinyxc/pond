@@ -46,8 +46,8 @@ public class STRING {
 
     /**
      * @param ori original string
-     * @param ch  char
-     * @param idx index of occurrence of specified char
+     * @param ch  character to find
+     * @param idx index of ch's occurrences
      * @return real index of the input char
      */
     public static int indexOf(String ori, char ch, int idx) {
