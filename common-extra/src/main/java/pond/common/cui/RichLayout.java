@@ -1,7 +1,7 @@
 package pond.common.cui;
 
 import pond.common.S;
-import pond.common.struc.Matrix;
+import pond.common.struc.tree.Matrix;
 
 public class RichLayout {
 
@@ -45,9 +45,5 @@ public class RichLayout {
         return sb.toString();
     }
 
-
-    public static class matrixHelper {
-
-    }
 
 }

@@ -2,36 +2,36 @@ package pond.common.f;
 
 public interface Function<R, A> {
 
-    public R apply(A t);
+    R apply(A t);
 
-    public interface F0<R> {
+    interface F0<R> {
 
-        public R apply();
+        R apply();
     }
 
-    public interface F0ERR<R> {
+    interface F0ERR<R> {
 
-        public R apply() throws Exception;
+        R apply() throws Exception;
     }
 
-    public interface F2<R, A, B> {
+    interface F2<R, A, B> {
 
-        public R apply(A a, B b);
+        R apply(A a, B b);
     }
 
-    public interface F3<R, A, B, C> {
+    interface F3<R, A, B, C> {
 
-        public R apply(A a, B b, C c);
+        R apply(A a, B b, C c);
     }
 
-    public interface F4<R, A, B, C, D> {
+    interface F4<R, A, B, C, D> {
 
-        public R apply(A a, B b, C c, D d);
+        R apply(A a, B b, C c, D d);
     }
 
-    public interface F5<R, A, B, C, D, E> {
+    interface F5<R, A, B, C, D, E> {
 
-        public R apply(A a, B b, C c, D d, E e);
+        R apply(A a, B b, C c, D d, E e);
     }
 
 }

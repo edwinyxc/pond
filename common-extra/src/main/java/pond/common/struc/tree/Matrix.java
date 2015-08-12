@@ -1,4 +1,4 @@
-package pond.common.struc;
+package pond.common.struc.tree;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

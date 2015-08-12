@@ -24,9 +24,11 @@
     <modules>
         <module>all</module>
         <module>common</module>
-        <module>core</module>
+        <module>web</module>
         <module>table</module>
         <module>db</module>
+        <module>common-math</module>
+        <module>pond-common-cli</module>
     </modules>
 
     <properties>
@@ -35,16 +37,11 @@
 
 
     <dependencies>
-        <!--<dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>6.1.1</version>
-            <scope>test</scope>
-        </dependency>-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.10</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -2,7 +2,7 @@ package pond.common.cui;
 
 import pond.common.S;
 import pond.common.f.Function;
-import pond.common.struc.Matrix;
+import pond.common.struc.tree.Matrix;
 
 public class Rect {
 

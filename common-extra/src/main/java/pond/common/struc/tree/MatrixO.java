@@ -1,4 +1,4 @@
-package pond.common.struc;
+package pond.common.struc.tree;
 
 import pond.common.f.Function;
 
