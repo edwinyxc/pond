@@ -1,11 +1,11 @@
 package pond.core;
 
-import org.junit.*;
+import org.junit.Test;
 import pond.common.JSON;
 
-import static org.junit.Assert.*;
-
 import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by ed on 8/11/14.

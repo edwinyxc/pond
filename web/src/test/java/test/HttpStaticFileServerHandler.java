@@ -22,7 +22,6 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.CharsetUtil;
-import io.netty.util.internal.SystemPropertyUtil;
 import pond.common.S;
 
 import javax.activation.MimetypesFileTypeMap;

@@ -1,6 +1,5 @@
 package pond.core;
 
-import pond.common.S;
 import pond.core.http.HttpMethod;
 
 public class ControllerTest extends Controller {

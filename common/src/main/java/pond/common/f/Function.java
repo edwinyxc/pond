@@ -1,7 +1,7 @@
 package pond.common.f;
 
 public interface Function<R, A> {
-
+    
     R apply(A t);
 
     interface F0<R> {
