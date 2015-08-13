@@ -1,6 +1,11 @@
 package pond.common.f;
 
-public interface FIterable<E> extends Iterable<E> {
+
+/**
+ * T
+ * @param <E>
+ */
+public interface LazyIterable<E> extends Iterable<E> {
 
     /**
      * Map the iterable items using the mapper function and return the mapped items.
@@ -20,7 +25,7 @@ public interface FIterable<E> extends Iterable<E> {
      * @param init initial value
      * @return Accumulated value
      */
-    E reduce(Function.F4<E, E, E, Integer, FIterable<E>> acc, E init);
+    E reduce(Function.F4<E, E, E, Integer, LazyIterable<E>> acc, E init);
 
     default E reduce(Function.F2<E, E, E> acc, E init) {
         return reduce((accm, cur, idx, array) -> acc.apply(accm, cur), init);
@@ -36,17 +41,17 @@ public interface FIterable<E> extends Iterable<E> {
     /**
      * The filter() method creates a new array with all elements that pass the test implemented by the provided function.
      */
-    FIterable<E> filter(Function.F3<Boolean, E, Integer, FIterable<E>> judgement);
+    LazyIterable<E> filter(Function.F3<Boolean, E, Integer, LazyIterable<E>> judgement);
 
-    default FIterable<E> filter(Function<Boolean, E> judgement) {
+    default LazyIterable<E> filter(Function<Boolean, E> judgement) {
         return filter((e, idx, arr) -> judgement.apply(e));
     }
 
-    default FIterable<E> compact() {
+    default LazyIterable<E> compact() {
         return filter(e -> e != null);
     }
 
-    default FIterable<E> excludes(Function<Boolean, E> nonIncludes) {
+    default LazyIterable<E> excludes(Function<Boolean, E> nonIncludes) {
         return filter(e -> !nonIncludes.apply(e));
     }
 
@@ -63,7 +68,7 @@ public interface FIterable<E> extends Iterable<E> {
      * @param cb callback
      * @return this
      */
-    default FIterable<E> peek(Callback<E> cb) {
+    default LazyIterable<E> peek(Callback<E> cb) {
         each(cb);
         return this;
     }
@@ -82,12 +87,12 @@ public interface FIterable<E> extends Iterable<E> {
      *
      * @return new For
      */
-    FIterable<E> reverse();
+    LazyIterable<E> reverse();
 
     /**
-     * concat a new FIterable object to the end of this FIterable
+     * concat a new LazyIterable object to the end of this LazyIterable
      */
-    FIterable<E> concat(FIterable<E> e);
+    LazyIterable<E> concat(LazyIterable<E> e);
 
     /**
      * Returns the first i values of this.
@@ -95,7 +100,7 @@ public interface FIterable<E> extends Iterable<E> {
      * @param i number of items
      * @return new
      */
-    FIterable<E> first(int i);
+    LazyIterable<E> first(int i);
 
     E first();
 
@@ -105,20 +110,20 @@ public interface FIterable<E> extends Iterable<E> {
      *
      * @return the first value
      */
-    E find(Function.F3<Boolean, E, Integer, FIterable<E>> search);
+    E find(Function.F3<Boolean, E, Integer, LazyIterable<E>> search);
 
     default E find(Function<Boolean, E> search) {
         return find((e, idx, array) -> search.apply(e));
     }
 
-    default Boolean includes(Function.F3<Boolean, E, Integer, FIterable<E>> search) {
+    default Boolean includes(Function.F3<Boolean, E, Integer, LazyIterable<E>> search) {
         return find(search) != null;
     }
 
     /**
      * The some() method tests whether some element in the array passes the test implemented by the provided predicate.
      */
-    Boolean some(Function.F3<Boolean, E, Integer, FIterable<E>> predicate);
+    Boolean some(Function.F3<Boolean, E, Integer, LazyIterable<E>> predicate);
 
     default Boolean some(Function<Boolean, E> predicate) {
         return some((e, idx, array) -> predicate.apply(e));
@@ -127,10 +132,11 @@ public interface FIterable<E> extends Iterable<E> {
     /**
      * The every() method tests whether every element in the array passes the test implemented by the provided predicate.
      */
-    Boolean every(Function.F3<Boolean, E, Integer, FIterable<E>> predicate);
+    Boolean every(Function.F3<Boolean, E, Integer, LazyIterable<E>> predicate);
 
     default Boolean every(Function<Boolean, E> predicate) {
         return some((e, idx, array) -> predicate.apply(e));
     }
+
 
 }
