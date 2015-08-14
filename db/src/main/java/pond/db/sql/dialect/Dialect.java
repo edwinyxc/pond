@@ -5,9 +5,9 @@ package pond.db.sql.dialect;
  */
 public interface Dialect {
 
-    public String wrapKey(String key);
+  public String wrapKey(String key);
 
-    public String primaryKeyMarkOnCreate();
+  public String primaryKeyMarkOnCreate();
 
-    public static Dialect mysql = new MySQLDialect();
+  public static Dialect mysql = new MySQLDialect();
 }

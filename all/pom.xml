@@ -5,9 +5,8 @@
     <parent>
         <artifactId>pond-parent</artifactId>
         <groupId>com.shuimin</groupId>
-        <version>0.1.3</version>
+        <version>0.1.4</version>
     </parent>
-    <version>0.1.3</version>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>pond-all</artifactId>
@@ -23,7 +22,14 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>pond-core</artifactId>
+            <artifactId>pond-web</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>pond-common-extra</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -32,21 +38,18 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>pond-table</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>pond-common</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>pond-db</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
 
     </dependencies>

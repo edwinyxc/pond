@@ -12,14 +12,14 @@ import static org.junit.Assert.assertEquals;
  */
 public class JsonTest {
 
-    
-    @Test
-    public void json_fromstring() {
-        String json = "{a:'A',b:'B',c:'C'}";
-        Map map = JSON.parse(json);
-        assertEquals(map.get("a"),"A");
-        assertEquals(map.get("b"),"B");
-        assertEquals(map.get("c"),"C");
-    }
+
+  @Test
+  public void json_fromstring() {
+    String json = "{a:'A',b:'B',c:'C'}";
+    Map map = JSON.parse(json);
+    assertEquals(map.get("a"), "A");
+    assertEquals(map.get("b"), "B");
+    assertEquals(map.get("c"), "C");
+  }
 
 }

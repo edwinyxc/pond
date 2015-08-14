@@ -9,14 +9,14 @@ import java.util.Map;
  * JSON api
  */
 public class JSON {
-    static JsonService json = new AlibabaJson();
+  static JsonService json = new AlibabaJson();
 
-    public static Map parse(String s){
-        return json.fromString(Map.class, s);
-    }
+  public static Map parse(String s) {
+    return json.fromString(Map.class, s);
+  }
 
-    public static String stringify(Object m) {
-        return json.toString(m);
-    }
+  public static String stringify(Object m) {
+    return json.toString(m);
+  }
 
 }

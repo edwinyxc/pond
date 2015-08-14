@@ -5,15 +5,15 @@ import java.util.Iterator;
 
 public class EnumerationIterable<E> implements Iterable<E> {
 
-    final Enumeration<E> enumeration;
+  final Enumeration<E> enumeration;
 
-    public EnumerationIterable(Enumeration<E> e) {
-        enumeration = e;
-    }
+  public EnumerationIterable(Enumeration<E> e) {
+    enumeration = e;
+  }
 
-    @Override
-    public Iterator<E> iterator() {
-        return new EnumerationIterator<E>(enumeration);
-    }
+  @Override
+  public Iterator<E> iterator() {
+    return new EnumerationIterator<E>(enumeration);
+  }
 
 }

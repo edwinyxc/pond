@@ -10,14 +10,14 @@ import pond.common.spi.JsonService;
  */
 public class AlibabaJson implements JsonService {
 
-    @Override
-    public String toString(Object o) {
-        return JSON.toJSONString(o, SerializerFeature.DisableCircularReferenceDetect);
-    }
+  @Override
+  public String toString(Object o) {
+    return JSON.toJSONString(o, SerializerFeature.DisableCircularReferenceDetect);
+  }
 
-    @Override
-    public <E> E fromString(Class<E> clazz, String s) {
-        return JSON.parseObject(s, new TypeReference<E>() {
-        });
-    }
+  @Override
+  public <E> E fromString(Class<E> clazz, String s) {
+    return JSON.parseObject(s, new TypeReference<E>() {
+    });
+  }
 }

@@ -6,8 +6,8 @@ package com.shuimin.table.spi;
  */
 public interface ExpressionEngine {
 
-    boolean isExpression(String possible);
+  boolean isExpression(String possible);
 
-    String getName(String expr);
+  String getName(String expr);
 
 }

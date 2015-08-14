@@ -5,41 +5,41 @@ import pond.common.S;
 
 public final class TimeExpiredCache<K, V> extends AbstractCache<K, V> {
 
-    public long expireTime;
+  public long expireTime;
 
-    public TimeExpiredCache(int maxEntries, long expireMs) {
-        super(new FixedSizeLinkedHashMap<K, VWithTime>(maxEntries));
-        expireTime = expireMs;
+  public TimeExpiredCache(int maxEntries, long expireMs) {
+    super(new FixedSizeLinkedHashMap<K, VWithTime>(maxEntries));
+    expireTime = expireMs;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  protected V _get(K key) {
+    final VWithTime result = (VWithTime) cache.get(key);
+    if (result.needExpire(expireTime)) {
+      this.remove(key);
+      return null;
+    }
+    return result.v;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  protected void _put(K key, V val) {
+    cache.put(key, new VWithTime(val, S.now()));
+  }
+
+  class VWithTime {
+    public final V v;
+    public final long putInTime;
+
+    public VWithTime(V v, long time) {
+      this.v = v;
+      this.putInTime = time;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    protected V _get(K key) {
-        final VWithTime result = (VWithTime) cache.get(key);
-        if (result.needExpire(expireTime)) {
-            this.remove(key);
-            return null;
-        }
-        return result.v;
+    public boolean needExpire(long interval) {
+      return interval < (S.now() - putInTime);
     }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    protected void _put(K key, V val) {
-        cache.put(key, new VWithTime(val, S.now()));
-    }
-
-    class VWithTime {
-        public final V v;
-        public final long putInTime;
-
-        public VWithTime(V v, long time) {
-            this.v = v;
-            this.putInTime = time;
-        }
-
-        public boolean needExpire(long interval) {
-            return interval < (S.now() - putInTime);
-        }
-    }
+  }
 }

@@ -5,14 +5,14 @@ package pond.db.sql.dialect;
  */
 public class MySQLDialect implements Dialect {
 
-    @Override
-    public String wrapKey(String key) {
-        return "`"+key+"`";
-    }
+  @Override
+  public String wrapKey(String key) {
+    return "`" + key + "`";
+  }
 
-    @Override
-    public String primaryKeyMarkOnCreate() {
-        return "varchar(64) primary key";
-    }
+  @Override
+  public String primaryKeyMarkOnCreate() {
+    return "varchar(64) primary key";
+  }
 
 }

@@ -8,50 +8,60 @@ import pond.core.Request;
 import pond.core.Response;
 import pond.core.spi.server.HttpContentParser;
 
-public interface BaseServer{
+import java.util.concurrent.Future;
 
-    Logger logger = org.slf4j.LoggerFactory.getLogger(BaseServer.class);
+public interface BaseServer {
 
-    //allowed env vars:
-    /**
-     Use SSL, [boolean]  when this option triggered,
-     the port is locked to 443
-     */
-    String SSL = "BaseServer.ssl";
+  Logger logger = org.slf4j.LoggerFactory.getLogger(BaseServer.class);
 
-    /**
-     * PORT
-     */
-    String PORT = "BaseServer.port";
+  //allowed env vars:
+  /**
+   * Use SSL, [boolean]  when this option triggered,
+   * the port is locked to 443
+   */
+  String SSL = "BaseServer.ssl";
 
-    /*
-     * max in-queue connection
-     */
-    String BACK_LOG = "BaseServer.backlog";
+  /**
+   * PORT
+   */
+  String PORT = "BaseServer.port";
 
-    /**
-     * locale
-     */
-    String LOCALE = "BaseServer.locale";
+  /*
+   * max in-queue connection
+   */
+  String BACK_LOG = "BaseServer.backlog";
 
-    /**
-     use the registered env("port") to get the listen port
-     */
-    void listen() throws Exception;
+  /**
+   * locale
+   */
+  String LOCALE = "BaseServer.locale";
 
-    //register process handler
-    void handler(Callback.C2<Request, Response> handler);
+  /**
+   * use the registered env("port") to get the listen port
+   * this method will block the thread
+   */
+  void listen();
+
+  /**
+   * stop server
+   * @throws Exception
+   */
+  void stop(Callback<Future> listener) throws Exception;
 
 
-    //get env
-    Object env(String key );
+  //register process handler
+  void handler(Callback.C2<Request, Response> handler);
 
-    void regEnv(Function<Object, String> f);
 
-    void regContentParser(HttpContentParser parser);
+  //get env
+  Object env(String key);
 
-    void pond(Pond pond);
+  void regEnv(Function<Object, String> f);
 
-    Pond pond();
+  void regContentParser(HttpContentParser parser);
+
+  void pond(Pond pond);
+
+  Pond pond();
 
 }

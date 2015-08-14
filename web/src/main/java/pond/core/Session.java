@@ -5,10 +5,10 @@ package pond.core;
  */
 public interface Session {
 
-    String id();
+  String id();
 
-    Object get(String key);
+  Object get(String key);
 
-    Session set(String key, Object value);
+  Session set(String key, Object value);
 
 }

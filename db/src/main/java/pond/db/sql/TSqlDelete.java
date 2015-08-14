@@ -5,24 +5,24 @@ package pond.db.sql;
  */
 public class TSqlDelete extends AbstractSql implements SqlDelete {
 
-    String table;
+  String table;
 
-    public TSqlDelete() {
-    }
+  public TSqlDelete() {
+  }
 
-    @Override
-    public SqlDelete from(String table) {
-        this.table = table;
-        return this;
-    }
+  @Override
+  public SqlDelete from(String table) {
+    this.table = table;
+    return this;
+  }
 
-    @Override
-    public String preparedSql() {
-        StringBuilder sql = new StringBuilder("DELETE FROM ");
-        sql.append(table);
-        if (!where.isEmpty())
-            sql.append(" WHERE ").append(String.join(" AND ", where));
-        return sql.toString();
-    }
+  @Override
+  public String preparedSql() {
+    StringBuilder sql = new StringBuilder("DELETE FROM ");
+    sql.append(table);
+    if (!where.isEmpty())
+      sql.append(" WHERE ").append(String.join(" AND ", where));
+    return sql.toString();
+  }
 
 }

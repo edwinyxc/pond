@@ -4,30 +4,35 @@ package pond.common.f;
  * A final holder for non-final value
  */
 public class Holder<T> {
-    protected T val;
+  protected T val;
 
-    public Holder<T> init(T t) {
-        this.val = t;
-        return this;
+  public Holder<T> init(T t) {
+    this.val = t;
+    return this;
+  }
+
+  public T val() {
+    return val;
+  }
+
+  public Holder<T> val(T t) {
+    val = t;
+    return this;
+  }
+
+
+  public static class AccumulatorInt extends Holder<Integer> {
+    public AccumulatorInt(int i) {
+      this.val = i;
     }
 
-    public T val(){
-        return val;
+    public Integer accum() {
+      return accum(1);
     }
 
-    public Holder<T> val(T t){
-        val = t;
-        return this;
+    public Integer accum(int i) {
+      val = val + i;
+      return val;
     }
-
-
-    public static class AccumulatorInt extends Holder<Integer> {
-        public AccumulatorInt(int i) {
-            this.val = i;
-        }
-
-        public Integer accum() {
-            return val++;
-        }
-    }
+  }
 }

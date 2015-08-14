@@ -7,27 +7,27 @@ import pond.common.f.Tuple;
  */
 public interface SqlSelect extends Sql, SqlWhere<SqlSelect> {
 
-    public SqlSelect from(String table);
+  public SqlSelect from(String table);
 
-    public SqlSelect join(String table);
+  public SqlSelect join(String table);
 
-    public SqlSelect on(String... conditions);
+  public SqlSelect on(String... conditions);
 
-    public SqlSelect groupBy(String... columns);
+  public SqlSelect groupBy(String... columns);
 
-    public SqlSelect having(Tuple.T3<String, Criterion, Object[]>... conditions);
+  public SqlSelect having(Tuple.T3<String, Criterion, Object[]>... conditions);
 
-    public SqlSelect orderBy(String... columns);
+  public SqlSelect orderBy(String... columns);
 
-    public SqlSelect limit(int limit);
+  public SqlSelect limit(int limit);
 
-    public SqlSelect offset(int offset);
+  public SqlSelect offset(int offset);
 
-    public SqlSelect count();
+  public SqlSelect count();
 
-    public SqlSelect copy();
+  public SqlSelect copy();
 
-    public SqlSelect fields(String... fields);
+  public SqlSelect fields(String... fields);
 
 
 }

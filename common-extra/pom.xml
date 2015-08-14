@@ -5,11 +5,11 @@
     <parent>
         <artifactId>pond-parent</artifactId>
         <groupId>com.shuimin</groupId>
-        <version>0.1.3</version>
+        <version>0.1.4</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>pond-common-cli</artifactId>
+    <artifactId>pond-common-extra</artifactId>
 
     <dependencies>
         <dependency>
