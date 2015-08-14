@@ -77,7 +77,10 @@ public class JDBCTmpl implements Closeable {
     public int getType(String table, String field) {
         if (dbStructure == null)
             throw new RuntimeException(" dbStructure must not null");
-        return dbStructure.getOrDefault(table, Collections.emptyMap()).get(field);
+        Integer ret = dbStructure.getOrDefault(table, Collections.emptyMap()).get(field);
+        if (ret == null)
+            throw new IllegalArgumentException("Cannot find field in dbStructure: " + field);
+        return ret;
     }
 
 
@@ -125,7 +128,7 @@ public class JDBCTmpl implements Closeable {
 //    }
 
     public <R extends Record> List<R> query(Class<R> clazz,
-                             Tuple<String, Object[]> mix) {
+                                            Tuple<String, Object[]> mix) {
         return query(Proto.proto(clazz), mix._a, mix._b);
     }
 
@@ -252,7 +255,7 @@ public class JDBCTmpl implements Closeable {
         String pkLbl = r.idName();
         SqlSelect select =
                 Sql.select().from(tableName).where(pkLbl, Criterion.EQ, id);
-        return  S._for(this.query(clazz, select.tuple())).first();
+        return S._for(this.query(clazz, select.tuple())).first();
 
     }
 
@@ -260,6 +263,7 @@ public class JDBCTmpl implements Closeable {
     /*----CURD
     Record#db
     -------*/
+
     /**
      * <pre>
      * Query record(s) on specified arguments

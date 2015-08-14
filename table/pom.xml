@@ -43,7 +43,7 @@
         <dependency>
             <groupId>com.shuimin</groupId>
             <artifactId>pond-common</artifactId>
-            <version>0.1.2</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

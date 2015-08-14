@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
-import pond.common.f.Tuple;
 import pond.db.connpool.ConnectionPool;
 import pond.db.connpool.SimplePool;
 import pond.db.sql.dialect.Dialect;
@@ -102,12 +101,8 @@ public final class DB {
      * Returns a tmpl
      */
     JDBCTmpl open() throws SQLException {
-        long s = S.now();
         Connection connection = connProvider.apply();
-        S.echo("get connection time usage: " + (S.now() - s));
-        JDBCTmpl tmp = new JDBCTmpl(this, connection);
-        S.echo("build tmpl: " + (S.now() - s));
-        return tmp;
+        return new JDBCTmpl(this, connection);
     }
 
     /**
