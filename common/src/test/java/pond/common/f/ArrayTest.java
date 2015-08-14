@@ -13,19 +13,18 @@ public class ArrayTest {
   public void testJoin() throws Exception {
     Integer[] joined = S.array(12, 2, 3, 14, 15).join();
     assertArrayEquals(new int[]{12, 2, 3, 14, 15},
-        (int[]) Convert.toPrimitiveArray(joined));
+                      (int[]) Convert.toPrimitiveArray(joined));
 
     joined = S.array(12, 2, 3, 14, 15).join(0);
     assertArrayEquals(new int[]{12, 0, 2, 0, 3, 0, 14, 0, 15},
-        (int[]) Convert.toPrimitiveArray(joined));
+                      (int[]) Convert.toPrimitiveArray(joined));
   }
 
 
   @Test
   public void testMap() throws Exception {
     Array<String> arr = S.array("This", "is", "A", "GOOD", "Day");
-    assertArrayEquals(arr.map(str -> str.toUpperCase()).join(),
-        S.array("THIS", "IS", "A", "GOOD", "DAY").join());
+    assertArrayEquals(arr.map(str -> str.toUpperCase()).join(), S.array("THIS", "IS", "A", "GOOD", "DAY").join());
   }
 
   @Test
@@ -51,16 +50,14 @@ public class ArrayTest {
   @Test
   public void testReverse() throws Exception {
     Array<Integer> arr = S.array(1, 2, 3, 4, 5, 6, 7, 8, 9);
-    assertArrayEquals(new int[]{9, 8, 7, 6, 5, 4, 3, 2, 1},
-        (int[]) Convert.toPrimitiveArray(arr.reverse().join()));
+    assertArrayEquals(new int[]{9, 8, 7, 6, 5, 4, 3, 2, 1}, (int[]) Convert.toPrimitiveArray(arr.reverse().join()));
   }
 
   @Test
   public void testConcat() throws Exception {
     Array<Integer> arr1 = S.array(1, 2, 3, 4, 5, 6);
     Array<Integer> arr2 = S.array(7, 8, 9);
-    assertArrayEquals(new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9},
-        (int[]) Convert.toPrimitiveArray(arr1.concat(arr2).join()));
+    assertArrayEquals(new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9}, (int[]) Convert.toPrimitiveArray(arr1.concat(arr2).join()));
   }
 
   @Test

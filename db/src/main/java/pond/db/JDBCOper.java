@@ -109,7 +109,7 @@ class JDBCOper implements Closeable {
   public void createIndex(String name, String table, String... columns)
       throws SQLException {
     execute(String.format("CREATE INDEX %s ON %s(%s)", name, table,
-        String.join(", ", Arrays.asList(columns))));
+                          String.join(", ", Arrays.asList(columns))));
   }
 
   public void dropIndex(String name, String table) throws SQLException {
@@ -152,8 +152,7 @@ class JDBCOper implements Closeable {
     }
 
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-      _debug(sql + "\n"
-          + S.dump(params));
+      _debug(sql + "\n" + S.dump(params));
 
       for (int i = 0; i < params.length; i++) {
         if (params[i] == null)

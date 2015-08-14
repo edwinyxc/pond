@@ -167,7 +167,7 @@ public class MatrixSubList {
     int[] ap;
     for (int r = 0; r < root_m.rows(); r++) {
       ap = root_m.row(r);
-			/*assert ap[0] < ap[1]*/
+      /*assert ap[0] < ap[1]*/
       if (cur < ap[0]) {
         root_m.set(r, 0, ap[0] + mod);
         root_m.set(r, 1, ap[1] + mod);

@@ -112,7 +112,7 @@ public class JDBCTmpl implements Closeable {
 
   public int count(String sql, Object[] params) {
     return S.avoidNull(S.<Integer>_for(query(counter, sql,
-        params)).first(), 0);
+                                             params)).first(), 0);
   }
 
   public int count(Tuple<String, Object[]> mix) {
@@ -145,15 +145,15 @@ public class JDBCTmpl implements Closeable {
     List<R> list = new ArrayList<>();
     long start = S.now();
     S._try(() -> oper.query(sql, args, rs -> {
-          S._debug(DB.logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
-          S._try(() -> {
-            while (rs.next()) {
-              //check
-              list.add((R) mapper.apply(rs));
-            }
-          });
-          S._debug(DB.logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
-        })
+             S._debug(DB.logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
+             S._try(() -> {
+               while (rs.next()) {
+                 //check
+                 list.add((R) mapper.apply(rs));
+               }
+             });
+             S._debug(DB.logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
+           })
     );
     return list;
   }
@@ -248,7 +248,6 @@ public class JDBCTmpl implements Closeable {
     }
   }
 
-
   public <E extends Record> E recordById(Class<E> clazz, String id) {
     Record r = Proto.proto(clazz);
     String tableName = r.table();
@@ -328,8 +327,8 @@ public class JDBCTmpl implements Closeable {
         for (List q_group : arg_groups) {
           if (q_group.size() > 2) {
             sqlSelect.where((String) q_group.remove(0),
-                (Criterion) q_group.remove(0),
-                (String[]) q_group.toArray(new String[q_group.size()]));
+                            (Criterion) q_group.remove(0),
+                            (String[]) q_group.toArray(new String[q_group.size()]));
           }
           //else ignore illegal arguments
         }
@@ -371,7 +370,7 @@ public class JDBCTmpl implements Closeable {
     S._debug(DB.logger, logger -> logger.debug(sql.debug()));
     try {
       return oper.execute(sql.preparedSql(), sql.params(),
-          getTypes(record.table(), keys)) > 0;
+                          getTypes(record.table(), keys)) > 0;
     } catch (SQLException e) {
       e.printStackTrace();
       throw new RuntimeSQLException(e);
@@ -386,7 +385,7 @@ public class JDBCTmpl implements Closeable {
     S._debug(DB.logger, logger -> logger.debug(sql.debug()));
     try {
       return oper.execute(sql.preparedSql(), sql.params(),
-          new int[]{getType(record.table(), record.idName())}) > 0;
+                          new int[]{getType(record.table(), record.idName())}) > 0;
     } catch (SQLException e) {
       e.printStackTrace();
       throw new RuntimeSQLException(e);

@@ -177,7 +177,7 @@ public class HttpStaticFileServerHandler extends SimpleChannelInboundHandler<Ful
     } else {
       sendFileFuture =
           ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(raf, 0, fileLength, 8192)),
-              ctx.newProgressivePromise());
+                            ctx.newProgressivePromise());
       // HttpChunkedInput will pipe the end marker (LastHttpContent) for us.
       lastContentFuture = sendFileFuture;
     }

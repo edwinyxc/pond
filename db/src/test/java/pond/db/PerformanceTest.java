@@ -40,8 +40,7 @@ public class PerformanceTest {
     }});
 
     for (int i = 0; i < 30; i++) {
-      S.echo(S.time(() -> db.get(t -> t.query(mapper,
-          "SELECT * FROM t_mgmt GROUP BY title"))));
+      S.echo(S.time(() -> db.get(t -> t.query(mapper, "SELECT * FROM t_mgmt GROUP BY title"))));
       S.echo(S.time(() -> db.get(t -> t.query("SELECT * FROM t_mgmt GROUP BY title"))));
     }
 
