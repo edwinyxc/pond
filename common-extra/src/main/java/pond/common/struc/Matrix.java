@@ -43,7 +43,7 @@ public class Matrix {
   public void addCol(int col, int[] values) {
     if (col > cols || col < 0) {
       Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
-          "invalid parameter:col");
+                                                      "invalid parameter:col");
       return;
     }
     int volume = cols * rows;
@@ -69,7 +69,7 @@ public class Matrix {
     /* here we assert size is ok */
 
     int old_cols = cols;
-		/* limit add cols */
+    /* limit add cols */
     cols += addColNum;
 		/* cols now is the new one. */
 
@@ -85,7 +85,7 @@ public class Matrix {
   public void addCols(int col, int[][] values) {
     if (col > cols || col < 0) {
       Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
-          "invalid parameter:col");
+                                                      "invalid parameter:col");
       return;
     }
     int times = values.length;
@@ -117,7 +117,7 @@ public class Matrix {
   public void addRow(int row, int[] values) {
     if (row > rows || row < 0) {
       Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
-          "invalid parameter:row:");
+                                                      "invalid parameter:row:");
       return;
     }
     modCapacity(cols);
@@ -146,7 +146,7 @@ public class Matrix {
   public void addRows(int row, int[][] values) {
     if (row > rows || row < 0) {
       Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
-          "invalid parameter:row:");
+                                                      "invalid parameter:row:");
       return;
     }
     int times = values.length;
@@ -178,7 +178,7 @@ public class Matrix {
   public void delCol(int col) {
     if (col >= cols || col < 0) {
       Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
-          "invalid parameter:col");
+                                                      "invalid parameter:col");
       return;
     }
     int volume = volume();
@@ -204,7 +204,7 @@ public class Matrix {
   public void delCols(int beginCol, int endCol) {
     if ((beginCol < 0 || endCol > rows) || beginCol > endCol) {
       Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
-          "invalid parameter:begin or end");
+                                                      "invalid parameter:begin or end");
       return;
     }
     int times = endCol - beginCol + 1;
@@ -230,7 +230,7 @@ public class Matrix {
   public void delRow(int row) {
     if (row >= rows || row < 0) {
       Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
-          "invalid parameter:row:");
+                                                      "invalid parameter:row:");
       return;
     }
     int begin_idx = row * cols;
@@ -244,14 +244,13 @@ public class Matrix {
   public void delRows(int beginRow, int endRow) {
     if ((beginRow < 0 || endRow > rows) || beginRow > endRow) {
       Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
-          "invalid parameter:begin or end");
+                                                      "invalid parameter:begin or end");
       return;
     }
     int times = endRow - beginRow + 1;
     int begin_idx = beginRow * cols;
     if ((begin_idx + cols * times) < data.length) {
-      System.arraycopy(data, begin_idx + cols * times, data, begin_idx,
-          cols * times);
+      System.arraycopy(data, begin_idx + cols * times, data, begin_idx, cols * times);
     }
     modCapacity(cols * -1);
     rows -= times;

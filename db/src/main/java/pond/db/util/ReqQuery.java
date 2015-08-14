@@ -46,9 +46,7 @@ public class ReqQuery {
           //eq
           conditions.add(Tuple.t3(f, Criterion.EQ, c_and_v));
         } else {
-          conditions.add(Tuple.t3(f,
-              Criterion.of(c_and_v[0]),
-              Arrays.copyOfRange(c_and_v, 1, c_and_v.length)
+          conditions.add(Tuple.t3(f, Criterion.of(c_and_v[0]), Arrays.copyOfRange(c_and_v, 1, c_and_v.length)
           ));
         }
       }

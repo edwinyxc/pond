@@ -39,8 +39,8 @@ public interface Sql {
       _debug[i] = avoidNull(p[i], "").toString();
     }
     return String.format("{ sql: %s, params: [ %s ]}",
-        preparedSql(),
-        String.join(",", _debug)
+                         preparedSql(),
+                         String.join(",", _debug)
     );
   }
 

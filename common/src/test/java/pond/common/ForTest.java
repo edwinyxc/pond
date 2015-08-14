@@ -2,8 +2,6 @@ package pond.common;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
-
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static pond.common.S._for;
@@ -38,8 +36,8 @@ public class ForTest {
   public void testReduceWithHead() {
 
     Integer[] arr = {1, 2, 3, 4, 5, 6, 6, 6344, 3, 2, 2, 3, 4};
-    int sum  = 0;
-    for(int i : arr) {
+    int sum = 0;
+    for (int i : arr) {
       sum = sum + i;
     }
     assertEquals((int) _for(arr).reduce((acc, r) -> acc + r), sum);

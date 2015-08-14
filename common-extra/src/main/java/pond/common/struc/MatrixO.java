@@ -257,22 +257,18 @@ public class MatrixO {
     Object[] newArr = new Object[volume - rows];
     int from = 0;
     int dest = 0;
-		/* limit get every to_del idx in every line */
+    /* limit get every to_del idx in every line */
     for (int i = col; i < volume; i += cols) {
       System.arraycopy(data, from, newArr, dest, col);
       from += cols;
       dest += col;
-			/* copy the rest one to the new array */
+      /* copy the rest one to the new array */
       if (col < cols) {
-        System.arraycopy(data,
-            i + 1,
-            newArr,
-            dest,
-            cols - col - 1);
+        System.arraycopy(data, i + 1, newArr, dest, cols - col - 1);
         dest += cols - col - 1;
       }
     }
-		/* reset the cols & rows */
+    /* reset the cols & rows */
     this.data = newArr;
     this.cols--;
   }
@@ -294,18 +290,9 @@ public class MatrixO {
     int _endCol = endCol;
 		/* limit get every to_del idx in every line */
     for (; from < volume; from += cols) {
-      System.arraycopy(data,
-          from,
-          newArr,
-          dest,
-          beginCol);
+      System.arraycopy(data, from, newArr, dest, beginCol);
       dest += beginCol;
-      System.arraycopy(data,
-          _endCol + 1,
-          newArr,
-          dest,
-          cols - endCol - 1);
-
+      System.arraycopy(data, _endCol + 1, newArr, dest, cols - endCol - 1);
       dest += cols - endCol - 1;
       _endCol += cols;
     }
@@ -339,13 +326,9 @@ public class MatrixO {
     int newCapacity = oldCapacity + amount;
     Object[] newData = new Object[newCapacity];
     if (amount > 0) {
-      System.arraycopy(data, 0,
-          newData, 0,
-          data.length);
+      System.arraycopy(data, 0, newData, 0, data.length);
     } else {
-      System.arraycopy(data, 0,
-          newData, 0,
-          newCapacity);
+      System.arraycopy(data, 0, newData, 0, newCapacity);
     }
     this.data = newData;
   }

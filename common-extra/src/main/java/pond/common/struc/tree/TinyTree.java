@@ -183,10 +183,9 @@ public class TinyTree<E> implements Tree<E> {
       if (t.isLast()) {
         prefix = "┗━━";
       }
-      view.addRows(t.isLeaf() ? MATRIX.fromString(new String[]{
-          prefix, t.name()})
-          : MATRIX.addHorizontal(MATRIX.fromString(prefix),
-          ((TinyTree<E>) t)._lines()));
+      view.addRows(t.isLeaf() ? MATRIX.fromString(prefix, t.name())
+                       : MATRIX.addHorizontal(MATRIX.fromString(prefix),
+                                              ((TinyTree<E>) t)._lines()));
       for (int i = 1; i < view.rows(); i++) {
         if (view.get(i, 0) == '┗') {
           break;

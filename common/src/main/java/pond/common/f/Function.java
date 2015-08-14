@@ -3,7 +3,7 @@ package pond.common.f;
 public interface Function<R, A> {
 
   /**
-   *  Function do nothing but return the argument as-is.
+   * Function do nothing but return the argument as-is.
    */
   static Function NOOP = a -> a;
 
