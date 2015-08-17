@@ -1,5 +1,6 @@
 package pond.db;
 
+import pond.common.ARRAY;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
@@ -366,7 +367,7 @@ public class JDBCTmpl implements Closeable {
 
     //TODO
     SqlInsert sql = Sql.insert().dialect(this.db.dialect);
-    sql.into(record.table()).values(S.array.of(values));
+    sql.into(record.table()).values(ARRAY.of(values));
     S._debug(DB.logger, logger -> logger.debug(sql.debug()));
     try {
       return oper.execute(sql.preparedSql(), sql.params(),
