@@ -112,11 +112,7 @@ public class JDBCTmpl implements Closeable {
 
   public int count(String sql, Object[] params) {
     return S.avoidNull(S.<Integer>_for(query(counter, sql,
-<<<<<<< HEAD
-        params)).first(), 0);
-=======
                                              params)).first(), 0);
->>>>>>> 28eb1a9... nightly v0.1.4
   }
 
   public int count(Tuple<String, Object[]> mix) {
@@ -149,17 +145,6 @@ public class JDBCTmpl implements Closeable {
     List<R> list = new ArrayList<>();
     long start = S.now();
     S._try(() -> oper.query(sql, args, rs -> {
-<<<<<<< HEAD
-          S._debug(DB.logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
-          S._try(() -> {
-            while (rs.next()) {
-              //check
-              list.add((R) mapper.apply(rs));
-            }
-          });
-          S._debug(DB.logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
-        })
-=======
              S._debug(DB.logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
              S._try(() -> {
                while (rs.next()) {
@@ -169,7 +154,6 @@ public class JDBCTmpl implements Closeable {
              });
              S._debug(DB.logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
            })
->>>>>>> 28eb1a9... nightly v0.1.4
     );
     return list;
   }
@@ -183,13 +167,6 @@ public class JDBCTmpl implements Closeable {
       return oper.execute(sql);
     } catch (SQLException e) {
       throw new RuntimeException(e);
-<<<<<<< HEAD
-    }
-  }
-
-  public int exec(String sql, Object[] params, int[] types) {
-    try {
-=======
     }
   }
 
@@ -227,82 +204,12 @@ public class JDBCTmpl implements Closeable {
         Class<?> clazz = params[i].getClass();
         types[i] = default_sql_type(clazz);
       }
->>>>>>> 28eb1a9... nightly v0.1.4
       return oper.execute(sql, params, types);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
 
-<<<<<<< HEAD
-
-  public int execRaw(String sql) {
-    try {
-      return oper.executeRawSQL(sql);
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * execute sql & params
-   *
-   * @param sql    sql
-   * @param params params
-   * @return affected row number
-   */
-  public int exec(String sql, Object... params) {
-    try {
-      int[] types = new int[params.length];
-      for (int i = 0; i < params.length; i++) {
-        Object o = params[i];
-        if (o == null)
-          throw new IllegalArgumentException("Do not use null values without specify its types.");
-        Class<?> clazz = params[i].getClass();
-        types[i] = default_sql_type(clazz);
-      }
-      return oper.execute(sql, params, types);
-=======
-  static int default_sql_type(Class<?> cls) {
-    if (cls.equals(Integer.class) || cls.equals(int.class)) {
-      return Types.INTEGER;
-    } else if (cls.equals(Long.class) || cls.equals(long.class)) {
-      //long -> big int works in mysql
-      return Types.BIGINT;
-    } else if (cls.equals(Double.class) || cls.equals(double.class)) {
-      return Types.DOUBLE;
-    } else if (cls.equals(Float.class) || cls.equals(float.class)) {
-      return Types.FLOAT;
-    } else if (cls.equals(Short.class) || cls.equals(short.class)) {
-      return Types.SMALLINT;
-    } else if (cls.equals(Boolean.class) || cls.equals(boolean.class)) {
-      return Types.BOOLEAN;
-    } else if (cls.equals(String.class)) {
-      return Types.VARCHAR;
-    } else if (cls.equals(Character.class) || cls.equals(char.class)) {
-      return Types.VARCHAR;
-    } else if (cls.equals(InputStream.class)) {
-      return Types.BLOB;
-    } else if (cls.equals(BigDecimal.class)) {
-      return Types.DECIMAL;
-    }
-    throw new IllegalArgumentException("Class " + cls.toString() + " not supported,please specify input types.");
-  }
-
-  public void queryRaw(String sql, Callback<ResultSet> doWithResultSet) {
-    queryRaw(sql, new String[0], doWithResultSet);
-  }
-
-  public void queryRaw(String sql, Object[] args, Callback<ResultSet> doWithResultSet) {
-    try {
-      oper.query(sql, args, doWithResultSet);
->>>>>>> 28eb1a9... nightly v0.1.4
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-<<<<<<< HEAD
   static int default_sql_type(Class<?> cls) {
     if (cls.equals(Integer.class) || cls.equals(int.class)) {
       return Types.INTEGER;
@@ -340,9 +247,6 @@ public class JDBCTmpl implements Closeable {
       throw new RuntimeException(e);
     }
   }
-
-=======
->>>>>>> 28eb1a9... nightly v0.1.4
 
   public <E extends Record> E recordById(Class<E> clazz, String id) {
     Record r = Proto.proto(clazz);
@@ -423,13 +327,8 @@ public class JDBCTmpl implements Closeable {
         for (List q_group : arg_groups) {
           if (q_group.size() > 2) {
             sqlSelect.where((String) q_group.remove(0),
-<<<<<<< HEAD
-                (Criterion) q_group.remove(0),
-                (String[]) q_group.toArray(new String[q_group.size()]));
-=======
                             (Criterion) q_group.remove(0),
                             (String[]) q_group.toArray(new String[q_group.size()]));
->>>>>>> 28eb1a9... nightly v0.1.4
           }
           //else ignore illegal arguments
         }
@@ -471,11 +370,7 @@ public class JDBCTmpl implements Closeable {
     S._debug(DB.logger, logger -> logger.debug(sql.debug()));
     try {
       return oper.execute(sql.preparedSql(), sql.params(),
-<<<<<<< HEAD
-          getTypes(record.table(), keys)) > 0;
-=======
                           getTypes(record.table(), keys)) > 0;
->>>>>>> 28eb1a9... nightly v0.1.4
     } catch (SQLException e) {
       e.printStackTrace();
       throw new RuntimeSQLException(e);
@@ -490,11 +385,7 @@ public class JDBCTmpl implements Closeable {
     S._debug(DB.logger, logger -> logger.debug(sql.debug()));
     try {
       return oper.execute(sql.preparedSql(), sql.params(),
-<<<<<<< HEAD
-          new int[]{getType(record.table(), record.idName())}) > 0;
-=======
                           new int[]{getType(record.table(), record.idName())}) > 0;
->>>>>>> 28eb1a9... nightly v0.1.4
     } catch (SQLException e) {
       e.printStackTrace();
       throw new RuntimeSQLException(e);
