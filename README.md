@@ -1,8 +1,24 @@
-Pond - 灵活，快速的web开发框架 （基于java 8)
-====
+##Pond - 灵活，快速的web开发框架 （基于java 8)
 
-pond-common 提供了一些函数式编程特性和一些有用的工具类
+###pond-common 提供了一些函数式编程特性和一些有用的工具类
 
+* 函数式编程语言特性 -- 鉴于java坑大,并不打算严格的套用FP原理和概念,所以只是部分加入，够用就行
+* 字符串处理
+* 路径处理
+* 常用数据结构  -- Matrix, Tree等
+* 创新的debug配置模式 -- 脱离具体实现，在更高的层次上控制Logger
+* 集成了Apache HttpClient 并做简单封装
+
+Code Example:
+
+    //debug
+    S._debug(logger, log -> {
+        Thread.sleep(3000) // do some heavy job
+        log.debug("xxxxx");
+    }
+
+    //PATH
+    assertEquals(PATH.classpathRoot(), S.class.getResource("/").getPath());
 
     //S.array -- easy creation
     Array<String> arr = S.array("This", "is", "A", "GOOD", "Day");
@@ -18,15 +34,14 @@ pond-common 提供了一些函数式编程特性和一些有用的工具类
     assertArrayEquals(new int[]{23}, (int[]) Convert.toPrimitiveArray(arr.filter(x -> x > 20).join()));
 
 
-pond-web 面向web的快速开发工具
+###pond-web 面向web的快速开发工具
 
- * 一套完整灵活的api, 非常类似express.js
- * 嵌入式http服务器 (test)
- * 来自express.js的中间件设计，从此远离传统aop
- * 基于正则的路由
- * 高度可指定
- * 默认采用Netty作为BaseServer
+ * 来自express.js的API
+ * 高度可制定 -- 您几乎可以在任何地方进行所谓aop编程
+ * 默认采用Netty作为BaseServer -- netty 的并发性能足够好
+ * 提供一个简单的静态文件服务 -- 不要使用在生产环境
 
+Code Example:
 
     //basic & config
     Pond.init(p -> p.loadConfig(new Properties()),
@@ -61,18 +76,31 @@ pond-web 面向web的快速开发工具
     }).listen();
 
 
+###pond-db - 数据库处理相关（默认提供mysql)
 
-pond-db - 数据库处理相关（默认提供mysql)
  * 自带简易链接池
- * 不强加模型，只针对表和记录进行抽象
+ * 不强加模型，只针对表和记录进行抽象 -- 可以非常快速的自定义模型
  * 自带Sql类，可以快速生成sql
  * 高并发性能和可配置的缓存机制
 
+Code Example:
 
-    //model
+    //Model Definition
+      public class BonusService extends Model{
+          {
+              db(App.getInstance().getDb());
+              table("t_bonus_service");
+              id("id");
+              field("name");
+              field("price");
+
+          }
+     //...
+
+    //Model-based data retrieving
     List<Model> m = db.get(t -> t.query(Model.class, "select * from t_model"));
 
-    //Concurrent
+    //Concurrent Test
     Holder.AccumulatorInt val = new Holder.AccumulatorInt(0);
     ExecutorService executorService = Executors.newFixedThreadPool(20);
     List<CompletableFuture> futures = new ArrayList<>();
@@ -112,4 +140,4 @@ pond-db - 数据库处理相关（默认提供mysql)
 ###详情请参考项目内测试代码和注释
 遇到坑了 ==> 请联系 edwinyxc@outlook.com
 
-:)
+欢迎大家一起来提修改意见 :)
