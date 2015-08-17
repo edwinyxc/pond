@@ -2,6 +2,11 @@ package pond.common.f;
 
 public interface Function<R, A> {
 
+  /**
+   *  Function do nothing but return the argument as-is.
+   */
+  static Function NOOP = a -> a;
+
   R apply(A t);
 
   interface F0<R> {
