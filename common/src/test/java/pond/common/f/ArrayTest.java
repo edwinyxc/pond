@@ -24,7 +24,8 @@ public class ArrayTest {
   @Test
   public void testMap() throws Exception {
     Array<String> arr = S.array("This", "is", "A", "GOOD", "Day");
-    assertArrayEquals(arr.map(str -> str.toUpperCase()).join(), S.array("THIS", "IS", "A", "GOOD", "DAY").join());
+    assertArrayEquals(arr.map(str -> str.toUpperCase()).join(),
+                      S.array("THIS", "IS", "A", "GOOD", "DAY").join());
   }
 
   @Test
