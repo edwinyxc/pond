@@ -127,8 +127,8 @@ public class SimplePool implements ConnectionPool {
   }
 
 
-  public static mysqlSimplePoolBuilder Mysql() {
-    return new mysqlSimplePoolBuilder();
+  public static MysqlSimplePoolBuilder mysql() {
+    return new MysqlSimplePoolBuilder();
   }
 
 

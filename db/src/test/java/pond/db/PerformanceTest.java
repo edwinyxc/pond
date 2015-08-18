@@ -21,7 +21,7 @@ import java.util.Map;
 public class PerformanceTest {
 
   //tested in our studio server
-  public static DataSource localDataSource = SimplePool.Mysql()
+  public static DataSource localDataSource = SimplePool.mysql()
       .host("localhost")
       .database("shuimin_map")
       .username("root")

@@ -9,7 +9,7 @@ import javax.sql.DataSource;
  */
 public class TestTransaction {
   //tested in our studio server
-  public static DataSource localDataSource = SimplePool.Mysql()
+  public static DataSource localDataSource = SimplePool.mysql()
       .host("localhost")
       .database("test")
       .username("root")

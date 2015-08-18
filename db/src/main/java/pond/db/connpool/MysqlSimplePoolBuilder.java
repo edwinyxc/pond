@@ -2,7 +2,7 @@ package pond.db.connpool;
 
 import pond.common.S;
 
-public class mysqlSimplePoolBuilder {
+public class MysqlSimplePoolBuilder {
 
   String mysqlDriver = "com.mysql.jdbc.Driver";
   int capacity = 10;
@@ -12,35 +12,35 @@ public class mysqlSimplePoolBuilder {
   String username;
   String password;
 
-  public mysqlSimplePoolBuilder() {
+  public MysqlSimplePoolBuilder() {
   }
 
-  public mysqlSimplePoolBuilder host(String host) {
+  public MysqlSimplePoolBuilder host(String host) {
     this.host = host;
     return this;
   }
 
-  public mysqlSimplePoolBuilder database(String database) {
+  public MysqlSimplePoolBuilder database(String database) {
     this.database = database;
     return this;
   }
 
-  public mysqlSimplePoolBuilder query(String query) {
+  public MysqlSimplePoolBuilder query(String query) {
     this.query = query;
     return this;
   }
 
-  public mysqlSimplePoolBuilder username(String username) {
+  public MysqlSimplePoolBuilder username(String username) {
     this.username = username;
     return this;
   }
 
-  public mysqlSimplePoolBuilder password(String password) {
+  public MysqlSimplePoolBuilder password(String password) {
     this.password = password;
     return this;
   }
 
-  public mysqlSimplePoolBuilder capacity(int i) {
+  public MysqlSimplePoolBuilder capacity(int i) {
     this.capacity = i;
     return this;
   }
