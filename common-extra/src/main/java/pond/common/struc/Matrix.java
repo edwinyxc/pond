@@ -25,7 +25,7 @@ public class Matrix {
   public Matrix(final int[] values) {
     rows = 1;
     cols = values.length;
-    data = values;
+    data = values.clone();
   }
 
   public Matrix(final int[][] values) {

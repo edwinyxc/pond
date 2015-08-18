@@ -92,7 +92,7 @@ public class AbstractRecord extends HashMap<String, Object>
 
 
   @SuppressWarnings("unchecked")
-  public class SimpleField<E> implements Field<E> {
+  public static class SimpleField<E> implements Field<E> {
     String name;
 
     Function.F2<E, String, ResultSet> rs_mapper = (name, rs) ->

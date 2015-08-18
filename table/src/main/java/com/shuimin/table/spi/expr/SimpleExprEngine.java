@@ -21,7 +21,7 @@ public class SimpleExprEngine implements ExpressionEngine {
   public String getName(String expr) {
     Matcher matcher = varPattern.matcher(expr);
     if (matcher.find()) {
-      String ret = matcher.group(1);
+//      String ret = matcher.group(1);
       return matcher.group(1);
     }
     return "";

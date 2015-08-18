@@ -25,7 +25,13 @@ public class MemoryTable extends MatrixO implements Table {
 
   @Override
   public Object[][] toArray() {
-    return this.toArray();
+    Object[][] ret = new Object[rows][cols];
+    for (int r = 0; r < rows; r++) {
+      for(int c = 0; c < cols; c++) {
+        ret[r][c] = super.get(r,c);
+      }
+    }
+    return ret;
   }
 
   @Override

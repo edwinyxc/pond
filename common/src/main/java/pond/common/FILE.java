@@ -15,14 +15,16 @@ public class FILE {
    */
   public static Properties loadProperties(File conf) {
     return _try_ret(() -> {
-      Properties config = new Properties();
+      Properties configProp = new Properties();
       if (conf.exists() && conf.canRead())
-        config.load(new FileInputStream(conf));
+        try (FileInputStream fin = new FileInputStream(conf)) {
+          configProp.load(fin);
+        }
         //using default settings;
       else
-        System.out.println(
-            "Can`t read properties file, using default.");
-      return config;
+        S.echo("Can`t read properties file, using default.");
+
+      return configProp;
     });
   }
 
@@ -31,33 +33,20 @@ public class FILE {
    * Load properties from the file, under the classroot
    */
   public static Properties loadProperties(String fileName) {
-    return _try_ret(() -> {
-      Properties config = new Properties();
-      File conf = new File(PATH.classpathRoot()
-                               + File.separator + fileName);
-      if (conf.exists() && conf.canRead())
-        config.load(new FileInputStream(conf));
-        //using default settings;
-      else
-        System.out.println(
-            "Can`t read properties file, using default.");
-      return config;
-    });
+    File conf = new File(PATH.classpathRoot() + File.separator + fileName);
+    return loadProperties(conf);
   }
 
   public static void inputStreamToFile(InputStream ins, File file) throws IOException {
-    OutputStream os = new FileOutputStream(file);
-    int bytesRead = 0;
+    int bytesRead;
     byte[] buffer = new byte[8192];
-    while ((bytesRead = ins.read(buffer, 0, 8192)) != -1) {
-      os.write(buffer, 0, bytesRead);
-    }
-    os.close();
-    ins.close();
-  }
 
-  public static String fileNameFromPath(String path) {
-    return path.substring(path.lastIndexOf("\\") + 1);
+    try (InputStream is = ins;
+         OutputStream os = new FileOutputStream(file)) {
+      while ((bytesRead = is.read(buffer, 0, 8192)) != -1) {
+        os.write(buffer, 0, bytesRead);
+      }
+    }
   }
 
   /**
@@ -121,12 +110,13 @@ public class FILE {
     }
 
     String[] files = file.list();
+    S._assert(files);
     for (String file1 : files) {
       File f = new File(file, file1);
       if (f.isDirectory()) {
         rm(f);
       } else {
-        f.delete();
+        S._assert(f.delete());
       }
     }
     return file.delete();

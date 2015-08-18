@@ -39,9 +39,8 @@ public class JDBCTmpl implements Closeable {
     try {
       return (Integer) rs.getInt(1);
     } catch (SQLException e) {
-      e.printStackTrace();
+      throw new RuntimeSQLException(e);
     }
-    return 0;
   };
 
   private final JDBCOper oper;
@@ -373,7 +372,6 @@ public class JDBCTmpl implements Closeable {
       return oper.execute(sql.preparedSql(), sql.params(),
                           getTypes(record.table(), keys)) > 0;
     } catch (SQLException e) {
-      e.printStackTrace();
       throw new RuntimeSQLException(e);
     }
   }
@@ -388,7 +386,6 @@ public class JDBCTmpl implements Closeable {
       return oper.execute(sql.preparedSql(), sql.params(),
                           new int[]{getType(record.table(), record.idName())}) > 0;
     } catch (SQLException e) {
-      e.printStackTrace();
       throw new RuntimeSQLException(e);
     }
   }
@@ -418,7 +415,6 @@ public class JDBCTmpl implements Closeable {
     try {
       return oper.execute(sql.preparedSql(), sql.params(), types) > 0;
     } catch (SQLException e) {
-      e.printStackTrace();
       throw new RuntimeSQLException(e);
     }
   }
@@ -433,7 +429,6 @@ public class JDBCTmpl implements Closeable {
     try {
       return oper.getTableNames();
     } catch (SQLException e) {
-      e.printStackTrace();
       throw new RuntimeSQLException(e);
     }
   }

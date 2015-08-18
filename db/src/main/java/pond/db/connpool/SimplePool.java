@@ -39,13 +39,11 @@ public class SimplePool implements ConnectionPool {
   public SimplePool config(String driver, String url, String username,
                            String password) {
 
-
     try {
       Class.forName(driver);
     } catch (ClassNotFoundException e) {
-      e.printStackTrace();
+      DB.logger.error("ClassNotFound", e);
     }
-
 
     DB.logger.info("driver_class ->" + driver);
 
@@ -73,8 +71,7 @@ public class SimplePool implements ConnectionPool {
       }
     } catch (InterruptedException e) {
       S._debug(DB.logger, logger -> {
-        logger.debug("InterruptedException when initializing SimplePool");
-        e.printStackTrace();
+        logger.debug("InterruptedException when initializing simplePool", e);
       });
     }
 
@@ -96,8 +93,7 @@ public class SimplePool implements ConnectionPool {
       availableConnections.put(connection);
     } catch (InterruptedException e) {
       S._debug(DB.logger, logger -> {
-        logger.debug(e.toString());
-        e.printStackTrace();
+        logger.debug(e.toString(), e);
       });
     }
   }
@@ -131,8 +127,8 @@ public class SimplePool implements ConnectionPool {
   }
 
 
-  public static MysqlSimplePoolBuilder Mysql() {
-    return new MysqlSimplePoolBuilder();
+  public static mysqlSimplePoolBuilder Mysql() {
+    return new mysqlSimplePoolBuilder();
   }
 
 

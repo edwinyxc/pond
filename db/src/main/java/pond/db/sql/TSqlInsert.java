@@ -47,7 +47,7 @@ public class TSqlInsert extends AbstractSql
         .append(" (")
         .append(String.join(", ", wrapForDialect(fields)))
         .append(") VALUES (")
-        .append(String.join(", ", _for(wrapForDialect(fields)).map(i -> "?").val()))
+        .append(String.join(", ", _for(wrapForDialect(fields)).map(i -> "?")))
         .append(")");
     return sql.toString();
   }

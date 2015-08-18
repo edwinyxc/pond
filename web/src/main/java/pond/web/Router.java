@@ -54,8 +54,7 @@ public class Router implements Mid, RouterAPI {
 //            }
 //        }
     // 通配获得最小为优先, * 通配符优先级最低
-    Iterable<Route> resultList = _for(routes)
-        .filter(r -> r.match(path)).val();
+    Iterable<Route> resultList = _for(routes).filter(r -> r.match(path));
 
     Route route_f = _for(resultList)
         .reduce((r, r1) -> {

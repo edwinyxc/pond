@@ -59,7 +59,6 @@ public class MATRIX {
   }
 
   public static Matrix fromString(String... s) {
-    S.echo(s);
     final int maxLen = S.array(s).reduce(
         (String a, String b) -> {
           if (a == null || b == null) {

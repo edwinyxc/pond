@@ -249,9 +249,7 @@ public final class Pond implements RouterAPI {
 
   public <E> E spi(Class<E> s) {
     E e = SPILoader.service(s);
-    if (e == null)
-      throw new NullPointerException(s.getSimpleName() + "not found");
-    else if (e instanceof EnvSPI) {
+    if (e instanceof EnvSPI) {
       ((EnvSPI) e).env(this.config);
     }
     logger.info("SPI-INJECT " +
@@ -274,7 +272,7 @@ public final class Pond implements RouterAPI {
     try {
       server.stop(Callback.NOOP);
     } catch (Exception e) {
-      e.printStackTrace();
+      Pond.logger.error(e.getMessage(), e);
     }
   }
 

@@ -149,11 +149,12 @@ public class XLSTable extends RowBasedModelTable
 
   private void setCellValue(HSSFCell cell, Object val) {
     if (cell != null) {
-      Class c = val.getClass();
       if (val == null) {
         //todo
         cell.setCellValue("");
+        return;
       }
+      Class c = val.getClass();
       if (val instanceof Date) {
         cell.setCellValue((Date) val);
       } else if (val instanceof Integer) {
@@ -193,12 +194,7 @@ public class XLSTable extends RowBasedModelTable
 
   @Override
   public Object[][] toArray() {
-    return _value;
-  }
-
-  @Override
-  public Table clone() throws CloneNotSupportedException {
-    return (Table) super.clone();
+    return _value.clone();
   }
 
   public void close() {
@@ -208,7 +204,7 @@ public class XLSTable extends RowBasedModelTable
       try {
         is.close();
       } catch (IOException e) {
-        e.printStackTrace();
+        throw new RuntimeException(e);
       }
     }
   }

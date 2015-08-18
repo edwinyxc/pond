@@ -1,7 +1,7 @@
 package pond.common.f;
 
 public abstract class Option<T> implements Iterable<T> {
-  public static None<Object> _none = new None<Object>();
+  public final static None<Object> _none = new None<Object>();
 
   @SuppressWarnings("unchecked")
   public static <T> None<T> none() {
