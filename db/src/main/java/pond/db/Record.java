@@ -105,11 +105,8 @@ public interface Record {
     try {
       T t = S.newInstance(recordClass);
       return (T) t.init();
-    } catch (InstantiationException
-        | IllegalAccessException e) {
-      S._debug(DB.logger, logger -> {
-        e.printStackTrace();
-      });
+    } catch (InstantiationException | IllegalAccessException e) {
+      S._debug(DB.logger, logger -> logger.debug(e.getMessage(),e));
       throw new RuntimeException(e);
     }
   }

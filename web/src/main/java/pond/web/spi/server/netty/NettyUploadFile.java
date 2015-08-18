@@ -2,7 +2,9 @@ package pond.web.spi.server.netty;
 
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.handler.codec.http.multipart.FileUpload;
+import pond.web.Pond;
 import pond.web.Request;
+import pond.web.spi.BaseServer;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +51,7 @@ public class NettyUploadFile implements Request.UploadFile {
     try {
       dump.append("PATH: ").append(this.file().getAbsoluteFile()).append("\n");
     } catch (IOException e) {
-      e.printStackTrace();
+      BaseServer.logger.error(e.getMessage(), e);
     }
     return dump.toString();
   }

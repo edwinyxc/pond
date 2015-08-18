@@ -42,16 +42,6 @@ public class STest {
     assertEquals("set!", map.get("e"));
   }
 
-  @Test
-  public void test_getOrDefault() throws Exception {
-    Map map = S._tap(new HashMap<>(), m -> {
-      m.put("a", "aa");
-      m.put("b", "bb");
-      m.put("c", "cc");
-    });
-    assertEquals("dd", S._getOrDefault(map, "d", "dd"));
-  }
-
   @Test(expected = Exception.class)
   public void test_fail() throws Exception {
     S._fail();

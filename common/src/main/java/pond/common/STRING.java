@@ -1,5 +1,6 @@
 package pond.common;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.List;
@@ -88,12 +89,12 @@ public class STRING {
    * @return camel case version of underscore.
    */
   public static String camelize(String underscore, boolean capitalizeFirstChar) {
-    String result = "";
+    StringBuilder result = new StringBuilder("");
     StringTokenizer st = new StringTokenizer(underscore, "_");
     while (st.hasMoreTokens()) {
-      result += capitalize(st.nextToken());
+      result.append(capitalize(st.nextToken()));
     }
-    return capitalizeFirstChar ? result : result.substring(0, 1).toLowerCase() + result.substring(1);
+    return capitalizeFirstChar ? result.toString() : result.substring(0, 1).toLowerCase() + result.substring(1);
   }
 
   /**
@@ -116,7 +117,7 @@ public class STRING {
   public static String underscore(String camel) {
 
     List<Integer> upper = new ArrayList<Integer>();
-    byte[] bytes = camel.getBytes();
+    byte[] bytes = camel.getBytes(Charset.defaultCharset());
     for (int i = 0; i < bytes.length; i++) {
       byte b = bytes[i];
       if (b < 97 || b > 122) {

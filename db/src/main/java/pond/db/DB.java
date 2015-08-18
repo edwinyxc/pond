@@ -31,9 +31,9 @@ import static pond.common.f.Function.F0;
  */
 public final class DB {
 
-  public static Logger logger = LoggerFactory.getLogger(DB.class);
+  public final static Logger logger = LoggerFactory.getLogger(DB.class);
 
-  public static ConnectionPool SimplePool(Properties config) {
+  public static ConnectionPool simplePool(Properties config) {
     ConnectionPool cp = new SimplePool();
     cp.loadConfig(config);
     return cp;
@@ -142,8 +142,7 @@ public final class DB {
       return table_types;
 
     } catch (SQLException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
+      throw new RuntimeSQLException(e);
     } finally {
       try {
         if (rs_db != null)
@@ -153,7 +152,7 @@ public final class DB {
         if (conn != null)
           conn.close();
       } catch (SQLException e) {
-        e.printStackTrace();
+        throw new RuntimeSQLException(e);
       }
     }
   }

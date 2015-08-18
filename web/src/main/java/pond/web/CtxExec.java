@@ -20,14 +20,14 @@ public class CtxExec {
   static void unwrapRuntimeException(RuntimeException e, Response resp) {
     Throwable t = e.getCause();
     if (t == null) {
-      e.printStackTrace();
+      Pond.logger.error(e.getMessage(),e);
       resp.send(500, e.getMessage());
       return;
     }
     if (t instanceof RuntimeException) {
       unwrapRuntimeException((RuntimeException) t, resp);
     } else {
-      t.printStackTrace();
+      Pond.logger.error(t.getMessage(),t);
       resp.send(500, t.getMessage());
     }
   }
@@ -64,8 +64,8 @@ public class CtxExec {
         ctx.resp.send(404);
     } catch (RuntimeException e) {
       unwrapRuntimeException(e, ctx.resp);
-    } catch (Throwable e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      Pond.logger.error("Internal Error", e);
       ctx.resp.send(500, e.getMessage());
     } finally {
       Ctx thctx;

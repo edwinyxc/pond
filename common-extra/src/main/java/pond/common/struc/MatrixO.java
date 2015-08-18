@@ -9,8 +9,8 @@ import java.util.logging.Logger;
  * @author ed
  */
 public class MatrixO {
-  private Object[] data;
-  private int cols, rows;
+  protected Object[] data;
+  protected int cols, rows;
 
   public MatrixO(Object[][] values) {
     rows = values.length;

@@ -88,8 +88,6 @@ public class NettyHttpServer extends AbstractServer {
 
   class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
-    private HttpData partialContent;
-
     private HttpPostRequestDecoder decoder;
 
     HttpRequest httpRequest = null;
@@ -133,11 +131,14 @@ public class NettyHttpServer extends AbstractServer {
         reqWrapper = new NettyReqWrapper(ctx, httpRequest);
 
         //parse headers
-        reqWrapper.updateHeaders(headers ->
-                                     S._for(httpRequest.headers()).each(entry ->
-                                                                            HttpUtils.appendToMap(headers, entry.getKey().toString(),
-                                                                                                  httpRequest.headers().getAllAndConvert(entry.getKey()))
-                                     )
+        reqWrapper.updateHeaders(
+            headers ->
+                S._for(httpRequest.headers()).each(
+                    entry ->
+                        HttpUtils.appendToMap(headers,
+                                              entry.getKey().toString(),
+                                              httpRequest.headers().getAllAndConvert(entry.getKey()))
+                )
         );
 
         //uri-queries
@@ -154,17 +155,18 @@ public class NettyHttpServer extends AbstractServer {
         reqWrapper.updateCookies(
             cookies ->
                 S._for(ServerCookieDecoder.decode(S.avoidNull(request.headers().getAndConvert(HttpHeaderNames.COOKIE), "")))
-                    .each(cookie -> S._tap(new Cookie(cookie.name(), cookie.value()),
-                                           c -> {
-                                             c.setSecure(cookie.isSecure());
-                                             c.setPath(cookie.path());
-                                             c.setVersion(cookie.version());
-                                             c.setMaxAge((int) cookie.maxAge());
-                                             c.setHttpOnly(cookie.isHttpOnly());
-                                             if (STRING.notBlank(cookie.domain()))
-                                               c.setDomain(cookie.domain());
-                                             c.setComment(cookie.comment());
-                                           })
+                    .each(cookie
+                              -> S._tap(new Cookie(cookie.name(), cookie.value()),
+                                        c -> {
+                                          c.setSecure(cookie.isSecure());
+                                          c.setPath(cookie.path());
+                                          c.setVersion(cookie.version());
+                                          c.setMaxAge((int) cookie.maxAge());
+                                          c.setHttpOnly(cookie.isHttpOnly());
+                                          if (STRING.notBlank(cookie.domain()))
+                                            c.setDomain(cookie.domain());
+                                          c.setComment(cookie.comment());
+                                        })
                     )
 
         );
@@ -181,7 +183,6 @@ public class NettyHttpServer extends AbstractServer {
               || method.equals(HttpMethod.PATCH)) {
             try {
               decoder = new HttpPostRequestDecoder(factory, request);
-              decoder.isMultipart();
             } catch (HttpPostRequestDecoder.ErrorDataDecoderException err) {
               logger.error(err.getMessage(), err);
               sendBadRequest(ctx);
@@ -308,7 +309,7 @@ public class NettyHttpServer extends AbstractServer {
             try {
               NettyHttpServer.this.handler().apply(reqWrapper, respWrapper);
               return actionCompleteNotification;
-            } catch (Throwable th) {
+            } catch (Exception th) {
               actionCompleteNotification.setCause(th);
               return actionCompleteNotification;
             }
@@ -360,11 +361,11 @@ public class NettyHttpServer extends AbstractServer {
       while (decoder.hasNext()) {
         InterfaceHttpData data = decoder.next();
         if (data != null) {
-          // check if current HttpData is a FileUpload and previously set as partial
-          if (partialContent == data) {
-            S._debug(logger, log -> log.debug(" 100% (FinalSize: " + partialContent.length() + ")" + " 100% (FinalSize: " + partialContent.length() + ")"));
-            partialContent = null;
-          }
+//          // check if current HttpData is a FileUpload and previously set as partial
+//          if (partialContent == data) {
+//            S._debug(logger, log -> log.debug(" 100% (FinalSize: " + partialContent.length() + ")" + " 100% (FinalSize: " + partialContent.length() + ")"));
+////            partialContent = null;
+//          }
 
           InterfaceHttpData.HttpDataType type = data.getHttpDataType();
 
@@ -377,7 +378,7 @@ public class NettyHttpServer extends AbstractServer {
                 try {
                   log.debug("PARSE ATTR: " + attr.getName() + " : " + attr.getValue());
                 } catch (IOException e) {
-                  e.printStackTrace();
+                  throw new RuntimeException(e);
                 }
               });
 
@@ -392,7 +393,7 @@ public class NettyHttpServer extends AbstractServer {
                                 + " : " + fileUpload.getFilename()
                                 + " : " + fileUpload.getFile().getAbsolutePath());
                 } catch (IOException e) {
-                  e.printStackTrace();
+                  throw new RuntimeException(e);
                 }
               });
               fileUploads.add(fileUpload);
@@ -526,10 +527,7 @@ public class NettyHttpServer extends AbstractServer {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
       clean();
 
-      S._debug(BaseServer.logger, logger -> {
-        logger.debug(cause.getMessage());
-        cause.printStackTrace();
-      });
+      S._debug(BaseServer.logger, logger -> logger.debug(cause.getMessage(), cause));
 
       if (ctx.channel().isActive()) {
         //send error and close
@@ -582,7 +580,7 @@ public class NettyHttpServer extends AbstractServer {
       serverChannelFuture.channel().closeFuture().sync();
 
     } catch (InterruptedException e) {
-      e.printStackTrace();
+      logger.error(e.getMessage(), e);
     } finally {
       workerGroup.shutdownGracefully();
       bossGroup.shutdownGracefully();

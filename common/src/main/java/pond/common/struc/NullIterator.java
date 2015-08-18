@@ -1,6 +1,7 @@
 package pond.common.struc;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class NullIterator<E> implements Iterator<E> {
 
@@ -11,7 +12,7 @@ public class NullIterator<E> implements Iterator<E> {
 
   @Override
   public E next() {
-    return null;
+    throw new NoSuchElementException("null iterator");
   }
 
   @Override

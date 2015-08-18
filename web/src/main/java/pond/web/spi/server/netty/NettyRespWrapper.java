@@ -5,6 +5,7 @@ import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
 import pond.common.S;
+import pond.web.Pond;
 import pond.web.Response;
 import pond.web.http.Cookie;
 import pond.web.http.MimeTypes;
@@ -95,7 +96,8 @@ public class NettyRespWrapper implements Response {
       raf = new RandomAccessFile(file, "r");
     } catch (FileNotFoundException ignored) {
       //TODO
-      ignored.printStackTrace();
+      //ignored.printStackTrace();
+      BaseServer.logger.error(ignored.getMessage(), ignored);
       sendError(404, HttpResponseStatus.NOT_FOUND.toString());
       return;
     }
@@ -162,10 +164,7 @@ public class NettyRespWrapper implements Response {
 
     //sendNormal
 
-    boolean keepAlive;
-
-
-    if (keepAlive = HttpHeaderUtil.isKeepAlive(request)) {
+    if (HttpHeaderUtil.isKeepAlive(request)) {
 
       resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 

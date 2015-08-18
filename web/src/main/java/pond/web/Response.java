@@ -1,6 +1,8 @@
 package pond.web;
 
 import pond.common.S;
+import pond.common.STREAM;
+import pond.common.STRING;
 import pond.web.http.Cookie;
 
 import java.io.*;
@@ -63,23 +65,6 @@ public interface Response {
 
   default void sendFile(File file) {
     sendFile(file, 0, file.length());
-  }
-
-  /**
-   * @deprecated v1.0之后请使用 Renderable#attachment
-   */
-  @Deprecated
-  default void sendStream(InputStream in, String filename) {
-    String filen = S.str.notBlank(filename) ? filename :
-        String.valueOf(S.time());
-    header("Content-disposition", "attachment;filename=" + filen);
-    try {
-      S.stream.pipe(in, this.out());
-      status(200);
-    } catch (IOException e) {
-      status(500);
-      e.printStackTrace();
-    }
   }
 
   /**

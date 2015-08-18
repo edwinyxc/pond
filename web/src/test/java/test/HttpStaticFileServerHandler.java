@@ -22,7 +22,9 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.CharsetUtil;
+import pond.common.PATH;
 import pond.common.S;
+import pond.web.spi.BaseServer;
 
 import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
@@ -207,7 +209,7 @@ public class HttpStaticFileServerHandler extends SimpleChannelInboundHandler<Ful
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-    cause.printStackTrace();
+    BaseServer.logger.error(cause.getMessage(), cause);
     if (ctx.channel().isActive()) {
       sendError(ctx, INTERNAL_SERVER_ERROR);
     }
@@ -240,7 +242,7 @@ public class HttpStaticFileServerHandler extends SimpleChannelInboundHandler<Ful
     }
 
     // Convert to absolute path.
-    return S.path.detectWebRootPath() + File.separator + uri;
+    return PATH.detectWebRootPath() + File.separator + uri;
   }
 
   private static final Pattern ALLOWED_FILE_NAME = Pattern.compile("[A-Za-z0-9][-_A-Za-z0-9\\.]*");

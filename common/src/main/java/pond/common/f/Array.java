@@ -25,7 +25,8 @@ public class Array<E> extends ArrayList<E> implements FIterable<E> {
   }
 
   public Array(Iterable<E> iterable) {
-    for (E e : iterable) {
+
+    for (E e : S.avoidNull(iterable, Collections.<E>emptyList())) {
       add(e);
     }
   }

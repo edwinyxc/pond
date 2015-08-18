@@ -166,7 +166,9 @@ class DefaultStaticFileServer implements Mid {
         .append("<ul>")
         .append("<li><a href=\"../\">..</a></li>\r\n");
 
-    for (File f : dir.listFiles()) {
+    File[] files = dir.listFiles();
+    S._assert(files);
+    for (File f : files) {
       if (f.isHidden() || !f.canRead()) {
         continue;
       }

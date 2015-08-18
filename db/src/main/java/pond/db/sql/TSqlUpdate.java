@@ -41,7 +41,7 @@ public class TSqlUpdate extends AbstractSql
     StringBuilder sql = new StringBuilder("UPDATE ");
     sql.append(table)
         .append(" SET ")
-        .append(String.join(", ", _for(wrapForDialect(fields)).map(i -> i + " = ?").val()));
+        .append(String.join(", ", _for(wrapForDialect(fields)).map(i -> i + " = ?")));
     if (!where.isEmpty()) {
       sql.append(" WHERE ").append(String.join(" AND ", where));
     }

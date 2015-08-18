@@ -36,7 +36,7 @@ INSERT INTO test values('2334','2333334');*/
   @Before
   public void init() {
 
-//        this.dataSource = new SimplePool().loadConfig(S.file.loadProperties("cp.conf"));
+//        this.dataSource = new simplePool().loadConfig(S.file.loadProperties("cp.conf"));
 
     this.dataSource = new SimplePool().config(
         "com.mysql.jdbc.Driver",

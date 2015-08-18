@@ -280,20 +280,14 @@ public class S {
       return (String) o;
     } else if (o instanceof Iterable) {
       return "["
-          + String.join(",",
-                        avoidNull(_for((Iterable) o).
-                                      map((i) -> (dump(i))).val(),
-                                  S.array()))
+          + String.join(",", avoidNull(_for((Iterable) o).map(S::dump), Collections.emptyList()))
           + "]";
     } else if (clazz.isArray()) {
       Object[] oArr = new Object[java.lang.reflect.Array.getLength(o)];
       for (int i = 0; i < oArr.length; i++) {
         oArr[i] = java.lang.reflect.Array.get(o, i);
       }
-      return "["
-          + String.join(",", _for(oArr).
-          <String>map((i) -> (dump(i))).val())
-          + "]";
+      return "[" + String.join(",", _for(oArr).<String>map(S::dump)) + "]";
     } else if (o instanceof Map) {
       return _for((Map) o).map((i) -> (dump(i))).val().toString();
     } else {
@@ -302,7 +296,7 @@ public class S {
   }
 
   /**
-   * @return system current time as millseconds
+   * @return system current time as milliseconds
    * use now() instead
    */
   @Deprecated
@@ -335,7 +329,7 @@ public class S {
   /**
    * ****************** A ***************
    */
-  public static ARRAY array = new ARRAY();
+  final public static ARRAY array = new ARRAY();
 
   /**
    * ***************** C ********************
@@ -411,7 +405,7 @@ public class S {
 
   }
 
-  public static FILE file = new FILE();
+  final public static FILE file = new FILE();
 
   /**
    * ******************* M **********************
@@ -440,9 +434,9 @@ public class S {
     }
   }
 
-  public static PATH path = new PATH();
-  public static STREAM stream = new STREAM();
-  public static STRING str = new STRING();
+  final public static PATH path = new PATH();
+  final public static STREAM stream = new STREAM();
+  final public static STRING str = new STRING();
 
   public static class uuid {
 
