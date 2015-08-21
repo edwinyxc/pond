@@ -505,7 +505,7 @@ public class NettyHttpServer extends AbstractServer {
 
             resetDecoder();
 
-            if (content.refCnt() > 0) {
+            if (content != null && content.refCnt() > 0) {
                 content.release(content.refCnt());
             }
 
