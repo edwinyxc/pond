@@ -40,6 +40,8 @@ public interface Request {
 
     Map<String, Cookie> cookies();
 
+    InputStream in();
+
     default String path() {
         return S._try_ret(() -> new URI(uri()).getPath());
     }

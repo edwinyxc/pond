@@ -270,6 +270,10 @@ public class NettyHttpServer extends AbstractServer {
                         }
                     }
 
+                    if(reqWrapper != null) {
+                        reqWrapper.content(content);
+                    }
+
                     //handle the http content TODO add hooks
                     if (contentType == null || contentType.toLowerCase().contains(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toLowerCase())) {
 
