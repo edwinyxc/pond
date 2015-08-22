@@ -2,7 +2,6 @@ package pond.web.spi.server.netty;
 
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.handler.codec.http.multipart.FileUpload;
-import pond.web.Pond;
 import pond.web.Request;
 import pond.web.spi.BaseServer;
 

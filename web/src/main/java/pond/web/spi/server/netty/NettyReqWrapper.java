@@ -1,5 +1,7 @@
 package pond.web.spi.server.netty;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.AsciiString;
@@ -10,6 +12,8 @@ import pond.common.S;
 import pond.web.http.AbstractRequest;
 import pond.web.http.Cookie;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.Map;
 
@@ -19,10 +23,16 @@ public class NettyReqWrapper extends AbstractRequest {
 
   final Channel channel;
 
+  InputStream _in;
 
   public NettyReqWrapper(ChannelHandlerContext ctx, HttpRequest req) {
     channel = ctx.channel();
     n_req = req;
+  }
+
+  public void content(ByteBuf content) {
+    S._assert(content);
+    _in = new ByteBufInputStream(content);
   }
 
   private String fullUri() {
@@ -81,6 +91,11 @@ public class NettyReqWrapper extends AbstractRequest {
   @Override
   public String remoteIp() {
     return channel.remoteAddress().toString();
+  }
+
+  @Override
+  public InputStream in() {
+    return _in;
   }
 
   @Override

@@ -1,7 +1,6 @@
 package pond.common;
 
 import pond.common.spi.JsonService;
-import pond.common.spi.json.AlibabaJson;
 
 import java.util.Map;
 
@@ -9,7 +8,8 @@ import java.util.Map;
  * JSON api
  */
 public class JSON {
-  static JsonService json = new AlibabaJson();
+
+  static JsonService json = SPILoader.service(JsonService.class);
 
   public static Map parse(String s) {
     return json.fromString(Map.class, s);

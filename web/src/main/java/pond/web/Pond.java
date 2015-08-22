@@ -2,32 +2,94 @@ package pond.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pond.common.FILE;
-import pond.common.PATH;
-import pond.common.S;
+import pond.common.*;
 import pond.common.f.Callback;
 import pond.common.spi.JsonService;
-import pond.common.spi.SPILoader;
 import pond.web.spi.BaseServer;
+import pond.web.spi.StaticFileServer;
 
 import java.io.File;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
-import static pond.common.S.avoidNull;
 
 /**
  * Main Class
  */
 public final class Pond implements RouterAPI {
 
+  //configurations
+  /***** Internal ****/
+  /**
+   *
+   */
+  public final static String CONFIG_FILE_NAME = "config";
+
+  /**
+   * web root
+   */
+  public final static String CONFIG_WEB_ROOT = "web_root";
+
+  /**
+   * class root
+   */
+  public final static String CONFIG_CLASS_ROOT = "class_root";
+
+  /**
+   *
+   */
+  public final static String CONFIG_SO_BACKLOG = "so_backlog";
+
+  public final static String CONFIG_SO_KEEPALIVE = "so_keepalive";
+
+  /*** Basic ***/
+
+  /**
+   * listening port
+   */
+  public final static String PORT = "port";
+
+  /**
+   * ssl function
+   */
+  public final static String ENABLE_SSL = "enable_ssl";
+
+  /**
+   * list dir when no index file found (else throw 404)
+   */
+  public final static String STATIC_SERVER_ENABLE_LISTING_DIR = "static_server_enable_listing_dir";
+
+  /**
+   * index file when access uri endsWith "/"
+   */
+  public final static String STATIC_SERVER_INDEX_FILE = "static_server_index_file";
+
+  /**
+   * Date format for cache control
+   */
+  public final static String STATIC_SERVER_HTTP_DATE_FORMAT = "static_server_http_date_format";
+
+  /**
+   * gmt timezone for http server
+   */
+  public final static String STATIC_SERVER_HTTP_DATE_GMT_TIMEZONE = "static_server_http_date_gmt_timezone";
+
+  /**
+   * seconds for cache-control
+   */
+  public final static String STATIC_SERVER_HTTP_CACHE_SECONDS = "static_server_http_cache_seconds";
+
+
+  //END of configurations
+
   static Logger logger = LoggerFactory.getLogger(Pond.class);
 
   private BaseServer server;
   private Router rootRouter;
-  public final Config config = new Config();
-  public final Map<String, Object> container = new HashMap<>();
 
-  DefaultStaticFileServer staticFileServer;
+  StaticFileServer staticFileServer;
 
   //Before the routing chain
   final List<Mid> before = new LinkedList<>();
@@ -53,26 +115,32 @@ public final class Pond implements RouterAPI {
 //    }
 
   private Pond() {
+
+    logger.info("POND:");
+
     String root = PATH.classpathRoot();
+    logger.info("CLASS ROOT:" + root);
+
     String webroot = PATH.detectWebRootPath();
+    logger.info("WEB ROOT:" + webroot);
 
-    //map properties
-    File configFile = new File(root + File.separator + Config.CONFIG_FILE_NAME);
+    String cfgFileName = S.config.get(Pond.class, CONFIG_FILE_NAME);
 
-    if (configFile.exists() && configFile.canRead()) {
-      loadConfig(FILE.loadProperties(configFile));
-    } else {
-      logger.info("config file not exists. using default values");
-      //TODO
+    if (STRING.notBlank(cfgFileName)) {
+      //map properties
+      File configFile = new File(root + File.separator + cfgFileName);
+
+      if (configFile.exists() && configFile.canRead()) {
+        loadConfig(FILE.loadProperties(configFile));
+      } else {
+        logger.info("config file:" + cfgFileName + "not found. using default values");
+      }
+
     }
 
-    //do not change these
-    //FIXME ugly
-    config.put(Config.ROOT, root);
-    config.put(Config.ROOT_WEB, webroot);
+    S.config.set(Pond.class, CONFIG_CLASS_ROOT, root);
+    S.config.set(Pond.class, CONFIG_WEB_ROOT, webroot);
 
-    config.put(Config.WWW_PATH, webroot + File.separator + avoidNull(config.get(Config.WWW_NAME), "www"));
-    config.put(Config.VIEWS_PATH, webroot + File.separator + avoidNull(config.get(Config.VIEWS_NAME), "views"));
 
 //      this.attr(Global.ROOT, S.path.webRoot()#);
 
@@ -101,12 +169,12 @@ public final class Pond implements RouterAPI {
   }
 
   public Pond listen(int port) {
-    System.setProperty(BaseServer.PORT, String.valueOf(port));
+    this.config(BaseServer.PORT, String.valueOf(port));
     listen();
     return this;
   }
 
-  public Pond listen() {
+  public void listen() {
 
     logger.info("Starting server...");
     //append dispatcher to the chain
@@ -119,20 +187,19 @@ public final class Pond implements RouterAPI {
     });
 
     try {
-      new Thread(server::listen).start();
+      server.listen();
     } catch (Exception e) {
       logger.error(e.getMessage());
       logger.error(S.dump(e.getStackTrace()));
     }
 
-    return this;
   }
 
   public Mid _static(String dir) {
     if (staticFileServer == null) {
-      staticFileServer = new DefaultStaticFileServer(dir);
+      staticFileServer = SPILoader.service(StaticFileServer.class);
     }
-    return staticFileServer;
+    return staticFileServer.watch(dir);
   }
 
 
@@ -143,24 +210,16 @@ public final class Pond implements RouterAPI {
     return SPILoader.service(JsonService.class);
   }
 
-  public Pond loadConfigFromCmdLine(String[] args) {
-    this.config.readFromFile(args);
-    return this;
-  }
-
   /**
    * Load attributes from properties
    */
   public Pond loadConfig(Properties conf) {
-    config.load(conf);
+    S._assert(conf);
+    for (Map.Entry e : conf.entrySet()) {
+      logger.info("Reading conf: " + e.getKey() + "=" + e.getValue());
+      S.config.set(e.getKey().toString(), String.valueOf(e.getValue()));
+    }
     return this;
-  }
-
-  /**
-   * Get config
-   */
-  public String config(String name) {
-    return config.get(name);
   }
 
   /**
@@ -183,40 +242,39 @@ public final class Pond implements RouterAPI {
   }
 
   public static void debug(Object s) {
-    S._debug(logger, log ->
-        log.debug(S.dump(s)));
+    S._debug(logger, log -> log.debug(S.dump(s)));
   }
 
 
-  /**
-   * get absolute path relative to g.web_root
-   *
-   * @param path input relative path
-   * @return absolute path
-   */
-  public String pathRelWebRoot(String path) {
-    String root = config.get(Config.ROOT_WEB);
-    if (path == null) return null;
-    if (PATH.isAbsolute(path)) {
-      return path;
-    }
-    return root + File.separator + path;
-  }
-
-  /**
-   * get absolute path relative to g.root
-   *
-   * @param path input relative path
-   * @return absolute path
-   */
-  public String pathRelRoot(String path) {
-    String root = config.get(Config.ROOT);
-    if (path == null) return null;
-    if (PATH.isAbsolute(path)) {
-      return path;
-    }
-    return root + File.separator + path;
-  }
+//  /**
+//   * get absolute path relative to g.web_root
+//   *
+//   * @param path input relative path
+//   * @return absolute path
+//   */
+//  public String pathRelWebRoot(String path) {
+//    String root = config.get(Config.ROOT_WEB);
+//    if (path == null) return null;
+//    if (PATH.isAbsolute(path)) {
+//      return path;
+//    }
+//    return root + File.separator + path;
+//  }
+//
+//  /**
+//   * get absolute path relative to g.root
+//   *
+//   * @param path input relative path
+//   * @return absolute path
+//   */
+//  public String pathRelRoot(String path) {
+//    String root = config.get(Config.ROOT);
+//    if (path == null) return null;
+//    if (PATH.isAbsolute(path)) {
+//      return path;
+//    }
+//    return root + File.separator + path;
+//  }
 
 
 //  public ViewEngine viewEngine(String ext) {
@@ -230,33 +288,34 @@ public final class Pond implements RouterAPI {
 //    return this;
 //  }
 
+  public static String config(String name) {
+    return S.config.get(Pond.class, name);
+  }
+
+  public static void config(String name, String config) {
+    S.config.set(Pond.class, name, config);
+  }
+
 
   /**
-   * DO NOT USE
-   * MAY BE DELETED IN FUTURE
+   * Open the debug mode for Pond
    */
   public Pond debug() {
-    S._debug_on(Pond.class, BaseServer.class);
+
+    S._debug_on(Pond.class,
+                BaseServer.class,
+                StaticFileServer.class);
+
     return this;
   }
 
-  /**
-   * default initialization
-   */
-  private Pond _init() {
-    return this;
-  }
 
   public <E> E spi(Class<E> s) {
     E e = SPILoader.service(s);
-    if (e instanceof EnvSPI) {
-      ((EnvSPI) e).env(this.config);
-    }
-    logger.info("SPI-INJECT " +
-                    s.getSimpleName() + " : " + e.getClass().getCanonicalName());
+    logger.info("SPI-INJECT " + s.getSimpleName() + " : "
+                    + e.getClass().getCanonicalName());
     return e;
   }
-
 
   @Override
   public RouterAPI use(int mask, String path, Mid... mids) {
@@ -268,9 +327,11 @@ public final class Pond implements RouterAPI {
     return this.rootRouter.use(path, router);
   }
 
+  @SuppressWarnings("unchecked")
   public void stop() {
     try {
-      server.stop(Callback.NOOP);
+      //sync
+      server.stop(Callback.NOOP).get();
     } catch (Exception e) {
       Pond.logger.error(e.getMessage(), e);
     }

@@ -400,8 +400,7 @@ public class JDBCTmpl implements Closeable {
     String[] keys = _for(sets).map(t -> t._a).join();
     //TODO
     SqlUpdate sql = Sql.update(record.table()).dialect(this.db.dialect);
-    sql.set(S.array.of(sets))
-        .where(record.idName(), Criterion.EQ, (String) record.id());
+    sql.set(ARRAY.of(sets)).where(record.idName(), Criterion.EQ, (String) record.id());
     S._debug(DB.logger, logger -> logger.debug(sql.debug()));
     // 多出来的最后一个类型是id
     // types = [types_of_set, $ types_of id]

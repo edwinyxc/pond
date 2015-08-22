@@ -26,7 +26,7 @@ public interface Request {
 
 //    String characterEncoding();
 
-  //InputStream in() throws IOException;
+  InputStream in();
 
   String uri();
 

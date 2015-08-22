@@ -5,6 +5,11 @@ public class Tuple<A, B> {
   public final A _a;
   public final B _b;
 
+  @Override
+  public String toString() {
+    return "<" + _a + "," + _b + ">";
+  }
+
   protected Tuple(A a, B b) {
     _a = a;
     _b = b;
@@ -37,6 +42,11 @@ public class Tuple<A, B> {
       _b = b;
       _c = c;
     }
+
+    @Override
+    public String toString() {
+      return "<" + _a + "," + _b + "," + _c + ">";
+    }
   }
 
   public static class T4<A, B, C, D> {
@@ -50,6 +60,11 @@ public class Tuple<A, B> {
       _b = b;
       _c = c;
       _d = d;
+    }
+
+    @Override
+    public String toString() {
+      return "<" + _a + "," + _b + "," + _c + "," + _d + ">";
     }
   }
 
@@ -68,5 +83,9 @@ public class Tuple<A, B> {
       _e = e;
     }
 
+    @Override
+    public String toString() {
+      return "<" + _a + "," + _b + "," + _c + "," + _d + "," + _e + ">";
+    }
   }
 }

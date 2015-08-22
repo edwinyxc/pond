@@ -17,6 +17,13 @@ public class Route {
   List<Mid> mids;
   String def_path;
 
+  /**
+   * Returns the definition path
+   */
+  public String defPath(){
+    return def_path;
+  }
+
   public Route(String path, List<Mid> mids) {
     def_path = Pond._ignoreLastSlash(path);
     compile();

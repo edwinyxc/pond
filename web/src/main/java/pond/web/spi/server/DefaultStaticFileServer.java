@@ -1,8 +1,14 @@
-package pond.web;
+package pond.web.spi.server;
 
+import pond.common.Convert;
 import pond.common.PATH;
 import pond.common.S;
+import pond.web.Pond;
+import pond.web.Request;
+import pond.web.Response;
+import pond.web.Route;
 import pond.web.spi.BaseServer;
+import pond.web.spi.StaticFileServer;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -11,21 +17,44 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 
-class DefaultStaticFileServer implements Mid {
+public class DefaultStaticFileServer implements StaticFileServer {
 
   //TODO read from config
-  static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
-  static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
-  static final int HTTP_CACHE_SECONDS = 60;
+  static final String HTTP_DATE_FORMAT = S.avoidNull(
+      Pond.config(Pond.STATIC_SERVER_HTTP_DATE_FORMAT)
+      , "EEE, dd MMM yyyy HH:mm:ss zzz");
+
+  static final String HTTP_DATE_GMT_TIMEZONE = S.avoidNull(
+      Pond.config(Pond.STATIC_SERVER_HTTP_DATE_GMT_TIMEZONE)
+      , "GMT");
+
+  static final int HTTP_CACHE_SECONDS = S.avoidNull(Convert.toInt(
+      Pond.config(Pond.STATIC_SERVER_HTTP_CACHE_SECONDS))
+      , 60);
 
   File root;
 
-  DefaultStaticFileServer(String dir) {
-    String _root = PATH.isAbsolute(dir) ? dir : PATH.detectWebRootPath().concat(File.separator).concat(dir);
+  public DefaultStaticFileServer() {}
+
+  @Override
+  public StaticFileServer watch(String dir) {
+    S._assert(dir);
+    String _root = PATH.isAbsolute(dir) ?
+        dir
+        :
+        S.config.get(Pond.class, Pond.CONFIG_WEB_ROOT).concat(File.separator).concat(dir);
     root = new File(_root);
+
     if (!root.exists() || !root.canRead())
       throw new RuntimeException("Invalid static file server root : " + _root);
+
+    return this;
   }
+
+  private boolean allowList(){
+    return Boolean.parseBoolean(Pond.config(Pond.STATIC_SERVER_ENABLE_LISTING_DIR));
+  }
+
 
   private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
 
@@ -49,10 +78,9 @@ class DefaultStaticFileServer implements Mid {
     }
 
     if (route != null) {
-      String def = route.def_path;
+      String def = route.defPath();
       String prefix = def.substring(0, def.lastIndexOf("/"));
       uri = uri.substring(prefix.length());
-      S.echo(uri);
     }
 
 
@@ -81,7 +109,7 @@ class DefaultStaticFileServer implements Mid {
       return;
     }
     String path = request.path();
-    String absPath = sanitizeUri(path, request.ctx().route);
+    String absPath = sanitizeUri(path, request.ctx().route());
 
     S._debug(BaseServer.logger, log -> log.debug("Abs_Path: " + absPath));
 
@@ -91,6 +119,7 @@ class DefaultStaticFileServer implements Mid {
     }
 
     File file = new File(absPath);
+
     if (file.isHidden() || !file.exists()) {
       response.sendError(404, "Not Found");
       return;
@@ -98,7 +127,20 @@ class DefaultStaticFileServer implements Mid {
 
     if (file.isDirectory()) {
       if (path.endsWith("/")) {
-        sendListing(response, file);
+        String indexFileName = S.avoidNull(Pond.config(Pond.STATIC_SERVER_INDEX_FILE), "index.html");
+
+        File index = new File(file, indexFileName);
+
+        if (!index.isHidden() && index.exists()) {
+          response.redirect(indexFileName);
+          return;
+        }else {
+          if(allowList()) sendListing(response, file);
+          else {
+            response.send(404);
+          }
+        }
+
       } else {
         response.redirect(path + "/");
       }

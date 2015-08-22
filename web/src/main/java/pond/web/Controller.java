@@ -1,11 +1,14 @@
 package pond.web;
 
 import pond.common.S;
+import pond.common.STRING;
+import pond.common.f.Callback;
 import pond.web.http.HttpMethod;
 
 import java.lang.annotation.*;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Controller extends Router {
 
@@ -13,52 +16,67 @@ public class Controller extends Router {
     convertToRouter();
   }
 
+
+  final static
+  Map<Class<? extends Annotation>,
+      Callback.C3<Controller, Annotation, Method>> annotationResolvePolices =
+      S._tap(new HashMap<>(),
+             map -> map.put(Mapping.class, (ctrl, a, m) -> {
+
+               String val = ((Mapping) a).value();
+
+               //if blank, use methodName as mapping name
+               if (STRING.isBlank(val)) {
+                 val = "/" + m.getName();
+               }
+
+               ctrl.use(HttpMethod.mask(((Mapping) a).methods()),
+                        val,
+                        (req, resp) -> {
+                          Object[] args = new Object[]{req, resp};
+                          S._try(() -> {
+                            m.setAccessible(true);
+                            m.invoke(ctrl, args);
+                          });
+                        });
+             })
+      );
+
+  /**
+   * @param cls    annotation class
+   * @param policy policy procedure -- callback with controller, annotation, method
+   */
+  public static void newAnnotationResolvePolicy(Class<? extends Annotation> cls,
+                                                Callback.C3<Controller, Annotation, Method> policy) {
+    S._assertNotNull(cls, policy);
+    annotationResolvePolices.put(cls, policy);
+  }
+
+
   private void convertToRouter() {
-    Method[] methods =
-        this.getClass().getMethods();
+    Method[] methods = this.getClass().getDeclaredMethods();
+
     for (Method m : methods) {
-      Annotation[] annos = m.getAnnotations();
-      for (Annotation a : annos) {
-        if (a instanceof Mapping) {
-          //spi a handler
-          String val = ((Mapping) a).value();
-          if (S.str.isBlank(val)) {
-            val = "/" + m.getName();
+
+      Annotation[] annotations = m.getDeclaredAnnotations();
+
+      for (Annotation a : annotations) {
+
+        Class aClass = a.annotationType();
+
+        for (Map.Entry<Class<? extends Annotation>,
+            Callback.C3<Controller, Annotation, Method>> e : annotationResolvePolices.entrySet())
+        {
+          Class defClass = e.getKey();
+
+          //for annotations, strict equal works
+          if (defClass.equals(aClass)) {
+            e.getValue().apply(this, a, m);
+            break;
           }
-          this.use(HttpMethod.mask(((Mapping) a).methods()),
-                   val,
-                   (req, resp) -> {
-                     Object[] args =
-                         _setReqAndResToMethod(m, req, resp);
-                     try {
-                       m.setAccessible(true);
-                       m.invoke(this, args);
-                     } catch (IllegalAccessException e) {
-                       throw new RuntimeException(e);
-                     } catch (InvocationTargetException e) {
-                       throw new RuntimeException(
-                           e.getTargetException());
-                     }
-                   });
         }
       }
     }
-  }
-
-  private Object[] _setReqAndResToMethod(Method m, Request req,
-                                         Response response) {
-    Class<?>[] types =
-        m.getParameterTypes();
-    Object[] ret = new Object[types.length];
-    Class<?> c;
-    for (int i = 0; i < types.length; i++) {
-      c = types[i];
-      if (c.isAssignableFrom(Request.class))
-        ret[i] = req;
-      if (c.isAssignableFrom(Response.class))
-        ret[i] = response;
-    }
-    return ret;
   }
 
   @Retention(RetentionPolicy.RUNTIME)

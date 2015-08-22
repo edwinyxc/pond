@@ -42,7 +42,6 @@ public class PATH {
    *
    * @return the source dir path under the current project
    */
-  @Deprecated
   public static String detectWebRootPath() {
     try {
       String path = S.class.getResource("/").toURI().getPath();

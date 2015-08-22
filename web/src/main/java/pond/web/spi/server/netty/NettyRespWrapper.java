@@ -5,7 +5,6 @@ import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
 import pond.common.S;
-import pond.web.Pond;
 import pond.web.Response;
 import pond.web.http.Cookie;
 import pond.web.http.MimeTypes;

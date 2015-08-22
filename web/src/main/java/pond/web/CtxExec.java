@@ -20,14 +20,14 @@ public class CtxExec {
   static void unwrapRuntimeException(RuntimeException e, Response resp) {
     Throwable t = e.getCause();
     if (t == null) {
-      Pond.logger.error(e.getMessage(),e);
+      Pond.logger.error(e.getMessage(), e);
       resp.send(500, e.getMessage());
       return;
     }
     if (t instanceof RuntimeException) {
       unwrapRuntimeException((RuntimeException) t, resp);
     } else {
-      Pond.logger.error(t.getMessage(),t);
+      Pond.logger.error(t.getMessage(), t);
       resp.send(500, t.getMessage());
     }
   }
@@ -54,8 +54,8 @@ public class CtxExec {
       if (ctx.handled) return;
       if (mid != null) {
         final Mid finalMid = mid;
-        S._debug(Pond.logger, log -> log.debug("Found uri: "
-                                                   + ctx.req.path() + ", mid: " + finalMid.toString()));
+        S._debug(Pond.logger, log ->
+            log.debug("Found uri: " + ctx.req.path() + ", mid: " + finalMid.toString()));
         mid.apply(ctx.req, ctx.resp);
         exec(ctx);
       }
@@ -70,12 +70,10 @@ public class CtxExec {
     } finally {
       Ctx thctx;
       if ((thctx = ctxThreadLocal.get()) != null) {
-        S._debug(Pond.logger, logger -> {
-          logger.debug("Ctx costs: " + (S.now() - (long) thctx.get("_start_time")) + "ms");
-        });
+        S._debug(Pond.logger, logger ->
+            logger.debug("Ctx costs: " + (S.now() - (long) thctx.get("_start_time")) + "ms"));
         ctxThreadLocal.remove();
       }
     }
-    //return false;
   }
 }

@@ -1,11 +1,10 @@
 package pond.web;
 
-import pond.common.S;
-import pond.common.STREAM;
-import pond.common.STRING;
 import pond.web.http.Cookie;
 
-import java.io.*;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 
 /**
  * <p>Response 封装了http response 对象，
@@ -76,7 +75,7 @@ public interface Response {
   Response status(int sc);
 
   /**
-   * <p>获取底层响应流，不建议直接使用，原因是具体的底层响应可能不是以流的方式实现的。</p>
+   * <p>获取底层响应流，原因是具体的底层响应可能不是以流的方式实现的。</p>
    *
    * @return outputStream
    */

@@ -1,5 +1,6 @@
 package pond.common;
 
+import pond.common.config.Config;
 import pond.common.f.*;
 import pond.common.f.Callback.C0;
 import pond.common.struc.EnumerationIterable;
@@ -453,5 +454,10 @@ public class S {
       return uuid.toString().replaceAll("-", "");
     }
   }
+
+  /**
+   * system config
+   */
+  public final static Config config = Config.system;
 }
 

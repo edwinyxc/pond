@@ -10,33 +10,45 @@ import java.util.Date;
  */
 public class Convert {
 
+  public static Integer toInt(Object obj) {
+    if(obj == null) return null;
+    if(obj instanceof Integer){
+      return (Integer) obj;
+    }
+    else return toInt(String.valueOf(obj));
+  }
+
   public static Integer toInt(String str) {
-    return Integer.parseInt(str);
+    return str == null ? null : Integer.parseInt(str);
   }
 
   public static Long toLong(String str) {
-    return Long.parseLong(str);
+    return str == null ? null : Long.parseLong(str);
   }
 
   public static Double toDouble(String str) {
-    return Double.parseDouble(str);
+    return str == null ? null : Double.parseDouble(str);
   }
 
   public static Date toDate(String str, String format) throws ParseException {
+    if (str == null) return null;
     SimpleDateFormat sdf = new SimpleDateFormat(format);
     return sdf.parse(str);
   }
 
-  public static Date toDate(Long longstr) {
-    return new Date(longstr);
+  public static Date toDate(Long date) {
+    if (date == null) return null;
+    return new Date(date);
   }
 
   public static String toString(Date date, String format) {
+    if (date == null) return null;
     SimpleDateFormat sdf = new SimpleDateFormat(format);
     return sdf.format(date);
   }
 
   public static Long dateToLong(String date, String format) throws ParseException {
+    if (date == null) return null;
     Date parsed = new SimpleDateFormat(format).parse(date);
     return parsed.getTime();
   }
@@ -50,6 +62,7 @@ public class Convert {
    * @return above zero
    */
   public static int toUnsigned(String value) {
+    S._assert(value);
     int ret = 0;
     if (value == null || value.isEmpty()) {
       return 0;
