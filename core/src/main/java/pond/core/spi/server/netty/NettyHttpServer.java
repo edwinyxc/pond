@@ -244,6 +244,7 @@ public class NettyHttpServer extends AbstractServer {
                         chunk.retain();
                         content.addComponent(httpContent.content());
                         content.writerIndex(content.writerIndex() + chunk.readableBytes());
+                        reqWrapper.content(content);
                     }
                 }
 
@@ -270,7 +271,8 @@ public class NettyHttpServer extends AbstractServer {
                         }
                     }
 
-                    if(reqWrapper != null) {
+                    // handle the input stream
+                    if(content!= null) {
                         reqWrapper.content(content);
                     }
 
