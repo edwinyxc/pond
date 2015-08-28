@@ -189,7 +189,7 @@ public class NettyHttpServer extends AbstractServer {
                         return;
                     }
                 } else {
-                    S._assert(content == null);
+                    //S._assert(content == null);
                     content = Unpooled.compositeBuffer();
                 }
             }
