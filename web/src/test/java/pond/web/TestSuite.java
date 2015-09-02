@@ -28,10 +28,12 @@ public class TestSuite {
 
   Charset utf8 = Charset.forName("UTF-8");
 
+
   @Before
   public void init() {
     app = Pond.init();
     Pond.config(BaseServer.PORT, "9090");
+//    System.setProperty("file.encoding","utf8");
     app.listen();
   }
 
