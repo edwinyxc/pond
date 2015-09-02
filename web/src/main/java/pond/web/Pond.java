@@ -332,6 +332,7 @@ public final class Pond implements RouterAPI {
     try {
       //sync
       server.stop(Callback.NOOP).get();
+
     } catch (Exception e) {
       Pond.logger.error(e.getMessage(), e);
     }

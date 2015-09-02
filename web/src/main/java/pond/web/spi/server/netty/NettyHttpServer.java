@@ -14,6 +14,7 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.DefaultPromise;
 import pond.common.Convert;
 import pond.common.S;
 import pond.common.STRING;
@@ -635,10 +636,14 @@ public class NettyHttpServer extends AbstractServer {
 
     logger.info("Closing server...");
 
-    return serverChannelFuture.channel().close().addListener(future -> {
-      futureCallback.apply(future);
-      logger.info("Server closed!");
-    });
+//
+//    return serverChannelFuture.channel().close().addListener(future -> {
+//      futureCallback.apply(future);
+//      logger.info("Server closed!");
+//    });
+    workerGroup.shutdownGracefully();
+    return bossGroup.shutdownGracefully();
+
   }
 
 }
