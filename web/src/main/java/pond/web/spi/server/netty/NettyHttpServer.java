@@ -14,7 +14,6 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.CharsetUtil;
-import io.netty.util.concurrent.DefaultPromise;
 import pond.common.Convert;
 import pond.common.S;
 import pond.common.STRING;
@@ -573,7 +572,7 @@ public class NettyHttpServer extends AbstractServer {
   EventLoopGroup workerGroup;
 
   @Override
-  public void listen() {
+  public Future listen() {
 
     //since we only listen on single port
     bossGroup = new NioEventLoopGroup(
@@ -612,9 +611,7 @@ public class NettyHttpServer extends AbstractServer {
         .childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024)
     ;
 
-    ChannelFuture f = b.bind(port());
-
-    new Thread(() -> {
+    return S._tap(b.bind(port()), f -> new Thread(() -> {
       try {
         serverChannelFuture = f.sync();
         serverChannelFuture.channel().closeFuture().sync();
@@ -625,7 +622,7 @@ public class NettyHttpServer extends AbstractServer {
         workerGroup.shutdownGracefully();
         bossGroup.shutdownGracefully();
       }
-    }).start();
+    }).start());
 
   }
 

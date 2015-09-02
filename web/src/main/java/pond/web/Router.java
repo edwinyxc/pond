@@ -129,6 +129,10 @@ public class Router implements Mid, RouterAPI {
     return this;
   }
 
+  public void clean() {
+    routes = new Routes();
+  }
+
   private static class Routes {
     @SuppressWarnings("unchecked")
     final private List<Route>[] all = new List[HttpMethod.values().length];

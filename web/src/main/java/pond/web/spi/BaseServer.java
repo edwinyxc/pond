@@ -28,7 +28,7 @@ public interface BaseServer {
    * use the registered env("port") to get the listen port
    * this method will block the thread
    */
-  void listen();
+  Future listen();
 
   /**
    * stop server
@@ -37,10 +37,8 @@ public interface BaseServer {
    */
   Future stop(Callback<Future> listener) throws Exception;
 
-
   //register process handler
   void handler(Callback.C2<Request, Response> handler);
-
 
   void pond(Pond pond);
 

@@ -168,6 +168,11 @@ public final class Pond implements RouterAPI {
 
   }
 
+  public void clean() {
+    before.clear();
+    rootRouter.clean();
+  }
+
   public Pond listen(int port) {
     this.config(BaseServer.PORT, String.valueOf(port));
     listen();
@@ -177,17 +182,18 @@ public final class Pond implements RouterAPI {
   public void listen() {
 
     logger.info("Starting server...");
-    //append dispatcher to the chain
-    LinkedList<Mid> mids = new LinkedList<>(before);
-    mids.add(rootRouter);
 
     server.handler((req, resp) -> {
-      Ctx ctx = new Ctx(req, resp, this, mids);
+      Ctx ctx = new Ctx(req, resp, this, S._tap(new LinkedList<>(), l -> {
+        //append dispatcher to the chain
+        l.addAll(before);
+        l.add(rootRouter);
+      }));
       ctxExec.exec(ctx);
     });
 
     try {
-      server.listen();
+      server.listen().get();
     } catch (Exception e) {
       logger.error(e.getMessage());
       logger.error(S.dump(e.getStackTrace()));
