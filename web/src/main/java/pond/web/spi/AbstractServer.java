@@ -1,4 +1,4 @@
-package pond.web.spi.server;
+package pond.web.spi;
 
 import pond.common.f.Callback;
 import pond.web.Pond;
@@ -26,7 +26,7 @@ public abstract class AbstractServer implements BaseServer {
   }
 
   @Override
-  public void handler(Callback.C2<Request, Response> handler) {
+  public void registerHandler(Callback.C2<Request, Response> handler) {
     this.handler = handler;
   }
 

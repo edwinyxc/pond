@@ -15,19 +15,19 @@ public class Convert {
     if(obj instanceof Integer){
       return (Integer) obj;
     }
-    else return toInt(String.valueOf(obj));
+    else return Integer.parseInt(String.valueOf(obj));
   }
 
   public static Integer toInt(String str) {
-    return str == null ? null : Integer.parseInt(str);
+    return Integer.parseInt(str);
   }
 
   public static Long toLong(String str) {
-    return str == null ? null : Long.parseLong(str);
+    return  Long.parseLong(str);
   }
 
   public static Double toDouble(String str) {
-    return str == null ? null : Double.parseDouble(str);
+    return  Double.parseDouble(str);
   }
 
   public static Date toDate(String str, String format) throws ParseException {

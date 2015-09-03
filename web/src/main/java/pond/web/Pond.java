@@ -183,7 +183,7 @@ public final class Pond implements RouterAPI {
 
     logger.info("Starting server...");
 
-    server.handler((req, resp) -> {
+    server.registerHandler((req, resp) -> {
       Ctx ctx = new Ctx(req, resp, this, S._tap(new LinkedList<>(), l -> {
         //append dispatcher to the chain
         l.addAll(before);

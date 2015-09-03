@@ -18,17 +18,18 @@ public class NettyRespWrapper implements Response {
   ByteBuf buffer;
   OutputStream out;
   PrintWriter writer;
-  long _start_time;
 
-  final NettyHttpServer server;
-  final HttpRequest request;
+  //  final NettyHttpServer server;
+//  final HttpRequest request;
   final HttpResponse resp;
-  ActionCompleteNotification acn;
+  final HandlerExecutionContext ctx;
 
 
-  NettyRespWrapper(HttpRequest req, NettyHttpServer server) {
-    this.server = server;
-    this.request = req;
+  NettyRespWrapper(HandlerExecutionContext ctx) {
+
+    this.ctx = ctx;
+    ctx.resp = this;
+//    this.request = ctx.req;
 
     buffer = Unpooled.buffer();
     this.out = new ByteBufOutputStream(buffer);
@@ -39,14 +40,6 @@ public class NettyRespWrapper implements Response {
     resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                                    HttpResponseStatus.ACCEPTED);
 
-    S._debug(BaseServer.logger, logger -> {
-      this._start_time = S.now();
-      logger.debug("resp build at " + _start_time);
-    });
-  }
-
-  public void acn(ActionCompleteNotification acn) {
-    this.acn = acn;
   }
 
   @Override
@@ -70,12 +63,10 @@ public class NettyRespWrapper implements Response {
 
   @Override
   public void sendFile(File file, long offset, long length) {
-    S._debug(BaseServer.logger, logger ->
-        logger.debug("user porcess costs: " + (S.now() - _start_time) + "ms"));
     resp.setStatus(HttpResponseStatus.OK);
 
-    if (HttpHeaderUtil.isKeepAlive(request))
-      HttpHeaderUtil.setKeepAlive(resp, true);
+//    if (HttpHeaderUtil.isKeepAlive(request))
+//      HttpHeaderUtil.setKeepAlive(resp, true);
 
     HttpHeaderUtil.setContentLength(resp, file.length());
 
@@ -101,7 +92,7 @@ public class NettyRespWrapper implements Response {
       return;
     }
 
-    acn.file(raf, offset, length);
+    ctx.file(raf, offset, length);
 
   }
 
@@ -129,16 +120,21 @@ public class NettyRespWrapper implements Response {
 
   @Override
   public Response cookie(Cookie c) {
-    resp.headers().add(HttpHeaderNames.SET_COOKIE,
-                       ServerCookieEncoder.encode(S._tap(new DefaultCookie(c.getName(), c.getValue()),
-                                                         cookie -> {
-                                                           cookie.setPath(c.getPath());
-                                                           cookie.setSecure(c.getSecure());
-                                                           cookie.setHttpOnly(c.isHttpOnly());
-                                                           cookie.setComment(c.getComment());
-                                                           cookie.setVersion(c.getVersion());
-                                                           cookie.setDomain(c.getDomain());
-                                                         })));
+    resp.headers()
+        .add(
+            HttpHeaderNames.SET_COOKIE,
+            ServerCookieEncoder.encode(
+                S._tap(new DefaultCookie(c.getName(), c.getValue()),
+                       cookie -> {
+                         cookie.setPath(c.getPath());
+                         cookie.setSecure(c.getSecure());
+                         cookie.setHttpOnly(c.isHttpOnly());
+                         cookie.setComment(c.getComment());
+                         cookie.setVersion(c.getVersion());
+                         cookie.setDomain(c.getDomain());
+                       })
+            )
+        );
     return this;
   }
 
@@ -156,40 +152,7 @@ public class NettyRespWrapper implements Response {
   }
 
   private void sendNormal() {
-
-    S._debug(BaseServer.logger, logger ->
-        logger.debug("user porcess costs: " + (S.now() - _start_time) + "ms"));
-    writer.flush();
-
-    //sendNormal
-
-    if (HttpHeaderUtil.isKeepAlive(request)) {
-
-      resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-
-      if (resp.headers().get(HttpHeaderNames.CONTENT_LENGTH) == null) {
-        int contentLen = buffer.readableBytes();
-        resp.headers().setLong(HttpHeaderNames.CONTENT_LENGTH, contentLen);
-      }
-    } else {
-      resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-    }
-
-    //set acn to normal state
-    acn.normal(out);
-
-
-//
-//        S._tap(ctx.pipe(buffer), then -> {
-//            then.addListener(f -> {
-//                S._tap(ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT), future -> {
-//                    if (!keepAlive) {
-//                        future.addListener(ChannelFutureListener.CLOSE);
-//                    }
-//                });
-//            });
-//        });
-
+    ctx.normal(out);
   }
 
 

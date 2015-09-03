@@ -28,9 +28,12 @@ public class DefaultStaticFileServer implements StaticFileServer {
       Pond.config(Pond.STATIC_SERVER_HTTP_DATE_GMT_TIMEZONE)
       , "GMT");
 
-  static final int HTTP_CACHE_SECONDS = S.avoidNull(Convert.toInt(
-      Pond.config(Pond.STATIC_SERVER_HTTP_CACHE_SECONDS))
-      , 60);
+  static final int HTTP_CACHE_SECONDS =
+      Convert.toInt(
+          S.avoidNull(
+              Pond.config(Pond.STATIC_SERVER_HTTP_CACHE_SECONDS)
+              , "60")
+      );
 
   File root;
 
@@ -51,7 +54,7 @@ public class DefaultStaticFileServer implements StaticFileServer {
     return this;
   }
 
-  private boolean allowList(){
+  private boolean allowList() {
     return Boolean.parseBoolean(Pond.config(Pond.STATIC_SERVER_ENABLE_LISTING_DIR));
   }
 
@@ -134,8 +137,8 @@ public class DefaultStaticFileServer implements StaticFileServer {
         if (!index.isHidden() && index.exists()) {
           response.redirect(indexFileName);
           return;
-        }else {
-          if(allowList()) sendListing(response, file);
+        } else {
+          if (allowList()) sendListing(response, file);
           else {
             response.send(404);
           }

@@ -2,13 +2,13 @@ package pond.web.spi.server.netty;
 
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.util.CharsetUtil;
-import pond.web.Request;
 import pond.web.Response;
 
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
-public class ActionCompleteNotification {
+public class HandlerExecutionContext {
+
   public final static int UNHANDLED = 0;
   public final static int NORMAL = 1;
   public final static int STATIC_FILE = 2;
@@ -21,18 +21,14 @@ public class ActionCompleteNotification {
 
   OutputStream out;
 
-  final Request req;
-  final Response resp;
-
+  Response resp;
 
   Throwable cause;
 
-  public ActionCompleteNotification(Request req, Response resp) {
-    this.req = req;
-    this.resp = resp;
-  }
+  HandlerExecutionContext(){}
 
-  public ActionCompleteNotification normal(OutputStream out) {
+
+  public HandlerExecutionContext normal(OutputStream out) {
     this.type = NORMAL;
     this.out = out;
     return this;
@@ -58,7 +54,7 @@ public class ActionCompleteNotification {
     return out;
   }
 
-  public ActionCompleteNotification file(RandomAccessFile file, Long offset, Long length) {
+  public HandlerExecutionContext file(RandomAccessFile file, Long offset, Long length) {
     sendfile = file;
     sendfile_offset = offset;
     sendfile_length = length;
@@ -68,10 +64,6 @@ public class ActionCompleteNotification {
 
   public boolean isSuccess() {
     return type != ERROR;
-  }
-
-  public Request request() {
-    return req;
   }
 
   public Response response() {
