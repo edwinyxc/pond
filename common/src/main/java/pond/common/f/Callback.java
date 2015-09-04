@@ -2,39 +2,43 @@ package pond.common.f;
 
 public interface Callback<A> {
 
+  Callback NOOP = a -> {};
 
-  static Callback NOOP = a -> {};
+  @SuppressWarnings("all")
+  static <A> Callback<A> noop() {
+    return NOOP;
+  };
 
-  public void apply(A t);
+  void apply(A t);
 
-  public interface C0 {
+  interface C0 {
 
-    public void apply();
+   void apply();
   }
 
-  public interface C0ERR {
+  interface C0ERR {
 
-    public void apply() throws Exception;
+    void apply() throws Exception;
   }
 
-  public interface C2<A, B> {
+  interface C2<A, B> {
 
-    public void apply(A a, B b);
+    void apply(A a, B b);
   }
 
-  public interface C3<A, B, C> {
+  interface C3<A, B, C> {
 
-    public void apply(A a, B b, C c);
+    void apply(A a, B b, C c);
   }
 
-  public interface C4<A, B, C, D> {
+  interface C4<A, B, C, D> {
 
-    public void apply(A a, B b, C c, D d);
+    void apply(A a, B b, C c, D d);
   }
 
-  public interface C5<A, B, C, D, E> {
+  interface C5<A, B, C, D, E> {
 
-    public void apply(A a, B b, C c, D d, E e);
+    void apply(A a, B b, C c, D d, E e);
   }
 
 }

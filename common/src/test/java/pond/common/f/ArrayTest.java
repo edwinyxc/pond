@@ -4,6 +4,8 @@ import org.junit.Test;
 import pond.common.Convert;
 import pond.common.S;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -43,9 +45,9 @@ public class ArrayTest {
   @Test
   public void testEach() throws Exception {
     Array<Integer> arr = S.array(1, 2, 3, 4, 5, 6, 7, 8, 9);
-    Holder.AccumulatorInt sum = new Holder.AccumulatorInt(0);
-    arr.each(x -> sum.accum(x));
-    assertEquals(45, (long) sum.val());
+    AtomicInteger sum = new AtomicInteger(0);
+    arr.each(sum::getAndAdd);
+    assertEquals(45, (long) sum.get());
   }
 
   @Test

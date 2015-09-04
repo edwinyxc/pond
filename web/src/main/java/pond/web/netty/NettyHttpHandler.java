@@ -1,8 +1,7 @@
-package pond.web.spi.server.netty;
+package pond.web.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -17,7 +16,7 @@ import pond.web.Request;
 import pond.web.Response;
 import pond.web.http.Cookie;
 import pond.web.http.HttpUtils;
-import pond.web.spi.BaseServer;
+import pond.web.BaseServer;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

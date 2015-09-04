@@ -1,4 +1,4 @@
-package pond.web.spi.server.netty;
+package pond.web.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -11,20 +11,44 @@ import pond.common.Convert;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.web.Pond;
-import pond.web.spi.AbstractServer;
+import pond.web.Request;
+import pond.web.Response;
+import pond.web.BaseServer;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 
-public class NettyHttpServer extends AbstractServer {
+public class NettyHttpServer implements BaseServer{
 
   public final static String EVENT_GROUP_BOSS_GROUP_COUNT = "boss_group_count";
 
   public final static String EVENT_GROUP_WORKER_GROUP_COUNT = "worker_group_count";
 
   public final static String EXECUTOR_THREAD_POOL_SIZE = "executor_thread_pool_size";
+
+  private Pond pond;
+  private Callback.C2<Request, Response> handler;
+
+  protected Callback.C2<Request, Response> handler() {
+    return this.handler;
+  }
+
+  @Override
+  public void pond(Pond pond) {
+    this.pond = pond;
+  }
+
+  @Override
+  public Pond pond() {
+    return pond;
+  }
+
+  @Override
+  public void registerHandler(Callback.C2<Request, Response> handler) {
+    this.handler = handler;
+  }
 
   //    //executorServices -- for user threads
   private ExecutorService executorService = Executors.newFixedThreadPool(

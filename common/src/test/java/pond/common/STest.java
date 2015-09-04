@@ -8,6 +8,7 @@ import java.nio.channels.UnsupportedAddressTypeException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -30,9 +31,9 @@ public class STest {
 
   @Test
   public void test_repeat() {
-    Holder.AccumulatorInt acc = new Holder.AccumulatorInt(10);
-    S._repeat(acc::accum, 10);
-    assertEquals((int) acc.val(), 20);
+    AtomicInteger acc = new AtomicInteger(10);
+    S._repeat(acc::incrementAndGet, 10);
+    assertEquals(acc.get(), 20);
   }
 
   @Test

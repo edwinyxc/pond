@@ -1,4 +1,4 @@
-package pond.web.spi.server.netty;
+package pond.web.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
@@ -8,7 +8,7 @@ import pond.common.S;
 import pond.web.Response;
 import pond.web.http.Cookie;
 import pond.web.http.MimeTypes;
-import pond.web.spi.BaseServer;
+import pond.web.BaseServer;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -38,7 +38,7 @@ public class NettyRespWrapper implements Response {
     writer = new PrintWriter(new OutputStreamWriter(out, charset));
 
     resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                                   HttpResponseStatus.ACCEPTED);
+        HttpResponseStatus.ACCEPTED);
 
   }
 
@@ -123,16 +123,16 @@ public class NettyRespWrapper implements Response {
     resp.headers()
         .add(
             HttpHeaderNames.SET_COOKIE,
-            ServerCookieEncoder.encode(
-                S._tap(new DefaultCookie(c.getName(), c.getValue()),
-                       cookie -> {
-                         cookie.setPath(c.getPath());
-                         cookie.setSecure(c.getSecure());
-                         cookie.setHttpOnly(c.isHttpOnly());
-                         cookie.setComment(c.getComment());
-                         cookie.setVersion(c.getVersion());
-                         cookie.setDomain(c.getDomain());
-                       })
+            ServerCookieEncoder.encode(S._tap(
+                    new DefaultCookie(c.getName(), c.getValue()),
+                    cookie -> {
+                      cookie.setPath(c.getPath());
+                      cookie.setSecure(c.getSecure());
+                      cookie.setHttpOnly(c.isHttpOnly());
+                      cookie.setComment(c.getComment());
+                      cookie.setVersion(c.getVersion());
+                      cookie.setDomain(c.getDomain());
+                    })
             )
         );
     return this;

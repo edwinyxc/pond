@@ -4,11 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.*;
 import pond.common.f.Callback;
-import pond.common.spi.JsonService;
-import pond.web.spi.BaseServer;
-import pond.web.spi.StaticFileServer;
+import pond.web.netty.NettyHttpServer;
 
-import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +22,7 @@ public final class Pond implements RouterAPI {
   /**
    *
    */
-  public final static String CONFIG_FILE_NAME = "config";
+//  public final static String CONFIG_FILE_NAME = "config";
 
   /**
    * web root
@@ -124,47 +121,14 @@ public final class Pond implements RouterAPI {
     String webroot = PATH.detectWebRootPath();
     logger.info("WEB ROOT:" + webroot);
 
-    String cfgFileName = S.config.get(Pond.class, CONFIG_FILE_NAME);
-
-    if (STRING.notBlank(cfgFileName)) {
-      //map properties
-      File configFile = new File(root + File.separator + cfgFileName);
-
-      if (configFile.exists() && configFile.canRead()) {
-        loadConfig(FILE.loadProperties(configFile));
-      } else {
-        logger.info("config file:" + cfgFileName + "not found. using default values");
-      }
-
-    }
-
     S.config.set(Pond.class, CONFIG_CLASS_ROOT, root);
     S.config.set(Pond.class, CONFIG_WEB_ROOT, webroot);
 
-
-//      this.attr(Global.ROOT, S.path.webRoot()#);
-
     logger.info("root : " + root);
-    server = spi(BaseServer.class);
+    server = new NettyHttpServer();
     server.pond(this);
 
-    //TODO ADD CONFIG
-    //TODO CHANGE CONFIG LAYER
-    //router
     rootRouter = new Router();
-
-//    //engine
-//    ViewEngine vg = spi(ViewEngine.class);
-//    try {
-//      vg.configViewPath(config.get(Config.VIEWS_PATH));
-//    } catch (Exception e) {
-//      debug(e.getMessage());
-//    }
-
-//    viewEngines.put("default", vg);
-    logger.info("Installing Handler");
-    //init handler
-    logger.info("... Finished");
 
   }
 
@@ -174,7 +138,7 @@ public final class Pond implements RouterAPI {
   }
 
   public Pond listen(int port) {
-    this.config(BaseServer.PORT, String.valueOf(port));
+    config(BaseServer.PORT, String.valueOf(port));
     listen();
     return this;
   }
@@ -210,13 +174,6 @@ public final class Pond implements RouterAPI {
 
 
   /**
-   * Returns JsonService
-   */
-  public JsonService json() {
-    return SPILoader.service(JsonService.class);
-  }
-
-  /**
    * Load attributes from properties
    */
   public Pond loadConfig(Properties conf) {
@@ -245,10 +202,6 @@ public final class Pond implements RouterAPI {
     if (!"/".equals(path) && path.endsWith("/"))
       return path.substring(0, path.length() - 1);
     return path;
-  }
-
-  public static void debug(Object s) {
-    S._debug(logger, log -> log.debug(S.dump(s)));
   }
 
 
@@ -308,20 +261,18 @@ public final class Pond implements RouterAPI {
    */
   public Pond debug() {
 
-    S._debug_on(Pond.class,
-                BaseServer.class,
-                StaticFileServer.class);
+    S._debug_on(Pond.class, BaseServer.class, Router.class, StaticFileServer.class);
 
     return this;
   }
 
 
-  public <E> E spi(Class<E> s) {
-    E e = SPILoader.service(s);
-    logger.info("SPI-INJECT " + s.getSimpleName() + " : "
-                    + e.getClass().getCanonicalName());
-    return e;
-  }
+//  public <E> E spi(Class<E> s) {
+//    E e = SPILoader.service(s);
+//    logger.info("SPI-INJECT " + s.getSimpleName() + " : "
+//        + e.getClass().getCanonicalName());
+//    return e;
+//  }
 
   @Override
   public RouterAPI use(int mask, String path, Mid... mids) {

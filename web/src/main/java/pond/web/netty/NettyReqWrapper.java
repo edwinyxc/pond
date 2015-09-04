@@ -1,18 +1,16 @@
-package pond.web.spi.server.netty;
+package pond.web.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.AsciiString;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import pond.common.S;
-import pond.web.http.AbstractRequest;
+import pond.web.AbstractRequest;
 import pond.web.http.Cookie;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -74,21 +72,6 @@ public class NettyReqWrapper extends AbstractRequest {
     return n_req.method().toString();
   }
 
-  public String realIp() {
-    HttpHeaders n_headers = n_req.headers();
-    CharSequence ip = n_headers.get("x-forwarded-for");
-    if (ip == null) return null;
-    if (ip.length() == 0 || "unknown".equalsIgnoreCase(String.valueOf(ip))) {
-      ip = n_headers.get("Proxy-Client-IP");
-    }
-    if (ip.length() == 0 || "unknown".equalsIgnoreCase(String.valueOf(ip))) {
-      ip = n_headers.get("WL-Proxy-Client-IP");
-    }
-    if (ip.length() == 0 || "unknown".equalsIgnoreCase(String.valueOf(ip))) {
-      ip = channel.remoteAddress().toString();
-    }
-    return String.valueOf(ip);
-  }
 
   @Override
   public String remoteIp() {

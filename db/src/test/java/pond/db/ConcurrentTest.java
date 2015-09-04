@@ -16,6 +16,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by ed on 15-6-30.
@@ -39,7 +40,7 @@ public class ConcurrentTest {
 
     this.dataSource = new SimplePool() {
       {
-        this.setMaxSize(20);
+        this.setMaxSize(200);
         this.config(
             "com.mysql.jdbc.Driver",
             "jdbc:mysql://127.0.0.1:3306/",
@@ -58,15 +59,16 @@ public class ConcurrentTest {
         "INSERT INTO test values('2333','233333');",
         "INSERT INTO test values('2334','2333334');"
     );
-
+    S._debug_on(DB.class, JDBCTmpl.class);
   }
 
 
   @Ignore
   @Test
   public void testExecTx() {
-    Holder.AccumulatorInt val = new Holder.AccumulatorInt(0);
-    ExecutorService executorService = Executors.newFixedThreadPool(20);
+    AtomicInteger acc = new AtomicInteger(0);
+    ExecutorService executorService =
+        Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
     List<CompletableFuture> futures = new ArrayList<>();
 
     long s = S.now();
@@ -77,7 +79,7 @@ public class ConcurrentTest {
               tmpl.exec("USE POND_DB_TEST;");
               for (int i = 0; i < 400; i++)
                 tmpl.exec("INSERT INTO test values(?,?)",
-                    String.valueOf(Math.random()), String.valueOf(val.accum()));
+                    String.valueOf(Math.random()), String.valueOf(acc.getAndIncrement()));
             });
 
           }, executorService));

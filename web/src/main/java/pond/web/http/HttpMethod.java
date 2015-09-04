@@ -10,7 +10,7 @@ public enum HttpMethod {
 
   int value = 0;
 
-  private HttpMethod(int i) {
+  HttpMethod(int i) {
     value = i;
   }
 
@@ -32,7 +32,7 @@ public enum HttpMethod {
     return mask;
   }
 
-  public static int mask_all() {
+  public static int maskAll() {
     return mask(GET, POST, PUT, DELETE, HEAD, OPTIONS, TRACE, CONNECT);
   }
 

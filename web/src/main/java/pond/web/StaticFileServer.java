@@ -1,6 +1,4 @@
-package pond.web.spi;
-
-import pond.web.Mid;
+package pond.web;
 
 public interface StaticFileServer extends Mid {
 

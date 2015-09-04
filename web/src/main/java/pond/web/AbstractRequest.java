@@ -1,7 +1,7 @@
-package pond.web.http;
+package pond.web;
 
 import pond.common.f.Callback;
-import pond.web.Request;
+import pond.web.http.Cookie;
 
 import java.util.HashMap;
 import java.util.List;

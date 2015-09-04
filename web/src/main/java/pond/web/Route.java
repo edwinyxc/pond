@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 路由节点
+ * Route node
  */
 public class Route {
   private static Pattern varPattern = Pattern.compile("\\$\\{(\\w+)\\}");

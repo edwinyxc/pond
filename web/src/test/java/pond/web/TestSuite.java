@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 import pond.common.*;
 import pond.common.f.Callback;
-import pond.web.spi.BaseServer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -72,7 +71,8 @@ public class TestSuite {
       resp.render(text(String.valueOf(value)));
     }
 
-    @Mapping("/add")
+    //mapping with default name
+    @Mapping()
     public void add(Request req, Response resp) {
       value++;
       resp.render(text(String.valueOf(value)));
@@ -90,11 +90,11 @@ public class TestSuite {
     app.use("/ctrl", new DemoController());
 
     TestUtil.assertContentEqualsForGet("1", "http://localhost:9090/ctrl/read");
-    HTTP.get("http://localhost:9090/ctrl/add",null, Callback.NOOP);
-    HTTP.get("http://localhost:9090/ctrl/add",null, Callback.NOOP);
-    HTTP.get("http://localhost:9090/ctrl/add",null, Callback.NOOP);
+    HTTP.get("http://localhost:9090/ctrl/add", null, Callback.noop());
+    HTTP.get("http://localhost:9090/ctrl/add",null, Callback.noop());
+    HTTP.get("http://localhost:9090/ctrl/add",null, Callback.noop());
     TestUtil.assertContentEqualsForGet("4", "http://localhost:9090/ctrl/read");
-    HTTP.get("http://localhost:9090/ctrl/add/4",null, Callback.NOOP);
+    HTTP.get("http://localhost:9090/ctrl/add/4",null, Callback.noop());
     TestUtil.assertContentEqualsForGet("8", "http://localhost:9090/ctrl/read");
 
   }
@@ -125,7 +125,7 @@ public class TestSuite {
     });
 
 
-    File wwwroot = new File(app.config(Pond.CONFIG_WEB_ROOT), "www");
+    File wwwroot = new File(Pond.config(Pond.CONFIG_WEB_ROOT), "www");
 
     HTTP.postMultipart(
         "http://localhost:9090/multipart",
@@ -317,9 +317,7 @@ public class TestSuite {
     S.echo("Testing ctx_consistency");
 
     app.clean();
-    app.before((req, resp) -> {
-      req.ctx().put("val", 1);
-    });
+    app.before((req, resp) -> req.ctx().put("val", 1));
 
     app.get("/testCtx", (req, resp) -> {
       req.ctx().put("a", "a");

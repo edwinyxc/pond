@@ -1,10 +1,7 @@
-package pond.web.spi;
+package pond.web;
 
 import org.slf4j.Logger;
 import pond.common.f.Callback;
-import pond.web.Pond;
-import pond.web.Request;
-import pond.web.Response;
 
 import java.util.concurrent.Future;
 

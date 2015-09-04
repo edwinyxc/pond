@@ -28,8 +28,7 @@ public class SimpleExprEngine implements ExpressionEngine {
   }
 
   public static void main(String[] arg) {
-    String test = "${name" +
-        "}";
+    String test = "${name}";
     SimpleExprEngine engine = new SimpleExprEngine();
     System.out.println(engine.isExpression(test));
     System.out.println(engine.getName(test));

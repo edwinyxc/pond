@@ -7,7 +7,7 @@
     <groupId>com.shuimin</groupId>
     <artifactId>pond-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
 
     <name>Pond</name>
     <url>http://www.shuimin.com</url>
@@ -17,6 +17,12 @@
         building flexible and scalable systems.
     </description>
 
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
     <organization>
         <name>The Pond Project</name>
     </organization>

@@ -20,19 +20,4 @@ public class Holder<T> {
     return this;
   }
 
-
-  public static class AccumulatorInt extends Holder<Integer> {
-    public AccumulatorInt(int i) {
-      this.val = i;
-    }
-
-    public Integer accum() {
-      return accum(1);
-    }
-
-    public Integer accum(int i) {
-      val = val + i;
-      return val;
-    }
-  }
 }
