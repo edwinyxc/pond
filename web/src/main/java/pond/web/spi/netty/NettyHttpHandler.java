@@ -1,4 +1,4 @@
-package pond.web.netty;
+package pond.web.spi.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
@@ -16,7 +16,7 @@ import pond.web.Request;
 import pond.web.Response;
 import pond.web.http.Cookie;
 import pond.web.http.HttpUtils;
-import pond.web.BaseServer;
+import pond.web.spi.BaseServer;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -296,7 +296,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
           try {
             handler.apply(reqWrapper, respWrapper);
             S._debug(BaseServer.logger,
-                     log -> log.debug("exe-ctx costs " + _start_time + " ms"));
+                     log -> log.debug("exe-ctx costs " + (S.now() - _start_time) + " ms"));
             if (exe_ctx.isSuccess()) {
               switch (exe_ctx.type()) {
                 case HandlerExecutionContext.UNHANDLED: {

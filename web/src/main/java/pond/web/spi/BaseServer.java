@@ -1,7 +1,10 @@
-package pond.web;
+package pond.web.spi;
 
 import org.slf4j.Logger;
 import pond.common.f.Callback;
+import pond.web.Pond;
+import pond.web.Request;
+import pond.web.Response;
 
 import java.util.concurrent.Future;
 
@@ -29,14 +32,11 @@ public interface BaseServer {
 
   /**
    * stop server
-   *
-   * @throws Exception
    */
   Future stop(Callback<Future> listener) throws Exception;
 
   /**
    * Register the processHandler
-   * @param handler
    */
   void registerHandler(Callback.C2<Request, Response> handler);
 

@@ -1,8 +1,14 @@
-package pond.web;
+package pond.web.spi;
 
 import pond.common.Convert;
 import pond.common.PATH;
 import pond.common.S;
+import pond.web.Pond;
+import pond.web.Request;
+import pond.web.Response;
+import pond.web.Route;
+import pond.web.spi.BaseServer;
+import pond.web.spi.StaticFileServer;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -95,7 +101,7 @@ public class DefaultStaticFileServer implements StaticFileServer {
     uri = uri.replace('/', File.separatorChar);
 
     // Convert to absolute path.
-    return root.getAbsoluteFile() + File.separator + uri;
+    return root.getAbsoluteFile() + uri;
   }
 
 
@@ -108,7 +114,7 @@ public class DefaultStaticFileServer implements StaticFileServer {
     String path = request.path();
     String absPath = sanitizeUri(path, request.ctx().route());
 
-    S._debug(BaseServer.logger, log -> log.debug("Abs_Path: " + absPath));
+    S._debug(logger, log -> log.debug("Abs_Path: " + absPath));
 
     if (absPath == null) {
       response.sendError(403, "Forbidden[ Request Uri " + path + " is illegal]");

@@ -3,32 +3,48 @@ package pond.web;
 import pond.web.http.HttpMethod;
 
 /**
- * Created by ed on 7/9/14.
+ * Router  API
+ * Holder of responsibility chain, also called business chain
+ * @param <E>
  */
-public interface RouterAPI {
-  RouterAPI use(int mask, String path, Mid... mids);
+public interface RouterAPI<E extends Router> {
 
-  RouterAPI use(String path, Router router);
+  /**
+   * Add a middleware to Router
+   *
+   * @see pond.web.http.HttpMethod
+   * @param mask Http Method Mask
+   * @param path regular expr
+   * @param mids middleware array
+   * @return Router
+   */
+  E use(int mask, String path, Mid... mids);
 
-  default RouterAPI get(String path, Mid... mids) {
-    return use(HttpMethod.mask(HttpMethod.GET),
-               path, mids);
+  /**
+   * Add a sub router at responsibility chain
+   * @param path regular expr
+   * @return Router
+   */
+  E use(String path, Router router);
+
+  default E use(Mid... mids) {
+    return use(HttpMethod.maskAll(), "/.*", mids);
   }
 
-
-  default RouterAPI post(String path, Mid... mids) {
-    return use(HttpMethod.mask(HttpMethod.POST),
-               path, mids);
+  default E get(String path, Mid... mids) {
+    return use(HttpMethod.mask(HttpMethod.GET), path, mids);
   }
 
-  default RouterAPI del(String path, Mid... mids) {
-    return use(HttpMethod.mask(HttpMethod.DELETE),
-               path, mids);
+  default E post(String path, Mid... mids) {
+    return use(HttpMethod.mask(HttpMethod.POST), path, mids);
   }
 
-  default RouterAPI put(String path, Mid... mids) {
-    return use(HttpMethod.mask(HttpMethod.PUT),
-               path, mids);
+  default E del(String path, Mid... mids) {
+    return use(HttpMethod.mask(HttpMethod.DELETE), path, mids);
+  }
+
+  default E put(String path, Mid... mids) {
+    return use(HttpMethod.mask(HttpMethod.PUT), path, mids);
   }
 
 }

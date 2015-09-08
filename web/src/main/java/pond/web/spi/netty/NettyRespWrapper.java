@@ -1,4 +1,4 @@
-package pond.web.netty;
+package pond.web.spi.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
@@ -8,7 +8,7 @@ import pond.common.S;
 import pond.web.Response;
 import pond.web.http.Cookie;
 import pond.web.http.MimeTypes;
-import pond.web.BaseServer;
+import pond.web.spi.BaseServer;
 
 import java.io.*;
 import java.nio.charset.Charset;

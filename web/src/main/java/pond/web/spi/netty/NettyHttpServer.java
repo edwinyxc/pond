@@ -1,4 +1,4 @@
-package pond.web.netty;
+package pond.web.spi.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -13,7 +13,7 @@ import pond.common.f.Callback;
 import pond.web.Pond;
 import pond.web.Request;
 import pond.web.Response;
-import pond.web.BaseServer;
+import pond.web.spi.BaseServer;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

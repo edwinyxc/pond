@@ -2,20 +2,21 @@ package pond.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pond.common.*;
+import pond.common.PATH;
+import pond.common.S;
+import pond.common.SPILoader;
 import pond.common.f.Callback;
-import pond.web.netty.NettyHttpServer;
+import pond.web.spi.BaseServer;
+import pond.web.spi.SessionStore;
+import pond.web.spi.StaticFileServer;
 
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 
 /**
  * Main Class
  */
-public final class Pond implements RouterAPI {
+public final class Pond extends Router {
 
   //configurations
   /***** Internal ****/
@@ -84,12 +85,11 @@ public final class Pond implements RouterAPI {
   static Logger logger = LoggerFactory.getLogger(Pond.class);
 
   private BaseServer server;
-  private Router rootRouter;
 
   StaticFileServer staticFileServer;
 
-  //Before the routing chain
-  final List<Mid> before = new LinkedList<>();
+//  //Before the routing chain
+//  final List<Mid> before = new LinkedList<>();
 
   // Executor
   final CtxExec ctxExec = new CtxExec();
@@ -101,10 +101,10 @@ public final class Pond implements RouterAPI {
 //    //do not put any code here
 //  }};
 
-  public Pond before(Mid mid) {
-    before.add(mid);
-    return this;
-  }
+//  public Pond before(Mid mid) {
+//    before.add(mid);
+//    return this;
+//  }
 
 //    public Pond after(Mid mid) {
 //        after.add(mid);
@@ -125,16 +125,11 @@ public final class Pond implements RouterAPI {
     S.config.set(Pond.class, CONFIG_WEB_ROOT, webroot);
 
     logger.info("root : " + root);
-    server = new NettyHttpServer();
+    server = SPILoader.service(BaseServer.class);
     server.pond(this);
 
-    rootRouter = new Router();
+//    rootRouter = new Router();
 
-  }
-
-  public void clean() {
-    before.clear();
-    rootRouter.clean();
   }
 
   public Pond listen(int port) {
@@ -147,13 +142,11 @@ public final class Pond implements RouterAPI {
 
     logger.info("Starting server...");
 
+    this.use(Mids.FORCE_CLOSE);
+
     server.registerHandler((req, resp) -> {
-      Ctx ctx = new Ctx(req, resp, this, S._tap(new LinkedList<>(), l -> {
-        //append dispatcher to the chain
-        l.addAll(before);
-        l.add(rootRouter);
-      }));
-      ctxExec.exec(ctx);
+      Ctx ctx = new Ctx(req, resp, this);
+      ctxExec.execAll(ctx, this);
     });
 
     try {
@@ -172,18 +165,17 @@ public final class Pond implements RouterAPI {
     return staticFileServer.watch(dir);
   }
 
-
-  /**
-   * Load attributes from properties
-   */
-  public Pond loadConfig(Properties conf) {
-    S._assert(conf);
-    for (Map.Entry e : conf.entrySet()) {
-      logger.info("Reading conf: " + e.getKey() + "=" + e.getValue());
-      S.config.set(e.getKey().toString(), String.valueOf(e.getValue()));
-    }
-    return this;
-  }
+//  /**
+//   * Load attributes from properties
+//   */
+//  public Pond loadConfig(Properties conf) {
+//    S._assert(conf);
+//    for (Map.Entry e : conf.entrySet()) {
+//      logger.info("Reading conf: " + e.getKey() + "=" + e.getValue());
+//      S.config.set(e.getKey().toString(), String.valueOf(e.getValue()));
+//    }
+//    return this;
+//  }
 
   /**
    * Custom initialization
@@ -261,7 +253,11 @@ public final class Pond implements RouterAPI {
    */
   public Pond debug() {
 
-    S._debug_on(Pond.class, BaseServer.class, Router.class, StaticFileServer.class);
+    S._debug_on(Pond.class,
+                BaseServer.class,
+                Router.class,
+                StaticFileServer.class,
+                SessionStore.class);
 
     return this;
   }
@@ -274,15 +270,17 @@ public final class Pond implements RouterAPI {
 //    return e;
 //  }
 
-  @Override
-  public RouterAPI use(int mask, String path, Mid... mids) {
-    return this.rootRouter.use(mask, path, mids);
-  }
-
-  @Override
-  public RouterAPI use(String path, Router router) {
-    return this.rootRouter.use(path, router);
-  }
+//  @Override
+//  public Pond use(int mask, String path, Mid... mids) {
+//    this.rootRouter.use(mask, path, mids);
+//    return this;
+//  }
+//
+//  @Override
+//  public Pond use(String path, Router router) {
+//    this.rootRouter.use(path, router);
+//    return this;
+//  }
 
   @SuppressWarnings("unchecked")
   public void stop() {

@@ -1,4 +1,4 @@
-package pond.web.netty;
+package pond.web.spi.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;

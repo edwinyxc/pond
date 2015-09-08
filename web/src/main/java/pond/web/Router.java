@@ -41,65 +41,43 @@ public class Router implements Mid, RouterAPI {
 
     List<Route> routes = this.routes.get(method);
 
-    CtxExec exect = req.ctx().pond.ctxExec;
+    Ctx ctx = req.ctx();
+
     //ignore trialling slash
     String path = Pond._ignoreLastSlash(req.path());
 
-    logger.debug("Routing path:" + path);
+    S._debug(logger, log -> log.debug("Routing path:" + path));
+
     long s = S.now();
-//        List<Route> result = new LinkedList<>();
-//        for (Route node : routes) {
-//            if (node.match(path)) {
-//                result.add(node);
-//            }
-//        }
-    // 通配获得最小为优先, * 通配符优先级最低
-    Iterable<Route> resultList = _for(routes).filter(r -> r.match(path));
 
-    Route route_f = _for(resultList)
-        .reduce((r, r1) -> {
-          if (r.def_path.contains("*")) return r1;
-          if (r1.def_path.contains("*")) return r;
-          return
-              r.def.matcher(path).groupCount()
-                  <= r1.def.matcher(path).groupCount() ?
-                  r : r1;
-        });
+    List<Route> results = _for(routes).filter(r -> r.match(path)).toList();
 
-    logger.debug("Routing time: " + (S.now() - s) + "ms");
-    if (route_f == null)
-      logger.debug("Found nothing");
-    else {
-      logger.debug("Found Route:" + route_f.toString());
+    S._debug(logger, log -> {
+      log.debug("Routing time: " + (S.now() - s) + "ms");
+      if (results.size() == 0)
+        logger.debug("Found nothing");
+      else
+        logger.debug("Found " + results.size() + " Routes:" + results.toString());
+    });
 
+    _for(results).each(r -> {
+
+      S._debug(logger, log ->
+          log.debug(String.format("Pre-processing... handler: %s", r)));
       //put in-url params
-      _for(route_f.urlParams(path)).each(
+      _for(r.urlParams(path)).each(
           e -> req.param(e.getKey(), e.getValue())
       );
-      req.ctx().route = route_f;
-      // trigger CtxExec
-      exect.exec(req.ctx(), route_f.mids);
-    }
 
-//            for (Route r : result) {
-//                logger.debug("Found Route:" + r.toString());
-//                //put in-url params
-//                _for(r.urlParams(path)).each(
-//                        e -> req.param(e.getKey(), e.getValue())
-//                );
-//                req.ctx().put("route", r);
-//                // trigger CtxExec
-//                CtxExec.exec(req.ctx(), r.mids);
-//                //FIXME
-//                // When i try to string all the result-mids as stack,
-//                //it seems it`s impossible to re-bind request value
-//                //( either binding url param or removing binding)
-//                //So, easiest way is only dispatch to the limit
-//                //available Mid
-//                break;
-//            }
-//    }
-    //why?
+      S._debug(logger, log ->
+          log.debug(String.format("Processing... path: %s", path)));
+
+      ctx.route = r;
+
+      ctx.pond.ctxExec.execAll(ctx, r.mids);
+
+    });
+
   }
 
   @Override
@@ -123,7 +101,7 @@ public class Router implements Mid, RouterAPI {
               "Routes of method[" + methods.toString() + "] not found");
       //prefix :  /${id}
       Route route = new Route(path, Arrays.asList(mids));
-      logger.debug(S.dump(route));
+      S._debug(logger, log -> log.debug("Routing "+m+" : " + route));
       routes.add(route);
     }
     return this;

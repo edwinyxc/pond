@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import pond.common.*;
 import pond.common.f.Callback;
+import pond.web.spi.BaseServer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +31,7 @@ public class TestSuite {
 
   @Before
   public void init() {
-    app = Pond.init();
+    app = Pond.init().debug();
     Pond.config(BaseServer.PORT, "9090");
 //    System.setProperty("file.encoding","utf8");
     app.listen();
@@ -258,6 +259,7 @@ public class TestSuite {
     Router router = new Router();
     router.get("/add", (req, resp) -> resp.send("add"))
         .get("/del", (req, resp) -> resp.send("del"));
+
     app.clean();
     app.get("/", (req, resp) -> resp.send("root"))
         .get("/${id}", (req, resp) -> resp.send(req.param("id")))
@@ -317,7 +319,10 @@ public class TestSuite {
     S.echo("Testing ctx_consistency");
 
     app.clean();
-    app.before((req, resp) -> req.ctx().put("val", 1));
+    app.use((req, resp) -> {
+      S.echo("INSTALLLLLLLLLLLLLLLLLLLLL");
+      req.ctx().put("val", 1);
+    });
 
     app.get("/testCtx", (req, resp) -> {
       req.ctx().put("a", "a");

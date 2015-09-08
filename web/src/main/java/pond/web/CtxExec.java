@@ -2,9 +2,6 @@ package pond.web;
 
 import pond.common.S;
 
-import java.util.Collections;
-import java.util.List;
-
 
 public class CtxExec {
 
@@ -32,36 +29,40 @@ public class CtxExec {
     }
   }
 
-  public void exec(Ctx ctx) {
-    exec(ctx, Collections.emptyList());
+  public void execAll(Ctx ctx, Mid... mids) {
+    for (Mid mid : mids) {
+      if (ctx.handled) return;
+      exec(ctx, mid);
+    }
   }
 
+  public void execAll(Ctx ctx, Iterable<Mid> mids) {
+    for (Mid mid : mids) {
+      if (ctx.handled) return;
+      exec(ctx, mid);
+    }
+  }
   /**
-   * run a ctx
-   *
    * @param ctx
    */
-  public void exec(Ctx ctx, List<Mid> additionalMids) {
+  public void exec(Ctx ctx, Mid mid) {
 
-    Mid mid = ctx.getMid();
-    ctx.addMids(additionalMids);
     if (mid == null) {
-      mid = ctx.getMid();
+      return;
     }
+
     try {
       //bind localthread-context
       if (ctxThreadLocal.get() == null) ctxThreadLocal.set(ctx);
       if (ctx.handled) return;
-      if (mid != null) {
+
         final Mid finalMid = mid;
+
         S._debug(Pond.logger, log ->
-            log.debug("Found uri: " + ctx.req.path() + ", mid: " + finalMid.toString()));
+            log.debug("Ctx Executing... uri: " + ctx.req.path() + ", mid: " + finalMid.toString()));
+
         mid.apply(ctx.req, ctx.resp);
-        exec(ctx);
-      }
-      //reach the end of mids
-      if (!ctx.handled)
-        ctx.resp.send(404);
+
     } catch (RuntimeException e) {
       unwrapRuntimeException(e, ctx.resp);
     } catch (Exception e) {

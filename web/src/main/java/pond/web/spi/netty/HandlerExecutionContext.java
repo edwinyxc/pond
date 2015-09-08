@@ -1,4 +1,4 @@
-package pond.web.netty;
+package pond.web.spi.netty;
 
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.util.CharsetUtil;
