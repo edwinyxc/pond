@@ -2,9 +2,10 @@ package pond.web;
 
 import pond.common.S;
 import pond.common.SPILoader;
+import pond.web.http.Cookie;
 import pond.web.spi.SessionStore;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -17,10 +18,9 @@ public class Session {
   final Map map;
   final String id;
 
-  Session(String id) {
+  Session(String id, Map map) {
     this.id = id;
-    if ((map = store.get(id)) == null)
-      throw new NullPointerException("Cannot fetch session for id: " + id);
+    this.map = map;
   }
 
   @SuppressWarnings("unchecked")
@@ -51,6 +51,10 @@ public class Session {
     store.update(id, map);
   }
 
+  public void invalidate() {
+    store.remove(id);
+  }
+
   public static String LABEL_SESSION = "x-pond-sessionid";
 
   /**
@@ -58,22 +62,46 @@ public class Session {
    * session support then.
    */
   public static Mid install = (req, resp) -> {
-    String sessionid = req.header(LABEL_SESSION);
+    Cookie cookie;
+    String sessionid;
+    Map data;
 
-    if(sessionid == null)
-      sessionid = store.create(Collections.emptyMap());
+    cookie = req.cookie(LABEL_SESSION);
 
-    req.ctx().put(LABEL_SESSION, new Session(sessionid));
+    if (cookie == null) {
+      //totally new
+      sessionid = store.create(data = new HashMap());
+      cookie = new Cookie(LABEL_SESSION, sessionid);
+      //TODO
+      cookie.setMaxAge(1800);
+    } else {
+      sessionid = cookie.getValue();
+
+      data = store.get(sessionid);
+      if (data == null) {
+        cookie.setMaxAge(0);
+        data = new HashMap();
+      }
+    }
+
+    //new a session each time
+    req.ctx().put(LABEL_SESSION, new Session(sessionid, data));
+
+    //avoid different paths
+    cookie.setPath("/");
+    //now the user should be able to use the session
+    resp.cookie(cookie);
 
   };
+
 
   /**
    * Get session from req
    */
-  public static Session session(Request request){
+  public static Session get(Request request) {
     Session ret = (Session) request.ctx().get(LABEL_SESSION);
-    if(ret == null)
-      throw new NullPointerException("use Session#install first.");
+    if (ret == null)
+      throw new NullPointerException("Use Session#install first.");
     return ret;
   }
 

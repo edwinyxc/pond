@@ -59,7 +59,7 @@ public class PerformanceTest {
           .executeQuery();
       List r = new ArrayList<>();
       while (rs.next()) {
-        Tuple<String, Integer> result = Tuple.t2(rs.getString("title"), rs.getInt("percent"));
+        Tuple<String, Integer> result = Tuple.pair(rs.getString("title"), rs.getInt("percent"));
         r.add(result);
       }
       long time_data_fetch = S.now();

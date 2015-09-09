@@ -70,14 +70,6 @@ public class HandlerExecutionContext {
     return resp;
   }
 
-  public void setCause(Throwable cause) {
-    this.cause = cause;
-  }
-
-  public Throwable getCause() {
-    return cause;
-  }
-
   @Override
   public String toString() {
     StringBuilder ret = new StringBuilder(super.toString());

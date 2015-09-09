@@ -10,8 +10,6 @@ import pond.web.spi.BaseServer;
 import pond.web.spi.SessionStore;
 import pond.web.spi.StaticFileServer;
 
-import java.util.LinkedList;
-
 
 /**
  * Main Class
@@ -20,9 +18,6 @@ public final class Pond extends Router {
 
   //configurations
   /***** Internal ****/
-  /**
-   *
-   */
 //  public final static String CONFIG_FILE_NAME = "config";
 
   /**
@@ -35,12 +30,6 @@ public final class Pond extends Router {
    */
   public final static String CONFIG_CLASS_ROOT = "class_root";
 
-  /**
-   *
-   */
-  public final static String CONFIG_SO_BACKLOG = "so_backlog";
-
-  public final static String CONFIG_SO_KEEPALIVE = "so_keepalive";
 
   /*** Basic ***/
 
@@ -49,36 +38,6 @@ public final class Pond extends Router {
    */
   public final static String PORT = "port";
 
-  /**
-   * ssl function
-   */
-  public final static String ENABLE_SSL = "enable_ssl";
-
-  /**
-   * list dir when no index file found (else throw 404)
-   */
-  public final static String STATIC_SERVER_ENABLE_LISTING_DIR = "static_server_enable_listing_dir";
-
-  /**
-   * index file when access uri endsWith "/"
-   */
-  public final static String STATIC_SERVER_INDEX_FILE = "static_server_index_file";
-
-  /**
-   * Date format for cache control
-   */
-  public final static String STATIC_SERVER_HTTP_DATE_FORMAT = "static_server_http_date_format";
-
-  /**
-   * gmt timezone for http server
-   */
-  public final static String STATIC_SERVER_HTTP_DATE_GMT_TIMEZONE = "static_server_http_date_gmt_timezone";
-
-  /**
-   * seconds for cache-control
-   */
-  public final static String STATIC_SERVER_HTTP_CACHE_SECONDS = "static_server_http_cache_seconds";
-
 
   //END of configurations
 
@@ -86,30 +45,9 @@ public final class Pond extends Router {
 
   private BaseServer server;
 
-  StaticFileServer staticFileServer;
-
-//  //Before the routing chain
-//  final List<Mid> before = new LinkedList<>();
-
-  // Executor
+  StaticFileServer staticFileServer;// Executor
   final CtxExec ctxExec = new CtxExec();
 
-  //After the routing chain
-
-//  private Map<String, ViewEngine> viewEngines
-//      = new HashMap<String, ViewEngine>() {{
-//    //do not put any code here
-//  }};
-
-//  public Pond before(Mid mid) {
-//    before.add(mid);
-//    return this;
-//  }
-
-//    public Pond after(Mid mid) {
-//        after.add(mid);
-//        return this;
-//    }
 
   private Pond() {
 
@@ -133,16 +71,37 @@ public final class Pond extends Router {
   }
 
   public Pond listen(int port) {
-    config(BaseServer.PORT, String.valueOf(port));
+    S.config.set(BaseServer.class, BaseServer.PORT, String.valueOf(port));
     listen();
     return this;
+  }
+
+  public Pond cleanAndBind(Callback<Pond> config) {
+    super.clean();
+    config.apply(this);
+    this.bindLastMids();
+    return this;
+  }
+
+  @Override
+  @Deprecated
+  /**
+   * @link pond.web.Pond#cleanAndBind
+   */
+  public void clean() {
+    //do nothing
+  }
+
+  private void bindLastMids() {
+    //add at last
+    this.use(Mids.FORCE_CLOSE);
   }
 
   public void listen() {
 
     logger.info("Starting server...");
 
-    this.use(Mids.FORCE_CLOSE);
+    bindLastMids();
 
     server.registerHandler((req, resp) -> {
       Ctx ctx = new Ctx(req, resp, this);
@@ -177,16 +136,16 @@ public final class Pond extends Router {
 //    return this;
 //  }
 
+  public static Pond init() {
+    return init(Callback.noop());
+  }
+
   /**
    * Custom initialization
    */
-  @SafeVarargs
-  public static Pond init(Callback<Pond>... configs) {
+  public static Pond init(Callback<Pond> config) {
     Pond pond = new Pond();
-
-    for (Callback<Pond> conf : configs) {
-      conf.apply(pond);
-    }
+    config.apply(pond);
     return pond;
   }
 
@@ -195,58 +154,6 @@ public final class Pond extends Router {
       return path.substring(0, path.length() - 1);
     return path;
   }
-
-
-//  /**
-//   * get absolute path relative to g.web_root
-//   *
-//   * @param path input relative path
-//   * @return absolute path
-//   */
-//  public String pathRelWebRoot(String path) {
-//    String root = config.get(Config.ROOT_WEB);
-//    if (path == null) return null;
-//    if (PATH.isAbsolute(path)) {
-//      return path;
-//    }
-//    return root + File.separator + path;
-//  }
-//
-//  /**
-//   * get absolute path relative to g.root
-//   *
-//   * @param path input relative path
-//   * @return absolute path
-//   */
-//  public String pathRelRoot(String path) {
-//    String root = config.get(Config.ROOT);
-//    if (path == null) return null;
-//    if (PATH.isAbsolute(path)) {
-//      return path;
-//    }
-//    return root + File.separator + path;
-//  }
-
-
-//  public ViewEngine viewEngine(String ext) {
-//    ViewEngine ret = viewEngines.get(ext);
-//    if (ret == null) ret = viewEngines.get("default");
-//    return ret;
-//  }
-//
-//  public Pond viewEngine(String ext, ViewEngine viewEngine) {
-//    viewEngines.put(ext, viewEngine);
-//    return this;
-//  }
-
-  public static String config(String name) {
-    return S.config.get(Pond.class, name);
-  }
-
-  public static void config(String name, String config) {
-    S.config.set(Pond.class, name, config);
-  }
-
 
   /**
    * Open the debug mode for Pond
@@ -262,25 +169,6 @@ public final class Pond extends Router {
     return this;
   }
 
-
-//  public <E> E spi(Class<E> s) {
-//    E e = SPILoader.service(s);
-//    logger.info("SPI-INJECT " + s.getSimpleName() + " : "
-//        + e.getClass().getCanonicalName());
-//    return e;
-//  }
-
-//  @Override
-//  public Pond use(int mask, String path, Mid... mids) {
-//    this.rootRouter.use(mask, path, mids);
-//    return this;
-//  }
-//
-//  @Override
-//  public Pond use(String path, Router router) {
-//    this.rootRouter.use(path, router);
-//    return this;
-//  }
 
   @SuppressWarnings("unchecked")
   public void stop() {

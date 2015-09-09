@@ -39,6 +39,11 @@ public class Ctx extends HashMap<String, Object> {
     return route;
   }
 
+  public Ctx route(Route r) {
+    route = r;
+    return this;
+  }
+
   void setHandled(boolean b) {
     this.handled = b;
   }

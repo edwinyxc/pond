@@ -3,6 +3,7 @@ package pond.web.spi;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pond.common.config.Config;
 
 import java.util.Map;
 
@@ -17,6 +18,16 @@ public interface SessionStore {
    * Logger ID
    */
   Logger logger = LoggerFactory.getLogger(SessionStore.class);
+
+  /**
+   * Configs
+   */
+
+  /**
+   * Session max age, seconds
+   */
+  static final String SESSION_MAX_AGE = "session_max_age";
+
 
   /**
    * Get sessionMap by sessionID

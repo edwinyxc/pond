@@ -15,8 +15,12 @@ public class Tuple<A, B> {
     _b = b;
   }
 
-  public static <A, B> Tuple<A, B> t2(A a, B b) {
+  public static <A, B> Tuple<A, B> pair(A a, B b) {
     return new Tuple<A, B>(a, b);
+  }
+
+  public static <A, B> Tuple<A, B> t2(A a, B b) {
+    return pair(a,b);
   }
 
   public static <A, B, C> T3<A, B, C> t3(A a, B b, C c) {

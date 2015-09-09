@@ -3,30 +3,14 @@ package pond.web.http;
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 /**
- * Copied from javax.servlet-api/3.1.0
+ * Copied Some lines from javax.servlet-api/3.1.0
  */
 public class Cookie implements Cloneable, Serializable {
 
-  private static final long serialVersionUID = -6454587001725327448L;
 
-  private static final String TSPECIALS;
-
-  private static final String LSTRING_FILE =
-      "javax.servlet.http.LocalStrings";
-
-  private static ResourceBundle lStrings =
-      ResourceBundle.getBundle(LSTRING_FILE);
-
-  static {
-    if (Boolean.valueOf(System.getProperty("org.glassfish.web.rfc2109_cookie_names_enforced", "true"))) {
-      TSPECIALS = "/()<>@,;:\\\"[]?={} \t";
-    } else {
-      TSPECIALS = ",; ";
-    }
-  }
+  private static final String TSPECIALS = "/()<>@,;:\\\"[]?={} \t";
 
   //
   // The value of the cookie itself.
@@ -44,9 +28,6 @@ public class Cookie implements Cloneable, Serializable {
   private String domain;  // ;Domain=VALUE ... domain that sees cookie
   private int maxAge = -1;  // ;Max-Age=VALUE ... cookies auto-expire
   private String path;  // ;Path=VALUE ... URLs that see the cookie
-  private boolean secure;  // ;Secure ... e.g. use SSL
-  private int version = 0;  // ;Version=1 ... means RFC 2109++ style
-  private boolean isHttpOnly = false;
 
   /**
    * Constructs a cookie with the specified name and value.
@@ -74,12 +55,11 @@ public class Cookie implements Cloneable, Serializable {
    *                                  space, or semicolon) or matches a token reserved for use by the
    *                                  cookie protocol
    * @see #setValue
-   * @see #setVersion
    */
   public Cookie(String name, String value) {
     if (name == null || name.length() == 0) {
-      throw new IllegalArgumentException(
-          lStrings.getString("err.cookie_name_blank"));
+      //TODO i18n
+      throw new IllegalArgumentException("err.cookie_name_blank");
     }
     if (!isToken(name) ||
         name.equalsIgnoreCase("Comment") || // rfc2019
@@ -91,7 +71,8 @@ public class Cookie implements Cloneable, Serializable {
         name.equalsIgnoreCase("Secure") ||
         name.equalsIgnoreCase("Version") ||
         name.startsWith("$")) {
-      String errMsg = lStrings.getString("err.cookie_name_is_token");
+      //TODO i18n
+      String errMsg = "err.cookie_name_is_token";
       Object[] errArgs = new Object[1];
       errArgs[0] = name;
       errMsg = MessageFormat.format(errMsg, errArgs);
@@ -229,34 +210,6 @@ public class Cookie implements Cloneable, Serializable {
   }
 
   /**
-   * Indicates to the browser whether the cookie should only be sent
-   * using a secure protocol, such as HTTPS or SSL.
-   * <p>
-   * <p>The default value is <code>false</code>.
-   *
-   * @param flag if <code>true</code>, sends the cookie from the browser
-   *             to the server only when using a secure protocol; if <code>false</code>,
-   *             sent on any protocol
-   * @see #getSecure
-   */
-  public void setSecure(boolean flag) {
-    secure = flag;
-  }
-
-  /**
-   * Returns <code>true</code> if the browser is sending cookies
-   * only over a secure protocol, or <code>false</code> if the
-   * browser can send cookies using any protocol.
-   *
-   * @return <code>true</code> if the browser uses a secure protocol,
-   * <code>false</code> otherwise
-   * @see #setSecure
-   */
-  public boolean getSecure() {
-    return secure;
-  }
-
-  /**
    * Returns the name of the cookie. The name cannot be changed after
    * creation.
    *
@@ -294,39 +247,6 @@ public class Cookie implements Cloneable, Serializable {
     return value;
   }
 
-  /**
-   * Returns the version of the protocol this cookie complies
-   * with. Version 1 complies with RFC 2109,
-   * and version 0 complies with the original
-   * cookie specification drafted by Netscape. Cookies provided
-   * by a browser use and identify the browser's cookie version.
-   *
-   * @return 0 if the cookie complies with the
-   * original Netscape specification; 1
-   * if the cookie complies with RFC 2109
-   * @see #setVersion
-   */
-  public int getVersion() {
-    return version;
-  }
-
-  /**
-   * Sets the version of the cookie protocol that this Cookie complies
-   * with.
-   * <p>
-   * <p>Version 0 complies with the original Netscape cookie
-   * specification. Version 1 complies with RFC 2109.
-   * <p>
-   * <p>Since RFC 2109 is still somewhat new, consider
-   * version 1 as experimental; do not use it yet on production sites.
-   *
-   * @param v 0 if the cookie should comply with the original Netscape
-   *          specification; 1 if the cookie should comply with RFC 2109
-   * @see #getVersion
-   */
-  public void setVersion(int v) {
-    version = v;
-  }
 
   /*
    * Tests a string and returns true if the string counts as a
@@ -359,36 +279,6 @@ public class Cookie implements Cloneable, Serializable {
     } catch (CloneNotSupportedException e) {
       throw new RuntimeException(e.getMessage());
     }
-  }
-
-  /**
-   * Marks or unmarks this Cookie as <i>HttpOnly</i>.
-   * <p>
-   * <p>If <tt>isHttpOnly</tt> is set to <tt>true</tt>, this cookie is
-   * marked as <i>HttpOnly</i>, by adding the <tt>HttpOnly</tt> attribute
-   * to it.
-   * <p>
-   * <p><i>HttpOnly</i> cookies are not supposed to be exposed to
-   * client-side scripting code, and may therefore help mitigate certain
-   * kinds of cross-site scripting attacks.
-   *
-   * @param isHttpOnly true if this cookie is to be marked as
-   *                   <i>HttpOnly</i>, false otherwise
-   * @since Servlet 3.0
-   */
-  public void setHttpOnly(boolean isHttpOnly) {
-    this.isHttpOnly = isHttpOnly;
-  }
-
-  /**
-   * Checks whether this Cookie has been marked as <i>HttpOnly</i>.
-   *
-   * @return true if this Cookie has been marked as <i>HttpOnly</i>,
-   * false otherwise
-   * @since Servlet 3.0
-   */
-  public boolean isHttpOnly() {
-    return isHttpOnly;
   }
 }
 

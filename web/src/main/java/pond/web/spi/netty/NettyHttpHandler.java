@@ -23,6 +23,7 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -36,7 +37,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
   NettyReqWrapper reqWrapper = null;
 
-//  CompositeByteBuf content = new CompositeByteBuf(PooledByteBufAllocator.DEFAULT, true, 2);
+  //  CompositeByteBuf content = new CompositeByteBuf(PooledByteBufAllocator.DEFAULT, true, 2);
 //  CompositeByteBuf content = Unpooled.compositeBuffer();
   CompositeByteBuf content;
 
@@ -122,25 +123,26 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
       //parse cookies
       reqWrapper.updateCookies(
-          cookies ->
-              S._for(ServerCookieDecoder.decode(
-                         S.avoidNull(request.headers().getAndConvert(HttpHeaderNames.COOKIE), ""))
-              ).each(
-                  cookie -> S._tap(
-                      new Cookie(cookie.name(), cookie.value()),
-                      c -> {
-                        c.setSecure(cookie.isSecure());
-                        c.setPath(cookie.path());
-                        c.setVersion(cookie.version());
-                        c.setMaxAge((int) cookie.maxAge());
-                        c.setHttpOnly(cookie.isHttpOnly());
-                        if (STRING.notBlank(cookie.domain()))
-                          c.setDomain(cookie.domain());
-                        c.setComment(cookie.comment());
-                      })
-              )
 
-      );
+          cookies -> {
+            Set<io.netty.handler.codec.http.Cookie> decoded
+                = ServerCookieDecoder.decode(
+                S.avoidNull(request.headers().getAndConvert(HttpHeaderNames.COOKIE), "")
+            );
+
+            S._for(decoded).each(
+                cookie ->
+                    cookies.put(cookie.name(), S._tap(
+                        new Cookie(cookie.name(), cookie.value()),
+                        c -> {
+                          c.setPath(cookie.path());
+                          c.setMaxAge((int) cookie.maxAge());
+                          if (STRING.notBlank(cookie.domain()))
+                            c.setDomain(cookie.domain());
+                          c.setComment(cookie.comment());
+                        }))
+            );
+          });
 
 
       contentType = httpRequest.headers().getAndConvert(HttpHeaderNames.CONTENT_TYPE);
@@ -323,13 +325,14 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
               //maybe reset, timeout ....
               //ctx.fireExceptionCaught(exe_ctx.getCause());
             }
-          }catch (Exception e){
+          } catch (Exception e) {
             ctx.fireExceptionCaught(e);
-          }
-          finally {
+          } finally {
             S._debug(BaseServer.logger,
                      log -> log.debug("TRACE: IO-SEND finished, now make clean"));
             clean();
+            S._debug(BaseServer.logger,
+                     log -> log.debug("TRACE: Clean finished"));
           }
         });
 
@@ -352,7 +355,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
     List<Attribute> attrs = new ArrayList<>();
     List<FileUpload> fileUploads = new ArrayList<>();
-    Tuple<List<Attribute>, List<FileUpload>> ret = Tuple.t2(attrs, fileUploads);
+    Tuple<List<Attribute>, List<FileUpload>> ret = Tuple.pair(attrs, fileUploads);
 
     while (decoder.hasNext()) {
       InterfaceHttpData data = decoder.next();
@@ -526,7 +529,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     httpRequest = null;
     reqWrapper = null;
 //    content.clear();
-    if(content!= null && content.refCnt() > 0){
+    if (content != null && content.refCnt() > 0) {
       content.release();
     }
     resetDecoder();

@@ -63,18 +63,18 @@ public class Router implements Mid, RouterAPI {
     _for(results).each(r -> {
 
       S._debug(logger, log ->
-          log.debug(String.format("Pre-processing... handler: %s", r)));
+          log.debug(String.format("Processing... %s", r)));
       //put in-url params
       _for(r.urlParams(path)).each(
           e -> req.param(e.getKey(), e.getValue())
       );
 
-      S._debug(logger, log ->
-          log.debug(String.format("Processing... path: %s", path)));
-
       ctx.route = r;
 
       ctx.pond.ctxExec.execAll(ctx, r.mids);
+
+      S._debug(logger, log ->
+          log.debug(String.format("Process %s finished", r)));
 
     });
 

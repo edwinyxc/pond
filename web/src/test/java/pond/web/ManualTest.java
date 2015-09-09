@@ -7,7 +7,7 @@ import pond.common.S;
  */
 public class ManualTest {
 
-  static void a(){
+  static void a() {
     Pond app = Pond.init();
 
     app.use((req, resp) -> {
@@ -24,20 +24,47 @@ public class ManualTest {
   static class A {
     static String log = "STATIC A";
 
-    public String toString(){
+    public String toString() {
       return log;
     }
   }
 
-  static class B extends A{
+  static class B extends A {
     static String log = "STATIC B";
-    public String a(){
+
+    public String a() {
       return log;
     }
   }
 
+  static void test_session() {
+    Pond app = Pond.init().debug().listen(9090);
+    app.cleanAndBind(p -> {
 
-  static void test_router(){
+      p.use(Session.install);
+
+      p.get("/install/${val}", (req, resp) -> {
+        Session ses = Session.get(req);
+        ses.set("name", req.param("val"));
+        ses.save();
+        resp.send(200);
+      });
+
+      p.get("/readSession", (req, resp) -> {
+        Session ses = Session.get(req);
+        S.echo(ses);
+        resp.send(200, ses.get("name"));
+      });
+
+      p.get("/invalidate", (req, resp) -> {
+        Session.get(req).invalidate();
+        resp.send(200);
+      });
+    });
+
+  }
+
+  static void test_router() {
     Pond.init(app -> {
       app.use((req, resp) -> {
         S.echo("INSTALLLLLLLLLLLLLLLLLLLLL");
@@ -51,14 +78,15 @@ public class ManualTest {
     }).debug().listen(9090);
   }
 
-  static void b(){
+  static void b() {
     S.echo(new B().toString());
     S.echo(B.log);
   }
 
-  public static void main(String[] args){
+  public static void main(String[] args) {
 //    b();
-    test_router();
+//    test_router();
+    test_session();
   }
 
 }

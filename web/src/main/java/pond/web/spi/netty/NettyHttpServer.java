@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 
-public class NettyHttpServer implements BaseServer{
+public class NettyHttpServer implements BaseServer {
 
   public final static String EVENT_GROUP_BOSS_GROUP_COUNT = "boss_group_count";
 
@@ -65,31 +65,30 @@ public class NettyHttpServer implements BaseServer{
 
   public NettyHttpServer() { }
 
-  // configuration getters
-  private boolean ssl() {
-    return S._tap(Boolean.parseBoolean(Pond.config(Pond.ENABLE_SSL)), b -> {
-      if (b) {
-        //TODO
-        logger.warn("SSL is not supported");
-        //logger.info("USING SSL");
-      }
-    });
-  }
+//  // configuration getters
+//  private boolean ssl() {
+//    return S._tap(Boolean.parseBoolean(Pond.config(Pond.ENABLE_SSL)), b -> {
+//      if (b) {
+//        //TODO
+//        logger.warn("SSL is not supported");
+//        //logger.info("USING SSL");
+//      }
+//    });
+//  }
 
   private int port() {
-    return S._tap(ssl()
-                      ? 443
-                      : Integer.parseInt(S.avoidNull(Pond.config(Pond.PORT), "8333")),
-                  port -> logger.info(String.format("USING PORT %s", port)));
+    return S._tap(
+        Integer.parseInt(S.avoidNull(S.config.get(BaseServer.class, BaseServer.PORT), "8333")),
+        port -> logger.info(String.format("USING PORT %s", port)));
   }
 
   private int backlog() {
-    return S._tap(Integer.parseInt(S.avoidNull(Pond.config(Pond.CONFIG_SO_BACKLOG), "1024")),
+    return S._tap(Integer.parseInt(S.avoidNull(S.config.get(BaseServer.class, BaseServer.SO_BACKLOG), "128")),
                   backlog -> logger.info(String.format("USING BACKLOG %s", backlog)));
   }
 
   private boolean keepAlive() {
-    return S._tap(Boolean.parseBoolean(Pond.config(Pond.CONFIG_SO_KEEPALIVE)),
+    return S._tap(Boolean.parseBoolean(S.avoidNull(S.config.get(BaseServer.class, BaseServer.SO_KEEPALIVE), "true")),
                   b -> {
                     if (b) logger.info("USING keepAlive");
                   });
@@ -134,7 +133,7 @@ public class NettyHttpServer implements BaseServer{
             ChannelPipeline pipeline = socketChannel.pipeline();
             pipeline.addLast(new HttpServerCodec());
             pipeline.addLast(new ChunkedWriteHandler());
-            pipeline.addLast(new NettyHttpHandler(handler(),executorService));
+            pipeline.addLast(new NettyHttpHandler(handler(), executorService));
           }
         })
         .childOption(ChannelOption.SO_KEEPALIVE, keepAlive())

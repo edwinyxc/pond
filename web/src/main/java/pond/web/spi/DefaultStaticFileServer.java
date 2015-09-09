@@ -7,8 +7,6 @@ import pond.web.Pond;
 import pond.web.Request;
 import pond.web.Response;
 import pond.web.Route;
-import pond.web.spi.BaseServer;
-import pond.web.spi.StaticFileServer;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -21,17 +19,16 @@ public class DefaultStaticFileServer implements StaticFileServer {
 
   //TODO read from config
   static final String HTTP_DATE_FORMAT = S.avoidNull(
-      Pond.config(Pond.STATIC_SERVER_HTTP_DATE_FORMAT)
+      S.config.get(StaticFileServer.class, StaticFileServer.HTTP_DATE_FORMAT)
       , "EEE, dd MMM yyyy HH:mm:ss zzz");
 
   static final String HTTP_DATE_GMT_TIMEZONE = S.avoidNull(
-      Pond.config(Pond.STATIC_SERVER_HTTP_DATE_GMT_TIMEZONE)
-      , "GMT");
+      S.config.get(StaticFileServer.HTTP_DATE_GMT_TIMEZONE) , "GMT");
 
   static final int HTTP_CACHE_SECONDS =
       Convert.toInt(
           S.avoidNull(
-              Pond.config(Pond.STATIC_SERVER_HTTP_CACHE_SECONDS)
+              S.config.get(StaticFileServer.class, StaticFileServer.HTTP_CACHE_SECONDS)
               , "60")
       );
 
@@ -55,7 +52,7 @@ public class DefaultStaticFileServer implements StaticFileServer {
   }
 
   private boolean allowList() {
-    return Boolean.parseBoolean(Pond.config(Pond.STATIC_SERVER_ENABLE_LISTING_DIR));
+    return Boolean.parseBoolean(S.config.get(StaticFileServer.ALLOW_LISTING_DIR));
   }
 
 
@@ -130,7 +127,7 @@ public class DefaultStaticFileServer implements StaticFileServer {
 
     if (file.isDirectory()) {
       if (path.endsWith("/")) {
-        String indexFileName = S.avoidNull(Pond.config(Pond.STATIC_SERVER_INDEX_FILE), "index.html");
+        String indexFileName = S.avoidNull(S.config.get(StaticFileServer.INDEX_FILE), "index.html");
 
         File index = new File(file, indexFileName);
 

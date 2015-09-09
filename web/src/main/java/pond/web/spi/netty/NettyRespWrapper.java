@@ -127,10 +127,7 @@ public class NettyRespWrapper implements Response {
                     new DefaultCookie(c.getName(), c.getValue()),
                     cookie -> {
                       cookie.setPath(c.getPath());
-                      cookie.setSecure(c.getSecure());
-                      cookie.setHttpOnly(c.isHttpOnly());
                       cookie.setComment(c.getComment());
-                      cookie.setVersion(c.getVersion());
                       cookie.setDomain(c.getDomain());
                     })
             )

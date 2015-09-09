@@ -22,7 +22,9 @@ public interface BaseServer {
   /**
    * PORT
    */
-  String PORT = "port";
+  final static String PORT = "port";
+  final static String SO_BACKLOG = "so_backlog";
+  final static String SO_KEEPALIVE = "so_keepalive";
 
   /**
    * use the registered env("port") to get the listen port
