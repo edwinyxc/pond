@@ -1,8 +1,11 @@
 package pond.web;
 
 import pond.common.S;
+import pond.web.http.HttpMethod;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Execution Context, attached to a single thread.
@@ -12,12 +15,18 @@ public class Ctx extends HashMap<String, Object> {
   Request req;
   Response resp;
   Pond pond;
+  String path;
+  String uri;
   Route route;
+  HttpMethod method;
+  List<Mid> handledMids = new ArrayList<>();
   boolean handled = false;
 
   public Ctx(Request req, Response resp, Pond pond)
   {
     this.req = req;
+    this.path = req.path();
+    this.uri = req.uri();
     this.resp = new ResponseWrapper(resp);
     this.pond = pond;
 
@@ -29,6 +38,14 @@ public class Ctx extends HashMap<String, Object> {
 
     });
 
+  }
+
+  public boolean alreadyHandled(Mid mid){
+    return handledMids.contains(mid);
+  }
+
+  public List<Mid> handledMids(){
+    return handledMids;
   }
 
   public Pond pond() {
@@ -56,5 +73,16 @@ public class Ctx extends HashMap<String, Object> {
     return resp;
   }
 
+  public String uri(){
+    return uri;
+  }
+
+  public String path(){
+    return path;
+  }
+
+  public HttpMethod method() {
+    return method;
+  }
 
 }

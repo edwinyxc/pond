@@ -2,6 +2,10 @@ package pond.web;
 
 import pond.common.S;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by ed on 9/2/15.
  */
@@ -83,10 +87,29 @@ public class ManualTest {
     S.echo(B.log);
   }
 
+
+  static void test_require() {
+    Pond app = Pond.init().debug().listen(9090);
+    app.cleanAndBind(p -> {
+
+      p.get("/require",
+            Session.install,
+            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(Session.install)
+      );
+
+      p.get("/requireFail",
+            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(Session.install)
+      );
+
+    });
+  }
+
   public static void main(String[] args) {
 //    b();
 //    test_router();
-    test_session();
+//    test();
+
+//    test_require();
   }
 
 }

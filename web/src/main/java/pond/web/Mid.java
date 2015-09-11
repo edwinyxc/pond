@@ -3,6 +3,15 @@ package pond.web;
 import pond.common.f.Callback;
 
 /**
- * A simple named version
+ * A
  */
-public interface Mid extends Callback.C2<Request, Response> { }
+public interface Mid extends Callback.C2<Request, Response> {
+
+  final static Mid NOOP =  (req, resp ) -> {};
+
+  static WrappedMid wrap(Mid mid){
+    return new WrappedMid(mid);
+  }
+
+}
+

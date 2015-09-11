@@ -23,6 +23,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 import static pond.web.Render.text;
 
 /**
@@ -70,6 +71,27 @@ public class TestSuite {
 
     //SESSION
     session_test();
+  }
+
+  public void require_test() throws IOException {
+    app.cleanAndBind(p -> {
+
+      p.get("/require",
+            Session.install,
+            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(Session.install)
+      );
+
+      p.get("/requireFail",
+            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(Session.install)
+      );
+
+    });
+
+    TestUtil.assertContentEqualsForGet("pass","http://localhost:9090/require");
+    HTTP.get("http://localhost:9090/requireFail", http -> {
+      assertNotSame(200, http.getStatusLine().getStatusCode());
+    });
+
   }
 
   public void session_test() throws IOException {

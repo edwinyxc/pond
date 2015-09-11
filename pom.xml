@@ -34,6 +34,7 @@
         <module>db</module>
         <module>table</module>
         <module>all</module>
+        <module>acl</module>
     </modules>
 
     <properties>

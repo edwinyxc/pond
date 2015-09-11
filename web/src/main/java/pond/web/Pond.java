@@ -94,7 +94,7 @@ public final class Pond extends Router {
 
   private void bindLastMids() {
     //add at last
-    this.use(Mids.FORCE_CLOSE);
+    this.use(InternalMids.FORCE_CLOSE);
   }
 
   public void listen() {

@@ -5,7 +5,19 @@ public interface Function<R, A> {
   /**
    * Function do nothing but return the argument as-is.
    */
-  static Function NOOP = a -> a;
+  static Function EMPTY = a -> a;
+
+  static Function NUL = a -> null;
+
+  @SuppressWarnings("unchecked")
+  static <R,A> Function<R,A> empty(){
+    return EMPTY;
+  }
+
+  @SuppressWarnings("unchecked")
+  static <R,A> Function<R,A> nul(){
+    return NUL;
+  }
 
   R apply(A t);
 

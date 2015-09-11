@@ -42,6 +42,7 @@ public class CtxExec {
       exec(ctx, mid);
     }
   }
+
   /**
    * @param ctx
    */
@@ -55,13 +56,13 @@ public class CtxExec {
       //bind localthread-context
       if (ctxThreadLocal.get() == null) ctxThreadLocal.set(ctx);
       if (ctx.handled) return;
+      final Mid finalMid = mid;
 
-        final Mid finalMid = mid;
+      S._debug(Pond.logger, log ->
+          log.debug("Ctx Executing... uri: " + ctx.req.path() + ", mid: " + finalMid.toString()));
 
-        S._debug(Pond.logger, log ->
-            log.debug("Ctx Executing... uri: " + ctx.req.path() + ", mid: " + finalMid.toString()));
-
-        mid.apply(ctx.req, ctx.resp);
+      mid.apply(ctx.req, ctx.resp);
+      ctx.handledMids.add(mid);
 
     } catch (RuntimeException e) {
       unwrapRuntimeException(e, ctx.resp);

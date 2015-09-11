@@ -24,8 +24,6 @@ public interface Request {
 
   String remoteIp();
 
-//    String characterEncoding();
-
   InputStream in();
 
   String uri();
@@ -33,8 +31,6 @@ public interface Request {
   Map<String, List<String>> headers();
 
   Map<String, List<String>> params();
-
-//    Map<String, List<String>> attrs();
 
   Map<String, List<UploadFile>> files();
 
@@ -68,14 +64,6 @@ public interface Request {
     HttpUtils.appendToMap(params(), key, val);
   }
 
-//    default List<String> attrs(String attr) {
-//        return attrs().get(attr);
-//    }
-
-//    default String attr(String attr) {
-//        return S._for(attrs(attr)).limit();
-//    }
-
   //upload File
   default List<UploadFile> files(String file) {
     return files().get(file);
@@ -99,29 +87,6 @@ public interface Request {
 
   default Long paramLong(String para) {
     return S._try_ret(() -> Long.parseLong(param(para)));
-  }
-
-//    default Integer attrInt(String para) {
-//        return S._try_ret(() -> Integer.parseInt(attr(para)));
-//    }
-//
-//    default Boolean attrBool(String para) {
-//        return S._try_ret(() -> Boolean.parseBoolean(attr(para)));
-//    }
-//
-//    default Double attrDouble(String para) {
-//        return S._try_ret(() -> Double.parseDouble(attr(para)));
-//    }
-//
-//    default Long attrLong(String para) {
-//        return S._try_ret(() -> Long.parseLong(attr(para)));
-//    }
-
-  @Deprecated
-  default String argument(String arg) {
-    String ret;
-    ret = param(arg);
-    return ret;
   }
 
   default Ctx ctx() {

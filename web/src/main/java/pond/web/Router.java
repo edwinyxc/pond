@@ -37,11 +37,14 @@ public class Router implements Mid, RouterAPI {
   @Override
   public void apply(Request req, Response resp) {
 
+    Ctx ctx = req.ctx();
+
     HttpMethod method = HttpMethod.of(req.method());
+
+    ctx.method = method;
 
     List<Route> routes = this.routes.get(method);
 
-    Ctx ctx = req.ctx();
 
     //ignore trialling slash
     String path = Pond._ignoreLastSlash(req.path());

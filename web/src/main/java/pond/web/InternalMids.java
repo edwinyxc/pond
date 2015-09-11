@@ -3,7 +3,7 @@ package pond.web;
 /**
  * Put my mids here
  */
-public class Mids {
+public class InternalMids {
 
   final static Mid FORCE_CLOSE = (req, resp) -> {
     Ctx _ctx = req.ctx();

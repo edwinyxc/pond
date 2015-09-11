@@ -57,49 +57,61 @@ public class Session {
 
   public static String LABEL_SESSION = "x-pond-sessionid";
 
+  static class SessionInstaller implements Mid {
+
+    @Override
+    public void apply(Request req, Response resp) {
+
+      Cookie cookie;
+      String sessionid;
+      Map data;
+
+      cookie = req.cookie(LABEL_SESSION);
+
+      if (cookie == null) {
+        //totally new
+        sessionid = store.create(data = new HashMap());
+        cookie = new Cookie(LABEL_SESSION, sessionid);
+        //TODO
+        cookie.setMaxAge(1800);
+      } else {
+        sessionid = cookie.getValue();
+
+        data = store.get(sessionid);
+        if (data == null) {
+          cookie.setMaxAge(0);
+          data = new HashMap();
+        }
+      }
+
+      //new a session each time
+      req.ctx().put(LABEL_SESSION, new Session(sessionid, data));
+
+      //avoid different paths
+      cookie.setPath("/");
+      //now the user should be able to use the session
+      resp.cookie(cookie);
+    }
+  }
+
   /**
    * Put this mid into responsibility chain and you will get fully
    * session support then.
    */
-  public static Mid install = (req, resp) -> {
-    Cookie cookie;
-    String sessionid;
-    Map data;
-
-    cookie = req.cookie(LABEL_SESSION);
-
-    if (cookie == null) {
-      //totally new
-      sessionid = store.create(data = new HashMap());
-      cookie = new Cookie(LABEL_SESSION, sessionid);
-      //TODO
-      cookie.setMaxAge(1800);
-    } else {
-      sessionid = cookie.getValue();
-
-      data = store.get(sessionid);
-      if (data == null) {
-        cookie.setMaxAge(0);
-        data = new HashMap();
-      }
-    }
-
-    //new a session each time
-    req.ctx().put(LABEL_SESSION, new Session(sessionid, data));
-
-    //avoid different paths
-    cookie.setPath("/");
-    //now the user should be able to use the session
-    resp.cookie(cookie);
-
-  };
+  public static Mid install = new SessionInstaller();
 
 
   /**
    * Get session from req
    */
   public static Session get(Request request) {
-    Session ret = (Session) request.ctx().get(LABEL_SESSION);
+    return get(request.ctx());
+  }
+
+
+  public static Session get(Ctx ctx) {
+
+    Session ret = (Session) ctx.get(LABEL_SESSION);
     if (ret == null)
       throw new NullPointerException("Use Session#install first.");
     return ret;
