@@ -7,9 +7,9 @@ import pond.common.f.Callback;
  */
 public interface Mid extends Callback.C2<Request, Response> {
 
-  final static Mid NOOP =  (req, resp ) -> {};
+  final static Mid NOOP = (req, resp) -> {};
 
-  static WrappedMid wrap(Mid mid){
+  static WrappedMid wrap(Mid mid) {
     return new WrappedMid(mid);
   }
 

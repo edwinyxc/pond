@@ -25,7 +25,7 @@ public class HandlerExecutionContext {
 
   Throwable cause;
 
-  HandlerExecutionContext(){}
+  HandlerExecutionContext() {}
 
 
   public HandlerExecutionContext normal(OutputStream out) {

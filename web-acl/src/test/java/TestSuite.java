@@ -76,11 +76,11 @@ public class TestSuite {
   }
 
   @Test
-  public void test(){
+  public void test() {
   }
 
   @After
-  public void stop(){
+  public void stop() {
     app.stop();
   }
 

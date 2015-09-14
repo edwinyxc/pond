@@ -28,7 +28,7 @@ public class TestUtil {
 
     HTTP.get(url, null, resp -> {
       Header[] s = resp.getHeaders(name);
-      assertTrue(S._for(s).some(header ->  header.getValue().contains(judge) ));
+      assertTrue(S._for(s).some(header -> header.getValue().contains(judge)));
     });
 
   }

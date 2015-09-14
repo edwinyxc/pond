@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import pond.common.S;
-import pond.common.f.Holder;
 import pond.db.connpool.SimplePool;
 
 import javax.sql.DataSource;
@@ -79,7 +78,7 @@ public class ConcurrentTest {
               tmpl.exec("USE POND_DB_TEST;");
               for (int i = 0; i < 400; i++)
                 tmpl.exec("INSERT INTO test values(?,?)",
-                    String.valueOf(Math.random()), String.valueOf(acc.getAndIncrement()));
+                          String.valueOf(Math.random()), String.valueOf(acc.getAndIncrement()));
             });
 
           }, executorService));

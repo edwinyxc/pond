@@ -7,13 +7,15 @@ public interface Callback<A> {
   @SuppressWarnings("all")
   static <A> Callback<A> noop() {
     return NOOP;
-  };
+  }
+
+  ;
 
   void apply(A t);
 
   interface C0 {
 
-   void apply();
+    void apply();
   }
 
   interface C0ERR {

@@ -10,12 +10,12 @@ public interface Function<R, A> {
   static Function NUL = a -> null;
 
   @SuppressWarnings("unchecked")
-  static <R,A> Function<R,A> empty(){
+  static <R, A> Function<R, A> empty() {
     return EMPTY;
   }
 
   @SuppressWarnings("unchecked")
-  static <R,A> Function<R,A> nul(){
+  static <R, A> Function<R, A> nul() {
     return NUL;
   }
 

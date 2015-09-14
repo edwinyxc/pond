@@ -104,7 +104,7 @@ public class Router implements Mid, RouterAPI {
               "Routes of method[" + methods.toString() + "] not found");
       //prefix :  /${id}
       Route route = new Route(path, Arrays.asList(mids));
-      S._debug(logger, log -> log.debug("Routing "+m+" : " + route));
+      S._debug(logger, log -> log.debug("Routing " + m + " : " + route));
       routes.add(route);
     }
     return this;

@@ -148,8 +148,8 @@ public class ReqQuery {
     public Page take(Integer pgIdx, Integer pgLen) {
       this.put(N_DATA, pgLen);
       this.put(N_PG_IDX, pgIdx);
-      this.put(N_PG_SIZE, S.avoidNull(pgIdx,0));
-      this.put(N_REC_SIZE,S.avoidNull(pgLen,0));
+      this.put(N_PG_SIZE, S.avoidNull(pgIdx, 0));
+      this.put(N_REC_SIZE, S.avoidNull(pgLen, 0));
       return this;
     }
 

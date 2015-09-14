@@ -23,7 +23,7 @@ public class DefaultStaticFileServer implements StaticFileServer {
       , "EEE, dd MMM yyyy HH:mm:ss zzz");
 
   static final String HTTP_DATE_GMT_TIMEZONE = S.avoidNull(
-      S.config.get(StaticFileServer.HTTP_DATE_GMT_TIMEZONE) , "GMT");
+      S.config.get(StaticFileServer.HTTP_DATE_GMT_TIMEZONE), "GMT");
 
   static final int HTTP_CACHE_SECONDS =
       Convert.toInt(

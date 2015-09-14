@@ -3,7 +3,6 @@ package pond.web.spi;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pond.common.config.Config;
 
 import java.util.Map;
 
@@ -31,14 +30,16 @@ public interface SessionStore {
 
   /**
    * Get sessionMap by sessionID
+   *
    * @param <K>
    * @param <V>
    * @return map
    */
-  <K,V> Map<K,V> get(String sessionID);
+  <K, V> Map<K, V> get(String sessionID);
 
   /**
    * Creates a new entry with input Map;
+   *
    * @return sessionID
    */
   String create(Map map);
@@ -56,6 +57,6 @@ public interface SessionStore {
   /**
    * This method returns a copy of the session map
    */
-  Map<String,Map> all();
+  Map<String, Map> all();
 
 }

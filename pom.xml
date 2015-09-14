@@ -34,12 +34,13 @@
         <module>db</module>
         <module>table</module>
         <module>all</module>
-        <module>acl</module>
+        <module>web-acl</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.reporting.outputEncoding>UTF-8
+        </project.reporting.outputEncoding>
     </properties>
 
 

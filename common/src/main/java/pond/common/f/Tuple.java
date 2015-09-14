@@ -20,7 +20,7 @@ public class Tuple<A, B> {
   }
 
   public static <A, B> Tuple<A, B> t2(A a, B b) {
-    return pair(a,b);
+    return pair(a, b);
   }
 
   public static <A, B, C> T3<A, B, C> t3(A a, B b, C c) {

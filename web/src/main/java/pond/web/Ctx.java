@@ -22,8 +22,7 @@ public class Ctx extends HashMap<String, Object> {
   List<Mid> handledMids = new ArrayList<>();
   boolean handled = false;
 
-  public Ctx(Request req, Response resp, Pond pond)
-  {
+  public Ctx(Request req, Response resp, Pond pond) {
     this.req = req;
     this.path = req.path();
     this.uri = req.uri();
@@ -40,11 +39,11 @@ public class Ctx extends HashMap<String, Object> {
 
   }
 
-  public boolean alreadyHandled(Mid mid){
+  public boolean alreadyHandled(Mid mid) {
     return handledMids.contains(mid);
   }
 
-  public List<Mid> handledMids(){
+  public List<Mid> handledMids() {
     return handledMids;
   }
 
@@ -73,11 +72,11 @@ public class Ctx extends HashMap<String, Object> {
     return resp;
   }
 
-  public String uri(){
+  public String uri() {
     return uri;
   }
 
-  public String path(){
+  public String path() {
     return path;
   }
 

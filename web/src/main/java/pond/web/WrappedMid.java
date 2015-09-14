@@ -24,10 +24,10 @@ public class WrappedMid implements Mid {
   }
 
   private boolean checkRequire(Ctx ctx) {
-    if(requireClass != null){
+    if (requireClass != null) {
       return S._for(ctx.handledMids()).map(Object::getClass).toList().contains(requireClass);
     }
-    if(require != null){
+    if (require != null) {
       return S._for(ctx.handledMids()).contains(require);
     }
     return true;

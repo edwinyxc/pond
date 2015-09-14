@@ -38,7 +38,7 @@ public class NettyRespWrapper implements Response {
     writer = new PrintWriter(new OutputStreamWriter(out, charset));
 
     resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-        HttpResponseStatus.ACCEPTED);
+                                   HttpResponseStatus.ACCEPTED);
 
   }
 
@@ -124,12 +124,12 @@ public class NettyRespWrapper implements Response {
         .add(
             HttpHeaderNames.SET_COOKIE,
             ServerCookieEncoder.encode(S._tap(
-                    new DefaultCookie(c.getName(), c.getValue()),
-                    cookie -> {
-                      cookie.setPath(c.getPath());
-                      cookie.setComment(c.getComment());
-                      cookie.setDomain(c.getDomain());
-                    })
+                                           new DefaultCookie(c.getName(), c.getValue()),
+                                           cookie -> {
+                                             cookie.setPath(c.getPath());
+                                             cookie.setComment(c.getComment());
+                                             cookie.setDomain(c.getDomain());
+                                           })
             )
         );
     return this;

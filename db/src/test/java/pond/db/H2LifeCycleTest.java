@@ -23,7 +23,7 @@ public class H2LifeCycleTest {
     //S._repeat(() -> db.post(t -> t.execRaw("insert into t_test values('"+Math.random()+"')")), 10);
     List<Record> result = db.get("select * from t_test");
     long cost = S.time(() ->
-            S._repeat(() -> db.get("select  * from t_test"), 100)
+                           S._repeat(() -> db.get("select  * from t_test"), 100)
     );
     S.echo(cost);
     S.echo(S.dump(result));

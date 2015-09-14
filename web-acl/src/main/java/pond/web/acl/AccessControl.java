@@ -55,19 +55,19 @@ public class AccessControl {
     return this;
   }
 
-  public static Tuple<Boolean, String> fail(String txt){
+  public static Tuple<Boolean, String> fail(String txt) {
     return Tuple.t2(false, txt);
   }
 
-  public static Tuple<Boolean, String> fail(){
+  public static Tuple<Boolean, String> fail() {
     return fail("fail");
   }
 
-  public static Tuple<Boolean, String> success(String txt){
+  public static Tuple<Boolean, String> success(String txt) {
     return Tuple.t2(true, txt);
   }
 
-  public static Tuple<Boolean, String> success(){
+  public static Tuple<Boolean, String> success() {
     return success("success");
   }
 

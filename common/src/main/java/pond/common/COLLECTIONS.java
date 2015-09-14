@@ -21,7 +21,7 @@ public class COLLECTIONS {
   }
 
   @SafeVarargs
-  public static <E> LinkedHashSet<E>  linkedHashSet(E... data) {
+  public static <E> LinkedHashSet<E> linkedHashSet(E... data) {
     return S._tap(new LinkedHashSet<E>(), set -> Collections.addAll(set, data));
   }
 

@@ -21,9 +21,7 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.*;
 import static pond.web.Render.text;
 
 /**
@@ -87,7 +85,7 @@ public class TestSuite {
 
     });
 
-    TestUtil.assertContentEqualsForGet("pass","http://localhost:9090/require");
+    TestUtil.assertContentEqualsForGet("pass", "http://localhost:9090/require");
     HTTP.get("http://localhost:9090/requireFail", http -> {
       assertNotSame(200, http.getStatusLine().getStatusCode());
     });
@@ -283,8 +281,7 @@ public class TestSuite {
     app.cleanAndBind(app -> app.get("/.*", app._static("www")));
 
     TestUtil.assertContentEqualsForGet(
-        "<html><body><p>This is 123.html</p><img src=\"test_lv.jpg\"></body></html>"
-        , "http://localhost:9090/123.html"
+        "app.js", "http://localhost:9090/123.html"
     );
   }
 
@@ -292,8 +289,7 @@ public class TestSuite {
     app.cleanAndBind(app -> app.get("/static/.*", app._static("www")));
 
     TestUtil.assertContentEqualsForGet(
-        "<html><body><p>This is 123.html</p><img src=\"test_lv.jpg\"></body></html>",
-        "http://localhost:9090/static/123.html"
+        "app.js", "http://localhost:9090/static/123.html"
     );
   }
 
@@ -301,13 +297,11 @@ public class TestSuite {
     app.cleanAndBind(app -> app.get("/.*", app._static("www")));
 
     TestUtil.assertContentEqualsForGet(
-        "<html><body>index.html</body></html>",
-        "http://localhost:9090"
+        "index.html", "http://localhost:9090"
     );
 
     TestUtil.assertContentEqualsForGet(
-        "<html><body>index.html</body></html>",
-        "http://localhost:9090/index.html"
+        "index.html", "http://localhost:9090/index.html"
     );
   }
 

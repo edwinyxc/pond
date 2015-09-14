@@ -8,8 +8,6 @@ import pond.common.config.Config;
 public class TestConfig {
 
 
-
-
   public static void main(String[] args) {
 
     S.config.set(S.class, "maxSize", "10");

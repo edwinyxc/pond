@@ -71,7 +71,7 @@ public class Matrix {
     int old_cols = cols;
     /* limit add cols */
     cols += addColNum;
-		/* cols now is the new one. */
+    /* cols now is the new one. */
 
     int old_length = data.length - addColNum * rows;
     int move_step = (rows - 1) * addColNum;

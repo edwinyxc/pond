@@ -19,7 +19,7 @@ public class ForTest {
   @Test
   public void testIterableMapping() {
 
-    Iterable<String> testee = S.array("aa","bb","cc");
+    Iterable<String> testee = S.array("aa", "bb", "cc");
 
     assertArrayEquals(_for(testee).map(t -> "a").join(), new String[]{"a", "a", "a"});
   }

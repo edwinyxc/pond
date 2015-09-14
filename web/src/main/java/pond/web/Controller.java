@@ -65,8 +65,7 @@ public class Controller extends Router {
         Class aClass = a.annotationType();
 
         for (Map.Entry<Class<? extends Annotation>,
-            Callback.C3<Controller, Annotation, Method>> e : annotationResolvePolices.entrySet())
-        {
+            Callback.C3<Controller, Annotation, Method>> e : annotationResolvePolices.entrySet()) {
           Class defClass = e.getKey();
 
           //for annotations, strict equal works

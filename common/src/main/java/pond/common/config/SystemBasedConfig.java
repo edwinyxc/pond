@@ -1,7 +1,5 @@
 package pond.common.config;
 
-import pond.common.S;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +9,7 @@ import java.util.Map;
 
 public class SystemBasedConfig implements Config {
 
-  SystemBasedConfig(){}
+  SystemBasedConfig() {}
 
   @Override
   public String get(String name) {

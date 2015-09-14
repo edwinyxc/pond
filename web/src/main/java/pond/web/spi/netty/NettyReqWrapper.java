@@ -24,8 +24,8 @@ public class NettyReqWrapper extends AbstractRequest {
   InputStream _in;
 
   public NettyReqWrapper(
-                         ChannelHandlerContext cctx,
-                         HttpRequest req) {
+      ChannelHandlerContext cctx,
+      HttpRequest req) {
     channel = cctx.channel();
     n_req = req;
   }

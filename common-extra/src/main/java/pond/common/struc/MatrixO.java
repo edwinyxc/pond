@@ -288,7 +288,7 @@ public class MatrixO {
     int from = 0;
     int dest = 0;
     int _endCol = endCol;
-		/* limit get every to_del idx in every line */
+    /* limit get every to_del idx in every line */
     for (; from < volume; from += cols) {
       System.arraycopy(data, from, newArr, dest, beginCol);
       dest += beginCol;

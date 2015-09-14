@@ -20,7 +20,7 @@ public class Route {
   /**
    * Returns the definition path
    */
-  public String defPath(){
+  public String defPath() {
     return def_path;
   }
 

@@ -11,11 +11,10 @@ import java.util.Date;
 public class Convert {
 
   public static Integer toInt(Object obj) {
-    if(obj == null) return null;
-    if(obj instanceof Integer){
+    if (obj == null) return null;
+    if (obj instanceof Integer) {
       return (Integer) obj;
-    }
-    else return Integer.parseInt(String.valueOf(obj));
+    } else return Integer.parseInt(String.valueOf(obj));
   }
 
   public static Integer toInt(String str) {
@@ -23,11 +22,11 @@ public class Convert {
   }
 
   public static Long toLong(String str) {
-    return  Long.parseLong(str);
+    return Long.parseLong(str);
   }
 
   public static Double toDouble(String str) {
-    return  Double.parseDouble(str);
+    return Double.parseDouble(str);
   }
 
   public static Date toDate(String str, String format) throws ParseException {
