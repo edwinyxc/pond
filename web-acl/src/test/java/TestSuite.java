@@ -47,7 +47,7 @@ public class TestSuite {
     //ac.policy(Policy.absolute(() -> pair(false, "now allowed")));
 
     app.cleanAndBind(p -> {
-      p.use(Session.install);
+      p.use(Session.install());
 
       p.use((req, resp) -> {
         Session.get(req).set("user", "an");

@@ -2,6 +2,7 @@ package pond.web;
 
 import pond.common.S;
 import pond.common.SPILoader;
+import pond.common.f.Function;
 import pond.web.http.Cookie;
 import pond.web.spi.SessionStore;
 
@@ -14,6 +15,10 @@ import java.util.Map;
 public class Session {
 
   static SessionStore store = SPILoader.service(SessionStore.class);
+
+  static SessionStore store(){
+    return store;
+  }
 
   final Map map;
   final String id;
@@ -57,7 +62,7 @@ public class Session {
 
   public static String LABEL_SESSION = "x-pond-sessionid";
 
-  static class SessionInstaller implements Mid {
+  static class CookieSessionInstaller implements Mid {
 
     @Override
     public void apply(Request req, Response resp) {
@@ -94,12 +99,47 @@ public class Session {
     }
   }
 
+  static class SessionInstaller implements Mid {
+
+    final Function<String, Request> hook_session_id;
+    final Mid cb_onFailed;
+
+    SessionInstaller(Function<String, Request> how_to_get_sessionId, Mid callback_on_fail) {
+      hook_session_id = how_to_get_sessionId;
+      cb_onFailed = callback_on_fail;
+    }
+
+    @Override
+    public void apply(Request req, Response resp) {
+      String sessionid;
+      Map data;
+
+      sessionid = hook_session_id.apply(req);
+      if (sessionid == null
+          || sessionid.isEmpty()
+          || (data = store.get(sessionid)) == null) {
+
+        cb_onFailed.apply(req, resp);
+        return;
+      }
+
+      req.ctx().put(LABEL_SESSION, new Session(sessionid, data));
+    }
+  }
+
   /**
+   * Cookie session installer, using "cookie" & "set-cookie" to control the session-id
    * Put this mid into responsibility chain and you will get fully
    * session support then.
+   *
    */
-  public static Mid install = new SessionInstaller();
+  public static Mid install() {
+    return new CookieSessionInstaller();
+  }
 
+  public static Mid install(Function<String, Request> how_to_get_sessionId, Mid callback_on_fail){
+    return new SessionInstaller(how_to_get_sessionId, callback_on_fail);
+  }
 
   /**
    * Get session from req
@@ -113,7 +153,7 @@ public class Session {
 
     Session ret = (Session) ctx.get(LABEL_SESSION);
     if (ret == null)
-      throw new NullPointerException("Use Session#install first.");
+      throw new NullPointerException("Use Session#cookieSession first.");
     return ret;
   }
 

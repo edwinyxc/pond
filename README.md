@@ -40,6 +40,7 @@ Code Example:
  * 高度可制定 -- 您几乎可以在任何地方进行所谓aop编程
  * 默认采用Netty作为BaseServer -- netty 的并发性能足够好
  * 提供一个简单的静态文件服务 -- 不要使用在生产环境
+ * 超级简单的filter
 
 Code Example:
 
@@ -74,6 +75,27 @@ Code Example:
         resp.render(Render.dump(req.params()));
       }).get("/.*", p._static("www"));
     }).listen();
+
+    //Session
+    Mid session = Session.install();
+    app.cleanAndBind(p -> {
+
+      p.get("/require",
+            session,
+            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(session)
+      );
+
+      p.get("/requireFail",
+            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(session)
+      );
+
+    });
+
+    TestUtil.assertContentEqualsForGet("pass", "http://localhost:9090/require");
+    HTTP.get("http://localhost:9090/requireFail", http -> {
+      assertNotSame(200, http.getStatusLine().getStatusCode());
+    });
+
 
 
 ###pond-db - 数据库处理相关（默认提供mysql)
@@ -138,6 +160,6 @@ Code Example:
 
     
 ###详情请参考项目内测试代码和注释
-遇到坑了 ==> 请联系 edwinyxc@outlook.com
+遇到坑了 ==> 请联系 edwinyxc@outlook.com  QQ && WEIXIN: 326436387
 
-欢迎大家一起来提修改意见 :)
+欢迎大家一起来提修改意见 :) QQ群：206693019

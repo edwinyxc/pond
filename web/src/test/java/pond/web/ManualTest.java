@@ -41,7 +41,7 @@ public class ManualTest {
     Pond app = Pond.init().debug().listen(9090);
     app.cleanAndBind(p -> {
 
-      p.use(Session.install);
+      p.use(Session.install());
 
       p.get("/install/${val}", (req, resp) -> {
         Session ses = Session.get(req);
@@ -86,16 +86,16 @@ public class ManualTest {
 
   static void test_require() {
     Pond app = Pond.init().debug().listen(9090);
+    Mid session = Session.install();
+
     app.cleanAndBind(p -> {
 
       p.get("/require",
-            Session.install,
-            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(Session.install)
-      );
+            session,
+            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(session));
 
       p.get("/requireFail",
-            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(Session.install)
-      );
+            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(session));
 
     });
   }

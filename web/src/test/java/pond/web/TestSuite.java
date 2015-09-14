@@ -69,18 +69,20 @@ public class TestSuite {
 
     //SESSION
     session_test();
+    session_custom_test();
   }
 
   public void require_test() throws IOException {
+    Mid session = Session.install();
     app.cleanAndBind(p -> {
 
       p.get("/require",
-            Session.install,
-            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(Session.install)
+            session,
+            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(session)
       );
 
       p.get("/requireFail",
-            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(Session.install)
+            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(session)
       );
 
     });
@@ -92,10 +94,46 @@ public class TestSuite {
 
   }
 
+  public void session_custom_test() throws IOException {
+
+    Mid session = Session.install(req -> req.header("sessionid-in-header"),
+                                  (req, resp) -> resp.send(403, "require session"));
+
+    app.cleanAndBind(
+        app -> {
+          app.get("/test", session, (req, resp) -> resp.send(200, Session.get(req).id));
+          app.get("/login", (req, resp) -> resp.send(200, Session.store().create(new HashMap<>())));
+        }
+    );
+
+    HTTP.get("http://localhost:9090/login", resp -> {
+      try {
+        String sid = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), Charset.defaultCharset());
+
+        HTTP.get("http://localhost:9090/test", S._tap(new HashMap<>(), m -> {
+          m.put("sessionid-in-header", sid);
+        }), response -> {
+          try {
+            String ret = STREAM.readFully(response.getEntity().getContent(), Charset.defaultCharset());
+            assertEquals(sid, ret);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+
+        });
+
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
+
+
+  }
+
   public void session_test() throws IOException {
     app.cleanAndBind(
         app -> {
-          app.use(Session.install);
+          app.use(Session.install());
 
           app.get("/installSession", (req, resp) -> {
             Session ses = Session.get(req);
