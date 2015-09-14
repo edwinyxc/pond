@@ -16,7 +16,7 @@ public class Session {
 
   static SessionStore store = SPILoader.service(SessionStore.class);
 
-  static SessionStore store(){
+  public static SessionStore store(){
     return store;
   }
 
