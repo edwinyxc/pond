@@ -21,13 +21,13 @@ public interface RouterAPI<E extends Router> {
    */
   E use(int mask, String path, Mid... mids);
 
-  /**
-   * Add a sub router at responsibility chain
-   *
-   * @param path regular expr
-   * @return Router
-   */
-  E use(String path, Router router);
+//  /**
+//   * Add a sub router at responsibility chain
+//   *
+//   * @param path regular expr
+//   * @return Router
+//   */
+////  E use(String path, Router router);
 
   default E use(String path, Mid... mids) {
     return use(HttpMethod.maskAll(), path, mids);

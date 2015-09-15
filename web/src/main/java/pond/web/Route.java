@@ -25,7 +25,7 @@ public class Route {
   }
 
   public Route(String path, List<Mid> mids) {
-    def_path = Pond._ignoreLastSlash(path);
+    def_path = path;
     compile();
     this.mids = mids;
   }
@@ -42,11 +42,11 @@ public class Route {
     this.def = Pattern.compile(buffer.toString());
   }
 
-  Route prefix(String prefix) {
-    def_path = Pond._ignoreLastSlash(prefix + def_path);
-    compile();
-    return this;
-  }
+//  Route prefix(String prefix) {
+//    def_path = Pond._ignoreLastSlash(prefix + def_path);
+//    compile();
+//    return this;
+//  }
 
 
   /**

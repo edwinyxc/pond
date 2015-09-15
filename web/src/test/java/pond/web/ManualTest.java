@@ -1,6 +1,12 @@
 package pond.web;
 
+import pond.common.HTTP;
 import pond.common.S;
+import pond.common.f.Callback;
+
+import java.io.IOException;
+
+import static pond.web.Render.text;
 
 /**
  * Created by ed on 9/2/15.
@@ -100,12 +106,58 @@ public class ManualTest {
     });
   }
 
-  public static void main(String[] args) {
+  static class DemoController extends Controller {
+
+    int value = 1;
+
+    @Mapping("/")
+    public void root(Request req, Response resp) {
+      resp.send(200,"root");
+    }
+
+    @Mapping("/read")
+    public void read(Request req, Response resp) {
+      resp.render(text(String.valueOf(value)));
+    }
+
+    //mapping with default name
+    @Mapping()
+    public void add(Request req, Response resp) {
+      value++;
+      resp.render(text(String.valueOf(value)));
+    }
+
+    @Mapping("/add/${_vol}")
+    public void addN(Request req, Response resp) {
+      String vol = req.param("_vol");
+      value += Integer.valueOf(vol);
+      resp.render(text(String.valueOf(value)));
+    }
+  }
+
+  public static void controller_bind_controller() throws IOException {
+    Pond app = Pond.init().debug().listen(9090);
+    app.cleanAndBind(p -> p.use("/ctrl/.*", new DemoController()));
+
+//    TestUtil.assertContentEqualsForGet("1", "http://localhost:9090/ctrl/read");
+//    HTTP.get("http://localhost:9090/ctrl/add", null, Callback.noop());
+//    HTTP.get("http://localhost:9090/ctrl/add", null, Callback.noop());
+//    HTTP.get("http://localhost:9090/ctrl/add", null, Callback.noop());
+//    TestUtil.assertContentEqualsForGet("4", "http://localhost:9090/ctrl/read");
+//    HTTP.get("http://localhost:9090/ctrl/add/4", null, Callback.noop());
+//    TestUtil.assertContentEqualsForGet("8", "http://localhost:9090/ctrl/read");
+//    app.stop();
+  }
+
+  public static void main(String[] args) throws IOException {
+
+    controller_bind_controller();
+
 //    b();
 //    test_router();
 //    test();
-
 //    test_require();
+
   }
 
 }

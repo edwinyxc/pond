@@ -149,11 +149,11 @@ public final class Pond extends Router {
     return pond;
   }
 
-  public static String _ignoreLastSlash(String path) {
-    if (!"/".equals(path) && path.endsWith("/"))
-      return path.substring(0, path.length() - 1);
-    return path;
-  }
+//  public static String _ignoreLastSlash(String path) {
+//    if (!"/".equals(path) && path.endsWith("/"))
+//      return path.substring(0, path.length() - 1);
+//    return path;
+//  }
 
   /**
    * Open the debug mode for Pond

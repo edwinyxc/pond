@@ -194,6 +194,11 @@ public class TestSuite {
 
     int value = 1;
 
+    @Mapping("/")
+    public void root(Request req, Response resp) {
+      resp.send(200, "root");
+    }
+
     @Mapping("/read")
     public void read(Request req, Response resp) {
       resp.render(text(String.valueOf(value)));
@@ -212,18 +217,31 @@ public class TestSuite {
       value += Integer.valueOf(vol);
       resp.render(text(String.valueOf(value)));
     }
+
+    @Mapping
+    public void ctx(Request req, Response resp) {
+      resp.render(text(String.valueOf(req.ctx().get("k"))));
+    }
+
   }
 
   public void controller_bind_controller() throws IOException {
-    app.cleanAndBind(app -> app.use("/ctrl", new DemoController()));
+
+    app.cleanAndBind(app -> {
+      app.use("/ctrl/.*", new DemoController());
+      app.use("/ctx/.*", (req, resp) -> req.ctx().put("k", "v"), new DemoController());
+    });
 
     TestUtil.assertContentEqualsForGet("1", "http://localhost:9090/ctrl/read");
-    HTTP.get("http://localhost:9090/ctrl/add", null, Callback.noop());
-    HTTP.get("http://localhost:9090/ctrl/add", null, Callback.noop());
-    HTTP.get("http://localhost:9090/ctrl/add", null, Callback.noop());
+    TestUtil.assertContentEqualsForGet("root", "http://localhost:9090/ctrl/");
+    HTTP.get("http://localhost:9090/ctrl/add", Callback.noop());
+    HTTP.get("http://localhost:9090/ctrl/add", Callback.noop());
+    HTTP.get("http://localhost:9090/ctrl/add", Callback.noop());
     TestUtil.assertContentEqualsForGet("4", "http://localhost:9090/ctrl/read");
-    HTTP.get("http://localhost:9090/ctrl/add/4", null, Callback.noop());
+    HTTP.get("http://localhost:9090/ctrl/add/4", Callback.noop());
+
     TestUtil.assertContentEqualsForGet("8", "http://localhost:9090/ctrl/read");
+    TestUtil.assertContentEqualsForGet("v", "http://localhost:9090/ctx/ctx");
 
   }
 
@@ -231,7 +249,7 @@ public class TestSuite {
 
     S._debug_on(Route.class);
     app.cleanAndBind(
-        p -> p.use("", new DemoController())
+        p -> p.use("/.*", new DemoController())
     );
 
     TestUtil.assertContentEqualsForGet("1", "http://localhost:9090/read");
@@ -368,7 +386,7 @@ public class TestSuite {
       );
 
 
-      HTTP.get("http://localhost:9090/", null, resp ->
+      HTTP.get("http://localhost:9090/", resp ->
           S._try(() -> assertEquals("3", STREAM.readFully(
                                         resp.getEntity().getContent(),
                                         Charset.forName("UTF-8"))
@@ -390,7 +408,7 @@ public class TestSuite {
             app.get("/", (req, resp) -> resp.send("root"))
                 .get("/${id}", (req, resp) -> resp.send(req.param("id")))
                 .get("/${id}/text", (req, resp) -> resp.send("text"))
-                .use("/user", router)
+                .use("/user/.*", router)
     );
 
     try {

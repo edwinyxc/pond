@@ -3,14 +3,13 @@ package pond.web;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
+import pond.common.STRING;
 import pond.web.http.HttpMethod;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import static pond.common.S._assert;
-import static pond.common.S._for;
+import static pond.common.S.*;
 
 
 /**
@@ -23,14 +22,8 @@ public class Router implements Mid, RouterAPI {
   protected String prefix = "";
 
   public Router prefix(String prefix) {
+    _debug(logger, log -> log.debug(prefix));
     this.prefix = prefix;
-    for (HttpMethod m : HttpMethod.values()) {
-      List<Route> routes = this.routes.get(m);
-      for (Route r : routes) {
-        r.prefix(this.prefix);
-        logger.debug("Add prefix " + prefix + " :" + r.toString());
-      }
-    }
     return this;
   }
 
@@ -47,15 +40,22 @@ public class Router implements Mid, RouterAPI {
 
 
     //ignore trialling slash
-    String path = Pond._ignoreLastSlash(req.path());
+    String path = req.path();//Pond._ignoreLastSlash(req.path());
 
-    S._debug(logger, log -> log.debug("Routing path:" + path));
+    int indexOfLastSlash;
+    if (STRING.notBlank(prefix) && (indexOfLastSlash = prefix.lastIndexOf("/")) != -1) {
+      path = path.substring(indexOfLastSlash);
+//      _debug(logger, log -> log.debug("Prefix path:" + path));
+    }
+
+    String finalPath = path;
+    _debug(logger, log -> log.debug("Routing path:" + finalPath));
 
     long s = S.now();
 
-    List<Route> results = _for(routes).filter(r -> r.match(path)).toList();
+    List<Route> results = _for(routes).filter(r -> r.match(finalPath)).toList();
 
-    S._debug(logger, log -> {
+    _debug(logger, log -> {
       log.debug("Routing time: " + (S.now() - s) + "ms");
       if (results.size() == 0)
         logger.debug("Found nothing");
@@ -65,10 +65,10 @@ public class Router implements Mid, RouterAPI {
 
     _for(results).each(r -> {
 
-      S._debug(logger, log ->
+      _debug(logger, log ->
           log.debug(String.format("Processing... %s", r)));
       //put in-url params
-      _for(r.urlParams(path)).each(
+      _for(r.urlParams(finalPath)).each(
           e -> req.param(e.getKey(), e.getValue())
       );
 
@@ -76,7 +76,7 @@ public class Router implements Mid, RouterAPI {
 
       ctx.pond.ctxExec.execAll(ctx, r.mids);
 
-      S._debug(logger, log ->
+      _debug(logger, log ->
           log.debug(String.format("Process %s finished", r)));
 
     });
@@ -84,27 +84,23 @@ public class Router implements Mid, RouterAPI {
   }
 
   @Override
-  public Router use(String path, Router router) {
-    router.prefix(path);
-    for (HttpMethod m : HttpMethod.values()) {
-      //add to this router
-      List<Route> routeList = this.routes.get(m);
-      routeList.addAll(router.routes.get(m));
-    }
-    return this;
-  }
-
-  @Override
-  public Router use(int methodMask, String path, Mid... mids) {
+  public Router use(int methodMask, String defPath, Mid... mids) {
     List<HttpMethod> methods = HttpMethod.unMask(methodMask);
-
     for (HttpMethod m : methods) {
+
       List<Route> routes = this.routes.get(m);
-      _assert(routes,
-              "Routes of method[" + methods.toString() + "] not found");
-      //prefix :  /${id}
-      Route route = new Route(path, Arrays.asList(mids));
-      S._debug(logger, log -> log.debug("Routing " + m + " : " + route));
+      _assert(routes, "Routes of method[" + methods.toString() + "] not found");
+
+      List<Mid> middles = S.array(mids).map(mid -> {
+        if (mid instanceof Router) {
+          return ((Router) mid).prefix(defPath);
+        }
+        return mid;
+      }).toList();
+
+      Route route = new Route(defPath, middles);
+
+      _debug(logger, log -> log.debug("Routing " + m + " : " + route));
       routes.add(route);
     }
     return this;
