@@ -3,28 +3,53 @@ package pond.web;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
-import pond.common.STRING;
 import pond.web.http.HttpMethod;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static pond.common.S.*;
 
 
-/**
- *
- */
 public class Router implements Mid, RouterAPI {
-
+  /*
+  TODO: add config for caseSensitive, mergeParams, strict
+   */
   static Logger logger = LoggerFactory.getLogger(Router.class);
   Routes routes = new Routes();
-  protected String prefix = "";
 
-  public Router prefix(String prefix) {
-    _debug(logger, log -> log.debug(prefix));
-    this.prefix = prefix;
-    return this;
+  List<Mid> defaultMids = new ArrayList<>();
+
+
+  private String get_path_remainder(Request req){
+
+    String path = req.path();
+    Ctx ctx = req.ctx();
+
+    Route entry_route = ctx.route;
+
+    //procedure of nested routers
+    //if entry_route is null, then this routing is a root routing
+    if(entry_route != null) {
+      String entry_path = entry_route.defPath().pattern();
+
+      //search for the wildcards "/.*", any sub router should have it.
+      if(!entry_path.endsWith("/.*")) {
+        throw new RuntimeException("invalid router definition: the router must be prefixed with a regexp ending with /.*");
+      }
+      Pattern trimmed = Pattern.compile(entry_path.substring(0, entry_path.length() - 3));
+      Matcher matcher = trimmed.matcher(path);
+      if(matcher.find()){
+        return path.substring(matcher.end());
+      }
+      else{
+        //this would not happen
+        throw new RuntimeException("This would not happen");
+      }
+    }
+
+    return path;
   }
 
   @Override
@@ -38,71 +63,67 @@ public class Router implements Mid, RouterAPI {
 
     List<Route> routes = this.routes.get(method);
 
+    String path = get_path_remainder(req);
 
-    //ignore trialling slash
-    String path = req.path();//Pond._ignoreLastSlash(req.path());
-
-    int indexOfLastSlash;
-    if (STRING.notBlank(prefix) && (indexOfLastSlash = prefix.lastIndexOf("/")) != -1) {
-      path = path.substring(indexOfLastSlash);
-//      _debug(logger, log -> log.debug("Prefix path:" + path));
-    }
-
-    String finalPath = path;
-    _debug(logger, log -> log.debug("Routing path:" + finalPath));
+    _debug(logger, log -> log.debug("Routing path:" + path));
 
     long s = S.now();
 
-    List<Route> results = _for(routes).filter(r -> r.match(finalPath)).toList();
+    RegPathMatchResult matchResult;
+    for(Route r : routes){
+      //jump out
+      if(ctx.handled)break;
 
-    _debug(logger, log -> {
-      log.debug("Routing time: " + (S.now() - s) + "ms");
-      if (results.size() == 0)
-        logger.debug("Found nothing");
-      else
-        logger.debug("Found " + results.size() + " Routes:" + results.toString());
-    });
+      matchResult = r.match(path);
+      if(matchResult.matches){
+        _debug(logger, log -> {
+          log.debug("Routing time: " + (S.now() - s) + "ms");
+          log.debug(String.format("Processing... %s", r));
+        });
 
-    _for(results).each(r -> {
+        //put in-url params
+        _for(matchResult.params.entrySet()).each(
+            e -> req.param(e.getKey(), e.getValue())
+        );
 
+        ctx.route = r;
+        ctx.pond.ctxExec.execAll(ctx, r.mids());
+
+        _debug(logger, log ->
+            log.debug(String.format("Process %s finished", r)));
+      }
+    }
+
+    if (!ctx.handled) {
       _debug(logger, log ->
-          log.debug(String.format("Processing... %s", r)));
-      //put in-url params
-      _for(r.urlParams(finalPath)).each(
-          e -> req.param(e.getKey(), e.getValue())
-      );
-
-      ctx.route = r;
-
-      ctx.pond.ctxExec.execAll(ctx, r.mids);
-
-      _debug(logger, log ->
-          log.debug(String.format("Process %s finished", r)));
-
-    });
-
+          log.debug("Found nothing, executing default Middlewares"));
+      ctx.pond.ctxExec.execAll(ctx, defaultMids);
+    }
   }
 
   @Override
-  public Router use(int methodMask, String defPath, Mid... mids) {
-    List<HttpMethod> methods = HttpMethod.unMask(methodMask);
+  public Router use(int mask, Pattern path, String[] inUrlParams, Mid[] mids) {
+
+    List<HttpMethod> methods = HttpMethod.unMask(mask);
+
     for (HttpMethod m : methods) {
 
       List<Route> routes = this.routes.get(m);
-      _assert(routes, "Routes of method[" + methods.toString() + "] not found");
 
-      List<Mid> middles = S.array(mids).map(mid -> {
-        if (mid instanceof Router) {
-          return ((Router) mid).prefix(defPath);
-        }
-        return mid;
-      }).toList();
+      List<Mid> middles = S.array(mids);
 
-      Route route = new Route(defPath, middles);
+      Route route = new Route(path, inUrlParams, middles);
 
       _debug(logger, log -> log.debug("Routing " + m + " : " + route));
+
       routes.add(route);
     }
+    return this;
+  }
+
+  @Override
+  public Router otherwise(Mid... mids) {
+    defaultMids.addAll(Arrays.asList(mids));
     return this;
   }
 
@@ -110,16 +131,17 @@ public class Router implements Mid, RouterAPI {
     routes = new Routes();
   }
 
+  @SuppressWarnings("unchecked")
   private static class Routes {
-    @SuppressWarnings("unchecked")
+
     final private List<Route>[] all = new List[HttpMethod.values().length];
 
     List<Route> get(HttpMethod method) {
-      List<Route> ret = all[method.ordinal()];
+      List ret = all[method.ordinal()];
       if (ret == null) {
         ret = (all[method.ordinal()] = new LinkedList<>());
       }
-      return ret;
+      return (List<Route>) ret;
     }
   }
 

@@ -75,7 +75,7 @@ public abstract class AbstractCache<K, V> extends Cache<K, V> {
   @SuppressWarnings("unchecked")
   @Override
   public Map<K, V> asMap() {
-    return new HashMap<>(cache);
+    return cache;
   }
 
   @Override

@@ -168,6 +168,7 @@ public class NettyHttpServer implements BaseServer {
 //      futureCallback.apply(future);
 //      logger.info("Server closed!");
 //    });
+
     workerGroup.shutdownGracefully();
     return bossGroup.shutdownGracefully();
 

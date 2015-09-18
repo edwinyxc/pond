@@ -76,32 +76,33 @@ public final class Pond extends Router {
     return this;
   }
 
+
   public Pond cleanAndBind(Callback<Pond> config) {
     super.clean();
     config.apply(this);
-    this.bindLastMids();
+//    this.bindLastMids();
     return this;
   }
 
   @Override
-  @Deprecated
   /**
    * @link pond.web.Pond#cleanAndBind
    */
   public void clean() {
+    super.clean();
     //do nothing
   }
 
-  private void bindLastMids() {
-    //add at last
-    this.use(InternalMids.FORCE_CLOSE);
-  }
+//  private void bindLastMids() {
+//    //add at last
+//    this.use(InternalMids.FORCE_CLOSE);
+//  }
 
   public void listen() {
 
     logger.info("Starting server...");
 
-    bindLastMids();
+//    bindLastMids();
 
     server.registerHandler((req, resp) -> {
       Ctx ctx = new Ctx(req, resp, this);
@@ -124,18 +125,6 @@ public final class Pond extends Router {
     return staticFileServer.watch(dir);
   }
 
-//  /**
-//   * Load attributes from properties
-//   */
-//  public Pond loadConfig(Properties conf) {
-//    S._assert(conf);
-//    for (Map.Entry e : conf.entrySet()) {
-//      logger.info("Reading conf: " + e.getKey() + "=" + e.getValue());
-//      S.config.set(e.getKey().toString(), String.valueOf(e.getValue()));
-//    }
-//    return this;
-//  }
-
   public static Pond init() {
     return init(Callback.noop());
   }
@@ -148,12 +137,6 @@ public final class Pond extends Router {
     config.apply(pond);
     return pond;
   }
-
-//  public static String _ignoreLastSlash(String path) {
-//    if (!"/".equals(path) && path.endsWith("/"))
-//      return path.substring(0, path.length() - 1);
-//    return path;
-//  }
 
   /**
    * Open the debug mode for Pond
@@ -168,7 +151,6 @@ public final class Pond extends Router {
 
     return this;
   }
-
 
   @SuppressWarnings("unchecked")
   public void stop() {

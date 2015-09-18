@@ -1,6 +1,11 @@
 package pond.web;
 
+import pond.common.SPILoader;
 import pond.web.http.HttpMethod;
+import pond.web.spi.PathToRegCompiler;
+import pond.web.spi.PreCompiledPath;
+
+import java.util.regex.Pattern;
 
 /**
  * Router  API
@@ -9,6 +14,8 @@ import pond.web.http.HttpMethod;
  * @param <E>
  */
 public interface RouterAPI<E extends Router> {
+
+  final static PathToRegCompiler compiler = SPILoader.service(PathToRegCompiler.class);
 
   /**
    * Add a middleware to Router
@@ -19,22 +26,22 @@ public interface RouterAPI<E extends Router> {
    * @return Router
    * @see pond.web.http.HttpMethod
    */
-  E use(int mask, String path, Mid... mids);
+  E use(int mask, Pattern path, String[] inUrlParams, Mid[] mids);
 
-//  /**
-//   * Add a sub router at responsibility chain
-//   *
-//   * @param path regular expr
-//   * @return Router
-//   */
-////  E use(String path, Router router);
+  default E use(int mask, String path, Mid... mids) {
+    PreCompiledPath preCompiledPath = compiler.compile(path);
+    return use(mask, preCompiledPath.pattern, preCompiledPath.names, mids);
+  }
+
+  static Pattern all_through = Pattern.compile("/.*");
+  static String[] empty_params = new String[0];
+
+  default E use(Mid... mids) {
+    return use(HttpMethod.maskAll(), all_through, empty_params, mids);
+  }
 
   default E use(String path, Mid... mids) {
     return use(HttpMethod.maskAll(), path, mids);
-  }
-
-  default E use(Mid... mids) {
-    return use(HttpMethod.maskAll(), "/.*", mids);
   }
 
   default E get(String path, Mid... mids) {
@@ -52,5 +59,11 @@ public interface RouterAPI<E extends Router> {
   default E put(String path, Mid... mids) {
     return use(HttpMethod.mask(HttpMethod.PUT), path, mids);
   }
+
+  /**
+   * default call
+   * THIS WILL BE CALLED IF NONE OF ABOVE MIDS FINISHED THE PROCESSING
+   */
+  E otherwise(Mid... mids);
 
 }

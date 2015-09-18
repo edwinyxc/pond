@@ -19,7 +19,6 @@ import java.util.Map;
 
 /**
  * Created by ed on 7/14/15.
- * //TODO test
  */
 public class HTTP {
 

@@ -23,6 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
 import static pond.web.Render.text;
@@ -280,7 +281,7 @@ public class TestSuite {
 
   class DemoController extends Controller {
 
-    int value = 1;
+    AtomicInteger value = new AtomicInteger(1);
 
     @Mapping("/")
     public void root(Request req, Response resp) {
@@ -289,21 +290,21 @@ public class TestSuite {
 
     @Mapping("/read")
     public void read(Request req, Response resp) {
-      resp.render(text(String.valueOf(value)));
+      resp.render(text(String.valueOf(value.get())));
     }
 
     //mapping with default name
-    @Mapping()
+    @Mapping
     public void add(Request req, Response resp) {
-      value++;
+      value.getAndAdd(1);
       resp.render(text(String.valueOf(value)));
     }
 
     @Mapping("/add/${_vol}")
     public void addN(Request req, Response resp) {
       String vol = req.param("_vol");
-      value += Integer.valueOf(vol);
-      resp.render(text(String.valueOf(value)));
+      value.getAndAdd(Integer.valueOf(vol));
+      resp.render(text(String.valueOf(value.get())));
     }
 
     @Mapping

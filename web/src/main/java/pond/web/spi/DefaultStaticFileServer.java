@@ -78,7 +78,7 @@ public class DefaultStaticFileServer implements StaticFileServer {
     }
 
     if (route != null) {
-      String def = route.defPath();
+      String def = route.defPath().pattern();
       String prefix = def.substring(0, def.lastIndexOf("/"));
       uri = uri.substring(prefix.length());
     }

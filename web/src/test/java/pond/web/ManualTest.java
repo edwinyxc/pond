@@ -22,6 +22,8 @@ public class ManualTest {
       req.ctx().put("a", "a");
       resp.send(200, req.ctx().get("a").toString() + req.ctx().get("val"));
     });
+
+    app.otherwise(InternalMids.FORCE_CLOSE);
     app.listen();
   }
 

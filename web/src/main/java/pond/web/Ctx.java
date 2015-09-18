@@ -6,17 +6,19 @@ import pond.web.http.HttpMethod;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.MatchResult;
 
 /**
  * Execution Context, attached to a single thread.
  */
 public class Ctx extends HashMap<String, Object> {
 
-  Request req;
-  Response resp;
+  final Request req;
+  final Response resp;
   Pond pond;
-  String path;
-  String uri;
+  //original path
+  final String path;
+  final String uri;
   Route route;
   HttpMethod method;
   List<Mid> handledMids = new ArrayList<>();
@@ -36,10 +38,9 @@ public class Ctx extends HashMap<String, Object> {
       log.debug("ctx starts at: " + this.get("_start_time"));
 
     });
-
   }
 
-  public boolean alreadyHandled(Mid mid) {
+  public boolean isHandled(Mid mid) {
     return handledMids.contains(mid);
   }
 

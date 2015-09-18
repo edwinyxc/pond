@@ -135,4 +135,5 @@ public class STRING {
     return b.toString().toLowerCase();
 
   }
+
 }
