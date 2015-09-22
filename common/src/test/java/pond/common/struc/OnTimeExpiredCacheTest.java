@@ -16,7 +16,7 @@ public class OnTimeExpiredCacheTest {
   public void test() throws InterruptedException {
 
 //    S._debug_on(TimeExpiredCache.class);
-    OnTimeExpiredCache<String, String> cache = new OnTimeExpiredCache<>(40, 10);
+    OnTimeExpiredCache<String, String> cache = new OnTimeExpiredCache<>(40, 5);
 
     for (int i = 0; i < 100; i++) {
       cache.put(String.valueOf(i), String.valueOf(i) + "_str");

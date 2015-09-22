@@ -2,6 +2,7 @@ package pond.web.spi.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -33,15 +34,19 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
   private HttpPostRequestDecoder decoder;
 
-  HttpRequest httpRequest = null;
+  //HttpRequest httpRequest = null;
 
-  NettyReqWrapper reqWrapper = null;
+  //NettyReqWrapper reqWrapper = null;
 
-  //  CompositeByteBuf content = new CompositeByteBuf(PooledByteBufAllocator.DEFAULT, true, 2);
-//  CompositeByteBuf content = Unpooled.compositeBuffer();
-  CompositeByteBuf content;
+  private volatile NettyReqWrapper reqWrapper;
 
-  String contentType;
+  private volatile CompositeByteBuf pooledBuffer = new CompositeByteBuf(PooledByteBufAllocator.DEFAULT, true, 10);
+
+  private volatile HttpRequest request;
+
+  private volatile boolean isKeepAlive;
+
+  private volatile boolean isMultipart;
 
   final Callback.C2<Request, Response> handler;
 
@@ -71,282 +76,308 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                                               HttpResponseStatus.BAD_REQUEST));
   }
 
-  @Override
-  protected void messageReceived(ChannelHandlerContext ctx, Object msg) {
+  private void receiveHttpRequest(ChannelHandlerContext ctx, HttpRequest request) {
 
-    if (msg instanceof HttpRequest) {
-      HttpRequest request = (HttpRequest) msg;
+    if (HttpHeaderUtil.is100ContinueExpected(request)) {
+      ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
+                                            HttpResponseStatus.CONTINUE));
+    }
+    //build the req
+    reqWrapper = new NettyReqWrapper(ctx, request);
 
-      S._debug(BaseServer.logger, log -> {
-        log.debug("GOT HTTP REQUEST:");
-        log.debug(request.toString());
-      });
+    isKeepAlive = HttpHeaderUtil.isKeepAlive(request);
+//    final String contentType;
+//    final CompositeByteBuf content;
 
-      if (HttpHeaderUtil.is100ContinueExpected(request)) {
-        ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-                                              HttpResponseStatus.CONTINUE));
-      }
+    S._debug(BaseServer.logger, log -> {
+      log.debug("GOT HTTP REQUEST:");
+      log.debug(request.toString());
+    });
 
-      if (!request.decoderResult().isSuccess()) {
-        sendBadRequest(ctx);
-        return;
-      }
-
-      //do the initialize
-
-      httpRequest = request;
-      //build the req
-      reqWrapper = new NettyReqWrapper(ctx, httpRequest);
-
-      //parse headers
-      reqWrapper.updateHeaders(
-          headers ->
-              S._for(httpRequest.headers())
-                  .each(
-                      entry ->
-                          HttpUtils.appendToMap(
-                              headers,
-                              entry.getKey().toString(),
-                              httpRequest.headers().getAllAndConvert(entry.getKey()))
-                  )
-      );
-
-      //uri-queries
-      Map<String, List<String>> parsedParams = new QueryStringDecoder(httpRequest.uri()).parameters();
-
-      S._debug(BaseServer.logger, log -> {
-        log.debug("QUERY STRING: " + httpRequest.uri());
-        log.debug("PARSED PARAMS: " + S.dump(parsedParams));
-      });
-
-      reqWrapper.updateParams(params -> params.putAll(parsedParams));
-
-      //parse cookies
-      reqWrapper.updateCookies(
-
-          cookies -> {
-            Set<io.netty.handler.codec.http.Cookie> decoded
-                = ServerCookieDecoder.decode(
-                S.avoidNull(request.headers().getAndConvert(HttpHeaderNames.COOKIE), "")
-            );
-
-            S._for(decoded).each(
-                cookie ->
-                    cookies.put(cookie.name(), S._tap(
-                        new Cookie(cookie.name(), cookie.value()),
-                        c -> {
-                          c.setPath(cookie.path());
-                          c.setMaxAge((int) cookie.maxAge());
-                          if (STRING.notBlank(cookie.domain()))
-                            c.setDomain(cookie.domain());
-                          c.setComment(cookie.comment());
-                        }))
-            );
-          });
-
-
-      contentType = httpRequest.headers().getAndConvert(HttpHeaderNames.CONTENT_TYPE);
-      //build the multipart decoder
-      if (HttpPostRequestDecoder.isMultipart(httpRequest)) {
-        HttpMethod method = httpRequest.method();
-
-        if (method.equals(HttpMethod.POST)
-            || method.equals(HttpMethod.PUT)
-            || method.equals(HttpMethod.PATCH)) {
-          try {
-            decoder = new HttpPostRequestDecoder(factory, request);
-          } catch (HttpPostRequestDecoder.ErrorDataDecoderException err) {
-            BaseServer.logger.error(err.getMessage(), err);
-            sendBadRequest(ctx);
-            return;
-          }
-        } else {
-          BaseServer.logger.error("unexpected multipart request caught : invalid http method: " + method);
-          sendBadRequest(ctx);
-          return;
-        }
-      } else {
-        //do nothing
-        content = Unpooled.compositeBuffer();
-      }
+    if (!request.decoderResult().isSuccess()) {
+      sendBadRequest(ctx);
     }
 
-    if (msg instanceof HttpContent) {
-      HttpContent httpContent = (HttpContent) msg;
+    //parse headers
+    final HttpRequest finalHttpRequest = request;
+    reqWrapper.updateHeaders(
+        headers ->
+            S._for(finalHttpRequest.headers())
+                .each(
+                    entry ->
+                        HttpUtils.appendToMap(
+                            headers,
+                            entry.getKey().toString(),
+                            finalHttpRequest.headers().getAllAndConvert(entry.getKey()))
+                )
+    );
 
-      if (!httpContent.decoderResult().isSuccess()) {
-        sendBadRequest(ctx);
-        return;
-      }
+    //uri-queries
+    Map<String, List<String>> parsedParams = new QueryStringDecoder(request.uri()).parameters();
 
-      if (httpRequest == null) {
-        ctx.fireExceptionCaught(new NullPointerException("httpRequest"));
-        return;
-      }
+    String _uri = request.uri();
 
-      //multipart
-      if (decoder != null && HttpPostRequestDecoder.isMultipart(httpRequest)) {
+    S._debug(BaseServer.logger, log -> {
+      log.debug("QUERY STRING: " + _uri);
+      log.debug("PARSED PARAMS: " + S.dump(parsedParams));
+    });
+
+    reqWrapper.updateParams(params -> params.putAll(parsedParams));
+
+    //parse cookies
+    reqWrapper.updateCookies(
+
+        cookies -> {
+          Set<io.netty.handler.codec.http.Cookie> decoded
+              = ServerCookieDecoder.decode(
+              S.avoidNull(request.headers().getAndConvert(HttpHeaderNames.COOKIE), "")
+          );
+
+          S._for(decoded).each(
+              cookie ->
+                  cookies.put(cookie.name(), S._tap(
+                      new Cookie(cookie.name(), cookie.value()),
+                      c -> {
+                        c.setPath(cookie.path());
+                        c.setMaxAge((int) cookie.maxAge());
+                        if (STRING.notBlank(cookie.domain()))
+                          c.setDomain(cookie.domain());
+                        c.setComment(cookie.comment());
+                      }))
+          );
+        });
+    this.isMultipart = HttpPostRequestDecoder.isMultipart(request);
+//    contentType = request.headers().getAndConvert(HttpHeaderNames.CONTENT_TYPE);
+    //build the multipart decoder
+    if (this.isMultipart) {
+      HttpMethod method = request.method();
+
+      if (method.equals(HttpMethod.POST)
+          || method.equals(HttpMethod.PUT)
+          || method.equals(HttpMethod.PATCH)) {
         try {
-          Tuple<List<Attribute>, List<FileUpload>>
-              tuple = decodeHttpContent(decoder, httpContent);
-
-          reqWrapper.updateUploadFiles(
-              files -> S._for(tuple._b).each(
-                  fileUpload -> HttpUtils.appendToMap(
-                      files, fileUpload.getName(), new NettyUploadFile(fileUpload))
-              )
-          );
-
-          reqWrapper.updateParams(
-              params ->
-                  S._for(tuple._a).each(attr -> {
-                    String k = attr.getName();
-                    String v = S._try_ret(attr::getValue);
-                    S._debug(BaseServer.logger, log -> log.debug(k + " " + S.dump(v)));
-                    HttpUtils.appendToMap(params, k, v);
-                  })
-          );
-
-        } catch (Exception e1) {
-          BaseServer.logger.error(e1.getMessage(), e1);
-          S._debug(BaseServer.logger, log -> log.debug(e1.getMessage(), e1));
+          decoder = new HttpPostRequestDecoder(factory, request);
+        } catch (HttpPostRequestDecoder.ErrorDataDecoderException err) {
+          BaseServer.logger.error(err.getMessage(), err);
           sendBadRequest(ctx);
-          return;
         }
-
       } else {
-        //merge chunks
-        ByteBuf chunk = httpContent.content();
-        if (chunk.isReadable()) {
-          chunk.retain();
-          content.addComponent(httpContent.content());
-          content.writerIndex(content.writerIndex() + chunk.readableBytes());
-        }
+        BaseServer.logger.error("unexpected multipart request caught : invalid http method: " + method);
+        sendBadRequest(ctx);
       }
-
-      //bind inputStream
-      if (reqWrapper != null && content != null) {
-        reqWrapper.content(content);
-      }
-      //end of message
-      if (msg instanceof LastHttpContent) {
-
-        //merge trailing headers
-        LastHttpContent trailer = (LastHttpContent) msg;
-        if (!trailer.decoderResult().isSuccess()) {
-          ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                                                    HttpResponseStatus.BAD_REQUEST));
-          return;
-        }
-
-        //trailing headers
-        if (!trailer.trailingHeaders().isEmpty()) {
-          for (CharSequence name : trailer.trailingHeaders().names()) {
-            for (CharSequence value : trailer.trailingHeaders().getAll(name)) {
-              S._debug(BaseServer.logger,
-                       log -> log.debug("TRAILING HEADER: " + name + " : " + value));
-              httpRequest.headers().set(name, value);
-              reqWrapper.updateHeaders(
-                  headers -> HttpUtils.appendToMap(headers, name.toString(), value.toString()));
-            }
-          }
-        }
-
-        //handle the http content TODO add hooks
-        if (contentType == null || contentType.toLowerCase().contains(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toLowerCase())) {
-
-          String postData = content.toString(CharsetUtil.UTF_8);
-
-          S._debug(BaseServer.logger, log -> log.debug("postData: " + postData));
-
-          //default x-www-form-urlencoded parse
-          Map<String, List<String>> postParams = new QueryStringDecoder(postData, CharsetUtil.UTF_8, false).parameters();
-
-          S._debug(BaseServer.logger, log -> log.debug(S.dump(postParams)));
-          S._for(postParams).each(entry -> {
-            String key = entry.getKey();
-            List<String> value = entry.getValue();
-            S._debug(BaseServer.logger, log -> log.debug(key + S.dump(value)));
-            reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
-          });
-        } else {
-
-          //TODO REFACTOR customized content parser
-        }
-
-        //execution context
-        final HandlerExecutionContext exe_ctx = new HandlerExecutionContext();
-
-        S._debug(BaseServer.logger, log -> log.debug(reqWrapper.toString()));
-
-        //build the response
-        NettyRespWrapper respWrapper = new NettyRespWrapper(exe_ctx);
-
-        long _start_time = S.now();
-
-        S._debug(BaseServer.logger, logger -> {
-          logger.debug("resp build at " + _start_time);
-        });
-
-        S._debug(BaseServer.logger,
-                 log -> log.debug("TRACE: run the exe-ctx"));
-
-        boolean isKeepAlive = HttpHeaderUtil.isKeepAlive(httpRequest);
-
-        executorService.submit(() -> {
-          //this would affect the execution ctx
-          try {
-            handler.apply(reqWrapper, respWrapper);
-            S._debug(BaseServer.logger,
-                     log -> log.debug("exe-ctx costs " + (S.now() - _start_time) + " ms"));
-            if (exe_ctx.isSuccess()) {
-              switch (exe_ctx.type()) {
-                case HandlerExecutionContext.UNHANDLED: {
-                  BaseServer.logger.warn("unhandled request reach.");
-                  sendBadRequest(ctx);
-                  return;
-                }
-                case HandlerExecutionContext.NORMAL: {
-                  sendNormal(ctx, exe_ctx.response(), isKeepAlive);
-                  return;
-                }
-                case HandlerExecutionContext.STATIC_FILE: {
-                  sendFile(ctx,
-                           exe_ctx.response(),
-                           exe_ctx.sendfile(),
-                           exe_ctx.sendFileOffset(),
-                           exe_ctx.sendFileLength(),
-                           isKeepAlive
-                  );
-                  return;
-                }
-              }
-            } else {
-              //maybe reset, timeout ....
-              //ctx.fireExceptionCaught(exe_ctx.getCause());
-            }
-          } catch (Exception e) {
-            ctx.fireExceptionCaught(e);
-          } finally {
-            S._debug(BaseServer.logger,
-                     log -> log.debug("TRACE: IO-SEND finished, now make clean"));
-            clean();
-            S._debug(BaseServer.logger,
-                     log -> log.debug("TRACE: Clean finished"));
-          }
-        });
-
-        S._debug(BaseServer.logger,
-                 log -> log.debug("TRACE: IO-READ finished"));
-      }
-
+    } else {
+//      content = Unpooled.compositeBuffer();
     }
-
 
   }
 
+  private void receiveHttpContent(ChannelHandlerContext ctx, NettyReqWrapper reqWrapper, HttpContent httpContent) {
 
-  Tuple<List<Attribute>, List<FileUpload>> decodeHttpContent(HttpPostRequestDecoder decoder, HttpContent httpContent)
+    if (!httpContent.decoderResult().isSuccess()) {
+      sendBadRequest(ctx);
+      return;
+    }
+
+    //multipart
+    if (decoder != null && isMultipart) {
+      try {
+        Tuple<List<Attribute>, List<FileUpload>>
+            tuple = decodeHttpContent(decoder, httpContent);
+
+        reqWrapper.updateUploadFiles(
+            files -> S._for(tuple._b).each(
+                fileUpload -> HttpUtils.appendToMap(
+                    files, fileUpload.getName(), new NettyUploadFile(fileUpload))
+            )
+        );
+
+        reqWrapper.updateParams(
+            params ->
+                S._for(tuple._a).each(attr -> {
+                  String k = attr.getName();
+                  String v = S._try_ret(attr::getValue);
+                  S._debug(BaseServer.logger, log -> log.debug(k + " " + S.dump(v)));
+                  HttpUtils.appendToMap(params, k, v);
+                })
+        );
+
+      } catch (Exception e1) {
+        BaseServer.logger.error(e1.getMessage(), e1);
+        S._debug(BaseServer.logger, log -> log.debug(e1.getMessage(), e1));
+        sendBadRequest(ctx);
+        return;
+      }
+
+    } else {
+      //merge chunks
+      ByteBuf chunk = httpContent.content();
+      if (chunk.isReadable()) {
+          chunk.retain();
+          pooledBuffer.addComponent(httpContent.content());
+          pooledBuffer.writerIndex(pooledBuffer.writerIndex() + chunk.readableBytes());
+      }
+    }
+
+    //end of message
+    if (httpContent instanceof LastHttpContent) {
+
+      //bind inputStream
+      if (reqWrapper != null ) {
+        reqWrapper.content(pooledBuffer);
+      }
+      //merge trailing headers
+      LastHttpContent trailer = (LastHttpContent) httpContent;
+      if (!trailer.decoderResult().isSuccess()) {
+        ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                                                  HttpResponseStatus.BAD_REQUEST));
+        return;
+      }
+
+      //trailing headers
+      if (!trailer.trailingHeaders().isEmpty()) {
+        for (CharSequence name : trailer.trailingHeaders().names()) {
+          for (CharSequence value : trailer.trailingHeaders().getAll(name)) {
+            S._debug(BaseServer.logger,
+                     log -> log.debug("TRAILING HEADER: " + name + " : " + value));
+            request.headers().set(name, value);
+            reqWrapper.updateHeaders(
+                headers -> HttpUtils.appendToMap(headers, name.toString(), value.toString()));
+          }
+        }
+      }
+
+      String contentType = null;
+      String postData;
+      if (request != null) {
+        contentType = request.headers().getAndConvert(HttpHeaderNames.CONTENT_TYPE);
+      }
+      //handle the http content TODO add hooks
+      //www
+      if ((contentType == null
+          || contentType.toLowerCase().contains(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toLowerCase()))
+          && pooledBuffer != null
+          && STRING.notBlank(postData = pooledBuffer.toString(CharsetUtil.UTF_8))
+          ) {
+
+        final String finalPostData = postData;
+        S._debug(BaseServer.logger, log -> log.debug("postData: " + finalPostData));
+
+        //default x-www-form-urlencoded parse
+        Map<String, List<String>> postParams = new QueryStringDecoder(postData, CharsetUtil.UTF_8, false).parameters();
+
+        S._debug(BaseServer.logger, log -> log.debug(S.dump(postParams)));
+        S._for(postParams).each(entry -> {
+          String key = entry.getKey();
+          List<String> value = entry.getValue();
+          S._debug(BaseServer.logger, log -> log.debug(key + S.dump(value)));
+          reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
+        });
+      } else if ((contentType == null
+          || contentType.toLowerCase().contains("json"))
+          && pooledBuffer != null
+          && STRING.notBlank(postData = pooledBuffer.toString(CharsetUtil.UTF_8))
+          ) {
+        //TODO
+//        final String finalPostData = postData;
+//        S._debug(BaseServer.logger, log -> log.debug("postData: " + finalPostData));
+//
+//        Map parseJson = JSON.parse(finalPostData);
+//
+//        S._debug(BaseServer.logger, log -> log.debug(S.dump(postParams)));
+//        S._for(postParams).each(entry -> {
+//          String key = entry.getKey();
+//          List<String> value = entry.getValue();
+//          S._debug(BaseServer.logger, log -> log.debug(key + S.dump(value)));
+//          reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
+//        });
+      } else {
+        //TODO REFACTOR customized content parser
+        //json
+      }
+
+      //execution context
+      final HandlerExecutionContext exe_ctx = new HandlerExecutionContext();
+
+      S._debug(BaseServer.logger, log -> log.debug(reqWrapper.toString()));
+
+      //build the response
+      NettyRespWrapper respWrapper = new NettyRespWrapper(exe_ctx);
+
+      long _start_time = S.now();
+
+      S._debug(BaseServer.logger, logger -> {
+        logger.debug("resp build at " + _start_time);
+      });
+
+      S._debug(BaseServer.logger,
+               log -> log.debug("TRACE: run the exe-ctx"));
+
+
+      executorService.submit(() -> {
+        try {
+          handler.apply(reqWrapper, respWrapper);
+          S._debug(BaseServer.logger,
+                   log -> log.debug("exe-ctx costs " + (S.now() - _start_time) + " ms"));
+          if (exe_ctx.isSuccess()) {
+            switch (exe_ctx.type()) {
+              case HandlerExecutionContext.UNHANDLED: {
+                BaseServer.logger.warn("unhandled request reach.");
+                sendBadRequest(ctx);
+                return;
+              }
+              case HandlerExecutionContext.NORMAL: {
+                sendNormal(ctx, exe_ctx.response(), isKeepAlive);
+                return;
+              }
+              case HandlerExecutionContext.STATIC_FILE: {
+                sendFile(ctx,
+                         exe_ctx.response(),
+                         exe_ctx.sendfile(),
+                         exe_ctx.sendFileOffset(),
+                         exe_ctx.sendFileLength(),
+                         isKeepAlive
+                );
+              }
+            }
+          } else {
+            //maybe reset, timeout ....
+            //ctx.fireExceptionCaught(exe_ctx.getCause());
+          }
+        } catch (Exception e) {
+          ctx.fireExceptionCaught(e);
+        } finally {
+          S._debug(BaseServer.logger,
+                   log -> log.debug("TRACE: IO-SEND finished, now make clean"));
+          clean();
+          S._debug(BaseServer.logger,
+                   log -> log.debug("TRACE: Clean finished"));
+        }
+      });
+
+      S._debug(BaseServer.logger,
+               log -> log.debug("TRACE: IO-READ finished"));
+    }
+
+  }
+
+  @Override
+  protected void messageReceived(ChannelHandlerContext ctx, Object msg) {
+
+    //declare the in-request-scope-refs
+    if (msg instanceof HttpRequest) {
+      receiveHttpRequest(ctx, (HttpRequest) msg);
+    } else if (msg instanceof HttpContent) {
+      receiveHttpContent(ctx, reqWrapper, (HttpContent) msg);
+    } else {
+      //bad request
+      System.out.println(S.dump(msg));
+      ctx.fireExceptionCaught(new NullPointerException("bad request"));
+    }
+  }
+
+
+  Tuple<List<Attribute>, List<FileUpload>> decodeHttpContent
+      (HttpPostRequestDecoder decoder, HttpContent httpContent)
       throws HttpPostRequestDecoder.ErrorDataDecoderException,
       HttpPostRequestDecoder.EndOfDataDecoderException,
       HttpPostRequestDecoder.NotEnoughDataDecoderException {
@@ -526,12 +557,10 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
   }
 
   void clean() {
-    httpRequest = null;
-    reqWrapper = null;
-//    content.clear();
-    if (content != null && content.refCnt() > 0) {
-      content.release();
-    }
+    this.reqWrapper = null;
+    this.request = null;
+    this.isKeepAlive = false;
+    pooledBuffer.clear();
     resetDecoder();
   }
 
@@ -554,7 +583,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       //send error and close
       ctx.writeAndFlush(new DefaultFullHttpResponse(
           HttpVersion.HTTP_1_1,
-          HttpResponseStatus.INTERNAL_SERVER_ERROR,
+          HttpResponseStatus.BAD_REQUEST,
           Unpooled.copiedBuffer(cause.getMessage(), CharsetUtil.UTF_8)
       )).addListener(ChannelFutureListener.CLOSE);
     }

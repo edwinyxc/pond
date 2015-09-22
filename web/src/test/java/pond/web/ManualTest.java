@@ -151,9 +151,10 @@ public class ManualTest {
 
   public static void main(String[] args) throws IOException {
 
-    controller_bind_controller();
+//    controller_bind_controller();
 
 //    b();
+    a();
 //    test_router();
 //    test();
 //    test_require();
