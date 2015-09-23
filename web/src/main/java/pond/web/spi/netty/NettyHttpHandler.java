@@ -365,14 +365,16 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
   protected void messageReceived(ChannelHandlerContext ctx, Object msg) {
 
     //declare the in-request-scope-refs
-    if (msg instanceof HttpRequest) {
-      receiveHttpRequest(ctx, (HttpRequest) msg);
-    } else if (msg instanceof HttpContent) {
-      receiveHttpContent(ctx, reqWrapper, (HttpContent) msg);
-    } else {
-      //bad request
-      System.out.println(S.dump(msg));
-      ctx.fireExceptionCaught(new NullPointerException("bad request"));
+    synchronized (this) {
+      if (msg instanceof HttpRequest) {
+        receiveHttpRequest(ctx, (HttpRequest) msg);
+      } else if (msg instanceof HttpContent) {
+        receiveHttpContent(ctx, reqWrapper, (HttpContent) msg);
+      } else {
+        //bad request
+        System.out.println(S.dump(msg));
+        ctx.fireExceptionCaught(new NullPointerException("bad request"));
+      }
     }
   }
 
@@ -563,11 +565,13 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
 
   void clean() {
-    this.reqWrapper = null;
-    this.request = null;
-    this.isKeepAlive = false;
-    pooledBuffer.clear();
-    resetDecoder();
+    synchronized (this) {
+      this.reqWrapper = null;
+      this.request = null;
+      this.isKeepAlive = false;
+      pooledBuffer.clear();
+      resetDecoder();
+    }
   }
 
 
