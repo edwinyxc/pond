@@ -579,6 +579,7 @@ public class TestSuite {
             app.get("/test", (req, resp) -> {
               resp.render(text("中文支持"));
             })
+
     );
     TestUtil.assertContentEqualsForGet("中文支持", "http://localhost:9090/test");
   }

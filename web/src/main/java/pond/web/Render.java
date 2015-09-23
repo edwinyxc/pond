@@ -12,6 +12,7 @@ public interface Render {
 
   static Render text(String text) {
     return (req, resp) -> {
+      resp.contentType("text/plain;charset=utf-8");
       resp.write(text);
       resp.send(200);
     };
