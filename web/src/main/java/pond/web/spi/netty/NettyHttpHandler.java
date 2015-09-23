@@ -220,11 +220,10 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
     //end of message
     if (httpContent instanceof LastHttpContent) {
-
+      S._assert(reqWrapper);
       //bind inputStream
-      if (reqWrapper != null) {
-        reqWrapper.content(pooledBuffer);
-      }
+      reqWrapper.content(pooledBuffer);
+
       //merge trailing headers
       LastHttpContent trailer = (LastHttpContent) httpContent;
       if (!trailer.decoderResult().isSuccess()) {
@@ -240,7 +239,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
             S._debug(BaseServer.logger,
                      log -> log.debug("TRAILING HEADER: " + name + " : " + value));
             request.headers().set(name, value);
-            S._assert(reqWrapper);
+//            S._assert(reqWrapper);
             reqWrapper.updateHeaders(
                 headers -> HttpUtils.appendToMap(headers, name.toString(), value.toString()));
           }
@@ -314,10 +313,12 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       S._debug(BaseServer.logger,
                log -> log.debug("TRACE: run the exe-ctx"));
 
+      final NettyReqWrapper finalReq = reqWrapper;
+      final NettyRespWrapper finalResp = respWrapper;
 
       executorService.submit(() -> {
         try {
-          handler.apply(reqWrapper, respWrapper);
+          handler.apply(finalReq, finalResp);
           S._debug(BaseServer.logger,
                    log -> log.debug("exe-ctx costs " + (S.now() - _start_time) + " ms"));
           if (exe_ctx.isSuccess()) {
