@@ -300,7 +300,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       //execution context
       final HandlerExecutionContext exe_ctx = new HandlerExecutionContext();
 
-      S._debug(BaseServer.logger, log -> log.debug(reqWrapper.toString()));
+      S._debug(BaseServer.logger, log -> log.debug(String.valueOf(reqWrapper)));
 
       //build the response
       NettyRespWrapper respWrapper = new NettyRespWrapper(exe_ctx);
