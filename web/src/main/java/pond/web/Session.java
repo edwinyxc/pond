@@ -16,7 +16,7 @@ public class Session {
 
   static SessionStore store = SPILoader.service(SessionStore.class);
 
-  public static SessionStore store(){
+  public static SessionStore store() {
     return store;
   }
 
@@ -131,13 +131,12 @@ public class Session {
    * Cookie session installer, using "cookie" & "set-cookie" to control the session-id
    * Put this mid into responsibility chain and you will get fully
    * session support then.
-   *
    */
   public static Mid install() {
     return new CookieSessionInstaller();
   }
 
-  public static Mid install(Function<String, Request> how_to_get_sessionId, Mid callback_on_fail){
+  public static Mid install(Function<String, Request> how_to_get_sessionId, Mid callback_on_fail) {
     return new SessionInstaller(how_to_get_sessionId, callback_on_fail);
   }
 

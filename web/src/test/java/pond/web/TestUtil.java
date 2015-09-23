@@ -8,8 +8,7 @@ import pond.common.STREAM;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created by ed on 8/24/15.
@@ -17,8 +16,9 @@ import static org.junit.Assert.assertTrue;
 public class TestUtil {
 
   public static void assertContentEqualsForGet(String judge, String url) throws IOException {
+    assertNotNull(judge);
     HTTP.get(url, null, resp ->
-        S._try(() -> assertEquals(judge.trim(),
+        S._try(() -> assertEquals(new String(judge.trim().getBytes(), CharsetUtil.UTF_8),
                                   STREAM.readFully(resp.getEntity().getContent(), CharsetUtil.UTF_8).trim()
                )
         ));

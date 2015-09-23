@@ -465,7 +465,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 //    } else {
     try {
       sendFileFuture = ctx.write(new HttpChunkedInput(new ChunkedFile(raf, offset, length, 65536)),
-                            ctx.newProgressivePromise());
+                                 ctx.newProgressivePromise());
 
       sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
         @Override
@@ -552,11 +552,11 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
   void writeLastContentAndFlush(ChannelHandlerContext ctx) {
     if (ctx.executor().inEventLoop()) {
       ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-      if(!isKeepAlive) future.addListener(ChannelFutureListener.CLOSE);
+      if (!isKeepAlive) future.addListener(ChannelFutureListener.CLOSE);
     } else {
       ctx.executor().execute(() -> {
         ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        if(!isKeepAlive) future.addListener(ChannelFutureListener.CLOSE);
+        if (!isKeepAlive) future.addListener(ChannelFutureListener.CLOSE);
       });
     }
   }

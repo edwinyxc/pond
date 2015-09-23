@@ -99,7 +99,7 @@ public class Matrix {
     int cnt_x = 0;
     int cnt_y = 0;
     for (int i = col; i < newVolume; i += (cols)) {
-			/* move right $times step to make room */
+      /* move right $times step to make room */
       innerMove(i, moveAmount, right, times);
       for (int m = 0; m < times; m++) {
         if (cnt_x < values.length && cnt_y < values[cnt_x].length) {

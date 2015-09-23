@@ -19,7 +19,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.*;
 import static pond.web.Render.text;
@@ -141,9 +144,9 @@ public class TestSuite {
     ExecutorService executorService = Executors.newFixedThreadPool(10);
     List<CompletableFuture> futures = new ArrayList<>();
 
-    for(int i = 0; i< 1000; i++){
-      futures.add(CompletableFuture.runAsync(a,executorService));
-      futures.add(CompletableFuture.runAsync(b,executorService));
+    for (int i = 0; i < 1000; i++) {
+      futures.add(CompletableFuture.runAsync(a, executorService));
+      futures.add(CompletableFuture.runAsync(b, executorService));
     }
 
     Collections.shuffle(futures);

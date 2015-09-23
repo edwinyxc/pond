@@ -1,8 +1,6 @@
 package pond.web;
 
-import pond.common.HTTP;
 import pond.common.S;
-import pond.common.f.Callback;
 
 import java.io.IOException;
 
@@ -112,7 +110,7 @@ public class ManualTest {
 
     @Mapping("/")
     public void root(Request req, Response resp) {
-      resp.send(200,"root");
+      resp.send(200, "root");
     }
 
     @Mapping("/read")

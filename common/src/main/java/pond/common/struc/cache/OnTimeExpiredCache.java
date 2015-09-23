@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
@@ -48,7 +47,7 @@ public final class OnTimeExpiredCache<K, V> extends AbstractCache<K, V> {
       }
     };
     Timer timer = new Timer();
-    timer.scheduleAtFixedRate(task,0,checkInterval);
+    timer.scheduleAtFixedRate(task, 0, checkInterval);
   }
 
 

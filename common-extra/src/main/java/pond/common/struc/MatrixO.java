@@ -296,7 +296,7 @@ public class MatrixO {
       dest += cols - endCol - 1;
       _endCol += cols;
     }
-		/* reset the cols & rows */
+    /* reset the cols & rows */
     this.data = newArr;
     this.cols -= times;
   }
