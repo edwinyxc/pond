@@ -18,8 +18,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.*;
 
 import static org.junit.Assert.*;
 import static pond.web.Render.text;
@@ -70,6 +70,91 @@ public class TestSuite {
     //SESSION
     session_test();
     session_custom_test();
+
+    //FORM-VERIFY
+    form_verify();
+  }
+
+  public void form_verify() throws IOException {
+    app.cleanAndBind(p -> {
+      p.post("/a", (req, resp) -> {
+        resp.render(Render.json(req.toMap()));
+      });
+
+      p.post("/b", (req, resp) -> {
+        resp.render(Render.json(req.toMap()));
+      });
+
+    });
+
+    Runnable a = () -> {
+      try {
+        HTTP.post("http://localhost:9090/a", S._tap(new HashMap<>(), map -> {
+          map.put("username", "123333");
+          map.put("pass", "ioiuda");
+          map.put("sss", "909908923");
+          map.put("aaa", "nnmn,m");
+          map.put("ssdaiuouuu", "ssdaw123kk");
+        }), resp -> {
+          try {
+            String s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
+            Map m = JSON.parse(s);
+            assertEquals(m.get("username"), "123333");
+            assertEquals(m.get("pass"), "ioiuda");
+            assertEquals(m.get("sss"), "909908923");
+            assertEquals(m.get("aaa"), "nnmn,m");
+            assertEquals(m.get("ssdaiuouuu"), "ssdaw123kk");
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        });
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    };
+    Runnable b = () -> {
+      try {
+        HTTP.post("http://localhost:9090/b", S._tap(new HashMap<>(), map -> {
+          map.put("username_b", "123vvv333");
+          map.put("pass_b", "ioiudab");
+          map.put("sss_b", "9099089b23");
+          map.put("aaa_b", "nnmn,mb");
+          map.put("ssdaiuouuu_b", "ssssdaw123kk");
+        }), resp -> {
+          try {
+            String s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
+            Map m = JSON.parse(s);
+            assertEquals(m.get("username_b"), "123vvv333");
+            assertEquals(m.get("pass_b"), "ioiudab");
+            assertEquals(m.get("sss_b"), "9099089b23");
+            assertEquals(m.get("aaa_b"), "nnmn,mb");
+            assertEquals(m.get("ssdaiuouuu_b"), "ssssdaw123kk");
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        });
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    };
+
+    ExecutorService executorService = Executors.newFixedThreadPool(10);
+    List<CompletableFuture> futures = new ArrayList<>();
+
+    for(int i = 0; i< 1000; i++){
+      futures.add(CompletableFuture.runAsync(a,executorService));
+      futures.add(CompletableFuture.runAsync(b,executorService));
+    }
+
+    Collections.shuffle(futures);
+
+    try {
+      CompletableFuture.allOf(S._for(futures).join()).get();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+    }
   }
 
   public void require_test() throws IOException {

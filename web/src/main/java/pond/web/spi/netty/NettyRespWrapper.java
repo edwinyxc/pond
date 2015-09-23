@@ -65,9 +65,6 @@ public class NettyRespWrapper implements Response {
   public void sendFile(File file, long offset, long length) {
     resp.setStatus(HttpResponseStatus.OK);
 
-//    if (HttpHeaderUtil.isKeepAlive(request))
-//      HttpHeaderUtil.setKeepAlive(resp, true);
-
     HttpHeaderUtil.setContentLength(resp, file.length());
 
     if (resp.headers().get(HttpHeaderNames.CONTENT_TYPE) == null) {

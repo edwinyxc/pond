@@ -212,9 +212,9 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       //merge chunks
       ByteBuf chunk = httpContent.content();
       if (chunk.isReadable()) {
-          chunk.retain();
-          pooledBuffer.addComponent(httpContent.content());
-          pooledBuffer.writerIndex(pooledBuffer.writerIndex() + chunk.readableBytes());
+        chunk.retain();
+        pooledBuffer.addComponent(httpContent.content());
+        pooledBuffer.writerIndex(pooledBuffer.writerIndex() + chunk.readableBytes());
       }
     }
 
@@ -222,7 +222,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     if (httpContent instanceof LastHttpContent) {
 
       //bind inputStream
-      if (reqWrapper != null ) {
+      if (reqWrapper != null) {
         reqWrapper.content(pooledBuffer);
       }
       //merge trailing headers
@@ -240,6 +240,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
             S._debug(BaseServer.logger,
                      log -> log.debug("TRAILING HEADER: " + name + " : " + value));
             request.headers().set(name, value);
+            S._assert(reqWrapper);
             reqWrapper.updateHeaders(
                 headers -> HttpUtils.appendToMap(headers, name.toString(), value.toString()));
           }
@@ -270,6 +271,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
           String key = entry.getKey();
           List<String> value = entry.getValue();
           S._debug(BaseServer.logger, log -> log.debug(key + S.dump(value)));
+          S._assert(reqWrapper);
           reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
         });
       } else if ((contentType == null
@@ -334,8 +336,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                          exe_ctx.response(),
                          exe_ctx.sendfile(),
                          exe_ctx.sendFileOffset(),
-                         exe_ctx.sendFileLength(),
-                         isKeepAlive
+                         exe_ctx.sendFileLength()
                 );
               }
             }
@@ -440,8 +441,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                 Response response,
                 RandomAccessFile raf,
                 Long sendoffset,
-                Long sendlength,
-                boolean isKeepAlive) {
+                Long sendlength) {
     NettyRespWrapper wrapper = ((NettyRespWrapper) response);
 
     long offset = sendoffset == null ? 0l : sendoffset;
@@ -457,7 +457,6 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     ctx.write(resp);
     // Write the content.
     ChannelFuture sendFileFuture;
-    ChannelFuture lastContentFuture;
 //    if (ctx.pipeline().get(SslHandler.class) == null) {
 //      sendFileFuture =
 //          ctx.write(new DefaultFileRegion(raf.getChannel(), offset, length), ctx.newProgressivePromise());
@@ -465,41 +464,41 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 //      lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 //    } else {
     try {
-      sendFileFuture =
-          ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(raf, offset, length, 65536)),
+      sendFileFuture = ctx.write(new HttpChunkedInput(new ChunkedFile(raf, offset, length, 65536)),
                             ctx.newProgressivePromise());
-      lastContentFuture = sendFileFuture;
+
+      sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
+        @Override
+        public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
+          if (total < 0) { // total unknown
+            S._debug(BaseServer.logger, logger ->
+                logger.debug(future.channel() + " Transfer progress: " + progress));
+          } else {
+            S._debug(BaseServer.logger, logger ->
+                logger.debug(future.channel() + " Transfer progress: " + progress + " / " + total));
+          }
+        }
+
+        @Override
+        public void operationComplete(ChannelProgressiveFuture future) throws Exception {
+          S._debug(BaseServer.logger, logger ->
+              logger.debug(future.channel() + " Transfer complete."));
+        }
+      });
+
+      writeLastContentAndFlush(ctx);
 
     } catch (IOException e) {
       ctx.fireExceptionCaught(e);
-      return;
     }
     // HttpChunkedInput will pipe the end marker (LastHttpContent) for us.
 //    }
 
-    sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
-      @Override
-      public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
-        if (total < 0) { // total unknown
-          S._debug(BaseServer.logger, logger ->
-              logger.debug(future.channel() + " Transfer progress: " + progress));
-        } else {
-          S._debug(BaseServer.logger, logger ->
-              logger.debug(future.channel() + " Transfer progress: " + progress + " / " + total));
-        }
-      }
 
-      @Override
-      public void operationComplete(ChannelProgressiveFuture future) throws Exception {
-        S._debug(BaseServer.logger, logger ->
-            logger.debug(future.channel() + " Transfer complete."));
-      }
-    });
-
-    // Decide whether to close the connection or not.
-    if (!isKeepAlive)
-      // Close the connection when the whole content is written out.
-      lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+//    // Decide whether to close the connection or not.
+//    if (!isKeepAlive)
+//      // Close the connection when the whole content is written out.
+//      lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 
   }
 
@@ -541,20 +540,27 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       else
         log.debug(content.toString(CharsetUtil.UTF_8));
     });
-    ChannelFuture lastContentFuture;
 
     //write head
     ctx.write(resp);
     //write content
     ctx.write(content);
 
-    lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-//    lastContentFuture.addListener(future -> S._debug(BaseServer.logger, logger ->
-//        logger.debug("all costs: " + (S.now() - wrapper._start_time) + "ms")));
-
-    if (!isKeepAlive)
-      lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+    writeLastContentAndFlush(ctx);
   }
+
+  void writeLastContentAndFlush(ChannelHandlerContext ctx) {
+    if (ctx.executor().inEventLoop()) {
+      ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+      if(!isKeepAlive) future.addListener(ChannelFutureListener.CLOSE);
+    } else {
+      ctx.executor().execute(() -> {
+        ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+        if(!isKeepAlive) future.addListener(ChannelFutureListener.CLOSE);
+      });
+    }
+  }
+
 
   void clean() {
     this.reqWrapper = null;

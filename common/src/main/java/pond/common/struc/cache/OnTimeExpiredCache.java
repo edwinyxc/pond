@@ -7,6 +7,8 @@ import pond.common.S;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -14,42 +16,39 @@ public final class OnTimeExpiredCache<K, V> extends AbstractCache<K, V> {
 
   public long expireTime;
   public long checkInterval;
-  volatile boolean stop = false;
+  //volatile boolean stop = false;
   Logger logger = LoggerFactory.getLogger(OnTimeExpiredCache.class);
 
   public OnTimeExpiredCache(long expireMs, long checkIntervalMs) {
     super(new ConcurrentHashMap<K, V>());
     expireTime = expireMs;
     checkInterval = checkIntervalMs;
+    TimerTask task = new TimerTask() {
+      @Override
+      public void run() {
 
-    new Thread(() -> {
-      while (!stop) {
-        try {
-          Thread.sleep(checkInterval);
-          Iterator it = this.cache.entrySet().iterator();
+        Iterator it = OnTimeExpiredCache.this.cache.entrySet().iterator();
 
-          S._debug(logger, log -> {
-            log.debug("trigger clean");
-          });
+        S._debug(logger, log -> {
+          log.debug("trigger clean");
+        });
 
-          while (it.hasNext()) {
-            Map.Entry entry = (Map.Entry) it.next();
-            VWithTime vWithTime = (VWithTime) entry.getValue();
-            if (vWithTime.needExpire(expireTime)) {
+        while (it.hasNext()) {
+          Map.Entry entry = (Map.Entry) it.next();
+          VWithTime vWithTime = (VWithTime) entry.getValue();
+          if (vWithTime.needExpire(expireTime)) {
 
-              S._debug(logger, log -> {
-                log.debug("cleaning expired entry : " + entry);
-              });
+            S._debug(logger, log -> {
+              log.debug("cleaning expired entry : " + entry);
+            });
 
-              it.remove();
-            }
+            it.remove();
           }
-
-        } catch (InterruptedException e) {
-          e.printStackTrace();
         }
       }
-    }, "TimeExpireCache-daemon").start();
+    };
+    Timer timer = new Timer();
+    timer.scheduleAtFixedRate(task,0,checkInterval);
   }
 
 
@@ -64,10 +63,6 @@ public final class OnTimeExpiredCache<K, V> extends AbstractCache<K, V> {
   @Override
   protected void _put(K key, V val) {
     cache.put(key, new VWithTime(val, S.now()));
-  }
-
-  public void releaseDaemon() throws IOException {
-    this.stop = true;
   }
 
   class VWithTime {
