@@ -391,10 +391,10 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       PreprocessedIO preprocessed = receiveHttpRequest(ctx, (HttpRequest) msg);
       //register ctx to the Register
       //if we are able to set the register, it must not contain the ctx
-      synchronized (ctxRegister) {
+      //synchronized (ctxRegister) {
         S._assert(null == ctxRegister.get(ctx));
         ctxRegister.put(ctx, preprocessed);
-      }
+      // }
     } else if (msg instanceof HttpContent) {
       PreprocessedIO found;
       if (null == (found = ctxRegister.get(ctx))) {
@@ -606,10 +606,10 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       if (byteBuf.refCnt() >= 0) {
         byteBuf.release(byteBuf.refCnt());
       }
-      synchronized (ctxRegister) {
+//      synchronized (ctxRegister) {
         ctxRegister.remove(ctx);
         S._debug(BaseServer.logger, log -> log.debug("DELETING IO-CTX BINDING : " + ctx.toString()));
-      }
+//      }
       resetDecoder();
     }
   }
