@@ -47,19 +47,19 @@ public abstract class AbstractCache<K, V> extends Cache<K, V> {
   protected abstract V _get(K key);
 
   @Override
-  public V get(K key, Function<V, Cache> doWithCache) {
-    return get(key, doWithCache.apply(this));
-  }
-
-  @Override
   @SuppressWarnings("unchecked")
-  public V get(K key, V cache) {
+  public V get(K key, Function<V, Cache> onNothingFound) {
     V ret = this._get(key);
-    if (ret == null) {
-      ret = cache;
+    if( ret == null ) {
+      ret = onNothingFound.apply(this);
       this.cache.put(key, ret);
     }
     return ret;
+  }
+
+  @Override
+  public V get(K key, V cache_val) {
+    return get(key, _cache -> cache_val);
   }
 
   @Override
