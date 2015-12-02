@@ -8,10 +8,17 @@ import java.io.PrintWriter;
 
 public class ResponseWrapper implements Response {
 
-  Response wrapped;
+  final Response wrapped;
+  final Ctx ctx;
 
-  ResponseWrapper(Response w) {
+  ResponseWrapper(Ctx ctx, Response w) {
     wrapped = w;
+    this.ctx = ctx;
+  }
+
+  @Override
+  public Ctx ctx() {
+    return ctx;
   }
 
   void setSendFlag() {
