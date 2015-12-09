@@ -74,7 +74,7 @@ public class CtxExec extends Executor {
 
   @Override
   public ExecutionContext exec(ExecutionContext context, Service... services) {
-    S._assert(context instanceof Ctx);
+//    S._assert(context instanceof Ctx);
     Ctx ctx = (Ctx) context;
     return super.exec(ctx, services);
   }

@@ -13,7 +13,7 @@ public class Service {
   final static int ST_DONE = 9;
 
   final Callback<ExecutionContext> main;
-  String name = "anonymous";
+  String name = this.getClass().getCanonicalName();
 
   protected ExecutionContext ctx;
   int state = ST_NUL;
