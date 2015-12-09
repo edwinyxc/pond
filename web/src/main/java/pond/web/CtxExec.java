@@ -1,18 +1,14 @@
 package pond.web;
 
 import pond.common.S;
+import pond.core.ExecutionContext;
+import pond.core.Executor;
+import pond.core.Service;
 
 
-public class CtxExec {
+public class CtxExec extends Executor {
 
-  private static ThreadLocal<Ctx> ctxThreadLocal = new ThreadLocal<>();
-
-  public static Ctx get() {
-    return ctxThreadLocal.get();
-  }
-
-  public CtxExec() {
-  }
+  CtxExec() {}
 
   static void unwrapRuntimeException(RuntimeException e, Response resp) {
     Throwable t = e.getCause();
@@ -29,53 +25,58 @@ public class CtxExec {
     }
   }
 
+  static Service Mid_to_Service(Mid mid){
+
+    Service ret = new Service( _ctx -> {
+
+      Ctx ctx = (Ctx) _ctx;
+
+      if (mid == null) {
+        return;
+      }
+
+      try {
+        if (ctx.handled) return;
+        final Mid finalMid = mid;
+
+        S._debug(Pond.logger, log ->
+            log.debug("Ctx Executing... uri: " + ctx.req.path() + ", mid: " + finalMid.toString()));
+
+        mid.apply(ctx.req, ctx.resp);
+        ctx.handledMids.add(mid);
+
+      } catch (RuntimeException e) {
+        unwrapRuntimeException(e, ctx.resp);
+      } catch (Exception e) {
+        Pond.logger.error("Internal Error", e);
+        ctx.resp.send(500, e.getMessage());
+      }
+
+    });
+
+    ret.name(mid.toString());
+    return ret;
+  }
+
   public void execAll(Ctx ctx, Mid... mids) {
     for (Mid mid : mids) {
       if (ctx.handled) return;
-      exec(ctx, mid);
+      exec(ctx, Mid_to_Service(mid));
     }
   }
 
   public void execAll(Ctx ctx, Iterable<Mid> mids) {
     for (Mid mid : mids) {
       if (ctx.handled) return;
-      exec(ctx, mid);
+      exec(ctx, Mid_to_Service(mid));
     }
   }
 
-  /**
-   * @param ctx
-   */
-  public void exec(Ctx ctx, Mid mid) {
-
-    if (mid == null) {
-      return;
-    }
-
-    try {
-      //bind localthread-context
-      if (ctxThreadLocal.get() == null) ctxThreadLocal.set(ctx);
-      if (ctx.handled) return;
-      final Mid finalMid = mid;
-
-      S._debug(Pond.logger, log ->
-          log.debug("Ctx Executing... uri: " + ctx.req.path() + ", mid: " + finalMid.toString()));
-
-      mid.apply(ctx.req, ctx.resp);
-      ctx.handledMids.add(mid);
-
-    } catch (RuntimeException e) {
-      unwrapRuntimeException(e, ctx.resp);
-    } catch (Exception e) {
-      Pond.logger.error("Internal Error", e);
-      ctx.resp.send(500, e.getMessage());
-    } finally {
-      Ctx thctx;
-      if ((thctx = ctxThreadLocal.get()) != null) {
-        S._debug(Pond.logger, logger ->
-            logger.debug("Ctx costs: " + (S.now() - (long) thctx.get("_start_time")) + "ms"));
-        ctxThreadLocal.remove();
-      }
-    }
+  @Override
+  public ExecutionContext exec(ExecutionContext context, Service... services) {
+//    S._assert(context instanceof Ctx);
+    Ctx ctx = (Ctx) context;
+    return super.exec(ctx, services);
   }
+
 }

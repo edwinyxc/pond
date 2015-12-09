@@ -5,6 +5,7 @@ import pond.common.S;
 import pond.web.http.Cookie;
 import pond.web.http.HttpUtils;
 
+import javax.naming.OperationNotSupportedException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,7 +91,7 @@ public interface Request {
   }
 
   default Ctx ctx() {
-    return CtxExec.get();
+    throw new RuntimeException("please implement the default Request#ctx() function");
   }
 
   default Map<String, Object> toMap() {

@@ -9,26 +9,15 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>pond-db</artifactId>
+    <artifactId>pond-security</artifactId>
+
 
     <dependencies>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>1.4.187</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.shuimin</groupId>
-            <artifactId>pond-common</artifactId>
+            <artifactId>pond-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.30</version>
-        </dependency>
-
     </dependencies>
 
 </project>
