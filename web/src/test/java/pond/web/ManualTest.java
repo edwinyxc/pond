@@ -1,9 +1,15 @@
 package pond.web;
 
+import pond.common.HTTP;
 import pond.common.S;
+import pond.common.STREAM;
+import pond.common.f.Tuple;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static pond.web.Render.text;
 
 /**
@@ -11,6 +17,7 @@ import static pond.web.Render.text;
  */
 public class ManualTest {
 
+  static Charset utf8 = Charset.forName("UTF-8");
   static void a() {
     Pond app = Pond.init();
 
@@ -149,15 +156,76 @@ public class ManualTest {
 //    app.stop();
   }
 
+  public static void mal_request_url_too_long() throws IOException {
+
+    StringBuilder too_long_url = new StringBuilder("http://localhost:9090/too_long?");
+
+    List<Tuple<String, String>> params_list =
+        S._for(new Integer[400])
+            .map(s -> Tuple.pair(S.uuid.vid(), S.uuid.str()))
+            .peek(t -> too_long_url.append(t._a).append("&").append(t._b))
+            .toList();
+
+    Pond app = Pond.init().debug().listen(9090);
+
+    app.cleanAndBind(p -> p.get("/too_long", (req, resp) -> {
+      S._for(req.toMap()).each(e -> {
+        String k = e.getKey();
+        String v = (String) e.getValue();
+        S.echo(k,v);
+      });
+    }));
+
+    HTTP.get(too_long_url.toString());
+
+  }
+
+  public static void basic_router() {
+
+    Router router = new Router();
+    router.get("/add", (req, resp) -> resp.send("add"))
+        .get("/del", (req, resp) -> resp.send("del"));
+
+    Pond app = Pond.init().debug().listen(9090);
+
+    app.cleanAndBind(
+        p->
+            p.get("/", (req, resp) -> resp.send("root"))
+                .get("/:id", (req, resp) -> resp.send(req.param("id")))
+                .get("/:id/text", (req, resp) -> resp.send("text"))
+                .use("/user/*", router)
+                .otherwise(InternalMids.FORCE_CLOSE)
+    );
+
+//    try {
+//
+//      HTTP.get("http://localhost:9090/user/add", null, resp ->
+//          S._try(() -> assertEquals("add", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+//
+//      HTTP.get("http://localhost:9090/user/del", null, resp ->
+//          S._try(() -> assertEquals("del", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+//
+//      HTTP.get("http://localhost:9090/123", null, resp ->
+//          S._try(() -> assertEquals("123", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+//
+//      HTTP.get("http://localhost:9090/123/text", null, resp ->
+//          S._try(() -> assertEquals("text", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+//
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//    }
+  }
+
   public static void main(String[] args) throws IOException {
 
 //    controller_bind_controller();
-
 //    b();
-    a();
+//    a();
 //    test_router();
 //    test();
 //    test_require();
+      basic_router();
+    //mal_request_url_too_long();
 
   }
 

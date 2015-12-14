@@ -300,7 +300,7 @@ public class TestSuite {
       resp.render(text(String.valueOf(value)));
     }
 
-    @Mapping("/add/${_vol}")
+    @Mapping("/add/:_vol")
     public void addN(Request req, Response resp) {
       String vol = req.param("_vol");
       value.getAndAdd(Integer.valueOf(vol));
@@ -317,8 +317,11 @@ public class TestSuite {
   public void controller_bind_controller() throws IOException {
 
     app.cleanAndBind(app -> {
-      app.use("/ctrl/.*", new DemoController());
-      app.use("/ctx/.*", (req, resp) -> req.ctx().put("k", "v"), new DemoController());
+      app.use("/ctrl/*",
+              new DemoController());
+      app.use("/ctx/*",
+              (req, resp) -> req.ctx().put("k", "v"),
+              new DemoController());
     });
 
     TestUtil.assertContentEqualsForGet("1", "http://localhost:9090/ctrl/read");
@@ -338,7 +341,7 @@ public class TestSuite {
 
     S._debug_on(Route.class);
     app.cleanAndBind(
-        p -> p.use("/.*", new DemoController())
+        p -> p.use("/*", new DemoController())
     );
 
     TestUtil.assertContentEqualsForGet("1", "http://localhost:9090/read");
@@ -423,7 +426,7 @@ public class TestSuite {
 
 
   public void static_bind_root() throws IOException {
-    app.cleanAndBind(app -> app.get("/.*", app._static("www")));
+    app.cleanAndBind(app -> app.get("/*", app._static("www")));
 
     TestUtil.assertContentEqualsForGet(
         "app.js", "http://localhost:9090/123.html"
@@ -431,7 +434,7 @@ public class TestSuite {
   }
 
   public void static_bind_non_root() throws IOException {
-    app.cleanAndBind(app -> app.get("/static/.*", app._static("www")));
+    app.cleanAndBind(app -> app.get("/static/*", app._static("www")));
 
     TestUtil.assertContentEqualsForGet(
         "app.js", "http://localhost:9090/static/123.html"
@@ -439,7 +442,7 @@ public class TestSuite {
   }
 
   public void static_default_index() throws IOException {
-    app.cleanAndBind(app -> app.get("/.*", app._static("www")));
+    app.cleanAndBind(app -> app.get("/*", app._static("www")));
 
     TestUtil.assertContentEqualsForGet(
         "index.html", "http://localhost:9090"
@@ -495,9 +498,9 @@ public class TestSuite {
     app.cleanAndBind(
         app ->
             app.get("/", (req, resp) -> resp.send("root"))
-                .get("/${id}", (req, resp) -> resp.send(req.param("id")))
-                .get("/${id}/text", (req, resp) -> resp.send("text"))
-                .use("/user/.*", router)
+                .get("/:id", (req, resp) -> resp.send(req.param("id")))
+                .get("/:id/text", (req, resp) -> resp.send("text"))
+                .use("/user/*", router)
     );
 
     try {
@@ -524,10 +527,10 @@ public class TestSuite {
     S.echo("Testing min_group_route");
     app.cleanAndBind(
         app -> {
-          app.get("/${id}/new", (req, resp) -> resp.send(req.param("id") + "/new1"));
-          app.get("/new/${id}", (req, resp) -> resp.send("new2/" + req.param("id")));
+          app.get("/:id/new", (req, resp) -> resp.send(req.param("id") + "/new1"));
+          app.get("/new/:id", (req, resp) -> resp.send("new2/" + req.param("id")));
           app.get("/new", (req, resp) -> resp.send("new"));
-          app.get("/${id}", (req, resp) -> resp.send("id=" + req.param("id")));
+          app.get("/:id", (req, resp) -> resp.send("id=" + req.param("id")));
         });
 
     try {

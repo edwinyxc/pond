@@ -3,6 +3,7 @@ package pond.web.spi;
 import pond.common.Convert;
 import pond.common.PATH;
 import pond.common.S;
+import pond.common.SPILoader;
 import pond.web.Pond;
 import pond.web.Request;
 import pond.web.Response;
@@ -12,6 +13,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
@@ -78,21 +80,17 @@ public class DefaultStaticFileServer implements StaticFileServer {
     }
 
     if (route != null) {
+
       String def = route.defPath().pattern();
-      String prefix = def.substring(0, def.lastIndexOf("/"));
-      uri = uri.substring(prefix.length());
+
+      Matcher matcher = Pattern.compile(def).matcher(uri);
+
+      if(matcher.find()){
+        uri = "/" + uri.substring(matcher.start(1));
+      }
+
+      //String prefix = def.substring(0, def.lastIndexOf("/"));
     }
-
-
-//        //cut the prefix
-//        if (def != null) {
-//            Matcher matcher = def.matcher(uri);
-//            if (matcher.matches()) {
-//                String result = matcher.group();
-//                S.echo(result);
-//                uri = result;
-//            }
-//        }
 
     // Convert file separators.
     uri = uri.replace('/', File.separatorChar);

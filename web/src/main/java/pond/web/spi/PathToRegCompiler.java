@@ -3,6 +3,7 @@ package pond.web.spi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.f.Tuple;
+import pond.web.Route;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -16,5 +17,7 @@ public interface PathToRegCompiler {
     final static Logger logger = LoggerFactory.getLogger(PathToRegCompiler.class);
 
     PreCompiledPath compile(String path);
+
+    String preparePath(Route route, String path);
 
 }

@@ -3,10 +3,11 @@ package pond.web;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
+import pond.common.SPILoader;
 import pond.web.http.HttpMethod;
+import pond.web.spi.PathToRegCompiler;
 
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static pond.common.S.*;
@@ -21,7 +22,6 @@ public class Router implements Mid, RouterAPI {
 
   List<Mid> defaultMids = new ArrayList<>();
 
-
   private String get_path_remainder(Request req){
 
     String path = req.path();
@@ -29,27 +29,9 @@ public class Router implements Mid, RouterAPI {
 
     Route entry_route = ctx.route;
 
-    //procedure of nested routers
-    //if entry_route is null, then this routing is a root routing
-    if(entry_route != null) {
-      String entry_path = entry_route.defPath().pattern();
+    PathToRegCompiler compiler = SPILoader.service(PathToRegCompiler.class);
 
-      //search for the wildcards "/.*", any sub router should have it.
-      if(!entry_path.endsWith("/.*")) {
-        throw new RuntimeException("invalid router definition: the router must be prefixed with a regexp ending with /.*");
-      }
-      Pattern trimmed = Pattern.compile(entry_path.substring(0, entry_path.length() - 3));
-      Matcher matcher = trimmed.matcher(path);
-      if(matcher.find()){
-        return path.substring(matcher.end());
-      }
-      else{
-        //this would not happen
-        throw new RuntimeException("This would not happen");
-      }
-    }
-
-    return path;
+    return compiler.preparePath(entry_route, path);
   }
 
   @Override

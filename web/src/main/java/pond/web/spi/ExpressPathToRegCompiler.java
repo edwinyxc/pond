@@ -1,9 +1,9 @@
 package pond.web.spi;
 
 import pond.common.S;
+import pond.web.Route;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  * LICENSE MIT
  * ORIGINAL AUTHOR : blakeembrey hello@blakeembrey.com
  */
-public class ExpressPathToRegCompiler implements PathToRegCompiler{
+public class ExpressPathToRegCompiler implements PathToRegCompiler {
 
   final static Pattern pattern =
       Pattern.compile("(\\\\.)|(/)?(?:(?::(\\w+)(?:\\(((?:\\\\.|[^()])+)\\))?|\\(((?:\\\\.|[^()])+)\\))([+*?])?|(\\*))");
@@ -21,12 +21,12 @@ public class ExpressPathToRegCompiler implements PathToRegCompiler{
   private boolean strict;
   private boolean end;
 
-  public ExpressPathToRegCompiler strict(boolean strict){
+  public ExpressPathToRegCompiler strict(boolean strict) {
     this.strict = strict;
     return this;
   }
 
-  public ExpressPathToRegCompiler end(boolean end){
+  public ExpressPathToRegCompiler end(boolean end) {
     this.end = end;
     return this;
   }
@@ -36,10 +36,10 @@ public class ExpressPathToRegCompiler implements PathToRegCompiler{
     Matcher matcher = pattern.matcher(path);
     StringBuffer buffer = new StringBuffer();
     List<String> keys = S.array();
-    while (matcher.find()){
+    while (matcher.find()) {
       String escaped = matcher.group(1);
 
-      if(escaped != null && escaped.length() > 0){
+      if (escaped != null && escaped.length() > 0) {
         continue;
       }
 
@@ -55,33 +55,31 @@ public class ExpressPathToRegCompiler implements PathToRegCompiler{
       boolean optional = "?".equals(suffix) || "*".equals(suffix);
 
       String delimiter = (prefix == null ? "/" : prefix);
-      String pattern = capture != null ? capture:( group != null ? group : (asterisk != null ? ".*" : "[^" + delimiter +  "]+?") );
+      String pattern = capture != null ? capture : (group != null ? group : (asterisk != null ? ".*" : "[^" + delimiter + "]+?"));
 
-      if(name == null){
-        throw new NullPointerException("name");
+      if (name != null && !name.isEmpty()) {
+//        throw new NullPointerException("name");
+        keys.add(name);
       }
-
-      keys.add(name);
 
       //avoid null
       prefix = S.avoidNull(prefix, "");
 
       StringBuilder replacement = new StringBuilder();
-      if(repeat){
-        pattern +="(?:" + prefix + pattern + ")*";
+      if (repeat) {
+        pattern += "(?:" + prefix + pattern + ")*";
       }
 
-      if(optional){
-        if(prefix != null) {
+      if (optional) {
+        if (prefix != null) {
           replacement.setLength(0);
           replacement.append("(?:").append(prefix)
               .append("(").append(pattern).append("))?");
-        }
-        else {
+        } else {
           replacement.setLength(0);
           replacement.append("(").append(pattern).append(")?");
         }
-      }else {
+      } else {
         replacement.setLength(0);
         replacement.append(prefix).append("(").append(pattern).append(")");
       }
@@ -109,8 +107,33 @@ public class ExpressPathToRegCompiler implements PathToRegCompiler{
       route += strict && endsWithSlash ? "" : "(?=/|$)";
     }
 
-    return new PreCompiledPath(Pattern.compile("^"+route), keys);
+    return new PreCompiledPath(Pattern.compile("^" + route), keys);
 
+  }
+
+  @Override
+  public String preparePath(Route entry_route, String path) {
+
+    //procedure of nested routers
+    //if entry_route is null, then this routing is a root routing
+    if (entry_route != null) {
+
+      Matcher wildcard_matcher =
+          Pattern.compile(entry_route.defPath().pattern())
+              .matcher(path);
+
+      if (wildcard_matcher.find()) {
+        //System.err.println(wildcard_matcher.group(1));
+
+        //prefix "/" to the wildcard_matcher
+        return "/" + wildcard_matcher.group(1);
+      } else {
+        //this would not happen
+        throw new RuntimeException("This would not happen");
+      }
+    }
+
+    return path;
   }
 
 
