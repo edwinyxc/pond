@@ -205,7 +205,7 @@ public class S {
   }
 
   /**
-   * Tap on nullable object -- invoke the function bingding the limit arg if the input is not null
+   * Tap on nullable object, execute the interceptor function only when the first argument is not null.
    */
   public static <R, N> R _tap_nullable(N nullable, Function<R, N> ifNotNull) {
     return nullable == null ? null : ifNotNull.apply(nullable);

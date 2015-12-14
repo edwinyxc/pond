@@ -142,6 +142,17 @@ public class ManualTest {
     }
   }
 
+  /**
+   * issue#20
+   */
+  static void test_upload_file() {
+    Pond app = Pond.init().debug().listen(8080);
+
+    app.cleanAndBind(p -> p.post("/file_upload/", (req, res) -> {
+
+    }));
+  }
+
   public static void controller_bind_controller() throws IOException {
     Pond app = Pond.init().debug().listen(9090);
     app.cleanAndBind(p -> p.use("/ctrl/.*", new DemoController()));

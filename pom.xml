@@ -7,7 +7,7 @@
     <groupId>com.shuimin</groupId>
     <artifactId>pond-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.6</version>
+    <version>0.2.0</version>
 
     <name>Pond</name>
     <url>http://www.shuimin.com</url>
@@ -35,6 +35,8 @@
         <module>table</module>
         <module>all</module>
         <module>web-acl</module>
+        <module>core</module>
+        <module>security</module>
     </modules>
 
     <properties>

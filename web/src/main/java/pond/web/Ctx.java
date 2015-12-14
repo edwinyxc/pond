@@ -1,17 +1,16 @@
 package pond.web;
 
 import pond.common.S;
+import pond.core.ExecutionContext;
 import pond.web.http.HttpMethod;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.regex.MatchResult;
 
 /**
  * Execution Context, attached to a single thread.
  */
-public class Ctx extends HashMap<String, Object> {
+public class Ctx extends ExecutionContext {
 
   final Request req;
   final Response resp;
@@ -25,19 +24,23 @@ public class Ctx extends HashMap<String, Object> {
   boolean handled = false;
 
   public Ctx(Request req, Response resp, Pond pond) {
-    this.req = req;
+    super("system");
+    this.resp = new ResponseWrapper(this, resp);
+    req = (this.req = new RequestWrapper(this, req));
     this.path = req.path();
     this.uri = req.uri();
-    this.resp = new ResponseWrapper(resp);
     this.pond = pond;
 
     S._debug(Pond.logger, log -> {
-
       log.debug("Main ctx route:");
-      this.put("_start_time", S.now());
+      super.set("_start_time", S.now());
       log.debug("ctx starts at: " + this.get("_start_time"));
 
     });
+  }
+
+  public void put(String name, Object o) {
+    super.set(name, o);
   }
 
   public boolean isHandled(Mid mid) {

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>pond-parent</artifactId>
         <groupId>com.shuimin</groupId>
-        <version>0.1.6</version>
+        <version>0.2.0</version>
     </parent>
     <packaging>jar</packaging>
     <modelVersion>4.0.0</modelVersion>
@@ -16,6 +16,12 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>pond-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.shuimin</groupId>
+            <artifactId>pond-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 

@@ -75,7 +75,7 @@ public interface Response {
   Response status(int sc);
 
   /**
-   * <p>获取底层响应流，原因是具体的底层响应可能不是以流的方式实现的。</p>
+   * <p>获取底层响应流，具体的底层响应可能不是以流的方式实现的,这可能只是一个模拟。</p>
    *
    * @return outputStream
    */
@@ -125,7 +125,7 @@ public interface Response {
   }
 
   default Ctx ctx() {
-    return CtxExec.get();
+    throw new RuntimeException("please implement the default Response#ctx() function");
   }
 
 

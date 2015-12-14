@@ -76,7 +76,11 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     final boolean isMultipart;
     final CompositeByteBuf compositeByteBuf;
 
-    PreprocessedIO(NettyReqWrapper wrapper, boolean isKeepAlive, boolean isMultipart, CompositeByteBuf compositeByteBuf) {
+    PreprocessedIO(NettyReqWrapper wrapper,
+                   boolean isKeepAlive,
+                   boolean isMultipart,
+                   CompositeByteBuf compositeByteBuf) {
+
       this.wrapper = wrapper;
       this.isKeepAlive = isKeepAlive;
       this.isMultipart = isMultipart;
@@ -84,7 +88,8 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     }
   }
 
-  private PreprocessedIO receiveHttpRequest(ChannelHandlerContext ctx, HttpRequest request) {
+  private PreprocessedIO receiveHttpRequest(ChannelHandlerContext ctx,
+                                            HttpRequest request) {
 
     if (HttpHeaderUtil.is100ContinueExpected(request)) {
       ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
@@ -111,17 +116,19 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     reqWrapper.updateHeaders(
         headers ->
             S._for(finalHttpRequest.headers())
-                .each(
-                    entry ->
-                        HttpUtils.appendToMap(
-                            headers,
-                            entry.getKey().toString(),
-                            finalHttpRequest.headers().getAllAndConvert(entry.getKey()))
+                .each(entry ->
+                          HttpUtils.appendToMap(
+                              headers,
+                              entry.getKey().toString(),
+                              finalHttpRequest.headers()
+                                  .getAllAndConvert(entry.getKey())
+                          )
                 )
     );
 
     //uri-queries
-    Map<String, List<String>> parsedParams = new QueryStringDecoder(request.uri()).parameters();
+    Map<String, List<String>>
+        parsedParams = new QueryStringDecoder(request.uri()).parameters();
 
     String _uri = request.uri();
 
@@ -133,27 +140,31 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     reqWrapper.updateParams(params -> params.putAll(parsedParams));
 
     //parse cookies
-    reqWrapper.updateCookies(
+    reqWrapper.updateCookies(cookies -> {
 
-        cookies -> {
-          Set<io.netty.handler.codec.http.Cookie> decoded
-              = ServerCookieDecoder.decode(
-              S.avoidNull(request.headers().getAndConvert(HttpHeaderNames.COOKIE), "")
-          );
+      Set<io.netty.handler.codec.http.Cookie>
+          decoded = ServerCookieDecoder.decode(
+          S.avoidNull(
+              request.headers().getAndConvert(HttpHeaderNames.COOKIE)
+              , "")
+      );
 
-          S._for(decoded).each(
-              cookie ->
-                  cookies.put(cookie.name(), S._tap(
-                      new Cookie(cookie.name(), cookie.value()),
-                      c -> {
-                        c.setPath(cookie.path());
-                        c.setMaxAge((int) cookie.maxAge());
-                        if (STRING.notBlank(cookie.domain()))
-                          c.setDomain(cookie.domain());
-                        c.setComment(cookie.comment());
-                      }))
-          );
-        });
+      S._for(decoded).each(
+          cookie ->
+              cookies.put(cookie.name(), S._tap(
+                  new Cookie(cookie.name(), cookie.value()),
+                  c -> {
+                    c.setPath(cookie.path());
+                    c.setMaxAge((int) cookie.maxAge());
+                    if (STRING.notBlank(cookie.domain())) {
+                      c.setDomain(cookie.domain());
+                    }
+                    c.setComment(cookie.comment());
+                  }))
+      );
+
+    });
+
 //    contentType = request.headers().getAndConvert(HttpHeaderNames.CONTENT_TYPE);
     //build the multipart decoder
     if (isMultipart) {
@@ -181,7 +192,9 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
   }
 
-  private void receiveHttpContent(ChannelHandlerContext ctx, HttpContent httpContent, PreprocessedIO preprocessed) {
+  private void receiveHttpContent(ChannelHandlerContext ctx,
+                                  HttpContent httpContent,
+                                  PreprocessedIO preprocessed) {
 
     if (!httpContent.decoderResult().isSuccess()) {
       sendBadRequest(ctx);
@@ -247,8 +260,10 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       //merge trailing headers
       LastHttpContent trailer = (LastHttpContent) httpContent;
       if (!trailer.decoderResult().isSuccess()) {
-        ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                                                  HttpResponseStatus.BAD_REQUEST));
+        ctx.writeAndFlush(
+            new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                                    HttpResponseStatus.BAD_REQUEST)
+        );
         return;
       }
 
@@ -276,9 +291,8 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       if ((contentType == null
           || contentType.toLowerCase().contains(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toLowerCase()))
           && pooledBuffer != null
-          && STRING.notBlank(postData = pooledBuffer.toString(CharsetUtil.UTF_8))
-          ) {
-
+          && STRING.notBlank(postData = pooledBuffer.toString(CharsetUtil.UTF_8)))
+      {
         final String finalPostData = postData;
         S._debug(BaseServer.logger, log -> log.debug("postData: " + finalPostData));
 
@@ -296,9 +310,9 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       } else if ((contentType == null
           || contentType.toLowerCase().contains("json"))
           && pooledBuffer != null
-          && STRING.notBlank(postData = pooledBuffer.toString(CharsetUtil.UTF_8))
-          ) {
-        //TODO
+          && STRING.notBlank(postData = pooledBuffer.toString(CharsetUtil.UTF_8)) )
+      {
+          //TODO
 //        final String finalPostData = postData;
 //        S._debug(BaseServer.logger, log -> log.debug("postData: " + finalPostData));
 //
@@ -392,8 +406,8 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       //register ctx to the Register
       //if we are able to set the register, it must not contain the ctx
       //synchronized (ctxRegister) {
-        S._assert(null == ctxRegister.get(ctx));
-        ctxRegister.put(ctx, preprocessed);
+      S._assert(null == ctxRegister.get(ctx));
+      ctxRegister.put(ctx, preprocessed);
       // }
     } else if (msg instanceof HttpContent) {
       PreprocessedIO found;
@@ -607,8 +621,8 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
         byteBuf.release(byteBuf.refCnt());
       }
 //      synchronized (ctxRegister) {
-        ctxRegister.remove(ctx);
-        S._debug(BaseServer.logger, log -> log.debug("DELETING IO-CTX BINDING : " + ctx.toString()));
+      ctxRegister.remove(ctx);
+      S._debug(BaseServer.logger, log -> log.debug("RELEASING IO-CTX: " + ctx.toString()));
 //      }
       resetDecoder();
     }
