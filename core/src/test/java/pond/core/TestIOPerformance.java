@@ -46,14 +46,6 @@ public class TestIOPerformance {
         }
       },
 
-      new PipeTestCase("AKKA pipe") {
-        @Override
-        public void pipe(InputStream is, OutputStream os) throws IOException {
-
-
-        }
-      },
-
       new PipeTestCase("MultiThread pipe") {
         @Override
         public void pipe(InputStream is, OutputStream os) throws IOException {

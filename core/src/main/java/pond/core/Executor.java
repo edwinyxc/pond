@@ -1,35 +1,44 @@
 package pond.core;
 
-import pond.common.f.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import pond.common.f.Callback;
+
+import java.util.LinkedList;
 
 public class Executor {
 
-  Function.F2<Boolean, ExecutionContext, Service> auth_method =
-      (ctx, serv) -> true;
+  final static Logger logger = LoggerFactory.getLogger(Executor.class);
 
-  ExecutionContext createCtx(String user){
+  LinkedList<Callback.C2<? extends ExecutionContext, Service>> interceptors =
+      new LinkedList<>();
+
+  public ExecutionContext createCtx(String user) {
     return new ExecutionContext(user);
   }
 
   public ExecutionContext exec(ExecutionContext ctx, Service... services) {
 
     for (Service serv : services) {
-      serv.init(ctx);
-      if(auth_method.apply(ctx, serv)) {
-        serv.call();
-      } else {
-        ctx.err("service authentication failed: " + serv);
+      //interceptor
+      for(Callback.C2 interceptor : interceptors){
+        interceptor.apply(ctx, serv);
       }
+      if(ctx.stop){
+        logger.debug("CTX@" + ctx + "stopped AT SERV@" + serv);
+        break;
+      }
+      //apply service
+      serv.init(ctx);
+      serv.call();
     }
 
     return ctx;
   }
 
-  //TODO shared-ctx based parallel OR piped-stream based IPC??
-
-//  public void exec_in_parallel(ExecutorService executorService){
-//    executorService.submit();
-//    executorService.
-//  }
+  public Executor interceptor(Callback.C2<? extends ExecutionContext, Service> cb) {
+    interceptors.add(cb);
+    return this;
+  }
 
 }

@@ -11,9 +11,9 @@ import java.util.Map;
  */
 public class Services {
 
-  private static Map<String, Service> services = new HashMap<>();
+  public final static Map<String, Service> services = new HashMap<>();
 
-  static void register(String name, Service serv) {
+  public static void register(String name, Service serv) {
     if( name == null ) throw new NullPointerException("null service name");
     if( services.containsKey(name) ) {
       name += "i";
@@ -22,11 +22,11 @@ public class Services {
     services.put(name, serv);
   }
 
-  static Service get(String name) {
+  public static Service get(String name) {
     return services.get(name);
   }
 
-  static List<String> list() {
+  public static List<String> all() {
     return  S._for(services.entrySet()).map(Map.Entry::getKey).toList();
   }
 

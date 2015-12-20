@@ -109,7 +109,7 @@ public class JDBCTmpl implements Closeable {
     return query(proto, sql, x);
   }
 
-  public int count(String sql, Object[] params) {
+  public int count(String sql, Object... params) {
     return S.avoidNull(S.<Integer>_for(query(counter, sql,
                                              params)).first(), 0);
   }

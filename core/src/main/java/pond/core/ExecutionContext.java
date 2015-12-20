@@ -23,11 +23,16 @@ public class ExecutionContext {
   LinkedList<Tuple<String,Object>> content = new LinkedList<>();
   LinkedList<String> err_stack = new LinkedList<>();
 
+  boolean stop = false;
+
   public ExecutionContext(String user){
     this.set(ID, this.hashCode());
     this.set(USER, user);
   }
 
+  public void stop(){
+    this.stop = true;
+  }
 
   String id() {
     return (String) this.get(ID);
@@ -106,6 +111,9 @@ public class ExecutionContext {
 
   @Override
   public String toString() {
-    return "ExecutionContext{content=" + content + '}';
+    return "ExecutionContext{" +
+        "content=" + content +
+        ", err_stack=" + err_stack +
+        '}';
   }
 }
