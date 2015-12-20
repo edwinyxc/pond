@@ -5,7 +5,6 @@ import pond.common.S;
 import pond.web.http.Cookie;
 import pond.web.http.HttpUtils;
 
-import javax.naming.OperationNotSupportedException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,6 +93,9 @@ public interface Request {
     throw new RuntimeException("please implement the default Request#ctx() function");
   }
 
+  /**
+   * Returns all params as a Map
+   */
   default Map<String, Object> toMap() {
     Map<String, Object> ret = new HashMap<>();
     //ret.putAll(S._for(attrs()).map(attr -> S._for(attr).limit()).val());

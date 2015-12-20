@@ -2,13 +2,10 @@ package pond.db;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import pond.common.S;
-import pond.db.connpool.SimplePool;
+import pond.db.connpool.ConnectionPool;
 
-import javax.sql.DataSource;
-import java.beans.PropertyVetoException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -23,37 +20,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ConcurrentTest {
 
   DB db;
-  DataSource dataSource;
+  ConnectionPool dataSource;
 
   @Before
-  public void init() throws PropertyVetoException, ClassNotFoundException {
+  public void init()throws ClassNotFoundException {
 
-//        S._debug_on(DB.class);
-
-//        Class.forName("org.h2.Driver");
-//        JdbcDataSource ds = new JdbcDataSource();
-//        ds.setURL("jdbc:h2:~/test");
-//        ds.setUser("sa");
-//        ds.setPassword("sa");
-
-
-    this.dataSource = new SimplePool() {
-      {
-        this.setMaxSize(200);
-        this.config(
-            "com.mysql.jdbc.Driver",
-            "jdbc:mysql://127.0.0.1:3306/",
-            "root",
-            "root");
-      }
-    };
+    this.dataSource = ConnectionPool.c3p0(ConnectionPool.local("test"));
 
     this.db = new DB(dataSource);
 
     db.batch(
-        "DROP DATABASE IF EXISTS POND_DB_TEST;",
-        "CREATE DATABASE POND_DB_TEST;",
-        "USE POND_DB_TEST;",
+        "DROP TABLE IF EXISTS test",
         "CREATE TABLE test ( id varchar(64) primary key, `value` varchar(2000) );",
         "INSERT INTO test values('2333','233333');",
         "INSERT INTO test values('2334','2333334');"
@@ -62,7 +39,6 @@ public class ConcurrentTest {
   }
 
 
-  @Ignore
   @Test
   public void testExecTx() {
     AtomicInteger acc = new AtomicInteger(0);
@@ -75,22 +51,18 @@ public class ConcurrentTest {
       futures.add(CompletableFuture.runAsync(
           () -> {
             db.post(tmpl -> {
-              tmpl.exec("USE POND_DB_TEST;");
               for (int i = 0; i < 400; i++)
                 tmpl.exec("INSERT INTO test values(?,?)",
                           String.valueOf(Math.random()), String.valueOf(acc.getAndIncrement()));
             });
 
           }, executorService));
-    }, 1000);
+    }, 10);
 
     try {
       CompletableFuture.allOf(S._for(futures).join()).thenRun(() -> {
         long beforeSelect = S.now();
-        S._for((List<Record>) db.get(t -> {
-          t.exec("USE POND_DB_TEST;");
-          return t.query("SELECT * FROM test");
-        }));
+        S._for((List<Record>) db.get(t -> t.query("SELECT * FROM test")));
         S.echo("Query time:" + (S.now() - beforeSelect));
         S.echo("ALL FINISHED : time usage " + (S.now() - s));
       }).get();
@@ -106,7 +78,7 @@ public class ConcurrentTest {
   @After
   public void after() {
     db.post(tmpl -> tmpl.exec(
-        "DROP DATABASE IF EXISTS POND_DB_TEST;"
+        "DROP TABLE IF EXISTS test;"
     ));
   }
 }

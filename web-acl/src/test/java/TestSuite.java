@@ -30,7 +30,8 @@ public class TestSuite {
     app.listen();
   }
 
-  void test_auth() throws IOException {
+  @Test
+  public void test_auth() throws IOException {
 
     AccessControl ac = new SessionBasedAccessControl("user", "group");
 
@@ -53,7 +54,7 @@ public class TestSuite {
         Session.get(req).set("user", "an");
       });
 
-      p.use("/admin/.*", ac.install);
+      p.use("/admin/*", ac.install);
 
       p.get("/users/changePass", (req, resp) -> {
         resp.send(200, "OK");
@@ -73,10 +74,6 @@ public class TestSuite {
       Assert.assertEquals(200, resp.getStatusLine().getStatusCode());
     });
 
-  }
-
-  @Test
-  public void test() {
   }
 
   @After

@@ -10,9 +10,9 @@ public class MySQLDialect implements Dialect {
     return "`" + key + "`";
   }
 
-  @Override
-  public String primaryKeyMarkOnCreate() {
-    return "varchar(64) primary key";
-  }
+//  @Override
+//  public String primaryKeyMarkOnCreate() {
+//    return "varchar(64) primary key";
+//  }
 
 }

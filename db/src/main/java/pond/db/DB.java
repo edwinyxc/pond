@@ -6,7 +6,6 @@ import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.db.connpool.ConnectionPool;
-import pond.db.connpool.SimplePool;
 import pond.db.sql.dialect.Dialect;
 
 import javax.sql.DataSource;
@@ -15,7 +14,6 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import static pond.common.f.Function.F0;
 
@@ -33,22 +31,16 @@ public final class DB {
 
   public final static Logger logger = LoggerFactory.getLogger(DB.class);
 
-  public static ConnectionPool simplePool(Properties config) {
-    ConnectionPool cp = new SimplePool();
-    cp.loadConfig(config);
-    return cp;
-  }
-
   private DataSource dataSource;
 
   F0<Connection> connProvider;
   MappingRule rule;
   final Dialect dialect;
+
   /**
    * * default query
-   * TODO: ugly implement
    */
-  final Function<AbstractRecord, ResultSet> _default_rm =
+  final Function<AbstractRecord, ResultSet> default_row_mapper =
 
       (ResultSet rs) -> {
         AbstractRecord ret = Record.newValue(AbstractRecord.class);
@@ -87,9 +79,8 @@ public final class DB {
     this.dialect = dialect;
   }
 
-  public DB(DataSource dataSource) {
-    //using mysql dialect as default and do not seek reason
-    this(dataSource, Dialect.mysql);
+  public DB(ConnectionPool dataSource) {
+    this(dataSource, dataSource.dialect());
   }
 
   /**

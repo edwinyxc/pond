@@ -1,5 +1,7 @@
 package pond.db.connpool;
 
+import pond.db.sql.dialect.Dialect;
+
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -28,10 +30,12 @@ public interface ConnectionPool extends DataSource {
 
   void setMaxSize(Integer maxSize);
 
+  Dialect dialect();
 
   ConnectionPool loadConfig(Properties p);
 
   Connection getConnection() throws SQLException;
+
 
   @Override
   default Connection getConnection(String username, String password) throws SQLException {
@@ -72,4 +76,45 @@ public interface ConnectionPool extends DataSource {
   default boolean isWrapperFor(Class<?> iface) throws SQLException {
     throw new SQLFeatureNotSupportedException();
   }
+
+  static Properties local(String tmp_db_name) {
+    Properties ret = new Properties();
+
+    ret.setProperty(DRIVER, "org.h2.Driver");
+    ret.setProperty(URL, String.format("jdbc:h2:~/%s;MODE=MySQL;DATABASE_TO_UPPER=FALSE", tmp_db_name));
+    ret.setProperty(USERNAME, "sa");
+    ret.setProperty(PASSWORD, "sa");
+    ret.setProperty(MAXSIZE, "300");
+
+    return ret;
+  }
+
+//  static ConnectionPool mem(String tmp_db_name) {
+//    return new SimpleConnectionPool().loadConfig(new Properties() {{
+//      this.setProperty(DRIVER, "org.h2.Driver");
+//      this.setProperty(URL, String.format("jdbc:h2:~/%s;MODE=MySQL;DATABASE_TO_UPPER=FALSE", tmp_db_name));
+//      this.setProperty(USERNAME, "sa");
+//      this.setProperty(PASSWORD, "sa");
+//      this.setProperty(MAXSIZE, "10");
+//    }});
+//  }
+
+  static Properties mysql() {
+    Properties ret = new Properties();
+    ret.setProperty(DRIVER, "com.mysql.jdbc.Driver");
+    ret.setProperty(URL, "jdbc:mysql://localhost:3306");
+    ret.setProperty(USERNAME, "root");
+    ret.setProperty(PASSWORD, "root");
+    ret.setProperty(MAXSIZE, "50");
+    return ret;
+  }
+
+  static ConnectionPool simplePool(Properties p) {
+    return new SimpleConnectionPool().loadConfig(p);
+  }
+
+  static ConnectionPool c3p0(Properties p) {
+    return new C3p0ConnectionPool().loadConfig(p);
+  }
+
 }

@@ -52,7 +52,6 @@ public class JDBCTmpl implements Closeable {
     this.dbStructure = db.dbStructures;
   }
 
-
   //protected tx control functions
 
   void txStart() throws SQLException {
@@ -85,12 +84,12 @@ public class JDBCTmpl implements Closeable {
 
 
   public List<Record> query(String sql, Object... x) {
-    return this.query(db._default_rm, sql, x);
+    return this.query(db.default_row_mapper, sql, x);
   }
 
 
   public List<Record> query(String sql) {
-    return this.query(db._default_rm, sql);
+    return this.query(db.default_row_mapper, sql);
   }
 
   @SuppressWarnings("unchecked")
@@ -152,7 +151,6 @@ public class JDBCTmpl implements Closeable {
                  list.add((R) mapper.apply(rs));
                }
              });
-             S._debug(DB.logger, log -> log.debug("time cost for creating resultSet: " + (S.now() - start)));
            })
     );
     return list;

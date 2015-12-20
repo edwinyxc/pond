@@ -7,7 +7,8 @@ public interface Dialect {
 
   public String wrapKey(String key);
 
-  public String primaryKeyMarkOnCreate();
+//  public String primaryKeyMarkOnCreate();
 
-  public static Dialect mysql = new MySQLDialect();
+  final public static Dialect mysql = new MySQLDialect();
+  final public static Dialect h2 = new H2Dialect();
 }

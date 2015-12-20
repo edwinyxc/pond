@@ -1,6 +1,5 @@
 package pond.web.spi;
 
-import pond.common.S;
 import pond.web.Route;
 
 import java.util.ArrayList;
@@ -8,6 +7,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Deprecated
+/**
+ * for pond version < 0.2.0
+ */
 public class FallbackPathToRegCompiler implements PathToRegCompiler{
 
   private static Pattern pattern_inPathVars = Pattern.compile("\\$\\{(\\w+)\\}");
