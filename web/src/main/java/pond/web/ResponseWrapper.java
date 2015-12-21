@@ -9,15 +9,15 @@ import java.io.PrintWriter;
 public class ResponseWrapper implements Response {
 
   final Response wrapped;
-  final Ctx ctx;
+  final WebCtx ctx;
 
-  ResponseWrapper(Ctx ctx, Response w) {
+  ResponseWrapper(WebCtx ctx, Response w) {
     wrapped = w;
     this.ctx = ctx;
   }
 
   @Override
-  public Ctx ctx() {
+  public WebCtx ctx() {
     return ctx;
   }
 

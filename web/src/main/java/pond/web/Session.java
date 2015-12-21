@@ -148,7 +148,7 @@ public class Session {
   }
 
 
-  public static Session get(Ctx ctx) {
+  public static Session get(WebCtx ctx) {
 
     Session ret = (Session) ctx.get(LABEL_SESSION);
     if (ret == null)

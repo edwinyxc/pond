@@ -12,9 +12,9 @@ import java.util.Map;
 public class RequestWrapper implements Request{
 
   final Request wrapped;
-  final Ctx ctx;
+  final WebCtx ctx;
 
-  public RequestWrapper(Ctx ctx, Request wrapped) {
+  public RequestWrapper(WebCtx ctx, Request wrapped) {
     this.wrapped = wrapped;
     this.ctx = ctx;
   }
@@ -60,7 +60,7 @@ public class RequestWrapper implements Request{
   }
 
   @Override
-  public Ctx ctx() {
+  public WebCtx ctx() {
     return ctx;
   }
 }

@@ -46,8 +46,8 @@ public final class Pond extends Router {
   private BaseServer server;
 
   StaticFileServer staticFileServer;// Executor
-  final CtxExec ctxExec = new CtxExec();
 
+  public final WebCtxExecutor executor = new WebCtxExecutor();
 
   private Pond() {
 
@@ -105,8 +105,8 @@ public final class Pond extends Router {
 //    bindLastMids();
 
     server.registerHandler((req, resp) -> {
-      Ctx ctx = new Ctx(req, resp, this);
-      ctxExec.execAll(ctx, this);
+      WebCtx ctx = new WebCtx(req, resp, this);
+      executor.execAll(ctx, this);
     });
 
     try {

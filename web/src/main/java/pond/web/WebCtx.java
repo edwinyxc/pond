@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Execution Context, attached to a single thread.
  */
-public class Ctx extends ExecutionContext {
+public class WebCtx extends ExecutionContext {
 
   final Request req;
   final Response resp;
@@ -23,7 +23,7 @@ public class Ctx extends ExecutionContext {
   List<Mid> handledMids = new ArrayList<>();
   boolean handled = false;
 
-  public Ctx(Request req, Response resp, Pond pond) {
+  public WebCtx(Request req, Response resp, Pond pond) {
     super("system");
     this.resp = new ResponseWrapper(this, resp);
     req = (this.req = new RequestWrapper(this, req));
@@ -59,7 +59,7 @@ public class Ctx extends ExecutionContext {
     return route;
   }
 
-  public Ctx route(Route r) {
+  public WebCtx route(Route r) {
     route = r;
     return this;
   }

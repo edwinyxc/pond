@@ -6,7 +6,7 @@ package pond.web;
 public class InternalMids {
 
   final public static Mid FORCE_CLOSE = (req, resp) -> {
-    Ctx _ctx = req.ctx();
+    WebCtx _ctx = req.ctx();
     if (_ctx != null && !_ctx.handled) {
       resp.send(404);
     }

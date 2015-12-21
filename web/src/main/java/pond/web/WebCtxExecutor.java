@@ -6,9 +6,9 @@ import pond.core.Executor;
 import pond.core.Service;
 
 
-public class CtxExec extends Executor {
+public class WebCtxExecutor extends Executor {
 
-  CtxExec() {}
+  WebCtxExecutor() {}
 
   static void unwrapRuntimeException(RuntimeException e, Response resp) {
     Throwable t = e.getCause();
@@ -29,7 +29,7 @@ public class CtxExec extends Executor {
 
     Service ret = new Service( _ctx -> {
 
-      Ctx ctx = (Ctx) _ctx;
+      WebCtx ctx = (WebCtx) _ctx;
 
       if (mid == null) {
         return;
@@ -58,14 +58,14 @@ public class CtxExec extends Executor {
     return ret;
   }
 
-  public void execAll(Ctx ctx, Mid... mids) {
+  public void execAll(WebCtx ctx, Mid... mids) {
     for (Mid mid : mids) {
       if (ctx.handled) return;
       exec(ctx, Mid_to_Service(mid));
     }
   }
 
-  public void execAll(Ctx ctx, Iterable<Mid> mids) {
+  public void execAll(WebCtx ctx, Iterable<Mid> mids) {
     for (Mid mid : mids) {
       if (ctx.handled) return;
       exec(ctx, Mid_to_Service(mid));
@@ -75,7 +75,7 @@ public class CtxExec extends Executor {
   @Override
   public ExecutionContext exec(ExecutionContext context, Service... services) {
 //    S._assert(context instanceof Ctx);
-    Ctx ctx = (Ctx) context;
+    WebCtx ctx = (WebCtx) context;
     return super.exec(ctx, services);
   }
 

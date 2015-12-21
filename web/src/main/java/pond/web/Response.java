@@ -124,7 +124,7 @@ public interface Response {
     r.render(ctx().req, ctx().resp);
   }
 
-  default Ctx ctx() {
+  default WebCtx ctx() {
     throw new RuntimeException("please implement the default Response#ctx() function");
   }
 

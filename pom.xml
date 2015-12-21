@@ -34,7 +34,6 @@
         <module>db</module>
         <module>table</module>
         <module>all</module>
-        <module>web-acl</module>
         <module>core</module>
         <module>security</module>
     </modules>

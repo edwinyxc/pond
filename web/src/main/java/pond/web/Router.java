@@ -25,7 +25,7 @@ public class Router implements Mid, RouterAPI {
   private String get_path_remainder(Request req){
 
     String path = req.path();
-    Ctx ctx = req.ctx();
+    WebCtx ctx = req.ctx();
 
     Route entry_route = ctx.route;
 
@@ -37,7 +37,7 @@ public class Router implements Mid, RouterAPI {
   @Override
   public void apply(Request req, Response resp) {
 
-    Ctx ctx = req.ctx();
+    WebCtx ctx = req.ctx();
 
     HttpMethod method = HttpMethod.of(req.method());
 
@@ -69,7 +69,7 @@ public class Router implements Mid, RouterAPI {
         );
 
         ctx.route = r;
-        ctx.pond.ctxExec.execAll(ctx, r.mids());
+        ctx.pond.executor.execAll(ctx, r.mids());
 
         _debug(logger, log ->
             log.debug(String.format("Process %s finished", r)));
@@ -79,7 +79,7 @@ public class Router implements Mid, RouterAPI {
     if (!ctx.handled) {
       _debug(logger, log ->
           log.debug("Found nothing, executing default Middlewares"));
-      ctx.pond.ctxExec.execAll(ctx, defaultMids);
+      ctx.pond.executor.execAll(ctx, defaultMids);
     }
   }
 

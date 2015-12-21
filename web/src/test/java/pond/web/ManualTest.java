@@ -97,22 +97,6 @@ public class ManualTest {
   }
 
 
-  static void test_require() {
-    Pond app = Pond.init().debug().listen(9090);
-    Mid session = Session.install();
-
-    app.cleanAndBind(p -> {
-
-      p.get("/require",
-            session,
-            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(session));
-
-      p.get("/requireFail",
-            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(session));
-
-    });
-  }
-
   static class DemoController extends Controller {
 
     int value = 1;

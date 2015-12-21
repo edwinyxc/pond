@@ -89,7 +89,7 @@ public interface Request {
     return S._try_ret(() -> Long.parseLong(param(para)));
   }
 
-  default Ctx ctx() {
+  default WebCtx ctx() {
     throw new RuntimeException("please implement the default Request#ctx() function");
   }
 

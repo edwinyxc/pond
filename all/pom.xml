@@ -54,7 +54,7 @@
 
         <dependency>
             <groupId>com.shuimin</groupId>
-            <artifactId>pond-web-acl</artifactId>
+            <artifactId>pond-security</artifactId>
             <version>${project.version}</version>
         </dependency>
 
