@@ -43,6 +43,14 @@ public class MiscModelTest {
 
   }
 
+
+  @Test
+  public void testExist() {
+    Assert.assertEquals(Boolean.TRUE, db.get(t -> t.recordExists(TestModel.class, "2333")));
+    Assert.assertEquals(Boolean.FALSE, db.get(t -> t.recordExists(TestModel.class, "111")));
+    Assert.assertEquals(Boolean.FALSE, db.get(t -> t.recordExists(TestModel.class, "")));
+  }
+
   @After
   public void after() {
     db.batch("DROP TABLE IF EXISTS test");

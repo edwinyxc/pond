@@ -345,6 +345,16 @@ public class JDBCTmpl implements Closeable {
      * Using mysql as dialect for now ...
      */
 
+  //TODO add where clause
+  public boolean recordExists(Class clazz, String id) {
+    Record r = Proto.proto(clazz);
+    String tableName = r.table();
+    String pkLbl = r.idName();
+    SqlSelect select =
+        Sql.select().count().from(tableName).where(pkLbl, Criterion.EQ, id);
+    return this.count(select.tuple()) > 0;
+  }
+
   public boolean recordInsert(Record record) {
     List<Tuple<String, Object>> values = new ArrayList<>();
 //        for (String f : r.declaredFieldNames()) {
