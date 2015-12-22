@@ -403,8 +403,8 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     //declare the in-request-scope-refs
     if (msg instanceof HttpRequest) {
       PreprocessedIO preprocessed = receiveHttpRequest(ctx, (HttpRequest) msg);
-      //register ctx to the Register
-      //if we are able to set the register, it must not contain the ctx
+      //add ctx to the Register
+      //if we are able to set the add, it must not contain the ctx
       //synchronized (ctxRegister) {
       S._assert(null == ctxRegister.get(ctx));
       ctxRegister.put(ctx, preprocessed);

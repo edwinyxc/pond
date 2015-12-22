@@ -69,7 +69,7 @@ public class Router implements Mid, RouterAPI {
         );
 
         ctx.route = r;
-        ctx.pond.executor.execAll(ctx, r.mids());
+        ctx.execAll(r.mids());
 
         _debug(logger, log ->
             log.debug(String.format("Process %s finished", r)));
@@ -79,7 +79,7 @@ public class Router implements Mid, RouterAPI {
     if (!ctx.handled) {
       _debug(logger, log ->
           log.debug("Found nothing, executing default Middlewares"));
-      ctx.pond.executor.execAll(ctx, defaultMids);
+      ctx.execAll(defaultMids);
     }
   }
 

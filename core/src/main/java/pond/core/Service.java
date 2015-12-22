@@ -12,13 +12,13 @@ public class Service {
   final static int ST_INIT  = 1;
   final static int ST_DONE = 9;
 
-  final Callback<ExecutionContext> main;
+  final Callback<Context> main;
   String name = this.getClass().getCanonicalName();
 
-  protected ExecutionContext ctx;
+  protected Context ctx;
   int state = ST_NUL;
 
-  public Service(Callback<ExecutionContext> main){
+  public Service(Callback<Context> main){
     this.main = main;
   }
 
@@ -30,7 +30,7 @@ public class Service {
     this.name = name;
   }
 
-  public void init(ExecutionContext ctx) {
+  public void init(Context ctx) {
     this.ctx = ctx;
     this.state = ST_INIT;
   }

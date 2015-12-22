@@ -43,7 +43,7 @@ public interface BaseServer {
   void registerHandler(Callback.C2<Request, Response> handler);
 
   /**
-   * register pond
+   * add pond
    */
   void pond(Pond pond);
 

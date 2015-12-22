@@ -17,21 +17,18 @@ public class TestExecution {
   });
 
 
-
   @Test
   public void register() {
-    Executor executor = new Executor();
-    ExecutionContext ctx = executor.createCtx("user");
+    Context ctx = new Context("user");
 
-    Services.register("fold_add_ten", fold_add_ten);
-    Services.register("simple_add", simple_add);
+    Services.add("fold_add_ten", fold_add_ten);
+    Services.add("simple_add", simple_add);
 
     //dynamic execution procedure
     S.echo("time usage:" + S.time(() -> {
       //test fold
       ctx.push(10);
-      S.echo(executor.exec(
-          ctx,
+      S.echo(ctx.exec(
           Services.get("fold_add_ten"),
           Services.get("fold_add_ten"),
           Services.get("fold_add_ten"),
@@ -55,14 +52,12 @@ public class TestExecution {
   @Test
   public void basic() {
 
-    Executor executor = new Executor();
-    ExecutionContext ctx = executor.createCtx("user");
+    Context ctx = new Context("user");
     //dynamic execution procedure
     S.echo("time usage:" + S.time(() -> {
       //test fold
       ctx.push(10);
-      S.echo(executor.exec(
-          ctx,
+      S.echo(ctx.exec(
           fold_add_ten,
           fold_add_ten,
           fold_add_ten,

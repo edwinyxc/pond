@@ -47,8 +47,6 @@ public final class Pond extends Router {
 
   StaticFileServer staticFileServer;// Executor
 
-  public final WebCtxExecutor executor = new WebCtxExecutor();
-
   private Pond() {
 
     logger.info("POND:");
@@ -105,8 +103,7 @@ public final class Pond extends Router {
 //    bindLastMids();
 
     server.registerHandler((req, resp) -> {
-      WebCtx ctx = new WebCtx(req, resp, this);
-      executor.execAll(ctx, this);
+      new WebCtx(req, resp, this).execAll( this);
     });
 
     try {

@@ -1,36 +1,50 @@
 package pond.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pond.common.S;
+import pond.common.f.Callback;
 import pond.common.f.Tuple;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * <p>
- *   The ExecutionContext is continuum of services execution.
- *   <ul>
- *     <li></li>
- *     <li></li>
- *   </ul>
+ * The ExecutionContext is continuum of services execution.
+ * <ul>
+ * <li></li>
+ * <li></li>
+ * </ul>
  * </p>
  */
-public class ExecutionContext {
+public class Context {
 
-  final static String USER   = "P_OWNER";
-  final static String ID     = "P_ID";
+  final static Logger logger = LoggerFactory.getLogger(Context.class);
+  final static String NAME = "P_NAME";
+  final static String ID = "P_ID";
   final static String LATEST = "P_LATEST";
 
-  LinkedList<Tuple<String,Object>> content = new LinkedList<>();
+  LinkedList<Tuple<String, Object>> content = new LinkedList<>();
   LinkedList<String> err_stack = new LinkedList<>();
 
+  //TODO
   boolean stop = false;
+  //interceptors - trigger on each call
+  LinkedList<Callback.C2<Context, Service>> interceptors = new LinkedList<>();
 
-  public ExecutionContext(String user){
-    this.set(ID, this.hashCode());
-    this.set(USER, user);
+  public Context interceptor(Callback.C2<Context, Service> cb) {
+    interceptors.add(cb);
+    return this;
   }
 
-  public void stop(){
+  public Context(String user) {
+    this.set(ID, this.hashCode());
+    this.set(NAME, user);
+  }
+
+  public void stop() {
     this.stop = true;
   }
 
@@ -39,11 +53,12 @@ public class ExecutionContext {
   }
 
   String user() {
-    return (String) this.get(USER);
+    return (String) this.get(NAME);
   }
 
   /**
    * pop the last execution result
+   *
    * @return
    */
   public Object pop() {
@@ -68,13 +83,14 @@ public class ExecutionContext {
 
   /**
    * Get the shared context value and remove it form context
+   *
    * @param name
    * @return null if not found or the specified value
    */
   public Object pop(String name) {
-    for(Iterator<Tuple<String, Object>> iter = content.iterator(); iter.hasNext();) {
-      Tuple<String, Object> tuple =  iter.next();
-      if(name.equals(tuple._a)){
+    for (Iterator<Tuple<String, Object>> iter = content.iterator(); iter.hasNext(); ) {
+      Tuple<String, Object> tuple = iter.next();
+      if (name.equals(tuple._a)) {
         iter.remove();
         return tuple._b;
       }
@@ -85,12 +101,13 @@ public class ExecutionContext {
 
   /**
    * Get the shared context value
+   *
    * @param name
    * @return null if not found or the specified value
    */
   public Object get(String name) {
-    for(Tuple<String,Object> tuple : content) {
-      if(name.equals(tuple._a)){
+    for (Tuple<String, Object> tuple : content) {
+      if (name.equals(tuple._a)) {
         return tuple._b;
       }
     }
@@ -103,10 +120,32 @@ public class ExecutionContext {
 
   /**
    * Set the shared context value
+   *
    * @param name
    */
-  public void set(String name, Object ctx_value) {
+  public Context set(String name, Object ctx_value) {
     content.addFirst(Tuple.pair(name, ctx_value));
+    return this;
+  }
+
+
+  public Context exec(Object... services) {
+
+    for (Object serv : services) {
+
+      Service service = Services.adapt(serv);
+      S._for(interceptors).each(inter -> inter.apply(this, service));
+      if (this.stop) {
+        logger.debug("CTX@" + this + "stopped AT SERV@" + serv);
+        break;
+      }
+
+      //apply service
+      service.init(this);
+      service.call();
+    }
+
+    return this;
   }
 
   @Override

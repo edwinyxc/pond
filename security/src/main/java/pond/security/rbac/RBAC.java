@@ -4,7 +4,7 @@ import pond.common.JSON;
 import pond.common.S;
 import pond.common.STRING;
 import pond.common.f.Function;
-import pond.core.ExecutionContext;
+import pond.core.Context;
 import pond.core.Interceptor;
 import pond.core.Services;
 import pond.db.DB;
@@ -27,12 +27,12 @@ public class RBAC {
   //services
   //roles
   //user
-  final Function<String, ExecutionContext> how_to_get_user;
+  final Function<String, Context> how_to_get_user;
   final String name;
   final ConnectionPool cp;
   final DB db;
 
-  public RBAC(String policy_name, Function<String, ExecutionContext> how_to_get_user) {
+  public RBAC(String policy_name, Function<String, Context> how_to_get_user) {
     this.name = policy_name;
     this.how_to_get_user = how_to_get_user;
     this.cp = ConnectionPool.c3p0(ConnectionPool.local(policy_name));
