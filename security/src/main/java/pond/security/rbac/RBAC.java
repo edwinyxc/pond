@@ -186,7 +186,6 @@ public class RBAC {
   }
 
   public void role_del(String rid, JDBCTmpl t) {
-    t.exec("DELETE FROM rbac_role_has_service WHERE role_id = ?", rid);
     t.exec("DELETE FROM rbac_role WHERE id = ?", rid);
   }
 
