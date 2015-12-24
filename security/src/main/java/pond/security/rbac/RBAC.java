@@ -19,8 +19,6 @@ import java.util.List;
 
 public class RBAC {
 
-  final String name;
-  final ConnectionPool cp;
   final DB db;
 
   String lb_user_id = "id";
@@ -31,16 +29,13 @@ public class RBAC {
 //  final Function.F0<String> _get_user;
 
   public RBAC(String policy_name) {
-    this.name = policy_name;
-    this.cp = ConnectionPool.c3p0(ConnectionPool.local(policy_name));
-    this.db = new DB(cp);
+    this.db = new DB(ConnectionPool.c3p0(ConnectionPool.local(policy_name)));
     db.post(this::_init);
   }
 
-  public RBAC(String database_name,ConnectionPool cp ){
-    this.name = database_name;
-    this.cp = cp;
-    this.db = new DB(cp);
+  public RBAC(DB db){
+    this.db = db;
+    db.post(this::_init);
   }
 
   public RBAC label_role_id(String lb_id) {
