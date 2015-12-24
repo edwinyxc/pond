@@ -138,7 +138,7 @@ public final class Pond extends Router {
   /**
    * Open the debug mode for Pond
    */
-  public Pond debug() {
+  public Pond debug(Class... c) {
 
     S._debug_on(Pond.class,
                 BaseServer.class,
@@ -146,6 +146,7 @@ public final class Pond extends Router {
                 StaticFileServer.class,
                 SessionStore.class);
 
+    S._debug_on(c);
     return this;
   }
 

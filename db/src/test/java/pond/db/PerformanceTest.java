@@ -2,6 +2,7 @@ package pond.db;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import pond.common.S;
 import pond.common.f.Function;
@@ -43,6 +44,7 @@ public class PerformanceTest {
     S.echo("creation 10000 usage:",S.now() - time ,"ms");
   }
 
+  @Ignore
   @Test
   public void test_with_pond_db(){
 
@@ -73,6 +75,7 @@ public class PerformanceTest {
     db.batch("DROP TABLE IF EXISTS p_test");
   }
 
+  @Ignore
   @Test
   public void test_with_native_jdbc() {
     try {
