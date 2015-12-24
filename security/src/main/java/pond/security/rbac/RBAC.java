@@ -34,6 +34,7 @@ public class RBAC {
     this.name = policy_name;
     this.cp = ConnectionPool.c3p0(ConnectionPool.local(policy_name));
     this.db = new DB(cp);
+    db.post(this::_init);
   }
 
   public RBAC label_role_id(String lb_id) {
@@ -77,7 +78,7 @@ public class RBAC {
       //set brand new
       S._for(roles).each(role -> {
         if (!current_all_ids.contains((String) role.get(lb_role_id))) {
-          role_add(role.get(lb_role_id), S.avoidNull(role.get(lb_role_name),""), t);
+          role_add(role.get(lb_role_id), S.avoidNull(role.get(lb_role_name), ""), t);
         }
       });
 
