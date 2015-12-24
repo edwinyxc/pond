@@ -37,6 +37,12 @@ public class RBAC {
     db.post(this::_init);
   }
 
+  public RBAC(String database_name,ConnectionPool cp ){
+    this.name = database_name;
+    this.cp = cp;
+    this.db = new DB(cp);
+  }
+
   public RBAC label_role_id(String lb_id) {
     this.lb_role_id = lb_id;
     return this;
