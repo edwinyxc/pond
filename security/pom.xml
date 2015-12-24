@@ -15,12 +15,6 @@
     <dependencies>
         <dependency>
             <groupId>com.shuimin</groupId>
-            <artifactId>pond-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.shuimin</groupId>
             <artifactId>pond-db</artifactId>
             <version>${project.version}</version>
         </dependency>

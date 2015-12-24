@@ -1,12 +1,7 @@
 package pond.security.rbac;
 
-import pond.common.JSON;
 import pond.common.S;
 import pond.common.STRING;
-import pond.common.f.Function;
-import pond.core.Context;
-import pond.core.Interceptor;
-import pond.core.Services;
 import pond.db.DB;
 import pond.db.JDBCTmpl;
 import pond.db.Record;
@@ -17,58 +12,36 @@ import pond.web.Request;
 import pond.web.Response;
 import pond.web.http.HttpMethod;
 
-import java.util.List;
+import java.util.*;
 
-/**
- * Created by ed on 12/20/15.
- */
 public class RBAC {
 
-  //services
-  //roles
-  //user
-  final Function<String, Context> how_to_get_user;
   final String name;
   final ConnectionPool cp;
   final DB db;
+//  final Function.F0<String> _get_user;
 
-  public RBAC(String policy_name, Function<String, Context> how_to_get_user) {
+  public RBAC(String policy_name) {
     this.name = policy_name;
-    this.how_to_get_user = how_to_get_user;
     this.cp = ConnectionPool.c3p0(ConnectionPool.local(policy_name));
     this.db = new DB(cp);
+//    this._get_user = get_user;
     db.post(this::init);
   }
 
-  void init(JDBCTmpl t){
-
-    //rbac_user
-    t.exec("CREATE TABLE IF NOT EXISTS rbac_user(id varchar(64) primary key, username varchar(255))");
-
-    //rbac_role
-    t.exec("CREATE TABLE IF NOT EXISTS rbac_role(id varchar(64) primary key, description varchar(1024))");
-
+  void init(JDBCTmpl t) {
     //rbac_user_has_role
+    t.exec("CREATE TABLE IF NOT EXISTS rbac_user(id varchar(64) primary key, username varchar(255))");
+    t.exec("CREATE TABLE IF NOT EXISTS rbac_role(id varchar(64) primary key, rolename varchar(255))");
     t.exec("CREATE TABLE IF NOT EXISTS rbac_user_has_role(user_id varchar(64), role_id varchar(64), PRIMARY KEY(user_id, role_id))");
 
-    //rbac_role_has_service
-    t.exec("CREATE TABLE IF NOT EXISTS rbac_role_has_service(role_id varchar(64), service varchar(255), PRIMARY KEY(role_id, service))");
-
-    t.exec("CREATE VIEW IF NOT EXISTS rbac_user_has_service AS " +
-               "SELECT u.id, rhs.service " +
-               "FROM rbac_user AS u LEFT JOIN rbac_user_has_role AS uhr ON u.id = uhr.user_id  " +
-               "LEFT JOIN rbac_role_has_service AS rhs ON rhs.role_id = uhr.role_id");
   }
 
   public RBAC reset() {
     db.post(t -> {
-      //clean
-      t.exec("DROP VIEW IF EXISTS rbac_user_has_service");
+      t.exec("DROP TABLE IF EXISTS rbac_user_has_role");
       t.exec("DROP TABLE IF EXISTS rbac_user");
       t.exec("DROP TABLE IF EXISTS rbac_role");
-      t.exec("DROP TABLE IF EXISTS rbac_user_has_role");
-      t.exec("DROP TABLE IF EXISTS rbac_role_has_service");
-
       init(t);
     });
     return this;
@@ -139,34 +112,29 @@ public class RBAC {
     });
   }
 
-  public void role_add_serv(String rid, String serv) {
+//  public void role_add_serv(String rid, String serv) {
+//
+//    db.post(t -> {
+//      int count = t.count("SELECT COUNT(*) FROM rbac_role_has_service WHERE role_id = ? and service = ?", rid, serv);
+//      if (count > 0) return;
+//      t.exec("INSERT INTO rbac_role_has_service VALUES(?,?)", rid, serv);
+//    });
+//  }
+//
+//  public void role_del_serv(String rid, String serv) {
+//
+//    db.post(t -> {
+//      t.exec("DELETE FROM rbac_role_has_service WHERE role_id = ? and service = ?", rid, serv);
+//    });
+//  }
 
-    db.post(t -> {
-      int count = t.count("SELECT COUNT(*) FROM rbac_role_has_service WHERE role_id = ? and service = ?", rid, serv);
-      if (count > 0) return;
-      t.exec("INSERT INTO rbac_role_has_service VALUES(?,?)", rid, serv);
-    });
-  }
-
-  public void role_del_serv(String rid, String serv) {
-
-    db.post(t -> {
-      t.exec("DELETE FROM rbac_role_has_service WHERE role_id = ? and service = ?", rid, serv);
-    });
-  }
-
-  public List<String> distinct_services_on_user(String uid) {
-    return S._for(db.get("SELECT DISTINCT service FROM rbac_user_has_service WHERE id = ?", uid))
-        .map(r -> (String) r.get("service")).toList();
-  }
+//  public List<String> distinct_services_on_user(String uid) {
+//    return S._for(db.get("SELECT DISTINCT service FROM rbac_user_has_service WHERE id = ?", uid))
+//        .map(r -> (String) r.get("service")).toList();
+//  }
 
   //web-controllers
   public final Controller controller = new Controller() {
-
-    @Mapping(value = "/services", methods = HttpMethod.GET)
-    public void services_get(Request req, Response resp) {
-      resp.render(Render.json(Services.all()));
-    }
 
     @Mapping(value = "/roles", methods = HttpMethod.GET)
     public void roles_get(Request req, Response resp) {
@@ -175,15 +143,10 @@ public class RBAC {
 
     @Mapping(value = "/roles", methods = HttpMethod.POST)
     public void roles_add(Request req, Response resp) {
-      String rid = req.param("rid");
-      List<String> services = req.params("services");
-      String description = req.param("description");
+      String rid = req.param("id");
+      String rolename = req.param("rolename");
 
-      RBAC.this.role_add(rid, description);
-      for (String serv : services) {
-        RBAC.this.role_add_serv(rid, serv);
-      }
-
+      RBAC.this.role_add(rid, rolename);
       resp.send(200);
     }
 
@@ -211,51 +174,6 @@ public class RBAC {
       resp.render(Render.json(l.get(0)));
     }
 
-    @Mapping(value = "/roles/:rid/services", methods = HttpMethod.GET)
-    public void role_services(Request req, Response resp) {
-      String rid = req.param("rid");
-      if (STRING.isBlank(rid)) {
-        resp.send(404, "not found");
-        return;
-      }
-
-      List<Record> l = RBAC.this.db.get("SELECT * FROM rbac_role WHERE id = ?", rid);
-
-      if (l.size() < 1) {
-        resp.send(404, "not found");
-        return;
-      }
-
-//      Record user = l.get(0);
-
-      String sql = "SELECT service FROM rbac_role_has_service WHERE role_id = ? ";
-
-      List<Record> roles = RBAC.this.db.get(sql, rid);
-
-//      user.set("roles", roles);
-
-      resp.render(Render.json(roles));
-    }
-
-    @Mapping(value = "/roles/:rid/services/:serv", methods = HttpMethod.DELETE)
-    public void role_services_del(Request req, Response resp) {
-      String rid = req.param("rid");
-      String serv = req.param("serv");
-      if (STRING.isBlank(rid)) {
-        resp.send(404, "not found");
-        return;
-      }
-
-      List<Record> l = RBAC.this.db.get("SELECT * FROM rbac_role WHERE id = ?", rid);
-
-      if (l.size() < 1) {
-        resp.send(404, "not found");
-        return;
-      }
-
-      RBAC.this.role_del_serv(rid, serv);
-      resp.send(200);
-    }
 
     @Mapping(value = "/users", methods = HttpMethod.GET)
     public void users(Request req, Response resp) {
@@ -338,12 +256,12 @@ public class RBAC {
         return;
       }
 
-      //role { id, description }
-      S._for(req.params("roles"))
-          .map(JSON::parse)
-          .map(m -> S._for(RBAC.this.db.get("SELECT * FROM rbac_role WHERE id = ?", (String) m.get("id"))).first())
-          .compact()
-          .each(r -> RBAC.this.user_add_role(uid, r.get("id")));
+//      //role [id, ]
+//      S._for(req.params("roles"))
+//          .map(JSON::parse)
+//          .map(m -> S._for(RBAC.this.db.post("INSERT INTO rbac_user_has_role SET  id = ?", (String) m.get("id"))).first())
+//          .compact()
+//          .each(r -> RBAC.this.user_add_role(uid, r.get("id")));
 
       resp.send(200);
     }
@@ -372,18 +290,64 @@ public class RBAC {
 
   };
 
-  //interceptor
-  public Interceptor interceptor() {
-    return (ctx, serv) -> {
-      String user = how_to_get_user.apply(ctx);
+   public Roles forUser(String user) {
+    int user_count = db.get(t -> t.count("SELECT COUNT(*) FROM rbac_user_has_role WHERE user_id = ?", user));
+    if( user_count < 1){
+      return new Roles(Collections.emptyList());
+    }
 
-      if (db.get(t -> t.count(
-          "SELECT COUNT(*) FROM rbac_user_has_service WHERE id = ? and service = ?",
-          user, serv.name())) < 1) {
-        ctx.stop();
-        ctx.err("Access Denied@" + serv.name());
-      }
-
-    };
+    return new Roles(S._for(db.get("SELECT role_id FROM rbac_user_has_role WHERE user_id = ?", user))
+        .map(record -> (String) record.get("role_id")).toList());
   }
+
+  public class Roles{
+
+    List<String> _roles = new LinkedList<>();
+
+    Roles(Collection<String> roles) {
+      this._roles.addAll(roles);
+    }
+
+    public boolean hasEvery(String... roles) {
+
+      return S._for(roles).every(_roles::contains);
+    }
+
+    public boolean hasAny(String... roles) {
+      return S._for(roles).some(_roles::contains);
+    }
+
+    public boolean hasNone(String... roles) {
+      return S._for(roles).every(r -> (!_roles.contains(r)));
+    }
+
+    @Override
+    public String toString() {
+      return "Roles{" +
+          "_roles=" + _roles +
+          '}';
+    }
+  }
+
+
+
+
+
+
+//  //interceptor
+//  public Interceptor interceptor() {
+//    return (ctx, serv) -> {
+//      String user = how_to_get_user.apply(ctx);
+//
+//      if (db.get(t -> t.count(
+//          "SELECT COUNT(*) FROM rbac_user_has_service WHERE id = ? and service = ?",
+//          user, serv.name())) < 1) {
+//        ctx.stop();
+//        ctx.err("Access Denied@" + serv.name());
+//      }
+//
+//    };
+//  }
+
+
 }

@@ -92,6 +92,7 @@ public class ArrayTest {
   public void testEvery() throws Exception {
     Array<Integer> arr = S.array(1, 2, 3, 4, 5, 6, 7, 8, 9);
     assertEquals(true, arr.every(x -> x >= 1));
+    assertEquals(false, arr.every(x -> x > 1));
   }
 
   @Test

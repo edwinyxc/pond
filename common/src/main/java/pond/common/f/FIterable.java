@@ -160,7 +160,7 @@ public interface FIterable<E> extends Iterable<E> {
   Boolean every(Function.F3<Boolean, E, Integer, FIterable<E>> predicate);
 
   default Boolean every(Function<Boolean, E> predicate) {
-    return some((e, idx, array) -> predicate.apply(e));
+    return every((e, idx, array) -> predicate.apply(e));
   }
 
 

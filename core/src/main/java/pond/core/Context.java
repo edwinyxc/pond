@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Tuple;
+import sun.misc.Unsafe;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -39,9 +40,9 @@ public class Context {
     return this;
   }
 
-  public Context(String user) {
+  public Context(String name) {
     this.set(ID, this.hashCode());
-    this.set(NAME, user);
+    this.set(NAME, name);
   }
 
   public void stop() {

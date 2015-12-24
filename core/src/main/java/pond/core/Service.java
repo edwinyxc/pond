@@ -30,12 +30,12 @@ public class Service {
     this.name = name;
   }
 
-  public void init(Context ctx) {
+  void init(Context ctx) {
     this.ctx = ctx;
     this.state = ST_INIT;
   }
 
-  public void call() {
+  void call() {
     main.apply(ctx);
     this.state = ST_DONE;
   }
