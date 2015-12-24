@@ -25,7 +25,7 @@ public class RBAC {
   String lb_user_name = "username";
 
   String lb_role_id = "id";
-  String lb_role_name= "username";
+  String lb_role_name = "username";
 //  final Function.F0<String> _get_user;
 
   public RBAC(String policy_name) {
@@ -33,7 +33,7 @@ public class RBAC {
     db.post(this::_init);
   }
 
-  public RBAC(DB db){
+  public RBAC(DB db) {
     this.db = db;
     db.post(this::_init);
   }
@@ -44,7 +44,7 @@ public class RBAC {
   }
 
   public RBAC label_rolename(String lb_name) {
-    this.lb_role_name= lb_name;
+    this.lb_role_name = lb_name;
     return this;
   }
 
@@ -54,11 +54,11 @@ public class RBAC {
   }
 
   public RBAC label_username(String lb_name) {
-    this.lb_user_name= lb_name;
+    this.lb_user_name = lb_name;
     return this;
   }
 
-  public RBAC sync(List<Record> users, List<Record> roles){
+  public RBAC sync(List<Record> users, List<Record> roles) {
     return syncUsers(users).syncRoles(roles);
   }
 
@@ -87,6 +87,7 @@ public class RBAC {
 
     return this;
   }
+
   private RBAC syncUsers(List<Record> users) {
 
     List<Record> current_all = user_all();
@@ -104,7 +105,7 @@ public class RBAC {
       //set brand new
       S._for(users).each(user -> {
         if (!current_all_ids.contains((String) user.get(lb_user_id))) {
-          user_add(user.get(lb_user_id), S.avoidNull(user.get(lb_user_name),""), t);
+          user_add(user.get(lb_user_id), S.avoidNull(user.get(lb_user_name), ""), t);
         }
       });
 
@@ -129,7 +130,7 @@ public class RBAC {
     return this;
   }
 
-  public DB db(){
+  public DB db() {
     return db;
   }
 
@@ -338,7 +339,39 @@ public class RBAC {
       resp.send(200);
     }
 
+    @Mapping(value = "/users/:uid/roles/:rid", methods = HttpMethod.DELETE)
+    public void user_roles_del(Request req, Response resp) {
+      String uid = req.param("uid");
 
+      if (STRING.isBlank(uid)) {
+        resp.send(400, "uid null");
+        return;
+      }
+
+      List<Record> l = RBAC.this.db.get("SELECT * FROM rbac_user WHERE id = ?", uid);
+
+      if (l.size() < 1) {
+        resp.send(404, "user not found");
+        return;
+      }
+
+      String rid = req.param("rid");
+
+      if (STRING.isBlank(rid)) {
+        resp.send(400, "rid null");
+        return;
+      }
+
+      List<Record> lr = RBAC.this.db.get("SELECT * FROM rbac_role WHERE id = ?", rid);
+      if (lr.size() < 1) {
+        resp.send(404, "role not found");
+        return;
+      }
+
+      db.post(t -> user_del_role(uid, rid, t));
+
+      resp.send(200);
+    }
   };
 
   public Roles forUser(String user) {
