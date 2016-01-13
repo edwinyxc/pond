@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Tuple;
-import sun.misc.Unsafe;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -26,6 +25,8 @@ public class Context {
   final static String NAME = "P_NAME";
   final static String ID = "P_ID";
   final static String LATEST = "P_LATEST";
+
+  final private static ThreadLocal<Context> localCtxHolder = new ThreadLocal<>();
 
   LinkedList<Tuple<String, Object>> content = new LinkedList<>();
   LinkedList<String> err_stack = new LinkedList<>();
@@ -129,15 +130,17 @@ public class Context {
     return this;
   }
 
-
   public Context exec(Object... services) {
 
+    localCtxHolder.set(this);
     for (Object serv : services) {
 
       Service service = Services.adapt(serv);
       S._for(interceptors).each(inter -> inter.apply(this, service));
       if (this.stop) {
-        logger.debug("CTX@" + this + "stopped AT SERV@" + serv);
+        S._debug(logger, log ->
+          log.debug("CTX@" + this + "stopped AT SERV@" + serv)
+        );
         break;
       }
 
@@ -145,8 +148,18 @@ public class Context {
       service.init(this);
       service.call();
     }
+    localCtxHolder.remove();
 
     return this;
+  }
+
+  /**
+   * Get Context form the current ThreadLocal
+   */
+  public static Context current() {
+    Context ret = localCtxHolder.get();
+    S._assert(ret, "failed to get current context");
+    return ret;
   }
 
   @Override

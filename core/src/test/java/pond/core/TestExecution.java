@@ -1,5 +1,6 @@
 package pond.core;
 
+import org.junit.Assert;
 import org.junit.Test;
 import pond.common.S;
 
@@ -47,6 +48,18 @@ public class TestExecution {
       ));
     }));
 
+  }
+
+  @Test
+  public void localCurrentCtx() {
+
+    Context ctx = new Context("tmp");
+    new Thread(() -> {
+      ctx.push(10);
+      ctx.exec(fold_add_ten, fold_add_ten, new Service(c -> {
+        Assert.assertEquals(ctx, Context.current());
+      }));
+    }).run();
   }
 
   @Test
