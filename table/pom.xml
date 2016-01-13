@@ -7,8 +7,8 @@
 
     <parent>
         <artifactId>pond-parent</artifactId>
-        <groupId>com.shuimin</groupId>
-        <version>0.2.0</version>
+        <groupId>pond</groupId>
+        <version>0.2.1</version>
     </parent>
 
     <artifactId>pond-table</artifactId>
@@ -19,12 +19,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.shuimin</groupId>
+            <groupId>pond</groupId>
             <artifactId>pond-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.shuimin</groupId>
+            <groupId>pond</groupId>
             <artifactId>pond-common-extra</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -4,10 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.shuimin</groupId>
     <artifactId>pond-parent</artifactId>
+    <groupId>pond</groupId>
     <packaging>pom</packaging>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
 
     <name>Pond</name>
     <url>http://www.shuimin.com</url>
