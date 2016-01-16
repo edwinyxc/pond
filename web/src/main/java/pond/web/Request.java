@@ -57,7 +57,11 @@ public interface Request {
   }
 
   default String param(String para) {
-    return S._for(params(para)).first();
+    String a =  S._for(params(para)).first();
+    if(a == null || "".equals(a) || "null".equals(a) || "undefined".equals(a)){
+      return null;
+    }
+    return a;
   }
 
   default void param(String key, String val) {
@@ -74,18 +78,22 @@ public interface Request {
   }
 
   default Integer paramInt(String para) {
+    if(para == null) return null;
     return S._try_ret(() -> Integer.parseInt(param(para)));
   }
 
   default Boolean paramBool(String para) {
+    if(para == null) return null;
     return S._try_ret(() -> Boolean.parseBoolean(param(para)));
   }
 
   default Double paramDouble(String para) {
+    if(para == null) return null;
     return S._try_ret(() -> Double.parseDouble(param(para)));
   }
 
   default Long paramLong(String para) {
+    if(para == null) return null;
     return S._try_ret(() -> Long.parseLong(param(para)));
   }
 
