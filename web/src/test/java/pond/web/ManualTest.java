@@ -2,14 +2,12 @@ package pond.web;
 
 import pond.common.HTTP;
 import pond.common.S;
-import pond.common.STREAM;
 import pond.common.f.Tuple;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
 import static pond.web.Render.text;
 
 /**
@@ -18,6 +16,7 @@ import static pond.web.Render.text;
 public class ManualTest {
 
   static Charset utf8 = Charset.forName("UTF-8");
+
   static void a() {
     Pond app = Pond.init();
 
@@ -167,7 +166,7 @@ public class ManualTest {
       S._for(req.toMap()).each(e -> {
         String k = e.getKey();
         String v = (String) e.getValue();
-        S.echo(k,v);
+        S.echo(k, v);
       });
     }));
 
@@ -184,13 +183,14 @@ public class ManualTest {
     Pond app = Pond.init().debug().listen(9090);
 
     app.cleanAndBind(
-        p->
+        p ->
             p.get("/", (req, resp) -> resp.send("root"))
                 .get("/:id", (req, resp) -> resp.send(req.param("id")))
                 .get("/:id/text", (req, resp) -> resp.send("text"))
                 .use("/user/*", router)
                 .otherwise(InternalMids.FORCE_CLOSE)
     );
+
 
 //    try {
 //
@@ -211,7 +211,29 @@ public class ManualTest {
 //    }
   }
 
+
+  static
+  class err_ctrl extends Controller {
+    @Mapping(value = "/")
+    public void err(Request req, Response resp) {
+      throw new EndToEndException(400, "用户输入错误");
+    }
+  }
+
+  public static void test_end2end_exception() throws IOException {
+    Pond.init().cleanAndBind(
+        p -> p.get("/err", (req, resp) -> {
+          throw new EndToEndException(400, "错误");
+        }).use("/err_ctrl/*", new err_ctrl())
+    ).listen(9090);
+
+//    TestUtil.assertContentEqualsForGet("错误", "http://localhost:9090/err");
+//    TestUtil.assertContentEqualsForGet("用户输入错误", "http://localhost:9090/err_ctrl");
+  }
+
   public static void main(String[] args) throws IOException {
+
+    test_end2end_exception();
 
 //    controller_bind_controller();
 //    b();
@@ -219,7 +241,7 @@ public class ManualTest {
 //    test_router();
 //    test();
 //    test_require();
-      basic_router();
+//    basic_router();
     //mal_request_url_too_long();
 
   }

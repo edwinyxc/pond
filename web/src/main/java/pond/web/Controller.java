@@ -6,6 +6,7 @@ import pond.common.f.Callback;
 import pond.web.http.HttpMethod;
 
 import java.lang.annotation.*;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,10 +35,15 @@ public class Controller extends Router {
                         val,
                         (req, resp) -> {
                           Object[] args = new Object[]{req, resp};
-                          S._try(() -> {
+
                             m.setAccessible(true);
+                          try {
                             m.invoke(ctrl, args);
-                          });
+                          } catch (IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                          } catch (InvocationTargetException e) {
+                            throw new RuntimeException(e.getTargetException());
+                          }
                         });
              })
       );

@@ -105,7 +105,7 @@ public class JDBCTmpl implements Closeable {
       Class<R> clazz,
       String sql, Object... x
   ) {
-    R proto = Proto.proto(clazz);
+    R proto = Prototype.proto(clazz);
     return query(proto, sql, x);
   }
 
@@ -128,7 +128,7 @@ public class JDBCTmpl implements Closeable {
 
   public <R extends Record> List<R> query(Class<R> clazz,
                                           Tuple<String, Object[]> mix) {
-    return query(Proto.proto(clazz), mix._a, mix._b);
+    return query(Prototype.proto(clazz), mix._a, mix._b);
   }
 
   public <R> List<R> query(Function<?, ResultSet> mapper,
@@ -247,7 +247,7 @@ public class JDBCTmpl implements Closeable {
   }
 
   public <E extends Record> E recordById(Class<E> clazz, String id) {
-    Record r = Proto.proto(clazz);
+    Record r = Prototype.proto(clazz);
     String tableName = r.table();
     String pkLbl = r.idName();
     SqlSelect select =
@@ -280,7 +280,7 @@ public class JDBCTmpl implements Closeable {
    * </pre>
    */
   public <E extends Record> List<E> recordsQuery(Class<E> clazz, Object... args) {
-    E proto = (E) Proto.proto(clazz);
+    E proto = (E) Prototype.proto(clazz);
     SqlSelect sqlSelect;
     Set<String> d_fields = proto.declaredFieldNames();
     String[] fields = new String[d_fields.size()];
@@ -347,7 +347,7 @@ public class JDBCTmpl implements Closeable {
 
   //TODO add where clause
   public boolean recordExists(Class clazz, String id) {
-    Record r = Proto.proto(clazz);
+    Record r = Prototype.proto(clazz);
     String tableName = r.table();
     String pkLbl = r.idName();
     SqlSelect select =

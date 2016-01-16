@@ -1,6 +1,8 @@
 package pond.db.sql;
 
 import pond.common.f.Tuple;
+import pond.db.Prototype;
+import pond.db.Record;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +33,12 @@ public class TSqlSelect extends AbstractSql
   @Override
   public SqlSelect from(String table) {
     this.tables.add(table);
+    return this;
+  }
+
+  @Override
+  public SqlSelect from(Class<? extends Record> recordClass) {
+    this.tables.add(Prototype.proto(recordClass).table());
     return this;
   }
 

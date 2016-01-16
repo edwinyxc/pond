@@ -25,7 +25,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static pond.web.Render.text;
 
 /**
@@ -77,6 +78,9 @@ public class TestSuite {
 
     //FORM-VERIFY
     form_verify();
+
+    //user-custom
+    test_end2end_exception();
   }
 
   public void form_verify() throws IOException {
@@ -591,6 +595,23 @@ public class TestSuite {
     TestUtil.assertContentEqualsForGet("中文支持", "http://localhost:9090/test");
   }
 
+  class err_ctrl extends Controller {
+    @Mapping(value = "/")
+    public void err(Request req, Response resp) {
+      throw new EndToEndException(400, "用户输入错误");
+    }
+  }
+
+  public void test_end2end_exception() throws IOException {
+    app.cleanAndBind(
+        app -> app.get("/err", (req, resp) -> {
+          throw new EndToEndException(400, "错误");
+        }).use("/err_ctrl/*", new err_ctrl())
+    );
+
+    TestUtil.assertContentEqualsForGet("错误", "http://localhost:9090/err");
+    TestUtil.assertContentEqualsForGet("用户输入错误", "http://localhost:9090/err_ctrl/");
+  }
 
   @After
   public void stop() {

@@ -26,7 +26,6 @@ public class RBAC {
 
   String lb_role_id = "id";
   String lb_role_name = "username";
-//  final Function.F0<String> _get_user;
 
   public RBAC(String policy_name) {
     this.db = new DB(ConnectionPool.c3p0(ConnectionPool.local(policy_name)));

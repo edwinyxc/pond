@@ -1,6 +1,7 @@
 package pond.db.sql;
 
 import pond.common.f.Tuple;
+import pond.db.Record;
 
 /**
  * Created by ed on 2014/4/30.
@@ -8,6 +9,8 @@ import pond.common.f.Tuple;
 public interface SqlSelect extends Sql, SqlWhere<SqlSelect> {
 
   public SqlSelect from(String table);
+
+  public SqlSelect from(Class<? extends Record> recordClass);
 
   public SqlSelect join(String table);
 

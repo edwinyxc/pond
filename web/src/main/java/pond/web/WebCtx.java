@@ -29,6 +29,13 @@ public class WebCtx extends Context {
   boolean handled = false;
 
   static void unwrapRuntimeException(RuntimeException e, Response resp) {
+
+    if (e instanceof EndToEndException) {
+      Pond.logger.warn("EEE:" + ((EndToEndException) e).http_status + ":" + e.getMessage(), e);
+      resp.send(((EndToEndException) e).http_status, e.getMessage());
+      return;
+    }
+
     Throwable t = e.getCause();
     if (t == null) {
       Pond.logger.error(e.getMessage(), e);

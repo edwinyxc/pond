@@ -67,7 +67,8 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
   private void sendBadRequest(ChannelHandlerContext ctx) {
     ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                                              HttpResponseStatus.BAD_REQUEST));
+                                              HttpResponseStatus.BAD_REQUEST))
+        .addListener(ChannelFutureListener.CLOSE);
   }
 
   class PreprocessedIO {
