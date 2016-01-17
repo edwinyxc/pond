@@ -2,6 +2,7 @@ package pond.web;
 
 
 import pond.common.S;
+import pond.common.STRING;
 import pond.web.http.Cookie;
 import pond.web.http.HttpUtils;
 
@@ -78,23 +79,27 @@ public interface Request {
   }
 
   default Integer paramInt(String para) {
-    if(para == null) return null;
-    return S._try_ret(() -> Integer.parseInt(param(para)));
+    String data = param(para);
+    if(STRING.isBlank(para)) return null;
+    return S._try_ret(() -> Integer.parseInt(data));
   }
 
   default Boolean paramBool(String para) {
-    if(para == null) return null;
-    return S._try_ret(() -> Boolean.parseBoolean(param(para)));
+    String data = param(para);
+    if(STRING.isBlank(data)) return null;
+    return S._try_ret(() -> Boolean.parseBoolean(data));
   }
 
   default Double paramDouble(String para) {
-    if(para == null) return null;
-    return S._try_ret(() -> Double.parseDouble(param(para)));
+    String data = param(para);
+    if(STRING.isBlank(data)) return null;
+    return S._try_ret(() -> Double.parseDouble(data));
   }
 
   default Long paramLong(String para) {
-    if(para == null) return null;
-    return S._try_ret(() -> Long.parseLong(param(para)));
+    String data = param(para);
+    if(STRING.isBlank(para)) return null;
+    return S._try_ret(() -> Long.parseLong(data));
   }
 
   default WebCtx ctx() {

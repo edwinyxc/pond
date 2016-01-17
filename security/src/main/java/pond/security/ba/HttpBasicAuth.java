@@ -63,7 +63,7 @@ public class HttpBasicAuth {
       logger.debug("user_and_pass:" + Arrays.toString(user_and_pass));
     });
 
-    if (user_pass_checker.apply(user_and_pass[0], user_and_pass[1])) {
+    if (user_and_pass.length >=2 && user_pass_checker.apply(user_and_pass[0], user_and_pass[1])) {
 
       S._debug(logger, log -> {
         logger.debug(String.format("Login success :%s", user_and_pass[0]));
