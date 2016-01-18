@@ -3,6 +3,7 @@ package pond.web;
 
 import pond.common.S;
 import pond.common.STRING;
+import pond.common.f.Function;
 import pond.web.http.Cookie;
 import pond.web.http.HttpUtils;
 
@@ -13,6 +14,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * event
@@ -58,16 +60,43 @@ public interface Request {
   }
 
   default String param(String para) {
-    String a =  S._for(params(para)).first();
-    if(a == null || "".equals(a) || "null".equals(a) || "undefined".equals(a)){
+    String a = S._for(params(para)).first();
+    if (a == null || "".equals(a) || "null".equals(a) || "undefined".equals(a)) {
       return null;
     }
     return a;
   }
 
+  default String paramCheck(String key, Function<Boolean, String> checker, String err_msg) {
+    String ret = param(key);
+    if (checker.apply(ret)) {
+      return ret;
+    }
+    throw new EndToEndException(400, err_msg);
+  }
+
+  default <R> R paramConvert(String key, Function<R, String> converter, String err_msg) {
+    String ret = param(key);
+    try {
+      return converter.apply(ret);
+    } catch (Exception e) {
+      Pond.logger.warn("convert error:", e);
+      throw new EndToEndException(400, e.getMessage() + err_msg);
+    }
+  }
+
+  default String paramNonBlank(String key, String err_msg) {
+    return paramCheck(key, STRING::notBlank, err_msg);
+  }
+
+  default String paramNonNull(String key, String err_msg) {
+    return paramCheck(key, Objects::nonNull, err_msg);
+  }
+
   default void param(String key, String val) {
     HttpUtils.appendToMap(params(), key, val);
   }
+
 
   //upload File
   default List<UploadFile> files(String file) {
@@ -78,27 +107,31 @@ public interface Request {
     return S._for(files(file)).first();
   }
 
+  @Deprecated
   default Integer paramInt(String para) {
     String data = param(para);
-    if(STRING.isBlank(para)) return null;
+    if (STRING.isBlank(para)) return null;
     return S._try_ret(() -> Integer.parseInt(data));
   }
 
+  @Deprecated
   default Boolean paramBool(String para) {
     String data = param(para);
-    if(STRING.isBlank(data)) return null;
+    if (STRING.isBlank(data)) return null;
     return S._try_ret(() -> Boolean.parseBoolean(data));
   }
 
+  @Deprecated
   default Double paramDouble(String para) {
     String data = param(para);
-    if(STRING.isBlank(data)) return null;
+    if (STRING.isBlank(data)) return null;
     return S._try_ret(() -> Double.parseDouble(data));
   }
 
+  @Deprecated
   default Long paramLong(String para) {
     String data = param(para);
-    if(STRING.isBlank(para)) return null;
+    if (STRING.isBlank(para)) return null;
     return S._try_ret(() -> Long.parseLong(data));
   }
 

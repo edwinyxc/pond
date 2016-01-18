@@ -131,6 +131,10 @@ public class JDBCTmpl implements Closeable {
     return query(Prototype.proto(clazz), mix._a, mix._b);
   }
 
+  public List<Record> query(Tuple<String, Object[]> mix) {
+    return query(db.default_row_mapper, mix);
+  }
+
   public <R> List<R> query(Function<?, ResultSet> mapper,
                            Tuple<String, Object[]> mix) {
     return query(mapper, mix._a, mix._b);

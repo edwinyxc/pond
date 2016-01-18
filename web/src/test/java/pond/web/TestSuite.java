@@ -613,6 +613,9 @@ public class TestSuite {
     TestUtil.assertContentEqualsForGet("用户输入错误", "http://localhost:9090/err_ctrl/");
   }
 
+  //TODO
+//  public void test_validation_error
+
   @After
   public void stop() {
     app.stop();
