@@ -9,7 +9,8 @@ public interface SqlInsert extends Sql {
   public SqlInsert into(String table);
 
   //test
+  @SuppressWarnings("unchecked")
   public SqlInsert values(Tuple<String, Object>... columns);
 
-  public SqlInsert values(String... columns);
+//  public SqlInsert values(String... columns);
 }

@@ -34,11 +34,11 @@ public class TSqlInsert extends AbstractSql
     return this;
   }
 
-  @Override
-  public SqlInsert values(String... columns) {
-    fields.addAll(Arrays.asList(columns));
-    return this;
-  }
+//  @Override
+//  public SqlInsert values(String... columns) {
+//    params.addAll(Arrays.asList(columns));
+//    return this;
+//  }
 
   @Override
   public String preparedSql() {

@@ -1,6 +1,7 @@
 package pond.web;
 
 import pond.common.HTTP;
+import pond.common.JSON;
 import pond.common.S;
 import pond.common.f.Tuple;
 
@@ -233,7 +234,8 @@ public class ManualTest {
 
   public static void main(String[] args) throws IOException {
 
-    test_end2end_exception();
+//    S.echo(JSON.parse("sss"));
+//    test_end2end_exception();
 
 //    controller_bind_controller();
 //    b();

@@ -56,6 +56,9 @@ public class TestSuite {
     basic_min_group_route();
     basic_unicode();
 
+    //ROUTER
+    complex_route();
+
     //STATIC
     static_bind_non_root();
     static_bind_root();
@@ -536,6 +539,41 @@ public class TestSuite {
           app.get("/new", (req, resp) -> resp.send("new"));
           app.get("/:id", (req, resp) -> resp.send("id=" + req.param("id")));
         });
+
+    try {
+
+      HTTP.get("http://localhost:9090/123/new", null, resp ->
+          S._try(() -> assertEquals("123/new1", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+
+      HTTP.get("http://localhost:9090/new/123", null, resp ->
+          S._try(() -> assertEquals("new2/123", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+
+      HTTP.get("http://localhost:9090/new", null, resp ->
+          S._try(() -> assertEquals("new", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+
+      HTTP.get("http://localhost:9090/233", null, resp ->
+          S._try(() -> assertEquals("id=233", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  class ClassicRestfulRouter extends Router {
+    {
+      app.get("/:id/new", (req, resp) -> resp.send(req.param("id") + "/new1"));
+      app.get("/new/:id", (req, resp) -> resp.send("new2/" + req.param("id")));
+      app.get("/new", (req, resp) -> resp.send("new"));
+      app.get("/:id", (req, resp) -> resp.send("id=" + req.param("id")));
+    }
+  }
+
+  public void complex_route() {
+
+    S.echo("Testing min_group_route");
+    app.cleanAndBind(
+        p -> p.use("/*", new ClassicRestfulRouter())
+    );
 
     try {
 

@@ -131,6 +131,10 @@ public class JDBCTmpl implements Closeable {
     return query(Prototype.proto(clazz), mix._a, mix._b);
   }
 
+  public List<Record> query(SqlSelect t){
+    return query(t.tuple());
+  }
+
   public List<Record> query(Tuple<String, Object[]> mix) {
     return query(db.default_row_mapper, mix);
   }
@@ -170,6 +174,22 @@ public class JDBCTmpl implements Closeable {
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public int exec(Tuple<String, Object[]> t){
+    return exec(t._a, t._b);
+  }
+
+  public int exec(SqlInsert t) {
+    return exec(t.tuple());
+  }
+
+  public int exec(SqlUpdate t) {
+    return exec(t.tuple());
+  }
+
+  public int exec(SqlDelete t) {
+    return exec(t.tuple());
   }
 
   public int exec(String sql, Object[] params, int[] types) {

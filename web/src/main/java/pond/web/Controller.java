@@ -11,6 +11,16 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ *
+ * Controller is useful for those apps who need temp-state-sharing,
+ * though it is not a good design, if you wish a restful-web-api,
+ * using Router instead.
+ *
+ * NOTICE:This Controller can not work with regex-router perfectly,
+ * use concrete name and wildcard name at same time may trigger conflicts.
+ * for example: GET /:id and GET /new_user are not able to work together.
+ */
 public class Controller extends Router {
 
   public Controller() {

@@ -85,6 +85,10 @@ public interface Request {
     }
   }
 
+  default String paramNonBlank(String key) {
+    return paramCheck(key, STRING::notBlank, key + "can not be blank");
+  }
+
   default String paramNonBlank(String key, String err_msg) {
     return paramCheck(key, STRING::notBlank, err_msg);
   }
