@@ -3,6 +3,7 @@ package pond.security.ba;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
+import pond.common.STRING;
 import pond.common.f.Function;
 import pond.web.*;
 
@@ -36,9 +37,24 @@ public class HttpBasicAuth {
     }
   };
 
-  public String user(WebCtx ctx){
+  public String user(WebCtx ctx) {
     return (String) ctx.get(in_ctx_user_id);
   }
+
+//  public final Mid logout = (req, reps) -> {
+//
+//    String auth_string = req.header("Authorization");
+//    if (STRING.notBlank(auth_string) && auth_string.startsWith("Basic"))
+//    {
+//      // build the string we expect - don't allow regular users to pass
+//      byte[] enc = Encoding.UTF8.GetBytes(id + ':' + id);
+//      string expected = "basic " + Convert.ToBase64String(enc);
+//
+//      if (string.Equals(httpAuth, expected, StringComparison.OrdinalIgnoreCase)) {
+//        return Content("You are logged out.");
+//      }
+//    }
+//  }
 
   public final Mid auth = (req, resp) -> {
 
@@ -49,7 +65,7 @@ public class HttpBasicAuth {
     S._debug(logger, log -> {
       logger.debug("auth_string:" + auth_string);
     });
-    if(auth_string == null || !auth_string.startsWith("Basic ")){
+    if (auth_string == null || !auth_string.startsWith("Basic ")) {
       resp.render(requireBasicAuth);
       return;
     }
@@ -63,7 +79,7 @@ public class HttpBasicAuth {
       logger.debug("user_and_pass:" + Arrays.toString(user_and_pass));
     });
 
-    if (user_and_pass.length >=2 && user_pass_checker.apply(user_and_pass[0], user_and_pass[1])) {
+    if (user_and_pass.length >= 2 && user_pass_checker.apply(user_and_pass[0], user_and_pass[1])) {
 
       S._debug(logger, log -> {
         logger.debug(String.format("Login success :%s", user_and_pass[0]));

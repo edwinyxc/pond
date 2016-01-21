@@ -151,8 +151,11 @@ public class RBAC {
       t.exec("INSERT INTO rbac_user VALUES(?,?)", uid, name);
   }
 
-  public void user_del(String uid, JDBCTmpl t) {
+  public void user_role_del(String uid, JDBCTmpl t) {
+    t.exec("DELETE FROM rbac_user_has_role WHERE user_id = ?", uid);
+  }
 
+  public void user_del(String uid, JDBCTmpl t) {
     t.exec("DELETE FROM rbac_user_has_role WHERE user_id = ?", uid);
     t.exec("DELETE FROM rbac_user WHERE id = ?", uid);
   }
@@ -197,6 +200,7 @@ public class RBAC {
 
   //web-controllers
   public final Controller controller = new Controller() {
+
 
     @Mapping(value = "/roles", methods = HttpMethod.GET)
     public void roles_get(Request req, Response resp) {
@@ -301,6 +305,23 @@ public class RBAC {
 //      user.set("roles", roles);
 
       resp.render(Render.json(roles));
+    }
+
+    @Mapping(value = "/users/:uid/clean", methods = HttpMethod.DELETE)
+    public void clean_roles_for_user(Request req, Response resp) {
+      String uid = req.paramNonBlank("uid");
+
+      List<Record> l = RBAC.this.db.get("SELECT * FROM rbac_user WHERE id = ?", uid);
+
+      if (l.size() < 1) {
+        resp.send(404, "user not found");
+        return;
+      }
+
+      db.post(t -> user_role_del(uid, t));
+
+      resp.send(204);
+
     }
 
     @Mapping(value = "/users/:uid/roles", methods = HttpMethod.POST)
