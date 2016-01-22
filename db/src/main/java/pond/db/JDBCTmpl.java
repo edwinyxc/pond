@@ -131,7 +131,11 @@ public class JDBCTmpl implements Closeable {
     return query(Prototype.proto(clazz), mix._a, mix._b);
   }
 
-  public List<Record> query(SqlSelect t){
+  public <R extends Record> List<R> query(Class<R> clazz, SqlSelect t) {
+    return query(clazz, t.tuple());
+  }
+
+  public List<Record> query(SqlSelect t) {
     return query(t.tuple());
   }
 
@@ -176,7 +180,7 @@ public class JDBCTmpl implements Closeable {
     }
   }
 
-  public int exec(Tuple<String, Object[]> t){
+  public int exec(Tuple<String, Object[]> t) {
     return exec(t._a, t._b);
   }
 
