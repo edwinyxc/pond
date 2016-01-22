@@ -27,6 +27,8 @@ public class RBAC {
   String lb_role_id = "id";
   String lb_role_name = "username";
 
+  String ROOT = "root";
+
   public RBAC(String policy_name) {
     this.db = new DB(ConnectionPool.c3p0(ConnectionPool.local(policy_name)));
     db.post(this::_init);
@@ -34,7 +36,7 @@ public class RBAC {
 
   public RBAC(DB db) {
     this.db = db;
-    db.post(this::_init);
+//    db.post(this::_init);
   }
 
   public RBAC label_role_id(String lb_id) {
@@ -54,6 +56,11 @@ public class RBAC {
 
   public RBAC label_username(String lb_name) {
     this.lb_user_name = lb_name;
+    return this;
+  }
+
+  public RBAC root(String username) {
+    ROOT = username;
     return this;
   }
 
@@ -113,6 +120,11 @@ public class RBAC {
     return this;
   }
 
+  public RBAC init(){
+    db.post(this::_init);
+    return this;
+  }
+
   private void _init(JDBCTmpl t) {
     //rbac_user_has_role
     t.exec("CREATE TABLE IF NOT EXISTS rbac_user(id varchar(64) primary key, username varchar(255))");
@@ -125,6 +137,7 @@ public class RBAC {
       t.exec("DROP TABLE IF EXISTS rbac_user_has_role");
       t.exec("DROP TABLE IF EXISTS rbac_user");
       t.exec("DROP TABLE IF EXISTS rbac_role");
+      _init(t);
     });
     return this;
   }
@@ -394,6 +407,12 @@ public class RBAC {
   };
 
   public Roles forUser(String user) {
+
+    if (user.equals(ROOT)) {
+      return new Roles(S._for(db.get("SELECT * FROM rbac_role"))
+                           .map(record -> (String) record.get(lb_role_id)).toList());
+    }
+
     int user_count = db.get(t -> t.count("SELECT COUNT(*) FROM rbac_user_has_role WHERE user_id = ?", user));
     if (user_count < 1) {
       return new Roles(Collections.emptyList());
@@ -431,22 +450,5 @@ public class RBAC {
           '}';
     }
   }
-
-
-//  //interceptor
-//  public Interceptor interceptor() {
-//    return (ctx, serv) -> {
-//      String user = how_to_get_user.apply(ctx);
-//
-//      if (db.get(t -> t.count(
-//          "SELECT COUNT(*) FROM rbac_user_has_service WHERE id = ? and service = ?",
-//          user, serv.name())) < 1) {
-//        ctx.stop();
-//        ctx.err("Access Denied@" + serv.name());
-//      }
-//
-//    };
-//  }
-
 
 }
