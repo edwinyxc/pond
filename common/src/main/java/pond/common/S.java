@@ -11,24 +11,19 @@ import java.util.Map.Entry;
 public class S {
 
   /**
-   * ***************** meta *****************
+   * Assert an Object is NonNull, if not throw an RuntimeException.
+   *
+   * @param a potential null value
    */
-
-  public static String author() {
-    return " edwinyxc@gmail.com ";
-  }
-
-  public static String version() {
-    return "this method is a joke, how can i even \"know\" myself";
-  }
-
-  public static void _assertNotNull(Object... args) {
-    S._for(args).each(arg -> S._assert(arg));
+  public static void _assert(Object a) {
+    if (a == null) {
+      throw new NullPointerException();
+    }
   }
 
   /**
-   * Assert an object is non-null, if not throw an RuntimeException
-   * with input err string.
+   * Assert an object that is ought to be a non-null value,
+   * or throw an RuntimeException.
    *
    * @param a   potential null value
    * @param err err value
@@ -37,6 +32,29 @@ public class S {
     if (a == null) {
       throw new NullPointerException(err);
     }
+  }
+
+  /**
+   * @see S#_assert(boolean, String)
+   */
+  public static void _assert(boolean b) {
+    _assert(b, "assert failure, something`s wrong");
+  }
+
+  /**
+   * @see S#_assert(boolean, String)
+   */
+  public static void _assert(boolean a, String err) {
+    if (a) {
+      return;
+    }
+    throw new RuntimeException(err);
+  }
+  /**
+   * Assert all inputs to be certainly not null
+   */
+  public static void _assertNotNull(Object... args) {
+    S._for(args).each(a -> S._assert(a));
   }
 
   /**
@@ -51,27 +69,40 @@ public class S {
     return range;
   }
 
+  /**
+   * Create an ArrayList for input ordered by the input sequence.
+   */
+  @SafeVarargs
   public static <T> Array<T> array(T... data) {
     return new Array<>(data);
   }
 
+  /**
+   * Create an ArrayList for input ordered by the input sequence.
+   */
   public static <T> Array<T> array(Iterable<T> data) {
     return new Array<>(data);
   }
 
+  /**
+   * A predication that the value must present.
+   */
   public static <T> Some<T> some(T t) {
     return Option.some(t);
   }
 
+  /**
+   * A predication that the value must not present.
+   */
   public static <T> None<T> none() {
     return Option.none();
   }
 
   /**
+   * print things to System#out
    * see {@link System#out}
    */
   public static void echo(Object... args) {
-    //logger.echo(dump(o));
     for (Object o : args) {
       System.out.print(dump(o));
       System.out.print(" ");
@@ -79,43 +110,57 @@ public class S {
     System.out.println();
   }
 
-
-  public static void _assert(boolean b) {
-    _assert(b, "assert failure, something`s wrong");
-  }
-
-  public static void _assert(boolean a, String err) {
-    if (a) {
-      return;
-    }
-    throw new RuntimeException(err);
-  }
-
-  public static boolean _in(Object some, Object... conditions) {
+  /**
+   * @see Collection#contains(Object)
+   *
+   * @param some -- values to be checked
+   * @param array -- data list
+   * @return if the value in the data
+   */
+  public static boolean _in(Object some, Object... array) {
     _assert(some);
-    for (Object o : conditions) {
+    for (Object o : array) {
       if (some.equals(o)) return true;
     }
     return false;
   }
 
+  //inner data register
   private static Set<String> debugModeReg = new HashSet<>();
 
+  /**
+   * Switch on a Logger
+   * @param clz
+   */
+  public static void _debug_on(Class<?>... clz) {
+    debugModeReg.addAll(_for(clz).map(Class::getCanonicalName).toList());
+  }
+
+  /**
+   * Switch off a Logger
+   * @param clz
+   */
+  public static void _debug_off(Class<?>... clz) {
+    debugModeReg.removeAll(_for(clz).map(Class::getCanonicalName).toList());
+  }
+
+
+  //TODO may be a function to redirect Logger
+
+  /**
+   * Debug lambda caller, called when the Logger is switched on
+   */
   public static void _debug(org.slf4j.Logger logger,
                             Callback<org.slf4j.Logger> debugger) {
     if (debugModeReg.contains(logger.getName()))
       debugger.apply(logger);
   }
 
-  public static void _debug_on(Class<?>... clz) {
-    debugModeReg.addAll(_for(clz).map(Class::getCanonicalName).toList());
-  }
-
-  public static void _debug_off(Class<?>... clz) {
-    debugModeReg.removeAll(_for(clz).map(Class::getCanonicalName).toList());
-  }
-
-
+  /**
+   * Quick wrapper for try catch, WARN: this function WILL catch ALL the
+   * Exceptions thrown by the callback then throw a new RuntimeException wrapping them.
+   * @param cb
+   */
   public static void _try(Callback.C0ERR cb) {
     try {
       cb.apply();
@@ -124,6 +169,10 @@ public class S {
     }
   }
 
+  /**
+   * Same as the S#_try except this function takes a Function and return the result.
+   * @see
+   */
   public static <R> R _try_ret(Function.F0ERR<R> f) {
     try {
       return f.apply();
@@ -133,16 +182,7 @@ public class S {
   }
 
   /**
-   * Tap to a callback  before return the limit argument
-   */
-  public static <E> E _tap(E e, Callback<E> interceptor) {
-    interceptor.apply(e);
-    return e;
-  }
-
-
-  /**
-   * Run a Callback for sevaral times
+   * Run a Callback for any times
    */
   public static void _repeat(C0 c, int times) {
     for (int i = 0; i < times; i++) {
@@ -151,7 +191,7 @@ public class S {
   }
 
   /**
-   * Throw new RuntimeException
+   * Quick Throw -- Throw a new RuntimeException
    */
   public static void _throw(Throwable th) {
     throw new RuntimeException(th);
@@ -184,24 +224,32 @@ public class S {
   }
 
   /**
-   * fail immediatly
-   */
-  public static <T> T _fail() {
-    throw new RuntimeException("S._fail has been triggered");
-  }
-
-  /**
-   * fail with hint
+   * Quick Fail --  fail with hint
    */
   public static <T> T _fail(String err) {
     throw new RuntimeException(err);
   }
 
   /**
-   * avoid returnning null values
+   * Quick Fail -- fail immediately -- used for testing & unreachable code
+   */
+  public static <T> T _fail() {
+    throw new RuntimeException("S._fail has been triggered");
+  }
+
+  /**
+   * avoid null value, return 2nd argument when the 1st is evaluated to be null.
    */
   public static <T> T avoidNull(T _check, T _else) {
     return _check == null ? _else : _check;
+  }
+
+  /**
+   * Call a interceptor on the return-value before its return.
+   */
+  public static <E> E _tap(E e, Callback<E> interceptor) {
+    interceptor.apply(e);
+    return e;
   }
 
   /**
@@ -211,16 +259,11 @@ public class S {
     return nullable == null ? null : ifNotNull.apply(nullable);
   }
 
+
   /**
-   * Please use {@link java.util.Map#getOrDefault(Object, Object)}
+   * Try to get a value from the map.
+   * If the map does not have the value, Set a new one.
    */
-  @Deprecated
-  @SuppressWarnings("unchecked")
-  public static <E> E _getOrDefault(Map m, Object c, E _default) {
-    return (E) avoidNull(m.get(c), _default);
-  }
-
-
   @SuppressWarnings("unchecked")
   public static <K, V> V _getOrSet(Map<K, V> m, K k, V v) {
     V got = m.get(k);
@@ -232,20 +275,33 @@ public class S {
     }
   }
 
-  //FOR
+  //FOR -- THE FOR ITERATION
 
+  /**
+   * Create a "for" iteration
+   */
   public static <E> Array<E> _for(Iterable<E> c) {
     return new Array<>(c);
   }
 
+  /**
+   * Create a "for" iteration
+   */
   public static <E> Array<E> _for(E[] c) {
     return new Array<>(c);
   }
 
+  /**
+   * Create a "for" iteration
+   */
   public static <E> Array<E> _for(Enumeration<E> enumeration) {
     return new Array<>(new EnumerationIterable<>(enumeration));
   }
 
+  /**
+   *
+   * Create a "for" iteration -- map version
+   */
   public static <K, V> ForMap<K, V> _for(Map<K, V> c) {
     return new ForMap<>(c);
   }
@@ -254,17 +310,6 @@ public class S {
   public static <T> T newInstance(Class<?> clazz) throws InstantiationException,
       IllegalAccessException {
     return (T) clazz.newInstance();
-  }
-
-  /**
-   * Assert an Object is NonNull, if not throw an RuntimeException.
-   *
-   * @param a potential null value
-   */
-  public static void _assert(Object a) {
-    if (a == null) {
-      throw new NullPointerException();
-    }
   }
 
   /**
