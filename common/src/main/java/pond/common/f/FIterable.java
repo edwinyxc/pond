@@ -11,7 +11,6 @@ import java.util.*;
  * @param <E>
  */
 public interface FIterable<E> extends Iterable<E> {
-
   /**
    * Map the iterable items using the mapper function and return the mapped items.
    *

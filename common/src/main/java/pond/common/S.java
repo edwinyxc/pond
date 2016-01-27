@@ -50,11 +50,12 @@ public class S {
     }
     throw new RuntimeException(err);
   }
+
   /**
    * Assert all inputs to be certainly not null
    */
   public static void _assertNotNull(Object... args) {
-    S._for(args).each(a -> S._assert(a));
+    S._for(args).each(a -> {if(null == a) throw new NullPointerException();});
   }
 
   /**
@@ -372,14 +373,7 @@ public class S {
     return end - start;
   }
 
-  /**
-   * ****************** A ***************
-   */
   final public static ARRAY array = new ARRAY();
-
-  /**
-   * ***************** C ********************
-   */
 
   /**
    * ******************* F
@@ -463,7 +457,7 @@ public class S {
     }
   }
 
-  public static class map {
+  static class map {
 
     @SuppressWarnings("unchecked")
     public static <K, V> HashMap<K, V> hashMap(Object[][] kv) {
@@ -498,6 +492,7 @@ public class S {
       UUID uuid = UUID.randomUUID();
       return uuid.toString().replaceAll("-", "");
     }
+
   }
 
   /**

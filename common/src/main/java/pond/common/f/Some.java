@@ -6,14 +6,15 @@ import java.util.Iterator;
 public class Some<T> extends Option<T> {
 
   final T value;
+  final Iterator<T> singletonIterator;
 
   public Some(T value) {
     this.value = value;
+    this.singletonIterator= Collections.singletonList(value).iterator();
   }
 
-
   public Iterator<T> iterator() {
-    return Collections.singletonList(value).iterator();
+    return singletonIterator;
   }
 
   @Override
@@ -27,7 +28,7 @@ public class Some<T> extends Option<T> {
   }
 
   @Override
-  public T val() {
+  public T get() {
     return value;
   }
 
