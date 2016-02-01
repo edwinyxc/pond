@@ -1,15 +1,37 @@
 0.2.1 /2016-01-13
 ==================
+
+
   * [Core] 增加了Context.current();
 
-      - 用于在任何地方获取最近的Context, 现在解决嵌套transaction问题又有了新的思路
-
+      - 用于在任何地方获取最近的Context
+      
+  * [Security] 增加了2模块 RBAC（基于角色的身份验证）和 BA（Http Basic Authentication)    
+        
+       - RBAC
+       
+       
+       - BA
+       
+        HttpBasicAuth ba = new HttpBasicAuth("basic")
+            .validator((user, pass) -> "user".equals(user) && "pass".equals(pass)
+        );
+        
+        Pond.init().debug(HttpBasicAuth.class).cleanAndBind( 
+            p -> p.get("/secret", ba.auth, (req, resp) -> {
+                resp.send(200, "Welcome " + ba.user(req.ctx()));
+            })
+        ).listen(9090);
+       
+       
+     
+       
 0.2.0 / 2015-12-07
 ==================
 
   * [Core] 增加了pond-core模块
 
-      - 该模块提供了一套抽象的 服务 执行 上下文 基础类，可以用来实现一些高层次的执行控制
+      - 该模块提供了一套抽象的 服务,执行,上下文 基础类用来实现一些高层次的执行控制
 
       - 例如权限， 工作流等
 
@@ -19,7 +41,7 @@
 
   * [Web] 现在pond-web模块依赖于pond-core模块
 
-      - mid 可以转换成service
+      - mid 可以方便地转换成 core-service
 
   * [Security] 增加了pond-security模块
 
@@ -36,7 +58,7 @@
 
       - Path-like strings will be pre-compiled by a user-defined PathToRegCompiler.
       - We provide a default implementation, ExpressPathToRegCompiler , using the same syntax to Express.js.
-      - Also, a fall-back implementation,  FallbackPathToRegCompiler is still available for those remained projects using old Pond( ver <= 0.1.6 ).
+      - Also, a fall-back implementation,  FallbackPathToRegCompiler is still available for those remaining projects using old Pond( ver <= 0.1.6 ).
       - You can always using a raw reg-exp in your path definition.
 
 0.1.5 / 2015-9-20
