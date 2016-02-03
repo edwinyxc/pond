@@ -231,7 +231,15 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                 })
         );
 
-      } catch (Exception e1) {
+      }
+      catch (HttpPostRequestDecoder.EndOfDataDecoderException endo){
+        //fine & it`s normal & OK  & do nothing
+        S._debug(BaseServer.logger, logger -> {
+          logger.debug("EndOfDataDecoder");
+        });
+
+      }
+      catch (Exception e1) {
         BaseServer.logger.error(e1.getMessage(), e1);
         S._debug(BaseServer.logger, log -> log.debug(e1.getMessage(), e1));
         sendBadRequest(ctx);
@@ -618,7 +626,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     PreprocessedIO preprocessedIO;
     if ((preprocessedIO = ctxRegister.get(ctx)) != null) {
       ByteBuf byteBuf = preprocessedIO.compositeByteBuf;
-      if (byteBuf.refCnt() >= 0) {
+      if (byteBuf!= null && byteBuf.refCnt() >= 0) {
         byteBuf.release(byteBuf.refCnt());
       }
 //      synchronized (ctxRegister) {
