@@ -67,15 +67,7 @@ public interface Record {
    */
   <E> Field<E> field(String name);
 
-
   String DEFAULT_PRI_KEY = "id";
-
-  /**
-   * default pk_provider
-   */
-  static String defaultPrimaryKey() {
-    return S.uuid.vid();
-  }
 
   /**
    * Static builder for subclasses
@@ -87,9 +79,13 @@ public interface Record {
    */
   @SuppressWarnings("unchecked")
   static <T extends Record> T newEntity(Class<T> recordClass) {
-    Record t = newValue(recordClass);
-    t.setId(defaultPrimaryKey());
-    return (T) t;
+    try {
+      T t = S.newInstance(recordClass);
+      return (T) t.init();
+    } catch (InstantiationException | IllegalAccessException e) {
+      S._debug(DB.logger, logger -> logger.debug(e.getMessage(), e));
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -103,8 +99,9 @@ public interface Record {
   @SuppressWarnings("unchecked")
   static <T extends Record> T newValue(Class<T> recordClass) {
     try {
-      T t = S.newInstance(recordClass);
-      return (T) t.init();
+      T t = (T) ((T) S.newInstance(recordClass)).init();
+      t.setId(null);
+      return t;
     } catch (InstantiationException | IllegalAccessException e) {
       S._debug(DB.logger, logger -> logger.debug(e.getMessage(), e));
       throw new RuntimeException(e);

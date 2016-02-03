@@ -130,6 +130,7 @@ public class NettyHttpServer implements BaseServer {
         .childHandler(new ChannelInitializer<SocketChannel>() {
           @Override
           protected void initChannel(SocketChannel socketChannel) throws Exception {
+            //TODO --- manual distinguish between static & dynamic
             ChannelPipeline pipeline = socketChannel.pipeline();
             pipeline.addLast(new HttpServerCodec());
             pipeline.addLast(new ChunkedWriteHandler());

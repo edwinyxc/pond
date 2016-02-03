@@ -9,8 +9,6 @@ public interface Callback<A> {
     return NOOP;
   }
 
-  ;
-
   void apply(A t);
 
   interface C0 {

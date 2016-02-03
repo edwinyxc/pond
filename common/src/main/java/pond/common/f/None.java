@@ -16,7 +16,7 @@ public class None<T> extends Option<T> {
   }
 
   @Override
-  public T val() {
+  public T get() {
     throw new IllegalStateException("access none value");
   }
 
