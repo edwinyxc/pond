@@ -74,7 +74,8 @@ public class TSqlSelect extends AbstractSql
 
   @Override
   public SqlSelect orderBy(String... columns) {
-    orders.addAll(Arrays.asList(columns));
+    if (columns != null)
+      orders.addAll(Arrays.asList(columns));
     return this;
   }
 

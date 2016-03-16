@@ -31,7 +31,7 @@ public abstract class AbstractSql implements Sql {
 
   @Override
   public String toString() {
-    return preparedSql();
+    return preparedSql() + " PARAMS: " + params;
   }
 
   @Override

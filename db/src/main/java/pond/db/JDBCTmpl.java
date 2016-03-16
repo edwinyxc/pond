@@ -1,5 +1,6 @@
 package pond.db;
 
+import org.h2.command.dml.Select;
 import pond.common.ARRAY;
 import pond.common.S;
 import pond.common.f.Callback;
@@ -112,6 +113,10 @@ public class JDBCTmpl implements Closeable {
   public int count(String sql, Object... params) {
     return S.avoidNull(S.<Integer>_for(query(counter, sql,
                                              params)).first(), 0);
+  }
+
+  public int count(SqlSelect sqlSelect) {
+    return count(sqlSelect.tuple());
   }
 
   public int count(Tuple<String, Object[]> mix) {

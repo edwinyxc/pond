@@ -36,6 +36,7 @@
         <module>all</module>
         <module>core</module>
         <module>security</module>
+        <module>pagination</module>
     </modules>
 
     <properties>
