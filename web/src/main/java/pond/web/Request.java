@@ -4,6 +4,7 @@ package pond.web;
 import pond.common.S;
 import pond.common.STRING;
 import pond.common.f.Function;
+import pond.common.f.Tuple;
 import pond.web.http.Cookie;
 import pond.web.http.HttpUtils;
 
@@ -100,7 +101,6 @@ public interface Request {
   default void param(String key, String val) {
     HttpUtils.appendToMap(params(), key, val);
   }
-
 
   //upload File
   default List<UploadFile> files(String file) {

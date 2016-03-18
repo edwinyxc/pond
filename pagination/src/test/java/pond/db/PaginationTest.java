@@ -24,6 +24,7 @@ public class PaginationTest {
     db.batch(
         "DROP TABLE IF EXISTS test_pagination",
         "CREATE TABLE test_pagination ( " +
+            "AUTO_INCREMENT id varchar(64) primary key auto_increment," +
             " name varchar(2000), " + //string eq lk
             " birthday bigint(11), " + // between
             " type varchar(30), " + //in
@@ -125,9 +126,9 @@ public class PaginationTest {
 
     SqlSelect select = Sql.select().from(TestModel.class);
 
-    S.echo(Pagination.sqlFromReq(q1(), proto).apply(select));
+    S.echo(Pagination.queryAppender(q1(), proto).apply(select));
 
-    S.echo(Pagination.sqlFromReq(q2(), proto).apply(select));
+    S.echo(Pagination.queryAppender(q2(), proto).apply(select));
   }
 
   @Test
@@ -140,7 +141,7 @@ public class PaginationTest {
 
     S.echo("s1", result);
 
-//    S.echo(Pagination.sqlFromReq(q2(), proto).apply(select));
+//    S.echo(Pagination.queryAppender(q2(), proto).apply(select));
   }
 
 

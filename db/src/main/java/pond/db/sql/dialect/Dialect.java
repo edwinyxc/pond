@@ -6,6 +6,7 @@ package pond.db.sql.dialect;
 public interface Dialect {
 
   public String wrapKey(String key);
+//  public String countFlagInSingleStatement();
 
 //  public String primaryKeyMarkOnCreate();
 

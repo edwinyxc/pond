@@ -11,6 +11,11 @@ public class MySQLDialect implements Dialect {
   }
 
 //  @Override
+  public String countFlagInSingleStatement() {
+    return "SQL_CALC_FOUND_ROWS";
+  }
+
+//  @Override
 //  public String primaryKeyMarkOnCreate() {
 //    return "varchar(64) primary key";
 //  }

@@ -1,7 +1,13 @@
 package pond.db.sql;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pond.common.f.Tuple;
+import pond.db.Prototype;
+import pond.db.Record;
 import pond.db.sql.dialect.Dialect;
+
+import java.util.Map;
 
 import static pond.common.S.avoidNull;
 
@@ -9,6 +15,8 @@ import static pond.common.S.avoidNull;
  * Created by ed on 2014/4/28.
  */
 public interface Sql {
+
+  public static Logger logger = LoggerFactory.getLogger(Sql.class);
 
   <T> T dialect(Dialect d);
 
@@ -22,6 +30,14 @@ public interface Sql {
 
   static SqlSelect select(String... cols) {
     return new TSqlSelect(cols);
+  }
+
+  static SqlSelect selectFromRequest(Map<String, Object> req, Record model) {
+    return Sql.select("*").from(model.table()).paginate(req).fields(req).filter(req, model).sort(req);
+  }
+
+  static SqlSelect selectFromRequest(Map<String, Object> req, Class<? extends Record> cls) {
+    return selectFromRequest(req, Prototype.proto(cls));
   }
 
   static SqlDelete delete() {
@@ -48,6 +64,5 @@ public interface Sql {
   tuple() {
     return Tuple.t2(preparedSql(), params());
   }
-
 
 }

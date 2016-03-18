@@ -26,6 +26,15 @@ public interface Render {
     };
   }
 
+  static Render page(Object o, int totalCount) {
+    return (req, resp) -> {
+      resp.contentType("application/json;charset=utf-8");
+      resp.header("X-Total-Count", String.valueOf(totalCount));
+      resp.write(JSON.stringify(o));
+      resp.send(200);
+    };
+  }
+
   @Deprecated
   static Render file(File f) {
     return (req, resp) -> {

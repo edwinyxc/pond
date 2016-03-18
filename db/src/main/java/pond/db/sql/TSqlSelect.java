@@ -97,6 +97,8 @@ public class TSqlSelect extends AbstractSql
     fields.add("count(*)");
     offset = -1;
     limit = -1;
+    groups.clear();
+    having.clear();
     return this;
   }
 
