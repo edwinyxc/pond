@@ -127,7 +127,7 @@ public class TSqlSelect extends AbstractSql
     StringBuilder sql = new StringBuilder("SELECT ");
     sql.append(String.join(", ", wrapForDialect(fields)))
         .append(" FROM ")
-        .append(String.join(" JOIN ", tables));
+        .append(String.join(" LEFT JOIN ", tables));
     if (!where.isEmpty()) {
       sql.append(" WHERE ").append(String.join(" AND ", where));
     }
