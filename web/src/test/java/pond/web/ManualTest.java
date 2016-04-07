@@ -243,7 +243,7 @@ public class ManualTest {
 //    test_router();
 //    test();
 //    test_require();
-//    basic_router();
+    basic_router();
     //mal_request_url_too_long();
 
   }

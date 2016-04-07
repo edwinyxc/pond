@@ -44,6 +44,8 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
   final Callback.C2<Request, Response> handler;
 
+  final Map<ChannelHandlerContext, PreprocessedIO> ctxRegister = new HashMap<>();
+
   final ExecutorService executorService;
 
   NettyHttpHandler(Callback.C2<Request, Response> handler, ExecutorService executorService) {
@@ -405,7 +407,6 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
   }
 
-  static final Map<ChannelHandlerContext, PreprocessedIO> ctxRegister = new HashMap<>();
 
   @Override
   protected void messageReceived(ChannelHandlerContext ctx, Object msg) {
