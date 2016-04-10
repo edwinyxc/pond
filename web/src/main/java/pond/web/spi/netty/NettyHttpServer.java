@@ -83,7 +83,7 @@ public class NettyHttpServer implements BaseServer {
   }
 
   private int backlog() {
-    return S._tap(Integer.parseInt(S.avoidNull(S.config.get(BaseServer.class, BaseServer.SO_BACKLOG), "128")),
+    return S._tap(Integer.parseInt(S.avoidNull(S.config.get(BaseServer.class, BaseServer.SO_BACKLOG), "1024")),
                   backlog -> logger.info(String.format("USING BACKLOG %s", backlog)));
   }
 
@@ -138,8 +138,8 @@ public class NettyHttpServer implements BaseServer {
           }
         })
         .childOption(ChannelOption.SO_KEEPALIVE, keepAlive())
-        .childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024)
-        .childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024)
+//        .childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024)
+//        .childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024)
     ;
 
     return S._tap(b.bind(port()), f -> new Thread(() -> {

@@ -17,16 +17,23 @@ public class Convert {
     } else return Integer.parseInt(String.valueOf(obj));
   }
 
-  public static Integer toInt(String str) {
-    return Integer.parseInt(str);
+  public static Long toLong(Object obj) {
+    if (obj == null) return null;
+    if (obj instanceof Long){
+      return (Long)obj;
+    }
+    return Long.parseLong(String.valueOf(obj));
   }
 
-  public static Long toLong(String str) {
-    return Long.parseLong(str);
-  }
-
-  public static Double toDouble(String str) {
-    return Double.parseDouble(str);
+  public static Double toDouble(Object obj) {
+    if (obj == null) return null;
+    if (obj instanceof Double){
+      return (Double)obj;
+    }
+    if (obj instanceof Float){
+      return (Double) obj;
+    }
+    return Double.parseDouble(String.valueOf(obj));
   }
 
   public static Date toDate(String str, String format) throws ParseException {
