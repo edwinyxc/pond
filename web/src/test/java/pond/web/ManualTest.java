@@ -232,8 +232,15 @@ public class ManualTest {
 //    TestUtil.assertContentEqualsForGet("用户输入错误", "http://localhost:9090/err_ctrl");
   }
 
-  public static void main(String[] args) throws IOException {
 
+  public static void test_file_server() throws IOException {
+    Pond.init().cleanAndBind(
+        p -> p.get("/*", p._static("www"))
+    ).listen();
+  }
+
+  public static void main(String[] args) throws IOException {
+      test_file_server();
 //    S.echo(JSON.parse("sss"));
 //    test_end2end_exception();
 
@@ -243,7 +250,7 @@ public class ManualTest {
 //    test_router();
 //    test();
 //    test_require();
-    basic_router();
+//    basic_router();
     //mal_request_url_too_long();
 
   }
