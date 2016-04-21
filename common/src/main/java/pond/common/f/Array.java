@@ -177,13 +177,12 @@ public class Array<E> extends ArrayList<E> implements FIterable<E> {
   @Override
   public Boolean every(Function.F3<Boolean, E, Integer, FIterable<E>> predicate) {
     int index = 0;
-    boolean ret = true;
     for (E e : this) {
       if (!predicate.apply(e, index++, this)) {
-        ret = false;
+        return false;
       }
     }
-    return ret;
+    return true;
   }
 
   @Override
