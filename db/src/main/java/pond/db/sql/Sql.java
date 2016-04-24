@@ -28,6 +28,10 @@ public interface Sql {
     return new TSqlUpdate(table);
   }
 
+  static SqlUpdate update(Class<? extends Record> aClass) {
+    return new TSqlUpdate(Prototype.proto(aClass).table());
+  }
+
   static SqlSelect select(String... cols) {
     return new TSqlSelect(cols);
   }

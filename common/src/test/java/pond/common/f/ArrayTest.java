@@ -93,6 +93,12 @@ public class ArrayTest {
     Array<Integer> arr = S.array(1, 2, 3, 4, 5, 6, 7, 8, 9);
     assertEquals(true, arr.every(x -> x >= 1));
     assertEquals(false, arr.every(x -> x > 1));
+    assertEquals(false, arr.every(x -> x > 4));
+
+    Array<Integer> arr2 = S.array(1, 2);
+
+    assertEquals(false, arr2.every(x -> x > 4));
+    assertEquals(true, arr2.every(x -> x > 0));
   }
 
   @Test
