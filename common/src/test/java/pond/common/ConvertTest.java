@@ -22,6 +22,7 @@ public class ConvertTest {
   @Test
   public void testToDouble() throws Exception {
     Assert.assertEquals(true, 2 == Convert.toDouble("2.000"));
+    Assert.assertEquals(true, 2 == Convert.toDouble(2.000f));
     Assert.assertEquals(true, 2 == Convert.toDouble(2));
   }
 

@@ -31,7 +31,7 @@ public class Convert {
       return (Double)obj;
     }
     if (obj instanceof Float){
-      return (Double) obj;
+      return ((Float)obj).doubleValue();
     }
     return Double.parseDouble(String.valueOf(obj));
   }
