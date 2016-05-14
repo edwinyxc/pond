@@ -103,7 +103,7 @@ public final class Pond extends Router {
 //    bindLastMids();
 
     server.registerHandler((req, resp) -> {
-      new WebCtx(req, resp, this).execAll( this);
+      new WebCtx(req, resp, this).execAll(this);
     });
 
     try {
@@ -123,7 +123,25 @@ public final class Pond extends Router {
   }
 
   public static Pond init() {
+    init_dbg();
     return init(Callback.noop());
+  }
+
+  /**
+   * open debug
+   */
+  private static void init_dbg() {
+    if ("true".equals(System.getProperty("pond.debug"))) {
+      //read all debug class message from system properties
+      String classes = System.getProperty("pond.debug_classes");
+      S._debug_on(S._for(classes.split(":")).map(cls -> {
+        try {
+          return Class.forName(cls);
+        } catch (ClassNotFoundException e) {
+          return null;
+        }
+      }).compact().join());
+    }
   }
 
   /**
