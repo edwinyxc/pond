@@ -54,6 +54,9 @@ public final class Pond extends Router {
     String root = PATH.classpathRoot();
     logger.info("CLASS ROOT:" + root);
 
+    logger.info("DEBUG INFO");
+    init_dbg();
+
     String webroot = PATH.detectWebRootPath();
     logger.info("WEB ROOT:" + webroot);
 
@@ -123,7 +126,6 @@ public final class Pond extends Router {
   }
 
   public static Pond init() {
-    init_dbg();
     return init(Callback.noop());
   }
 
@@ -136,7 +138,7 @@ public final class Pond extends Router {
       String classes = System.getProperty("pond.debug_classes");
       S._debug_on(S._for(classes.split(":")).map(cls -> {
         try {
-          return Class.forName(cls);
+          return S._tap(Class.forName(cls), S::echo);
         } catch (ClassNotFoundException e) {
           return null;
         }
