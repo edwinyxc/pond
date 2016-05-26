@@ -53,7 +53,7 @@ public class RestfulRouter<E extends Record> extends Router {
     create = (req, resp) -> {
       E e = (E) Record.newEntity(proto.getClass());
       db.post(t -> t.recordInsert(e.merge(req.toMap())));
-      resp.send(200);
+      resp.render(Render.json(e));
     };
 
     update = (req, resp) -> {
