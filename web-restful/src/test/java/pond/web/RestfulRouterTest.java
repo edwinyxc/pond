@@ -94,9 +94,29 @@ public class RestfulRouterTest {
     );
 
     app = Pond.init(p -> {
-      p.use("/*", new RestfulRouter<>(TestModel.class, db));
+      p.use("/*", new RestfulRouter<TestModel>(TestModel.class, db){{
+
+        get("/can_i_come_in",(req, resp) -> {
+          resp.send(200,"OK");
+        });
+
+        REST.all();
+      }});
     }).listen(9091);
 
+  }
+
+  @Test
+  public void test_conflict() throws IOException{
+    HTTP.get("http://localhost:9091/can_i_come_in", resp -> {
+      String s = null;
+      try {
+        s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
+        assertEquals("OK", s);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
   }
 
   @Test
