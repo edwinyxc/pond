@@ -7,10 +7,14 @@ import pond.common.SPILoader;
 import pond.web.http.HttpMethod;
 import pond.web.spi.PathToRegCompiler;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Pattern;
 
-import static pond.common.S.*;
+import static pond.common.S._debug;
+import static pond.common.S._for;
 
 
 public class Router implements Mid, RouterAPI {
@@ -22,7 +26,7 @@ public class Router implements Mid, RouterAPI {
 
   List<Mid> defaultMids = new ArrayList<>();
 
-  private String get_path_remainder(Request req){
+  private String get_path_remainder(Request req) {
 
     String path = req.path();
     WebCtx ctx = req.ctx();
@@ -52,12 +56,12 @@ public class Router implements Mid, RouterAPI {
     long s = S.now();
 
     RegPathMatchResult matchResult;
-    for(Route r : routes){
+    for (Route r : routes) {
       //jump out
-      if(ctx.handled)break;
+      if (ctx.handled) break;
 
       matchResult = r.match(path);
-      if(matchResult.matches){
+      if (matchResult.matches) {
         _debug(logger, log -> {
           log.debug("Routing time: " + (S.now() - s) + "ms");
           log.debug(String.format("Processing... %s", r));
@@ -96,9 +100,33 @@ public class Router implements Mid, RouterAPI {
 
       Route route = new Route(path, inUrlParams, middles);
 
-      _debug(logger, log -> log.debug("Routing " + m + " : " + route));
+      String pattern = path.pattern();
 
-      routes.add(route);
+
+      int found = -1;
+      String existingPattern = null;
+
+      for (int i = 0; i < routes.size(); i++) {
+        existingPattern = routes.get(i).defPath().pattern();
+        if (existingPattern.equals(pattern)) {
+          found = i;
+          break;
+        }
+      }
+
+      if (found >= 0) {
+        logger.warn("Override existing router: "
+                        + existingPattern
+                        + " with " + route);
+
+        routes.remove(found);
+        routes.add(found, route);
+
+      } else {
+        _debug(logger, log -> log.debug("Add new Route" + m + " : " + route));
+        routes.add(route);
+      }
+
     }
     return this;
   }

@@ -94,20 +94,25 @@ public class RestfulRouterTest {
     );
 
     app = Pond.init(p -> {
-      p.use("/*", new RestfulRouter<TestModel>(TestModel.class, db){{
+      p.use("/*", new Router() {{
 
-        get("/can_i_come_in",(req, resp) -> {
-          resp.send(200,"OK");
+        get("/can_i_come_in", (req, resp) -> {
+          resp.send(200, "OK");
         });
 
-        REST.all();
+        new RestfulRoutes<>(this, db, TestModel.class)
+            .id()
+            .index()
+            .postRoot()
+            .putRoot()
+            .delRoot();
       }});
     }).listen(9091);
 
   }
 
   @Test
-  public void test_conflict() throws IOException{
+  public void test_conflict() throws IOException {
     HTTP.get("http://localhost:9091/can_i_come_in", resp -> {
       String s = null;
       try {
@@ -141,7 +146,7 @@ public class RestfulRouterTest {
       try {
         s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
         List<Map> arr = JSON.parseArray(s);
-        assertEquals(11,arr.size());
+        assertEquals(11, arr.size());
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -151,7 +156,7 @@ public class RestfulRouterTest {
       try {
         s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
         List<Map> arr = JSON.parseArray(s);
-        assertEquals(22,arr.size());
+        assertEquals(22, arr.size());
       } catch (IOException e) {
         e.printStackTrace();
       }
