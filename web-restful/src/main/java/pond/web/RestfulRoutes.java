@@ -33,13 +33,13 @@ public class RestfulRoutes<E extends Model> {
     resp.render(Render.json(db.get(t -> t.query(sql))));
   };
 
+  @SuppressWarnings("unchecked")
   public final Mid update = (req, resp) -> {
     String id = req.paramNonBlank("id", "require non-null on field: id");
     SqlSelect sqlSelect = Sql.select("*").from(proto.table()).where(proto.idName(), EQ, id);
-    List<Record> l = db.get(t -> t.query(sqlSelect));
+    List<E> l = db.get(t -> t.query((Class<E>)proto.getClass(), sqlSelect));
     if (l.size() < 1)
       throw new EndToEndException(404, "id:" + id + " item not found");
-    @SuppressWarnings("unchecked")
     E e = (E) l.get(0);
     e.merge(req.toMap());
     db.post(t -> t.recordUpdate(e));
@@ -55,13 +55,13 @@ public class RestfulRoutes<E extends Model> {
     resp.send(201, JSON.stringify(e));
   };
 
+  @SuppressWarnings("unchecked")
   public final Mid delete = (req, resp) -> {
     String id = req.paramNonBlank("id", "require non-null on field: id");
     SqlSelect sqlSelect = Sql.select("*").from(proto.table()).where(proto.idName(), EQ, id);
-    List<Record> l = db.get(t -> t.query(sqlSelect));
+    List<E> l = db.get(t -> t.query((Class<E>)proto.getClass(),sqlSelect));
     if (l.size() < 1)
       throw new EndToEndException(404, "id:" + id + " item not found");
-    @SuppressWarnings("unchecked")
     E e = (E) l.get(0);
     e.merge(req.toMap());
     db.post(t -> t.recordDelete(e));

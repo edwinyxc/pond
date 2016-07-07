@@ -9,7 +9,6 @@ import pond.common.f.Function;
 import pond.common.f.Tuple;
 import pond.db.connpool.ConnectionPool;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

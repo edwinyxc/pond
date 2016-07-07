@@ -22,7 +22,7 @@ public class AbstractRecord extends HashMap<String, Object>
   final Field<String> id = new SimpleField<String>(idLabel).init(S.uuid::vid);
   final Field _emptyField = new SimpleField<Void>("null").db(t -> null).view(t -> null);
 
-  Set<Field> declaredFields = new HashSet<>();
+  Set<Field> declaredFields = new LinkedHashSet<>();
 
   //allow construction
   public AbstractRecord() {

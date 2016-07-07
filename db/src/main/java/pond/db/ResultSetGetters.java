@@ -19,11 +19,11 @@ public class ResultSetGetters {
   }
 
   public static String getString(ResultSet rs, String name) {
-    return S._try_ret(() -> rs.getString(name));
+    return S._try_ret(() ->  rs.getObject(name) == null? null : rs.getString(name));
   }
 
   public static String getString(ResultSet rs, Integer name) {
-    return S._try_ret(() -> rs.getString(name));
+    return S._try_ret(() ->  rs.getObject(name) == null? null : rs.getString(name));
   }
 
   public static InputStream getBinaryStream(ResultSet rs, String name) {
@@ -67,11 +67,11 @@ public class ResultSetGetters {
   }
 
   public static Byte getByte(ResultSet rs, String name) {
-    return S._try_ret(() -> rs.getByte(name));
+    return S._try_ret(() -> rs.getObject(name) == null? null : rs.getByte(name));
   }
 
   public static Byte getByte(ResultSet rs, Integer name) {
-    return S._try_ret(() -> rs.getByte(name));
+    return S._try_ret(() -> rs.getObject(name) == null? null : rs.getByte(name));
   }
 
   public static byte[] getBytes(ResultSet rs, Integer name) {
@@ -129,42 +129,42 @@ public class ResultSetGetters {
   }
 
   public static Long getLong(ResultSet rs, Integer name) {
-    return S._try_ret(() -> rs.getLong(name));
+    return S._try_ret(() ->  rs.getObject(name) == null? null : rs.getLong(name));
   }
 
   public static Long getLong(ResultSet rs, String name) {
-    return S._try_ret(() -> rs.getLong(name));
+    return S._try_ret(() ->  rs.getObject(name) == null? null : rs.getLong(name));
   }
 
   public static Short getShort(ResultSet rs, String name) {
-    return S._try_ret(() -> rs.getShort(name));
+    return S._try_ret(() ->  rs.getObject(name) == null? null : rs.getShort(name));
   }
 
   public static Short getShort(ResultSet rs, Integer name) {
-    return S._try_ret(() -> rs.getShort(name));
+    return S._try_ret(() ->  rs.getObject(name) == null? null : rs.getShort(name));
   }
 
   public static Float getFloat(ResultSet rs, Integer name) {
-    return S._try_ret(() -> rs.getFloat(name));
+    return S._try_ret(() ->  rs.getObject(name) == null? null : rs.getFloat(name));
   }
 
   public static Float getFloat(ResultSet rs, String name) {
-    return S._try_ret(() -> rs.getFloat(name));
+    return S._try_ret(() ->  rs.getObject(name) == null? null : rs.getFloat(name));
   }
 
   public static Double getDouble(ResultSet rs, String name) {
-    return S._try_ret(() -> rs.getDouble(name));
+    return S._try_ret(() ->  rs.getObject(name) == null? null : rs.getDouble(name));
   }
 
   public static Double getDouble(ResultSet rs, Integer name) {
-    return S._try_ret(() -> rs.getDouble(name));
+    return S._try_ret(() ->  rs.getObject(name) == null? null : rs.getDouble(name));
   }
 
   public static Integer getInt(ResultSet rs, Integer name) {
-    return S._try_ret(() -> rs.getInt(name));
+    return S._try_ret(() ->  rs.getObject(name) == null? null : rs.getInt(name));
   }
 
   public static Integer getInt(ResultSet rs, String name) {
-    return S._try_ret(() -> rs.getInt(name));
+    return S._try_ret(() ->  rs.getObject(name) == null? null : rs.getInt(name));
   }
 }

@@ -260,6 +260,10 @@ public class S {
     return nullable == null ? null : ifNotNull.apply(nullable);
   }
 
+  public static <R, N> R avoidNull(N nullable, Function<R, N> ifNotNull) {
+    return _tap_nullable(nullable, ifNotNull);
+  }
+
 
   /**
    * Try to get a value from the map.

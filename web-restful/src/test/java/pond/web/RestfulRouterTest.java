@@ -1,6 +1,7 @@
 package pond.web;
 
 import io.netty.util.CharsetUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import pond.common.HTTP;
@@ -12,6 +13,7 @@ import pond.db.JDBCTmpl;
 import pond.db.connpool.ConnectionPool;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -111,6 +113,7 @@ public class RestfulRouterTest {
 
   }
 
+
   @Test
   public void test_conflict() throws IOException {
     HTTP.get("http://localhost:9091/can_i_come_in", resp -> {
@@ -140,6 +143,54 @@ public class RestfulRouterTest {
   }
 
   @Test
+  public void test_insert() throws IOException {
+    HTTP.post("http://localhost:9091/",new HashMap<String, Object>(){{
+      put("id", 121);
+      put("name", "name1");
+      put("birthday", 111);
+      put("type", "type3");
+    }},resp -> {
+      String s = null;
+      try {
+        s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
+        S.echo(s);
+        Map obj = JSON.parse(s);
+        assertEquals(obj.get("name"), "name1");
+        assertEquals(obj.get("birthday"), "111");
+        assertEquals(obj.get("type"), "type3");
+        S.echo("POST", obj);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
+  }
+
+  @Test
+  public void test_update() throws IOException {
+    HTTP.put("http://localhost:9091/1", new HashMap<String, Object>() {{
+      put("name", "name1");
+      put("birthday", "name2");
+      put("type", "type3");
+    }}, resp -> {
+      String s = null;
+      try {
+        s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      List<Map> arr = JSON.parseArray(s);
+      S.echo("PUT", arr);
+    });
+  }
+
+  @Test
+  public void test_delete() throws IOException {
+    HTTP.delete("http://localhost:9091/1", resp -> {
+      assertEquals(204, resp.getStatusLine().getStatusCode());
+    });
+  }
+
+  @Test
   public void test_unified_search() throws IOException {
     HTTP.get("http://localhost:9091/?name=yxc", resp -> {
       String s = null;
@@ -151,6 +202,7 @@ public class RestfulRouterTest {
         e.printStackTrace();
       }
     });
+
     HTTP.get("http://localhost:9091/?birthday=btwn,123199,123456", resp -> {
       String s = null;
       try {
@@ -161,5 +213,11 @@ public class RestfulRouterTest {
         e.printStackTrace();
       }
     });
+  }
+
+
+  @After
+  public void stop() {
+    app.stop();
   }
 }
