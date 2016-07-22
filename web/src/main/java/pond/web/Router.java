@@ -28,8 +28,8 @@ public class Router implements Mid, RouterAPI {
 
   private String get_path_remainder(Request req) {
 
-    String path = req.path();
     WebCtx ctx = req.ctx();
+    String path = S.avoidNull((String)ctx.get("last_remainder"),req.path());
 
     Route entry_route = ctx.route;
 
@@ -50,6 +50,7 @@ public class Router implements Mid, RouterAPI {
     List<Route> routes = this.routes.get(method);
 
     String path = get_path_remainder(req);
+    req.ctx().set("last_remainder", path);
 
     _debug(logger, log -> log.debug("Routing path:" + path));
 

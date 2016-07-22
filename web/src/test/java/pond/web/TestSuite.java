@@ -654,6 +654,20 @@ public class TestSuite {
   //TODO
 //  public void test_validation_error
 
+  @Test
+  public void test_nested_router() throws IOException{
+    app.cleanAndBind(
+        app -> app.get("/api/*", new Router().use("/evil/*", new Router()
+            .get("/a",(req, resp) -> resp.send(200,"OK"))
+            .get("/",(req, resp) -> resp.send(200,"OK"))
+                       )
+        )
+    );
+
+    TestUtil.assertContentEqualsForGet("OK", "http://localhost:9090/api/evil/a");
+    TestUtil.assertContentEqualsForGet("OK", "http://localhost:9090/api/evil/");
+  }
+
   @After
   public void stop() {
     app.stop();
