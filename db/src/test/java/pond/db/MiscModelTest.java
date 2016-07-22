@@ -38,6 +38,7 @@ public class MiscModelTest {
     );
   }
 
+
   @Test
   public void test_if_a_null_int_is_transformed_into_0 (){
     List<Record> rlist =  this.db.get(t -> t.query("select value from test where id = '2337'"));

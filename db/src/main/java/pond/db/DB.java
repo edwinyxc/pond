@@ -79,6 +79,10 @@ public final class DB {
     this.dialect = dialect;
   }
 
+  public void refreshStructure() {
+    this.dbStructures = getDatabaseStructures();
+  }
+
   public DB(ConnectionPool dataSource) {
     this(dataSource, dataSource.dialect());
   }

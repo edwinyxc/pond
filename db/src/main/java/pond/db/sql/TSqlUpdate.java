@@ -14,8 +14,8 @@ import static pond.common.S._for;
 public class TSqlUpdate extends AbstractSql
     implements SqlUpdate {
 
-  String table;
-  List<String> fields = new ArrayList<>();
+  final public String table;
+  final public List<String> fields = new ArrayList<>();
 
   public TSqlUpdate(String table) {
     this.table = table;
@@ -33,6 +33,13 @@ public class TSqlUpdate extends AbstractSql
   @Override
   public SqlUpdate set(String... sets) {
     fields.addAll(Arrays.asList(sets));
+    return this;
+  }
+
+  @Override
+  public SqlUpdate set(String name, Object value) {
+    fields.add(name);
+    params.add(value);
     return this;
   }
 

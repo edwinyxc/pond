@@ -194,7 +194,11 @@ public class JDBCTmpl implements Closeable {
   }
 
   public int exec(SqlUpdate t) {
-    return exec(t.tuple());
+    List<String> keys = ((TSqlUpdate)t).fields;
+    S.echo("KEYS", keys);
+    String[] akeys = keys.toArray(new String[keys.size()]);
+    return exec(t.preparedSql(),t.params(),
+                getTypes(((TSqlUpdate) t).table, akeys));
   }
 
   public int exec(SqlDelete t) {
