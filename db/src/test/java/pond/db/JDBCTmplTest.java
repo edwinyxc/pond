@@ -7,6 +7,7 @@ import org.junit.Test;
 import pond.common.S;
 import pond.common.f.Tuple;
 import pond.db.connpool.ConnectionPool;
+import pond.db.sql.Criterion;
 import pond.db.sql.Sql;
 
 public class JDBCTmplTest {
@@ -47,6 +48,7 @@ public class JDBCTmplTest {
           Sql.update(test_jdbc_t.class)
               .set(Tuple.pair("value", null))
               .set(Tuple.pair("name", null))
+              .where("id", Criterion.EQ, "1")
       );
       test_jdbc_t tt = t.recordById(test_jdbc_t.class, "1");
       S.echo(tt);

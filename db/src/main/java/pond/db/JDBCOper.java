@@ -161,7 +161,7 @@ class JDBCOper implements Closeable {
         else if (params[i] instanceof InputStream)
           pstmt.setBinaryStream(i + 1, (InputStream) params[i]);
         else
-          //TODO insertRecord configure
+        //TODO insertRecord configure
           pstmt.setObject(i + 1, params[i], types[i]);
         //这个函数有缺陷
 //                setParam(pstmt, i + 1, params[i],tpyes[i]);

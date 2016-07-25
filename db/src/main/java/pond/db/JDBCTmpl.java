@@ -78,8 +78,10 @@ public class JDBCTmpl implements Closeable {
     if (dbStructure == null)
       throw new RuntimeException(" dbStructure must not null");
     Integer ret = dbStructure.getOrDefault(table, Collections.emptyMap()).get(field);
-    if (ret == null)
-      throw new IllegalArgumentException("Cannot find field in dbStructure: " + field);
+    if (ret == null){
+      DB.logger.warn("Cannot find field in dbStructure: " + field);
+      ret = Types.VARCHAR;
+    }
     return ret;
   }
 
@@ -194,10 +196,10 @@ public class JDBCTmpl implements Closeable {
   }
 
   public int exec(SqlUpdate t) {
-    List<String> keys = ((TSqlUpdate)t).fields;
-    S.echo("KEYS", keys);
-    String[] akeys = keys.toArray(new String[keys.size()]);
-    return exec(t.preparedSql(),t.params(),
+    List<String> orders = ((TSqlUpdate)t).keyOrder;
+    String[] akeys = orders.toArray(new String[orders.size()]);
+
+    return exec(t.preparedSql(), t.params(),
                 getTypes(((TSqlUpdate) t).table, akeys));
   }
 

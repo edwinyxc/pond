@@ -1,5 +1,6 @@
 package pond.db.sql;
 
+import pond.common.S;
 import pond.common.f.Tuple;
 
 import java.util.ArrayList;
@@ -25,20 +26,30 @@ public class TSqlUpdate extends AbstractSql
   public SqlUpdate set(Tuple<String, Object>... columns) {
     for (Tuple<String, Object> t : columns) {
       fields.add(t._a);
+      keyOrder.add(t._a);
       params.add(t._b);
     }
     return this;
   }
 
+  /**
+   *
+   * @param sets
+   * @return
+   */
   @Override
   public SqlUpdate set(String... sets) {
-    fields.addAll(Arrays.asList(sets));
+    S._tap(Arrays.asList(sets), arr -> {
+      keyOrder.addAll(arr);
+      fields.addAll(arr);
+    });
     return this;
   }
 
   @Override
   public SqlUpdate set(String name, Object value) {
     fields.add(name);
+    keyOrder.add(name);
     params.add(value);
     return this;
   }

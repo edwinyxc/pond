@@ -12,6 +12,8 @@ import static pond.common.S._for;
  */
 public abstract class AbstractSql implements Sql {
 
+  public List<String> keyOrder = new ArrayList<>();
+
   public List<Object> params = new ArrayList<>();
 
   public List<String> where = new ArrayList<>();
