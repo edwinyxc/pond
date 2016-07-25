@@ -16,4 +16,6 @@ public interface StaticFileServer extends Mid {
 
   StaticFileServer watch(String relative);
 
+  StaticFileServer enableRedirect();
+
 }

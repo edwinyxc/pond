@@ -1,7 +1,10 @@
 package pond.web.spi;
 
 import pond.common.S;
+import pond.web.Pond;
 import pond.web.Route;
+import pond.web.Router;
+import pond.web.RouterAPI;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -122,8 +125,8 @@ public class ExpressPathToRegCompiler implements PathToRegCompiler {
           Pattern.compile(entry_route.defPath().pattern())
               .matcher(path);
 
-      S.echo("ENTRY_ROUTE", entry_route);
-      S.echo("PATH", path);
+//      S._debug("ENTRY_ROUTE", entry_route);
+//      S.echo("PATH", path);
 
       if (wildcard_matcher.find()) {
         //System.err.println(wildcard_matcher.group(1));

@@ -34,6 +34,8 @@ public class DefaultStaticFileServer implements StaticFileServer {
               , "60")
       );
 
+  boolean config_enable_redirect = false;
+
   File root;
 
   public DefaultStaticFileServer() {}
@@ -50,6 +52,12 @@ public class DefaultStaticFileServer implements StaticFileServer {
     if (!root.exists() || !root.canRead())
       throw new RuntimeException("Invalid static file server root : " + _root);
 
+    return this;
+  }
+
+  @Override
+  public StaticFileServer enableRedirect() {
+    this.config_enable_redirect = true;
     return this;
   }
 
@@ -119,7 +127,8 @@ public class DefaultStaticFileServer implements StaticFileServer {
     File file = new File(absPath);
 
     if (file.isHidden() || !file.exists()) {
-      response.sendError(404, "Not Found");
+      //do not handle since this is a mid
+//      response.sendError(404, "Not Found");
       return;
     }
 
@@ -130,12 +139,16 @@ public class DefaultStaticFileServer implements StaticFileServer {
         File index = new File(file, indexFileName);
 
         if (!index.isHidden() && index.exists()) {
-          response.redirect(indexFileName);
+          if(config_enable_redirect)
+            response.redirect(indexFileName);
+          else
+            response.sendFile(index);
           return;
         } else {
           if (allowList()) sendListing(response, file);
           else {
-            response.send(404);
+//            response.send(404);
+            return;
           }
         }
 
