@@ -39,10 +39,7 @@ public class TSqlUpdate extends AbstractSql
    */
   @Override
   public SqlUpdate set(String... sets) {
-    S._tap(Arrays.asList(sets), arr -> {
-      keyOrder.addAll(arr);
-      fields.addAll(arr);
-    });
+    S._tap(Arrays.asList(sets), fields::addAll);
     return this;
   }
 

@@ -54,6 +54,18 @@ public class JDBCTmplTest {
       S.echo(tt);
       Assert.assertNull(tt.get("value"));
       Assert.assertNull(tt.get("name"));
+
+
+      t.exec(
+          Sql.update(test_jdbc_t.class)
+              .set(Tuple.pair("value", null))
+              .set(Tuple.pair("name", null))
+              .where("id = 1")
+      );
+      test_jdbc_t ttt = t.recordById(test_jdbc_t.class, "1");
+      S.echo(tt);
+      Assert.assertNull(ttt.get("value"));
+      Assert.assertNull(ttt.get("name"));
     });
   }
 

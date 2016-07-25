@@ -47,7 +47,7 @@ public interface SqlWhere<T extends Sql> {
   default T where(String... where) {
     AbstractSql sql = (AbstractSql) this;
     S._tap(Arrays.asList(where), arr -> {
-      sql.keyOrder.addAll(arr);
+//      sql.keyOrder.addAll(arr);
       sql.where.addAll(arr);
     });
     return (T) sql;
