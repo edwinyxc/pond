@@ -22,7 +22,7 @@ public enum Criterion {
   LITTLE_THAN_E("lte", (k) -> o -> "" + k + " <= ?"),
   NOT_EQ("neq", (k) -> o -> format("%s <> ?", k)),
   BETWEEN("btwn", (k) -> o -> format("(%s BETWEEN ? and ?)", k)),
-  IN("in", (k) -> o -> k + " IN (" + String.join(",", _for((String[]) o).map(i -> "?").join()) + ")"),
+  IN("in", (k) -> o -> k + " IN (" + String.join(",", _for( o ).map(i -> "?").join()) + ")"),
   IN_OR_NULL("in_or_null", (k) -> o -> " ( " + k + " IN (" + String.join(",", _for((String[]) o).map(i -> "?").join()) + ") OR " + k + " IS NULL ) "),
   NOT_IN("nin", (k) -> o -> k + " NOT IN (" + String.join(",", _for((String[]) o).map(i -> "?").join()) + ")");
   /**

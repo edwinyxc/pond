@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <button onclick="welcome()">
+            Click To Welcome
+        </button>
+        <button onclick="signin()">
+            Click To SignIn
+        </button>
+    <script>
+        var jwt;
+        function signin(){
+            var username = '1',
+                password =  '1',
+                xhr = new XMLHttpRequest();
+
+            xhr.open('POST', '/signin');
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function() {
+                if (xhr.status === 200){
+                    alert("GOT JWT" + (jwt = xhr.responseText) );
+                    //use this jwt to
+                }
+                else if (xhr.status !== 200) {
+                    alert('Request failed.  Returned status of ' + xhr.status);
+                }
+            };
+            xhr.send(encodeURI('username=' + username + '&password=' + password));
+        }
+        function welcome(){
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/secret');
+            if(jwt){
+                alert('set Auth ' + jwt);
+                xhr.setRequestHeader("Authorization", jwt);
+            }
+            xhr.onload = function(){
+                if(xhr.status == 200) {
+                    alert(xhr.responseText);
+                }
+                else{
+                    alert("Oops, U R NOT WELCOMED HERE!");
+                }
+            };
+            xhr.send();
+        }
+    </script>
+    </body>
+</html>

@@ -1,6 +1,7 @@
 package pond.db.connpool;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import pond.common.f.Callback;
 import pond.common.f.Function;
 
 import java.beans.PropertyVetoException;
@@ -17,6 +18,7 @@ class C3p0ConnectionPool extends AbstractConnectionPool {
   @Override
   Function.F0ERR<Connection> build() {
 
+//    cpds.setProperties(properties);
 
     try {
       cpds.setDriverClass(jdbc_driver); //loads the jdbc driver
@@ -30,19 +32,19 @@ class C3p0ConnectionPool extends AbstractConnectionPool {
     cpds.setPassword(password);
 
     cpds.setMaxPoolSize(max_size);
-
-    //test every 60s
-    cpds.setIdleConnectionTestPeriod(60);
-
-    //wait 3000ms to get the connection or fail
-    cpds.setCheckoutTimeout(3000);
-
-//    cpds.setAcquireIncrement(10);
-
-    cpds.setMaxIdleTime(300);
-
-    //pstmt cache
     cpds.setMaxStatements(20 * max_size);
+
+//
+//    //test every 60s
+//    cpds.setIdleConnectionTestPeriod(60);
+//
+//    //wait 3000ms to get the connection or fail
+//    cpds.setCheckoutTimeout(3000);
+//
+////    cpds.setAcquireIncrement(10);
+//    cpds.setMaxIdleTime(300);
+//
+//    //pstmt cache
 
     return cpds::getConnection;
   }

@@ -1,6 +1,7 @@
 package pond.db.connpool;
 
 import pond.common.S;
+import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.db.DB;
 import pond.db.sql.dialect.Dialect;
@@ -18,9 +19,11 @@ abstract class AbstractConnectionPool<T extends AbstractConnectionPool> implemen
   String conn_url;
   String username;
   String password;
+
   int max_size;
 
   boolean built;
+  protected Properties properties;
   protected Function.F0ERR<Connection> connection_getter;
 
   public Dialect dialect;
@@ -87,7 +90,6 @@ abstract class AbstractConnectionPool<T extends AbstractConnectionPool> implemen
   protected boolean validateParams(){
     return jdbc_driver == null || conn_url == null || username == null || password == null;
   }
-
 
   abstract Function.F0ERR<Connection> build();
 
