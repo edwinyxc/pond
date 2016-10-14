@@ -50,6 +50,10 @@ public class HttpJwtAuth {
     return (Claims) ctx.get("jwt_claims");
   }
 
+  public String user(WebCtx ctx) {
+    return getJwtClaims(ctx).getSubject();
+  }
+
 
   public HttpJwtAuth validator( Function.F2<Boolean, String, String> user_pass_checker){
     this.user_pass_checker = user_pass_checker;
@@ -76,7 +80,10 @@ public class HttpJwtAuth {
     });
 
     if (auth_string == null ){
-      resp.send(400, "auth string null");
+      if(onPasswordRequired == null)
+        resp.send(400, "auth string null");
+      else
+        onPasswordRequired.apply(req, resp);
       return;
     }
 
@@ -87,11 +94,15 @@ public class HttpJwtAuth {
           .setSigningKey(secret)
           .parseClaimsJws(auth_string)
           .getBody();
-    }catch (SignatureException se){
-      if(onPasswordRequired == null)
-        resp.render(error403(403001, se.getMessage()));
-      else
+    }catch (Exception e){
+      if(onPasswordRequired == null) {
+        S._debug(logger, log -> {
+          logger.debug("Exception while parsing:", e);
+        });
+        resp.render(error403(403001, e.getMessage()));
+      } else {
         onPasswordRequired.apply(req, resp);
+      }
       return;
     }
 //    Date expiredAt = claims.getNotBefore();
