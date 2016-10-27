@@ -34,17 +34,17 @@ class C3p0ConnectionPool extends AbstractConnectionPool {
     cpds.setMaxPoolSize(max_size);
     cpds.setMaxStatements(20 * max_size);
 
-//
-//    //test every 60s
-//    cpds.setIdleConnectionTestPeriod(60);
-//
-//    //wait 3000ms to get the connection or fail
-//    cpds.setCheckoutTimeout(3000);
-//
-////    cpds.setAcquireIncrement(10);
-//    cpds.setMaxIdleTime(300);
-//
-//    //pstmt cache
+
+    //test every 60s
+    cpds.setIdleConnectionTestPeriod(60);
+
+    //wait 3000ms to get the connection or fail
+    cpds.setCheckoutTimeout(3000);
+
+//    cpds.setAcquireIncrement(10);
+    cpds.setMaxIdleTime(300);
+
+    //pstmt cache
 
     return cpds::getConnection;
   }
