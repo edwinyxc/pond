@@ -185,11 +185,12 @@ public interface FIterable<E> extends Iterable<E> {
     return partition((e, idx, iter) -> predicate.apply(e));
   }
 
+  @SuppressWarnings({"rawtypes","unchecked"})
   default <C extends Collection> C collect(C collection) {
     S._assert(collection);
     return S._tap(collection, c -> {
       for (E e : this) {
-        c.add(e);
+        ((Collection<E>) c).add(e);
       }
     });
   }

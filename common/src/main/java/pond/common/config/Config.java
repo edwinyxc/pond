@@ -18,7 +18,7 @@ public interface Config {
    * @param c    -- specified class
    * @param name -- entry's name
    */
-  default String get(Class c, String name) {
+  default String get(Class<?> c, String name) {
     return get(concatNames(c, name));
   }
 
@@ -35,7 +35,7 @@ public interface Config {
    * @param val  -- entry's value
    * @return self for fluid-style
    */
-  default Config set(Class c, String name, String val) {
+  default Config set(Class<?> c, String name, String val) {
     return set(concatNames(c, name), val);
   }
 
@@ -48,13 +48,13 @@ public interface Config {
     return S._for(all()).filterByKey(name -> name.startsWith(prefix)).val();
   }
 
-  default Map<String, String> all(Class c) {
+  default Map<String, String> all(Class<?> c) {
     return S._for(all()).filterByKey(name -> name.startsWith(c.getCanonicalName())).val();
   }
 
   final static Config system = new SystemBasedConfig();
 
-  static String concatNames(Class c, String name) {
+  static String concatNames(Class<?> c, String name) {
     S._assertNotNull(c, name);
     return c.getCanonicalName() + "." + name;
   }

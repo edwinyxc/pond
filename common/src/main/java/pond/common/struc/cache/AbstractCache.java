@@ -5,7 +5,6 @@ import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.common.struc.Cache;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractCache<K, V> extends Cache<K, V> {
@@ -47,7 +46,7 @@ public abstract class AbstractCache<K, V> extends Cache<K, V> {
   protected abstract V _get(K key);
 
   @Override
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked","rawtypes"})
   public V get(K key, Function<V, Cache> onNothingFound) {
     V ret = this._get(key);
     if( ret == null ) {

@@ -1,5 +1,6 @@
 package pond.common.f;
 
+@SuppressWarnings({"rawtypes"})
 public interface Function<R, A> {
 
   /**

@@ -1,10 +1,10 @@
 package pond.common.f;
 
+@SuppressWarnings("all")
 public interface Callback<A> {
 
   Callback NOOP = a -> {};
 
-  @SuppressWarnings("all")
   static <A> Callback<A> noop() {
     return NOOP;
   }

@@ -24,6 +24,7 @@ public final class OnTimeExpiredCache<K, V> extends AbstractCache<K, V> {
     checkInterval = checkIntervalMs;
     TimerTask task = new TimerTask() {
       @Override
+      @SuppressWarnings({"rawtypes","unchecked"})
       public void run() {
 
         Iterator it = OnTimeExpiredCache.this.cache.entrySet().iterator();

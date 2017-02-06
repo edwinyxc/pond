@@ -14,12 +14,13 @@ import java.util.List;
  *
  * @param <E>
  */
+@SuppressWarnings("serial")
 public class Array<E> extends ArrayList<E> implements FIterable<E> {
-
 
   public Array() {
   }
 
+  @SafeVarargs
   public Array(E... data) {
     Collections.addAll(this, data);
   }
@@ -32,7 +33,7 @@ public class Array<E> extends ArrayList<E> implements FIterable<E> {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("all")
   public <R> FIterable<R> map(Function<R, E> mapper) {
     return S._tap((Array) this.clone(), clone -> {
       for (int i = 0; i < clone.size(); i++) {
@@ -100,6 +101,7 @@ public class Array<E> extends ArrayList<E> implements FIterable<E> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public FIterable<E> reverse() {
     Array<E> ret = (Array<E>) this.clone();
     Collections.reverse(ret);
@@ -107,6 +109,7 @@ public class Array<E> extends ArrayList<E> implements FIterable<E> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public FIterable<E> concat(FIterable<E> iterable) {
     Array<E> ret = (Array<E>) this.clone();
     for (E e : iterable) {

@@ -40,6 +40,7 @@ public abstract class Cache<K, V> {
    * @param key
    * @return
    */
+  @SuppressWarnings("rawtypes")
   public abstract V get(K key, Function<V, Cache> doWhenNotFound);
 
   public abstract V get(K key, V cache);

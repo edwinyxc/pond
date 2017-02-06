@@ -1,5 +1,7 @@
 package com.shuimin.table;
 
+
+import com.shuimin.table.XLSRow;
 import pond.common.f.Function;
 import pond.common.struc.MatrixO;
 
@@ -14,7 +16,7 @@ public class MemoryTable extends MatrixO implements Table {
 
 
   public MemoryTable(int rows, int cols,
-                     Function.F2<Object, Integer, Integer> provider) {
+                     Function.F2<?, Integer, Integer> provider) {
     super(rows, cols, provider);
   }
 
@@ -40,8 +42,11 @@ public class MemoryTable extends MatrixO implements Table {
   }
 
   @Override
-  public List<Object> row(int i) {
-    return Arrays.asList(super.getRow(i));
+  public XLSRow row(int i) {
+    List<Object> list = Arrays.asList(super.getRow(i));
+    XLSRow row = new XLSRow(Integer.MAX_VALUE);
+    row.addAll(list);
+    return row;
   }
 
   @Override

@@ -20,7 +20,6 @@ import java.nio.charset.Charset;
  */
 public class ExcelToHtml {
 
-
   public static void convert(InputStream xls, OutputStream out_) {
     String rootPath = PATH.classpathRoot();
     File tmp = new File(rootPath, "tmp");

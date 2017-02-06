@@ -8,6 +8,7 @@ import java.util.Map;
 /**
  * JSON api
  */
+@SuppressWarnings({"rawtypes"})
 public class JSON {
 
   static JsonService json = SPILoader.service(JsonService.class);

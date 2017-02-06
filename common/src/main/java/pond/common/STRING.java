@@ -15,9 +15,10 @@ public class STRING {
 
   static {
     String newLine;
-
+    Formatter formatter;
     try {
-      newLine = new Formatter().format("%n").toString();
+      formatter = new Formatter();
+      newLine = formatter.format("%n").toString();
     } catch (Exception e) {
       newLine = "\n";
     }

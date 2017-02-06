@@ -19,14 +19,12 @@ public class Services {
   public final static Map<String, Service> services = new HashMap<>();
 
  // private final static Map
-
   //top-level-domain class
-
   //the function is designed as Function<Service, ?>
-  //TODO: java sucks!!!
-  // private final static Map<Class, Function> adapters = new HashMap<>();
 
-  private final static List<Tuple<Class,Function>> adapters = new LinkedList();
+  private final static 
+  List<Tuple<Class<?>, Function<? extends Service, ?>>> 
+    adapters = new LinkedList<>();
 
   public static void add(String name, Service serv) {
     if (name == null) throw new NullPointerException("null service name");
@@ -42,15 +40,15 @@ public class Services {
    * @param clz 要注册的类型
    * @param adapter 绑定的适配器
    */
-  public static void adapter(Class clz, Function<? extends Service, ?> adapter) {
+  public static void adapter(Class<?> clz, Function<? extends Service, ?> adapter) {
     adapters.add(pair(clz, adapter));
   }
 
-  static Function search_adapter(Class serv_cls ){
-    Function adapter = null;
-    for(Tuple<Class, Function> t: adapters){
-      Class cls = t._a;
-      Function f = t._b;
+  static Function<? extends Service, ?> search_adapter(Class<?> serv_cls ){
+    Function<? extends Service, ?> adapter = null;
+    for(Tuple<Class<?>, Function<? extends Service, ?>> t: adapters){
+      Class<?> cls = t._a;
+      Function<? extends Service, ?> f = t._b;
       if(cls.isAssignableFrom(serv_cls)) {
         adapter = f;
         break;
@@ -61,7 +59,6 @@ public class Services {
     return adapter;
   }
 
-  @SuppressWarnings("unchecked")
   public static Service get(String name) {
 
     Object raw_serv = services.get(name);
@@ -70,9 +67,10 @@ public class Services {
     return adapt(raw_serv);
   }
 
+  @SuppressWarnings("all")
   public static Service adapt(Object raw_serv) {
 
-    Class raw_serv_class = raw_serv.getClass();
+    Class<?> raw_serv_class = raw_serv.getClass();
 
     if (raw_serv_class.equals(Service.class)) {
       return (Service) raw_serv;

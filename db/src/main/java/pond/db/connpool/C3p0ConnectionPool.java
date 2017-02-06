@@ -1,7 +1,6 @@
 package pond.db.connpool;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import pond.common.f.Callback;
 import pond.common.f.Function;
 
 import java.beans.PropertyVetoException;

@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+@SuppressWarnings("all")
 public class STest {
 
   @Test
@@ -37,7 +38,7 @@ public class STest {
 
   @Test
   public void test_getOrSet() throws Exception {
-    Map map = new HashMap<>();
+    Map<String,String> map = new HashMap<>();
     S._getOrSet(map, "e", "set!");
     assertEquals("set!", map.get("e"));
   }
@@ -54,7 +55,7 @@ public class STest {
 
   @Test
   public void test_array_join() {
-    String[] arr = S.array.of(new ArrayList<String>() {{
+    String[] arr = ARRAY.of(new ArrayList<String>() {{
       this.add("a");
       this.add("b");
       this.add("c");
@@ -73,6 +74,7 @@ public class STest {
     String a = S._try_ret(() -> {
       throw new Exception();
     });
+    S.echo(a);
   }
 
   @Test

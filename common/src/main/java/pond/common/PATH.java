@@ -23,7 +23,7 @@ public class PATH {
     return classpathRoot(S.class);
   }
 
-  public static String classpathRoot(Class clazz) {
+  public static String classpathRoot(Class<?> clazz) {
     S._assert(clazz);
     URL resource = clazz.getResource("/");
     if (resource == null)

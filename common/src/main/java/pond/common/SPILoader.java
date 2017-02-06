@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * SPI loader
  */
+@SuppressWarnings("all")
 public final class SPILoader {
 
   private ConcurrentMap<Class, Object> services

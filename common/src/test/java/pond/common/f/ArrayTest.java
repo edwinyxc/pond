@@ -104,7 +104,7 @@ public class ArrayTest {
   @Test
   public void testPartition() {
     Array<Integer> arr = S.array(1, 2, 3, 4, 5, 6, 7, 8, 9);
-    FIterable.Partition p = arr.partition(x -> x > 5);
+    FIterable.Partition<Integer> p = arr.partition(x -> x > 5);
     assertArrayEquals((int[]) Convert.toPrimitiveArray(p._true().join()), new int[]{6, 7, 8, 9});
     assertArrayEquals((int[]) Convert.toPrimitiveArray(p._false().join()), new int[]{1, 2, 3, 4, 5});
   }

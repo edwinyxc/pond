@@ -50,6 +50,7 @@ public class ARRAY {
   }
 
 
+  @SuppressWarnings("all")
   public static <T> T[] concat(T[] first, T[]... rest) {
     int totalLength = first.length;
     for (T[] array : rest) {

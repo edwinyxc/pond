@@ -13,6 +13,7 @@ import static pond.common.S._try_ret;
  * Created by ed on 14-5-19.
  * AbstractRecord
  */
+@SuppressWarnings("rawtypes")
 public class AbstractRecord extends HashMap<String, Object>
     implements Record {
 
@@ -157,6 +158,7 @@ public class AbstractRecord extends HashMap<String, Object>
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public <E> Field<E> field(String name) {
     for (Field f : declaredFields) {
       if (f.name().equals(name)) {
@@ -204,7 +206,6 @@ public class AbstractRecord extends HashMap<String, Object>
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public Record set(String s, Object val) {
     super.put(s, val);
     return this;

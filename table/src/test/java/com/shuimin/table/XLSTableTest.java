@@ -3,6 +3,10 @@ package com.shuimin.table;
 import org.junit.Ignore;
 import org.junit.Test;
 import pond.common.PATH;
+import com.shuimin.table.XLSRow;
+
+import junit.framework.Assert;
+import pond.common.S;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,6 +17,13 @@ import java.util.Map;
 
 public class XLSTableTest {
   public File dir = new File(PATH.classpathRoot());
+
+  @Test
+  public void test_XLSTable() throws Exception {
+    XLSRow row = new XLSRow(10);
+    S.echo("Testing xlstable get 11, should be null");
+    Assert.assertNull(row.get(11));
+  }
 
   @Ignore
   @Test

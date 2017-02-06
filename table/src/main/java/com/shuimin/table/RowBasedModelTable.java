@@ -1,5 +1,6 @@
 package com.shuimin.table;
 
+import com.shuimin.table.XLSRow;
 import pond.common.f.Function;
 
 import java.util.ArrayList;
@@ -14,17 +15,17 @@ import java.util.Map;
 public abstract class RowBasedModelTable extends ModelTable {
 
   public <E> List<E> parse(int r_b, int r_e,
-                           Function<E, List<Object>> row_mapper) {
+                           Function<E, XLSRow> row_mapper) {
     List<E> ret = new ArrayList<>();
     for (int i = r_b; i < r_e; i++) {
-      List<Object> _row = this.row(i);
+      XLSRow _row = this.row(i);
       E e = row_mapper.apply(_row);
       ret.add(e);
     }
     return ret;
   }
 
-  public Function<Map<String, Object>, List<Object>> theadMapper(int idx) {
+  public Function<Map<String, Object>, XLSRow> theadMapper(int idx) {
 
     List<Object> head = row(idx);
 

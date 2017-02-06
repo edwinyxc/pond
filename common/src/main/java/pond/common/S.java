@@ -145,7 +145,6 @@ public class S {
     debugModeReg.removeAll(_for(clz).map(Class::getCanonicalName).toList());
   }
 
-
   //TODO may be a function to redirect Logger
 
   /**
@@ -269,7 +268,6 @@ public class S {
    * Try to get a value from the map.
    * If the map does not have the value, Set a new one.
    */
-  @SuppressWarnings("unchecked")
   public static <K, V> V _getOrSet(Map<K, V> m, K k, V v) {
     V got = m.get(k);
     if (got == null) {
@@ -321,7 +319,7 @@ public class S {
    * ***************** B ********************
    */
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked","rawtypes"})
   public static String dump(Object o) {
     if (o == null) return "null";
     Class clazz = o.getClass();
@@ -466,9 +464,9 @@ public class S {
     @SuppressWarnings("unchecked")
     public static <K, V> HashMap<K, V> hashMap(Object[][] kv) {
       if (kv == null) {
-        return new HashMap();
+        return new HashMap<K,V>();
       }
-      HashMap<K, V> ret = new HashMap();
+      HashMap<K, V> ret = new HashMap<>();
       for (Object[] entry : kv) {
         if (entry.length >= 2) {
           ret.put((K) entry[0], (V) entry[1]);

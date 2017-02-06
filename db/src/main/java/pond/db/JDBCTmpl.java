@@ -1,6 +1,5 @@
 package pond.db;
 
-import org.h2.command.dml.Select;
 import pond.common.ARRAY;
 import pond.common.S;
 import pond.common.f.Callback;
@@ -95,7 +94,6 @@ public class JDBCTmpl implements Closeable {
     return this.query(db.default_row_mapper, sql);
   }
 
-  @SuppressWarnings("unchecked")
   public <R extends Record> List<R> query(
       R proto,
       String sql, Object... x
@@ -103,7 +101,6 @@ public class JDBCTmpl implements Closeable {
     return this.query(proto.mapper(), sql, x);
   }
 
-  @SuppressWarnings("unchecked")
   public <R extends Record> List<R> query(
       Class<R> clazz,
       String sql, Object... x
@@ -361,7 +358,7 @@ public class JDBCTmpl implements Closeable {
         }
         arg_groups.add(group);
         //2.make queryRS
-        for (List q_group : arg_groups) {
+        for (List<?> q_group : arg_groups) {
           if (q_group.size() > 2) {
             sqlSelect.where((String) q_group.remove(0),
                             (Criterion) q_group.remove(0),
@@ -379,12 +376,13 @@ public class JDBCTmpl implements Closeable {
     return this.query(proto.mapper(), sqlSelect.tuple());
   }
 
-    /*
-     *
-     * Using mysql as dialect for now ...
-     */
+  /*
+  *
+  * Using mysql as dialect for now ...
+  */
 
   //TODO add where clause
+  @SuppressWarnings("all")
   public boolean recordExists(Class clazz, String id) {
     Record r = Prototype.proto(clazz);
     String tableName = r.table();

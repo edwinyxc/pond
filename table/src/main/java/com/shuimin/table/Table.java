@@ -2,6 +2,7 @@ package com.shuimin.table;
 
 import java.io.IOException;
 import java.util.List;
+import com.shuimin.table.*;
 
 /**
  * Created by ed on 2014/5/4.
@@ -42,7 +43,7 @@ public interface Table {
    * @param i row index
    * @return List of row
    */
-  public List<Object> row(int i);
+  public XLSRow row(int i);
 
   /**
    * get column as List at index of i

@@ -1,7 +1,6 @@
 package pond.db.connpool;
 
 import pond.common.S;
-import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.db.DB;
 import pond.db.sql.dialect.Dialect;
@@ -13,6 +12,7 @@ import java.util.Properties;
 /**
  * Created by ed on 12/18/15.
  */
+@SuppressWarnings({"rawtypes"})
 abstract class AbstractConnectionPool<T extends AbstractConnectionPool> implements ConnectionPool{
 
   String jdbc_driver;
@@ -28,21 +28,25 @@ abstract class AbstractConnectionPool<T extends AbstractConnectionPool> implemen
 
   public Dialect dialect;
 
+  @SuppressWarnings("unchecked")
   public T driver(String jdbc_driver){
     this.jdbc_driver = jdbc_driver;
     return (T) this;
   }
 
+  @SuppressWarnings("unchecked")
   public T url(String url){
     this.conn_url= url;
     return (T) this;
   }
 
+  @SuppressWarnings("unchecked")
   public T username(String username) {
     this.username = username;
     return (T) this;
   }
 
+  @SuppressWarnings("unchecked")
   public T password(String password) {
     this.password = password;
     return (T) this;

@@ -2,6 +2,8 @@ package com.shuimin.table;
 
 import com.shuimin.table.spi.ExpressionEngine;
 import com.shuimin.table.spi.expr.SimpleExprEngine;
+import com.shuimin.table.XLSRow;
+
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -109,15 +111,16 @@ public class XLSTable extends RowBasedModelTable
   }
 
   @Override
-  public List<Object> row(int i) {
+  public XLSRow row(int i) {
     if (i >= this.rows())
       throw new IllegalArgumentException("" + i + "not a valid rowNum");
 
-    List<Object> list = new ArrayList<>();
 
     HSSFRow rowline = sheet.getRow(i);
 
     int filledColumns = rowline.getLastCellNum();
+
+    XLSRow list = new XLSRow(filledColumns);
     //循环遍历所有列
     for (int j = 0; j < filledColumns; j++) {
       list.add(cellValue(rowline.getCell(j)));
