@@ -2,12 +2,7 @@ package com.shuimin.table;
 
 import com.shuimin.table.spi.ExpressionEngine;
 import com.shuimin.table.spi.expr.SimpleExprEngine;
-import com.shuimin.table.XLSRow;
-
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.usermodel.*;
 import pond.common.S;
 import pond.common.f.Function;
 import pond.common.f.Tuple;
@@ -16,9 +11,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static pond.common.f.Tuple.t2;
 
@@ -46,8 +39,8 @@ public class XLSTable extends RowBasedModelTable
   private Object[][] _value;
 
   //constructor
-  public XLSTable(InputStream is) throws IOException {
-
+  public XLSTable(InputStream is, Map<Integer, Function<Object, HSSFCell>> customerParsers) throws IOException {
+    customerParsers = S.avoidNull(customerParsers, Collections.emptyMap());
     //创建workbook
     workbook = new HSSFWorkbook(is);
     this.is = is;
@@ -68,14 +61,47 @@ public class XLSTable extends RowBasedModelTable
       HSSFRow row = sheet.getRow(i);
       if (row != null)
         for (int j = 0; j < sheet_cols; j++) {
-          _value[i][j] = cellValue(row.getCell(j));
+          _value[i][j] = cellValue(row.getCell(j), customerParsers.get(j));
         }
       else
         for (int j = 0; j < sheet_cols; j++) {
           _value[i][j] = "";
         }
     }
+  }
 
+  public XLSRow row(int i, Map<Integer, Function<Object, HSSFCell>> customerParsers) {
+
+    customerParsers = S.avoidNull(customerParsers, Collections.emptyMap());
+    if (i >= this.rows())
+      throw new IllegalArgumentException("" + i + "not a valid rowNum");
+
+    HSSFRow rowline = sheet.getRow(i);
+
+    int filledColumns = rowline.getLastCellNum();
+
+    XLSRow list = new XLSRow(filledColumns);
+    //循环遍历所有列
+    for (int j = 0; j < filledColumns; j++) {
+      list.add(cellValue(rowline.getCell(j), customerParsers.get(i)));
+    }
+    return list;
+  }
+
+  public <E> List<E> parse(int r_b, int r_e,
+                           Map<Integer, Function<Object, HSSFCell>> customParsers,
+                           Function<E, XLSRow> row_mapper){
+    List<E> ret = new ArrayList<>();
+    for (int i = r_b; i < r_e; i++) {
+      XLSRow _row = this.row(i, customParsers);
+      E e = row_mapper.apply(_row);
+      ret.add(e);
+    }
+    return ret;
+  }
+
+  public XLSTable(InputStream is) throws IOException{
+    this(is, Collections.emptyMap());
   }
 
   public InputStream source() {
@@ -112,41 +138,34 @@ public class XLSTable extends RowBasedModelTable
 
   @Override
   public XLSRow row(int i) {
-    if (i >= this.rows())
-      throw new IllegalArgumentException("" + i + "not a valid rowNum");
-
-
-    HSSFRow rowline = sheet.getRow(i);
-
-    int filledColumns = rowline.getLastCellNum();
-
-    XLSRow list = new XLSRow(filledColumns);
-    //循环遍历所有列
-    for (int j = 0; j < filledColumns; j++) {
-      list.add(cellValue(rowline.getCell(j)));
-    }
-    return list;
+    return row(i, Collections.emptyMap());
   }
 
+
   //TODO ugly
-  private Object cellValue(HSSFCell cell) {
+  private Object cellValue(HSSFCell cell, Function<Object, HSSFCell> customerParser) {
     if (cell == null) return null;
-    int type = cell.getCellType();
-    switch (type) {
-      case HSSFCell.CELL_TYPE_BLANK:
-        return "";
-      case HSSFCell.CELL_TYPE_BOOLEAN:
-        return cell.getBooleanCellValue();
-      case HSSFCell.CELL_TYPE_ERROR:
-        return cell.getErrorCellValue();
-      case HSSFCell.CELL_TYPE_FORMULA:
-        return cell.getCellFormula();
-      case HSSFCell.CELL_TYPE_NUMERIC:
-        return cell.getNumericCellValue();
-      case HSSFCell.CELL_TYPE_STRING:
-        return cell.getStringCellValue();
-      default:
-        return cell.getStringCellValue();
+    if (customerParser == null) {
+      //default parse
+      int type = cell.getCellType();
+      switch (type) {
+        case HSSFCell.CELL_TYPE_BLANK:
+          return "";
+        case HSSFCell.CELL_TYPE_BOOLEAN:
+          return cell.getBooleanCellValue();
+        case HSSFCell.CELL_TYPE_ERROR:
+          return cell.getErrorCellValue();
+        case HSSFCell.CELL_TYPE_FORMULA:
+          return cell.getCellFormula();
+        case HSSFCell.CELL_TYPE_NUMERIC:
+          return HSSFDateUtil.isCellDateFormatted(cell) ? cell.getDateCellValue() : cell.getNumericCellValue();
+        case HSSFCell.CELL_TYPE_STRING:
+          return cell.getStringCellValue();
+        default:
+          return cell.getStringCellValue();
+      }
+    } else {
+      return customerParser.apply(cell);
     }
   }
 

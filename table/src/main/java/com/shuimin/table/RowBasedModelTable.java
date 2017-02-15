@@ -1,6 +1,5 @@
 package com.shuimin.table;
 
-import com.shuimin.table.XLSRow;
 import pond.common.f.Function;
 
 import java.util.ArrayList;
@@ -24,6 +23,7 @@ public abstract class RowBasedModelTable extends ModelTable {
     }
     return ret;
   }
+
 
   public Function<Map<String, Object>, XLSRow> theadMapper(int idx) {
 

@@ -2,7 +2,10 @@ package com.shuimin.table;
 
 import java.io.IOException;
 import java.util.List;
-import com.shuimin.table.*;
+import java.util.Map;
+
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import pond.common.f.Function;
 
 /**
  * Created by ed on 2014/5/4.
@@ -44,6 +47,7 @@ public interface Table {
    * @return List of row
    */
   public XLSRow row(int i);
+
 
   /**
    * get column as List at index of i

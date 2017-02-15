@@ -192,6 +192,12 @@ public class AbstractRecord extends HashMap<String, Object>
     return this;
   }
 
+  @Override
+  public Record mergeExceptId(Map<String, Object> map) {
+    String cache_id = this.id();
+    return this.merge(map).setId(cache_id);
+  }
+
 
   @Override
   @SuppressWarnings("unchecked")

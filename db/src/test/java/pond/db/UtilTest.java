@@ -15,6 +15,27 @@ public class UtilTest {
     assertEquals("jdbc:mysql://ssss/weee?wwww", a);
   }
 
+  @Test
+  public void record_map_test() {
+
+    Model a = new Model(){{
+      id("id");
+      field("f1");
+    }};
+
+    a.set("id", "123").set("f1","15");
+
+
+    Model b = new Model(){{
+      id("id");
+      field("f1");
+    }};
+
+    b.set("id","333").set("f1","16");
+
+    a.mergeExceptId(b.toMap());
+    assertEquals(a.id(), "123");
+  }
 
   @Test
   public void test() {

@@ -204,14 +204,26 @@ public interface Record {
   Record set(String s, Object val);
 
   /**
-   * of argument as defined in declaredFieldNames,
+   * Merge parameters to the underlying record.
    * WARN: this method change the state of current object
    * rather than return a new copy
    *
    * @param map input query
-   * @return altered this
+   * @return merged record
    */
   Record merge(Map<String, Object> map);
+
+  /**
+   * Merge parameters to the underlying record,
+   * <strong>except for the id field</strong>.
+   *
+   * WARN: this method change the state of current object
+   * rather than return a new copy
+   *
+   * @param map input query
+   * @return merged record
+   */
+  Record mergeExceptId(Map<String, Object> map);
 
   /**
    * get defined RowMapper
@@ -231,6 +243,9 @@ public interface Record {
   <E> Record mapper(Function<E, ResultSet> mapper);
 
 
+  /**
+   * @return a hash map contains all the current entries (this.fields) mapped with the Field::view function
+   */
   default Map<String, Object> view() {
     Map<String, Object> ret = new HashMap<>();
     for (String s : this.fields()) {
@@ -239,8 +254,25 @@ public interface Record {
     return ret;
   }
 
-  default Map<String, Object> db() {
+  /**
+   ** @return the underlying record as a map
+   */
+  @SuppressWarnings("unchecked")
+  default Map<String, Object> toMap() {
+    if(this instanceof Map){
+      return (Map<String, Object>) this;
+    }
+    Map<String, Object> ret = new HashMap<>();
+    for (String s : this.fields()) {
+      ret.put(s, this.get(s));
+    }
+    return ret;
+  }
 
+  /**
+   * @return a hash map contains all the pre-defined entries (this.declaredFieldNames) mapped with the Field::db function
+   */
+  default Map<String, Object> db() {
     Map<String, Object> ret = new HashMap<>();
     for (String s : this.declaredFieldNames()) {
       ret.put(s, db(s));
