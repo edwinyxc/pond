@@ -28,7 +28,7 @@ public class XLSTable extends RowBasedModelTable
   InputStream is = null;
   //当前位置
   //HSSFWorkbook 97-2003
-  final HSSFWorkbook workbook;
+  public final HSSFWorkbook workbook;
   //返回指定sheet对象
   final HSSFSheet sheet;
   //设置Cell之间以空格分割
