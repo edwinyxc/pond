@@ -1,8 +1,7 @@
-package pond.web.spi;
+package pond.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pond.web.Mid;
 
 public interface StaticFileServer extends Mid {
 

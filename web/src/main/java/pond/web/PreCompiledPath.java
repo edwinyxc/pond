@@ -1,4 +1,4 @@
-package pond.web.spi;
+package pond.web;
 
 import java.util.Arrays;
 import java.util.List;

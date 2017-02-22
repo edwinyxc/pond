@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Function;
 import pond.web.*;
+import pond.web.HttpCtx;
 
 import java.util.Arrays;
 import java.util.Base64;
@@ -30,13 +31,13 @@ public class HttpBasicAuth {
 
   final Render requireBasicAuth = new Render() {
     @Override
-    public void render(Request req, Response resp) {
-      resp.header("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
-      resp.send(401);
+    public void render(HttpCtx ctx) {
+      ctx.resp.header("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
+      ctx.resp.send(401);
     }
   };
 
-  public String user(WebCtx ctx) {
+  public String user(HttpCtx ctx) {
     return (String) ctx.get(in_ctx_user_id);
   }
 

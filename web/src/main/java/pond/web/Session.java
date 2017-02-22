@@ -4,7 +4,6 @@ import pond.common.S;
 import pond.common.SPILoader;
 import pond.common.f.Function;
 import pond.web.http.Cookie;
-import pond.web.spi.SessionStore;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +13,7 @@ import java.util.Map;
  */
 public class Session {
 
-  static SessionStore store = SPILoader.service(SessionStore.class);
+  static SessionStore store = new DefaultSessionStore();
 
   public static SessionStore store() {
     return store;
@@ -148,7 +147,7 @@ public class Session {
   }
 
 
-  public static Session get(WebCtx ctx) {
+  public static Session get(HttpCtx ctx) {
 
     Session ret = (Session) ctx.get(LABEL_SESSION);
     if (ret == null)

@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 
 /**
  * <p>Response 封装了http response 对象，
- * 所有jtiny支持的服务器都应该提供相应适配器来将底层对象转换成Response</p>
+ * 所有Pond支持的服务器都应该提供相应适配器来将底层对象转换成Response</p>
  */
 public interface Response {
 
@@ -121,12 +121,10 @@ public interface Response {
   Response contentType(String type);
 
   default void render(Render r) {
-    r.render(ctx().req, ctx().resp);
+    r.render(ctx());
   }
 
-  default WebCtx ctx() {
-    throw new RuntimeException("please implement the default Response#ctx() function");
-  }
+  HttpCtx ctx();
 
 
 }

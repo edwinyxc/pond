@@ -1,9 +1,9 @@
-package pond.web.spi.netty;
+package pond.web;
 
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import pond.web.Request;
-import pond.web.spi.BaseServer;
+import pond.web.BaseServer;
 
 import java.io.File;
 import java.io.IOException;

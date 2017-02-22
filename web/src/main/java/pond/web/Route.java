@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  */
 public class Route {
 
-  private final List<Mid> mids;
+  private final List<CtxHandler> mids;
   private final Pattern definition;
   private final String[] inUrlParamNames;
 
@@ -20,13 +20,13 @@ public class Route {
     return definition;
   }
 
-  public Route(Pattern def, String[] names, List<Mid> mids) {
+  public Route(Pattern def, String[] names, List<CtxHandler> mids) {
     definition = def;
     inUrlParamNames = names;
     this.mids = mids;
   }
 
-  List<Mid> mids() {
+  List<CtxHandler> mids() {
     return mids;
   }
 

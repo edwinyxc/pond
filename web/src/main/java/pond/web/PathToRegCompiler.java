@@ -1,12 +1,7 @@
-package pond.web.spi;
+package pond.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pond.common.f.Tuple;
-import pond.web.Route;
-
-import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * SPI -- used for compile an arbitrary string to a much more meaningful regular expression.

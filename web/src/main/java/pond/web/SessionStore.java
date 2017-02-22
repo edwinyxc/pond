@@ -1,4 +1,4 @@
-package pond.web.spi;
+package pond.web;
 
 
 import org.slf4j.Logger;

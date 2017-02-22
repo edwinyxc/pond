@@ -1,12 +1,14 @@
 package pond.web;
 
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import pond.common.HTTP;
-import pond.common.JSON;
 import pond.common.S;
 import pond.common.f.Tuple;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 import static pond.web.Render.text;
@@ -213,8 +215,7 @@ public class ManualTest {
   }
 
 
-  static
-  class err_ctrl extends Controller {
+  static class err_ctrl extends Controller {
     @Mapping(value = "/")
     public void err(Request req, Response resp) {
       throw new EndToEndException(400, "用户输入错误");
@@ -239,8 +240,83 @@ public class ManualTest {
     ).listen();
   }
 
+
+  private static final String NEWLINE = "\r\n";
+
+  public static void test_web_socket() throws IOException {
+    List<WSCtx> all_wssockets = new ArrayList<>();
+    Pond.init().cleanAndBind(
+        p -> {
+          p.get("/notifyAll/:msg", (req, resp)->{
+            String msg = req.param("msg");
+            S._for(all_wssockets).forEach(s -> {
+              s.context.writeAndFlush(new TextWebSocketFrame("headers:" + s.nettyRequest.headers()));
+            });
+            resp.send(200);
+          });
+          p.get("/websocket", InternalMids.websocket(wsctx -> {
+            all_wssockets.add(wsctx);
+            wsctx.onMessage((request, ctx) -> {
+              S._for(all_wssockets).forEach(s -> {
+                s.context.writeAndFlush(new TextWebSocketFrame(request.toUpperCase()));
+              });
+            });
+            wsctx.onClose(() -> "CLOSE");
+          }));
+          p.get("/", (req, resp) -> {
+            resp.send(200, "<html><head><title>Web Socket Test</title></head>" + NEWLINE +
+                "<body>" + NEWLINE +
+                "<script type=\"text/javascript\">" + NEWLINE +
+                "var socket;" + NEWLINE +
+                "if (!window.WebSocket) {" + NEWLINE +
+                "  window.WebSocket = window.MozWebSocket;" + NEWLINE +
+                '}' + NEWLINE +
+                "if (window.WebSocket) {" + NEWLINE +
+                "  socket = new WebSocket(\"ws://"
+                + req.ctx().nettyRequest.headers().get(HttpHeaderNames.HOST) +"/websocket\");"
+                + NEWLINE +
+                "  socket.onmessage = function(event) {" + NEWLINE +
+                "    var ta = document.getElementById('responseText');" + NEWLINE +
+                "    ta.value = ta.value + '\\n' + event.data" + NEWLINE +
+                "  };" + NEWLINE +
+                "  socket.onopen = function(event) {" + NEWLINE +
+                "    var ta = document.getElementById('responseText');" + NEWLINE +
+                "    ta.value = \"Web Socket opened!\";" + NEWLINE +
+                "  };" + NEWLINE +
+                "  socket.onclose = function(event) {" + NEWLINE +
+                "    var ta = document.getElementById('responseText');" + NEWLINE +
+                "    ta.value = ta.value + \"Web Socket closed\"; " + NEWLINE +
+                "  };" + NEWLINE +
+                "} else {" + NEWLINE +
+                "  alert(\"Your browser does not support Web Socket.\");" + NEWLINE +
+                '}' + NEWLINE +
+                NEWLINE +
+                "function send(message) {" + NEWLINE +
+                "  if (!window.WebSocket) { return; }" + NEWLINE +
+                "  if (socket.readyState == WebSocket.OPEN) {" + NEWLINE +
+                "    socket.send(message);" + NEWLINE +
+                "  } else {" + NEWLINE +
+                "    alert(\"The socket is not open.\");" + NEWLINE +
+                "  }" + NEWLINE +
+                '}' + NEWLINE +
+                "</script>" + NEWLINE +
+                "<form onsubmit=\"return false;\">" + NEWLINE +
+                "<input type=\"text\" name=\"message\" value=\"Hello, World!\"/>" +
+                "<input type=\"button\" value=\"Send Web Socket Data\"" + NEWLINE +
+                "       onclick=\"send(this.form.message.value)\" />" + NEWLINE +
+                "<h3>Output</h3>" + NEWLINE +
+                "<textarea id=\"responseText\" style=\"width:500px;height:300px;\"></textarea>" + NEWLINE +
+                "</form>" + NEWLINE +
+                "</body>" + NEWLINE +
+                "</html>" + NEWLINE);
+          });
+        }).debug().listen(9090);
+
+  }
+
   public static void main(String[] args) throws IOException {
-      test_file_server();
+    test_web_socket();
+//    test_file_server();
 //    S.echo(JSON.parse("sss"));
 //    test_end2end_exception();
 

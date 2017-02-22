@@ -8,7 +8,7 @@
     <parent>
         <artifactId>pond-parent</artifactId>
         <groupId>pond</groupId>
-        <version>0.2.2</version>
+        <version>0.3.0</version>
     </parent>
 
     <artifactId>pond-table</artifactId>

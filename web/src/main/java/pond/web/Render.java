@@ -10,8 +10,16 @@ import java.util.Base64;
 
 public interface Render {
 
+  static Render dump(Object o) {
+    return ctx -> {
+      Response resp = ctx.resp;
+      resp.send(S.dump(o));
+    };
+  }
+
   static Render text(String text) {
-    return (req, resp) -> {
+    return ctx -> {
+      Response resp = ctx.resp;
       resp.contentType("text/plain;charset=utf-8");
       resp.write(text);
       resp.send(200);
@@ -19,7 +27,8 @@ public interface Render {
   }
 
   static Render json(Object o) {
-    return (req, resp) -> {
+    return (ctx) -> {
+      Response resp = ctx.resp;
       resp.contentType("application/json;charset=utf-8");
       resp.write(JSON.stringify(o));
       resp.send(200);
@@ -27,7 +36,8 @@ public interface Render {
   }
 
   static Render page(Object o, int totalCount) {
-    return (req, resp) -> {
+    return (ctx) -> {
+      Response resp = ctx.resp;
       resp.contentType("application/json;charset=utf-8");
       resp.header("X-Total-Count", String.valueOf(totalCount));
       resp.write(JSON.stringify(o));
@@ -35,9 +45,9 @@ public interface Render {
     };
   }
 
-  @Deprecated
   static Render file(File f) {
-    return (req, resp) -> {
+    return (ctx) -> {
+      Response resp = (ctx).resp;
       String filename = f.getName();
       String file_n = STRING.notBlank(filename) ? filename :
           String.valueOf(S.time());
@@ -63,7 +73,9 @@ public interface Render {
    */
   @Deprecated
   static Render attachment(InputStream file, String filename) {
-    return (req, resp) -> {
+    return (ctx) -> {
+      Request req = (ctx).req;
+      Response resp = (ctx).resp;
       String file_n = STRING.notBlank(filename) ? filename :
           String.valueOf(S.now());
       String file_ext = FILE.fileExt(file_n);
@@ -102,13 +114,6 @@ public interface Render {
     };
   }
 
-  static Render dump(Object o) {
-    return (req, resp) -> {
-      resp.send(S.dump(o));
-    };
-  }
-
-  void render(Request req, Response resp);
-
+  void render(HttpCtx ctx);
 
 }

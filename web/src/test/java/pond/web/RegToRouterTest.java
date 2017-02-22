@@ -3,10 +3,6 @@ package pond.web;
 import org.junit.Test;
 import pond.common.S;
 import pond.common.f.Array;
-import pond.web.spi.ExpressPathToRegCompiler;
-import pond.web.spi.FallbackPathToRegCompiler;
-import pond.web.spi.PathToRegCompiler;
-import pond.web.spi.PreCompiledPath;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -26,21 +22,21 @@ public class RegToRouterTest {
       }
     }
   }
-  @Test
-  public void test_fallback() {
-
-    PathToRegCompiler compiler = new FallbackPathToRegCompiler();
-    PreCompiledPath compiledPath = compiler.compile("/${_id}/${sss}");
-    S.echo(S.dump(compiledPath));
-    Matcher matcher = compiledPath.pattern.matcher("/renren.com/sss_id");
-    S.echo(matcher.matches());
-    S.echo(matcher.groupCount());
-    if (matcher.find()) {
-      for (int i = 0; i < matcher.groupCount(); i++) {
-        S.echo(matcher.group(i + 1));
-      }
-    }
-  }
+//  @Test
+//  public void test_fallback() {
+//
+//    PathToRegCompiler compiler = new FallbackPathToRegCompiler();
+//    PreCompiledPath compiledPath = compiler.compile("/${_id}/${sss}");
+//    S.echo(S.dump(compiledPath));
+//    Matcher matcher = compiledPath.pattern.matcher("/renren.com/sss_id");
+//    S.echo(matcher.matches());
+//    S.echo(matcher.groupCount());
+//    if (matcher.find()) {
+//      for (int i = 0; i < matcher.groupCount(); i++) {
+//        S.echo(matcher.group(i + 1));
+//      }
+//    }
+//  }
 
   private List<String> find_groups (Pattern pattern, String input){
     List<String> re = new Array<>();

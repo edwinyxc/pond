@@ -36,7 +36,8 @@ public enum HttpMethod {
     return mask(GET, POST, PUT, DELETE, HEAD, OPTIONS, TRACE, CONNECT);
   }
 
-  public static HttpMethod of(String method) {
+  public static HttpMethod of(String _method) {
+    String method = _method.trim();
     S._assert(method, "method null");
     if (method.equalsIgnoreCase("get")) {
       return GET;

@@ -21,6 +21,7 @@ import java.util.Map;
  * use concrete name and wildcard name at same time may trigger conflicts.
  * for example: GET /:id and GET /new_user are not able to work together.
  */
+@Deprecated
 public class Controller extends Router {
 
   public Controller() {
@@ -43,10 +44,10 @@ public class Controller extends Router {
 
                ctrl.use(HttpMethod.mask(((Mapping) a).methods()),
                         val,
-                        (req, resp) -> {
+                        CtxHandler.mid((req, resp) -> {
                           Object[] args = new Object[]{req, resp};
 
-                            m.setAccessible(true);
+                          m.setAccessible(true);
                           try {
                             m.invoke(ctrl, args);
                           } catch (IllegalAccessException e) {
@@ -54,7 +55,7 @@ public class Controller extends Router {
                           } catch (InvocationTargetException e) {
                             throw new RuntimeException(e.getTargetException());
                           }
-                        });
+                        }));
              })
       );
 

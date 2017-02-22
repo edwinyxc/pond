@@ -4,11 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.PATH;
 import pond.common.S;
-import pond.common.SPILoader;
 import pond.common.f.Callback;
-import pond.web.spi.BaseServer;
-import pond.web.spi.SessionStore;
-import pond.web.spi.StaticFileServer;
 
 
 /**
@@ -64,7 +60,7 @@ public final class Pond extends Router {
     S.config.set(Pond.class, CONFIG_WEB_ROOT, webroot);
 
     logger.info("root : " + root);
-    server = SPILoader.service(BaseServer.class);
+    server = new NettyHttpServer();
     server.pond(this);
 
 //    rootRouter = new Router();
@@ -105,9 +101,7 @@ public final class Pond extends Router {
 
 //    bindLastMids();
 
-    server.registerHandler((req, resp) -> {
-      new WebCtx(req, resp, this).execAll(this);
-    });
+    server.registerHandler(ctx -> ctx.execAll(this));
 
     try {
       server.listen().get();
@@ -120,7 +114,7 @@ public final class Pond extends Router {
 
   public Mid _static(String dir) {
     if (staticFileServer == null) {
-      staticFileServer = SPILoader.service(StaticFileServer.class);
+      staticFileServer = new DefaultStaticFileServer();
     }
     return staticFileServer.watch(dir);
   }
@@ -164,7 +158,9 @@ public final class Pond extends Router {
                 BaseServer.class,
                 Router.class,
                 StaticFileServer.class,
-                SessionStore.class);
+                SessionStore.class,
+                Ctx.class,
+                CtxHandler.class);
 
     S._debug_on(c);
     return this;

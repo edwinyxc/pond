@@ -1,4 +1,4 @@
-package pond.web.spi.netty;
+package pond.web;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -10,10 +10,6 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import pond.common.Convert;
 import pond.common.S;
 import pond.common.f.Callback;
-import pond.web.Pond;
-import pond.web.Request;
-import pond.web.Response;
-import pond.web.spi.BaseServer;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,9 +25,9 @@ public class NettyHttpServer implements BaseServer {
   public final static String EXECUTOR_THREAD_POOL_SIZE = "executor_thread_pool_size";
 
   private Pond pond;
-  private Callback.C2<Request, Response> handler;
+  private CtxHandler handler;
 
-  protected Callback.C2<Request, Response> handler() {
+  protected CtxHandler handler() {
     return this.handler;
   }
 
@@ -46,21 +42,18 @@ public class NettyHttpServer implements BaseServer {
   }
 
   @Override
-  public void registerHandler(Callback.C2<Request, Response> handler) {
+  public void registerHandler(CtxHandler handler) {
     this.handler = handler;
   }
 
   //    //executorServices -- for user threads
   private ExecutorService executorService = Executors.newFixedThreadPool(
-      Convert.toInt(
-          S.avoidNull(
-              S.config.get(
-                  NettyHttpServer.class,
-                  NettyHttpServer.EXECUTOR_THREAD_POOL_SIZE
-              ),
-              String.valueOf(Runtime.getRuntime().availableProcessors() + 1)
+      S.avoidNull(Convert.toInt(
+          S.config.get(
+              NettyHttpServer.class,
+              NettyHttpServer.EXECUTOR_THREAD_POOL_SIZE
           )
-      )
+      ), Runtime.getRuntime().availableProcessors() + 1)
   );
 
   public NettyHttpServer() { }
@@ -104,18 +97,16 @@ public class NettyHttpServer implements BaseServer {
 
     //since we only listen on single port
     bossGroup = new NioEventLoopGroup(
-        Convert.toInt(
-            S.avoidNull(S.config.get(NettyHttpServer.class,
-                                     NettyHttpServer.EVENT_GROUP_BOSS_GROUP_COUNT),
-                        "1")
-        )
+        S.avoidNull(Convert.toInt(
+            S.config.get(NettyHttpServer.class,
+                         NettyHttpServer.EVENT_GROUP_BOSS_GROUP_COUNT)
+        ), 1)
     );
     workerGroup = new NioEventLoopGroup(
-        Convert.toInt(
-            S.avoidNull(S.config.get(NettyHttpServer.class,
-                                     NettyHttpServer.EVENT_GROUP_WORKER_GROUP_COUNT),
-                        String.valueOf(Runtime.getRuntime().availableProcessors() + 1))
-        )
+        S.avoidNull(Convert.toInt(
+                        S.config.get(NettyHttpServer.class,
+                                     NettyHttpServer.EVENT_GROUP_WORKER_GROUP_COUNT)),
+                    Runtime.getRuntime().availableProcessors() + 1)
     );
 
     ServerBootstrap b = new ServerBootstrap();

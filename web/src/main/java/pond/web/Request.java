@@ -4,14 +4,12 @@ package pond.web;
 import pond.common.S;
 import pond.common.STRING;
 import pond.common.f.Function;
-import pond.common.f.Tuple;
 import pond.web.http.Cookie;
 import pond.web.http.HttpUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,9 +38,7 @@ public interface Request {
 
   Map<String, Cookie> cookies();
 
-  default String path() {
-    return S._try_ret(() -> new URI(uri()).getPath());
-  }
+  String path();
 
   default Cookie cookie(String s) {
     return cookies().get(s);
@@ -139,9 +135,7 @@ public interface Request {
     return S._try_ret(() -> Long.parseLong(data));
   }
 
-  default WebCtx ctx() {
-    throw new RuntimeException("please implement the default Request#ctx() function");
-  }
+  HttpCtx ctx();
 
   /**
    * Returns all params as a Map

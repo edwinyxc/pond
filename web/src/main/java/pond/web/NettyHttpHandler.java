@@ -1,4 +1,4 @@
-package pond.web.spi.netty;
+package pond.web;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
@@ -6,17 +6,14 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
+import io.netty.handler.codec.http.websocketx.*;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.CharsetUtil;
 import pond.common.S;
 import pond.common.STRING;
-import pond.common.f.Callback;
 import pond.common.f.Tuple;
-import pond.web.Request;
-import pond.web.Response;
 import pond.web.http.Cookie;
 import pond.web.http.HttpUtils;
-import pond.web.spi.BaseServer;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -28,33 +25,7 @@ import java.util.concurrent.ExecutorService;
  */
 class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
-  private HttpPostRequestDecoder decoder;
-
-  //HttpRequest httpRequest = null;
-
-  //NettyReqWrapper reqWrapper = null;
-
-//  private volatile NettyReqWrapper reqWrapper;
-
-  //private volatile CompositeByteBuf pooledBuffer = new CompositeByteBuf(PooledByteBufAllocator.DEFAULT, true, 10);
-
-//  private volatile boolean isKeepAlive;
-
-//  private volatile boolean isMultipart;
-
-  final Callback.C2<Request, Response> handler;
-
-  final Map<ChannelHandlerContext, PreprocessedIO> ctxRegister = new HashMap<>();
-
-  final ExecutorService executorService;
-
-  NettyHttpHandler(Callback.C2<Request, Response> handler, ExecutorService executorService) {
-    this.handler = handler;
-    this.executorService = executorService;
-  }
-
   static {
-
     DiskFileUpload.deleteOnExitTemporaryFile = true; // should delete file
     // on exit (in normal // exit)
     DiskFileUpload.baseDirectory = null; // system temp directory
@@ -63,6 +34,17 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     DiskAttribute.baseDirectory = null; // system temp directory
   }
 
+  private HttpPostRequestDecoder decoder;
+  final CtxHandler handler;
+  final static Map<ChannelHandlerContext, HttpCtx> ctxRegister = new LinkedHashMap<>();
+  //use for websocket
+  final static Map<Channel, HttpCtx> channelRegister = new LinkedHashMap<>();
+  final ExecutorService executorService;
+
+  NettyHttpHandler(CtxHandler handler, ExecutorService executorService) {
+    this.handler = handler;
+    this.executorService = executorService;
+  }
 
   private static final HttpDataFactory factory =
       new DefaultHttpDataFactory(DefaultHttpDataFactory.MAXSIZE); // Disk if size exceed
@@ -73,33 +55,17 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
         .addListener(ChannelFutureListener.CLOSE);
   }
 
-  class PreprocessedIO {
-    final NettyReqWrapper wrapper;
-    final boolean isKeepAlive;
-    final boolean isMultipart;
-    final CompositeByteBuf compositeByteBuf;
+//  private PreprocessedWebCtx preprocessedWebCtx = null;
 
-    PreprocessedIO(NettyReqWrapper wrapper,
-                   boolean isKeepAlive,
-                   boolean isMultipart,
-                   CompositeByteBuf compositeByteBuf) {
-
-      this.wrapper = wrapper;
-      this.isKeepAlive = isKeepAlive;
-      this.isMultipart = isMultipart;
-      this.compositeByteBuf = compositeByteBuf;
-    }
-  }
-
-  private PreprocessedIO receiveHttpRequest(ChannelHandlerContext ctx,
+  private HttpCtx receiveHttpRequest(ChannelHandlerContext ctx,
                                             HttpRequest request) {
 
     if (HttpHeaderUtil.is100ContinueExpected(request)) {
       ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
                                             HttpResponseStatus.CONTINUE));
     }
+
     //build the req
-    NettyReqWrapper reqWrapper = new NettyReqWrapper(ctx, request);
 
     boolean isKeepAlive = HttpHeaderUtil.isKeepAlive(request);
     boolean isMultipart = HttpPostRequestDecoder.isMultipart(request);
@@ -113,60 +79,6 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     if (!request.decoderResult().isSuccess()) {
       sendBadRequest(ctx);
     }
-
-    //parse headers
-    final HttpRequest finalHttpRequest = request;
-    reqWrapper.updateHeaders(
-        headers ->
-            S._for(finalHttpRequest.headers())
-                .each(entry ->
-                          HttpUtils.appendToMap(
-                              headers,
-                              entry.getKey().toString(),
-                              finalHttpRequest.headers()
-                                  .getAllAndConvert(entry.getKey())
-                          )
-                )
-    );
-
-    //uri-queries
-    Map<String, List<String>>
-        parsedParams = new QueryStringDecoder(request.uri()).parameters();
-
-    String _uri = request.uri();
-
-    S._debug(BaseServer.logger, log -> {
-      log.debug("QUERY STRING: " + _uri);
-      log.debug("PARSED PARAMS: " + S.dump(parsedParams));
-    });
-
-    reqWrapper.updateParams(params -> params.putAll(parsedParams));
-
-    //parse cookies
-    reqWrapper.updateCookies(cookies -> {
-
-      Set<io.netty.handler.codec.http.Cookie>
-          decoded = ServerCookieDecoder.decode(
-          S.avoidNull(
-              request.headers().getAndConvert(HttpHeaderNames.COOKIE)
-              , "")
-      );
-
-      S._for(decoded).each(
-          cookie ->
-              cookies.put(cookie.name(), S._tap(
-                  new Cookie(cookie.name(), cookie.value()),
-                  c -> {
-                    c.setPath(cookie.path());
-                    c.setMaxAge((int) cookie.maxAge());
-                    if (STRING.notBlank(cookie.domain())) {
-                      c.setDomain(cookie.domain());
-                    }
-                    c.setComment(cookie.comment());
-                  }))
-      );
-
-    });
 
 //    contentType = request.headers().getAndConvert(HttpHeaderNames.CONTENT_TYPE);
     //build the multipart decoder
@@ -191,13 +103,67 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       content = Unpooled.compositeBuffer();
     }
 
-    return new PreprocessedIO(reqWrapper, isKeepAlive, isMultipart, content);
+    HttpCtx httpCtx = new HttpCtx(request, ctx, isKeepAlive, isMultipart, content);
 
+    //do update
+    //parse headers
+    final HttpRequest finalHttpRequest = request;
+    //uri-queries
+    Map<String, List<String>>
+        parsedParams = new QueryStringDecoder(request.uri()).parameters();
+
+    String _uri = request.uri();
+
+    S._debug(BaseServer.logger, log -> {
+      log.debug("QUERY STRING: " + _uri);
+      log.debug("PARSED PARAMS: " + S.dump(parsedParams));
+    });
+    httpCtx.updateHeaders(
+        headers ->
+            S._for(finalHttpRequest.headers())
+                .each(entry ->
+                          HttpUtils.appendToMap(
+                              headers,
+                              entry.getKey().toString(),
+                              finalHttpRequest.headers()
+                                  .getAllAndConvert(entry.getKey())
+                          )
+                )
+    );
+    httpCtx.updateParams(params -> params.putAll(parsedParams));
+
+    //parse cookies
+    httpCtx.updateCookies(cookies -> {
+
+      Set<io.netty.handler.codec.http.Cookie>
+          decoded = ServerCookieDecoder.decode(
+          S.avoidNull(
+              request.headers().getAndConvert(HttpHeaderNames.COOKIE)
+              , "")
+      );
+
+      S._for(decoded).each(
+          cookie ->
+              cookies.put(cookie.name(), S._tap(
+                  new Cookie(cookie.name(), cookie.value()),
+                  c -> {
+                    c.setPath(cookie.path());
+                    c.setMaxAge((int) cookie.maxAge());
+                    if (STRING.notBlank(cookie.domain())) {
+                      c.setDomain(cookie.domain());
+                    }
+                    c.setComment(cookie.comment());
+                  }))
+      );
+
+    });
+
+    return httpCtx;
   }
 
   private void receiveHttpContent(ChannelHandlerContext ctx,
                                   HttpContent httpContent,
-                                  PreprocessedIO preprocessed) {
+                                  HttpCtx preprocessed) {
 
     if (!httpContent.decoderResult().isSuccess()) {
       sendBadRequest(ctx);
@@ -206,9 +172,8 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
     boolean isMultipart = preprocessed.isMultipart;
     boolean isKeepAlive = preprocessed.isKeepAlive;
-    NettyReqWrapper reqWrapper = preprocessed.wrapper;
-    HttpRequest request = reqWrapper.n_req;
-    CompositeByteBuf pooledBuffer = preprocessed.compositeByteBuf;
+    HttpRequest request = preprocessed.nettyRequest;
+    CompositeByteBuf pooledBuffer = preprocessed.inboundByteBuf;
 
     //multipart
     if (decoder != null && isMultipart) {
@@ -216,14 +181,14 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
         Tuple<List<Attribute>, List<FileUpload>>
             tuple = decodeHttpContent(decoder, httpContent);
 
-        reqWrapper.updateUploadFiles(
+        preprocessed.updateUploadFiles(
             files -> S._for(tuple._b).each(
                 fileUpload -> HttpUtils.appendToMap(
                     files, fileUpload.getName(), new NettyUploadFile(fileUpload))
             )
         );
 
-        reqWrapper.updateParams(
+        preprocessed.updateParams(
             params ->
                 S._for(tuple._a).each(attr -> {
                   String k = attr.getName();
@@ -233,15 +198,13 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                 })
         );
 
-      }
-      catch (HttpPostRequestDecoder.EndOfDataDecoderException endo){
+      } catch (HttpPostRequestDecoder.EndOfDataDecoderException endo) {
         //fine & it`s normal & OK  & do nothing
         S._debug(BaseServer.logger, logger -> {
           logger.debug("EndOfDataDecoder");
         });
 
-      }
-      catch (Exception e1) {
+      } catch (Exception e1) {
         BaseServer.logger.error(e1.getMessage(), e1);
         S._debug(BaseServer.logger, log -> log.debug(e1.getMessage(), e1));
         sendBadRequest(ctx);
@@ -262,11 +225,11 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
     //end of message
     if (httpContent instanceof LastHttpContent) {
-      S._assert(reqWrapper);
+//      S._assert(preprocessed);
       //bind inputStream
-      if (pooledBuffer != null) {
-        reqWrapper.content(pooledBuffer);
-      }
+//      if (pooledBuffer != null) {
+//        .content(pooledBuffer);
+//      }
 
       //merge trailing headers
       LastHttpContent trailer = (LastHttpContent) httpContent;
@@ -286,7 +249,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                      log -> log.debug("TRAILING HEADER: " + name + " : " + value));
             request.headers().set(name, value);
 //            S._assert(reqWrapper);
-            reqWrapper.updateHeaders(
+            preprocessed.updateHeaders(
                 headers -> HttpUtils.appendToMap(headers, name.toString(), value.toString()));
           }
         }
@@ -302,8 +265,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       if ((contentType == null
           || contentType.toLowerCase().contains(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toLowerCase()))
           && pooledBuffer != null
-          && STRING.notBlank(postData = pooledBuffer.toString(CharsetUtil.UTF_8)))
-      {
+          && STRING.notBlank(postData = pooledBuffer.toString(CharsetUtil.UTF_8))) {
         final String finalPostData = postData;
         S._debug(BaseServer.logger, log -> log.debug("postData: " + finalPostData));
 
@@ -315,15 +277,15 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
           String key = entry.getKey();
           List<String> value = entry.getValue();
           S._debug(BaseServer.logger, log -> log.debug(key + S.dump(value)));
-          S._assert(reqWrapper);
-          reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
+          S._assert(preprocessed);
+          preprocessed.updateParams(params -> HttpUtils.appendToMap(params, key, value));
         });
-      } else if ((contentType == null
+      }
+      /*else if ((contentType == null
           || contentType.toLowerCase().contains("json"))
           && pooledBuffer != null
-          && STRING.notBlank(postData = pooledBuffer.toString(CharsetUtil.UTF_8)) )
-      {
-          //TODO
+          && STRING.notBlank(postData = pooledBuffer.toString(CharsetUtil.UTF_8))) {
+        //TODO add xml or json parser
 //        final String finalPostData = postData;
 //        S._debug(BaseServer.logger, log -> log.debug("postData: " + finalPostData));
 //
@@ -336,18 +298,15 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 //          S._debug(BaseServer.logger, log -> log.debug(key + S.dump(value)));
 //          reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
 //        });
-      } else {
+      }*/
+      else {
         //TODO REFACTOR customized content parser
         //json
       }
 
       //execution context
-      final HandlerExecutionContext exe_ctx = new HandlerExecutionContext();
 
-      S._debug(BaseServer.logger, log -> log.debug(String.valueOf(reqWrapper)));
-
-      //build the response
-      NettyRespWrapper respWrapper = new NettyRespWrapper(exe_ctx);
+      S._debug(BaseServer.logger, log -> log.debug(String.valueOf(preprocessed)));
 
       long _start_time = S.now();
 
@@ -358,36 +317,40 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       S._debug(BaseServer.logger,
                log -> log.debug("TRACE: run the exe-ctx"));
 
-//      final NettyReqWrapper finalReq = reqWrapper;
-//      final NettyRespWrapper finalResp = respWrapper;
-
       executorService.submit(() -> {
         try {
-          handler.apply(reqWrapper, respWrapper);
+          handler.apply(preprocessed);
+          S._assert(preprocessed.context == ctx);
           S._debug(BaseServer.logger,
                    log -> log.debug("exe-ctx costs " + (S.now() - _start_time) + " ms"));
-          if (exe_ctx.isSuccess()) {
-            switch (exe_ctx.type()) {
-              case HandlerExecutionContext.UNHANDLED: {
-                BaseServer.logger.warn("unhandled request reach.");
+          if (preprocessed.send_type != HttpCtx.SEND_ERROR) {
+            switch (preprocessed.send_type) {
+              case HttpCtx.SEND_UPGRADE_TO_WEBSOCKET:{
+                BaseServer.logger.info("upgrade to websocket");
+                //TODO websocketContext bind here
+                preprocessed.context.flush();
+                return;
+              }
+              case HttpCtx.SEND_UNHANDLED: {
+                BaseServer.logger.warn("unhandled request reach. send 400 bad request");
                 sendBadRequest(ctx);
                 return;
               }
-              case HandlerExecutionContext.NORMAL: {
-                sendNormal(ctx, exe_ctx.response(), isKeepAlive);
+              case HttpCtx.SEND_NORMAL: {
+                sendNormal(preprocessed);
                 return;
               }
-              case HandlerExecutionContext.STATIC_FILE: {
+              case HttpCtx.SEND_STATIC_FILE: {
                 sendFile(ctx,
-                         exe_ctx.response(),
-                         exe_ctx.sendfile(),
-                         exe_ctx.sendFileOffset(),
-                         exe_ctx.sendFileLength()
+                         preprocessed.nettyResponse,
+                         preprocessed.sendfile,
+                         preprocessed.sendfile_offset,
+                         preprocessed.sendfile_length
                 );
               }
             }
           } else {
-            //maybe reset, timeout ....
+            //may reset, timeout ....
             //ctx.fireExceptionCaught(exe_ctx.getCause());
           }
         } catch (Exception e) {
@@ -410,21 +373,45 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
   @Override
   protected void messageReceived(ChannelHandlerContext ctx, Object msg) {
+    //create webCtx
     //declare the in-request-scope-refs
+    Ctx preprocessed;
     if (msg instanceof HttpRequest) {
-      PreprocessedIO preprocessed = receiveHttpRequest(ctx, (HttpRequest) msg);
-      //add ctx to the Register
-      //if we are able to set the add, it must not contain the ctx
-      //synchronized (ctxRegister) {
-      S._assert(null == ctxRegister.get(ctx));
-      ctxRegister.put(ctx, preprocessed);
-      // }
+      preprocessed = receiveHttpRequest(ctx, (HttpRequest) msg);
+      ctxRegister.put(ctx, ((HttpCtx)preprocessed));
     } else if (msg instanceof HttpContent) {
-      PreprocessedIO found;
-      if (null == (found = ctxRegister.get(ctx))) {
+      Ctx found = ctxRegister.get(ctx);
+      if (null == found) {
         ctx.fireExceptionCaught(
             new RuntimeException("FOUND CONTENT WITHOUT REQUEST" + ((HttpContent) msg).content().toString(CharsetUtil.UTF_8)));
-      } else receiveHttpContent(ctx, (HttpContent) msg, found);
+      } else receiveHttpContent(ctx, (HttpContent) msg, ((HttpCtx) found));
+    } else if (msg instanceof WebSocketFrame) {
+      //TODO WSCTX
+      WebSocketFrame frame = (WebSocketFrame) msg;
+      // get wsctx;
+      WSCtx wsCtx = (WSCtx) channelRegister.get(ctx.channel());
+      //build wsctx
+
+      S._assert(wsCtx);
+      // Check for closing frame
+      if (frame instanceof CloseWebSocketFrame) {
+        ctx.channel().write(new TextWebSocketFrame(wsCtx.onCloseHandler.apply()));
+        wsCtx.handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
+        channelRegister.remove(ctx.channel());
+        return;
+      }
+      if (frame instanceof PingWebSocketFrame) {
+        ctx.channel().write(new PongWebSocketFrame(frame.content().retain()));
+        return;
+      }
+      if (!(frame instanceof TextWebSocketFrame)) {
+        throw new UnsupportedOperationException(String.format("%s frame types not supported", frame.getClass()
+            .getName()));
+      }
+
+      // Send the uppercase string back.
+      String request = ((TextWebSocketFrame) frame).text();
+      wsCtx.onMessageHandler.apply(request, wsCtx);
     } else {
       //bad request
       System.out.println(S.dump(msg));
@@ -494,11 +481,10 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
   }
 
   void sendFile(ChannelHandlerContext ctx,
-                Response response,
+                HttpResponse resp,
                 RandomAccessFile raf,
                 Long sendoffset,
                 Long sendlength) {
-    NettyRespWrapper wrapper = ((NettyRespWrapper) response);
 
     long offset = sendoffset == null ? 0l : sendoffset;
     long length = 0;
@@ -507,8 +493,6 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     } catch (IOException e) {
       ctx.fireExceptionCaught(e);
     }
-
-    HttpResponse resp = wrapper.resp;
 
     ctx.write(resp);
     // Write the content.
@@ -558,36 +542,32 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
   }
 
-  void sendNormal(ChannelHandlerContext ctx, Response response, boolean isKeepAlive) {
+  void sendNormal(HttpCtx httpCtx) {
 
-    NettyRespWrapper wrapper = ((NettyRespWrapper) response);
-
-
-    wrapper.writer.flush();
-
+    httpCtx.resp.writer().flush();
+    HttpResponse response = httpCtx.nettyResponse;
     //sendNormal
-    if (isKeepAlive) {
+    if (httpCtx.isKeepAlive) {
+      response.headers().set(HttpHeaderNames.CONNECTION,
+                             HttpHeaderValues.KEEP_ALIVE);
 
-      wrapper.resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-
-      if (wrapper.resp.headers().get(HttpHeaderNames.CONTENT_LENGTH) == null) {
-        int contentLen = wrapper.buffer.readableBytes();
-        wrapper.resp.headers().setLong(HttpHeaderNames.CONTENT_LENGTH, contentLen);
+      if (response.headers().get(HttpHeaderNames.CONTENT_LENGTH) == null) {
+        int contentLen = httpCtx.outBoundByteBuf.readableBytes();
+        response.headers().setLong(HttpHeaderNames.CONTENT_LENGTH, contentLen);
       }
     } else {
-      wrapper.resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+      response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
     }
 
 
-    HttpResponse resp = wrapper.resp;
-    ByteBuf content = wrapper.buffer;
+    ByteBuf content = httpCtx.outBoundByteBuf;
 
     S._debug(BaseServer.logger, log -> {
       log.debug("----SEND STATUS---");
-      log.debug(S.dump(resp.status()));
+      log.debug(S.dump(response.status()));
 
       log.debug("----SEND HEADERS---");
-      log.debug(S.dump(resp.headers()));
+      log.debug(S.dump(response.headers()));
 
       log.debug("----SEND BUFFER DUMP---");
 
@@ -598,25 +578,25 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     });
 
     //write head
-    ctx.write(resp);
+    httpCtx.context.write(response);
     //write content
-    ctx.write(content);
+    httpCtx.context.write(content);
 
-    writeLastContentAndFlush(ctx);
+    writeLastContentAndFlush(httpCtx.context);
   }
 
   void writeLastContentAndFlush(ChannelHandlerContext ctx) {
 
-    PreprocessedIO preprocessedIO = ctxRegister.get(ctx);
-    S._assert(preprocessedIO);
+    HttpCtx preprocessedWebCtx = ctxRegister.get(ctx);
+    S._assert(preprocessedWebCtx);
     if (ctx.executor().inEventLoop()) {
       ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-      if (!preprocessedIO.isKeepAlive)
+      if (!preprocessedWebCtx.isKeepAlive)
         future.addListener(ChannelFutureListener.CLOSE);
     } else {
       ctx.executor().execute(() -> {
         ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        if (!preprocessedIO.isKeepAlive)
+        if (!preprocessedWebCtx.isKeepAlive)
           future.addListener(ChannelFutureListener.CLOSE);
       });
     }
@@ -624,16 +604,15 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
 
   void clean(ChannelHandlerContext ctx) {
-    PreprocessedIO preprocessedIO;
-    if ((preprocessedIO = ctxRegister.get(ctx)) != null) {
-      ByteBuf byteBuf = preprocessedIO.compositeByteBuf;
-      if (byteBuf!= null && byteBuf.refCnt() >= 0) {
+
+    HttpCtx preprocessedWebCtx = ctxRegister.get(ctx);
+    if (preprocessedWebCtx != null) {
+      ByteBuf byteBuf = preprocessedWebCtx.inboundByteBuf;
+      if (byteBuf != null && byteBuf.refCnt() >= 0) {
         byteBuf.release(byteBuf.refCnt());
       }
-//      synchronized (ctxRegister) {
       ctxRegister.remove(ctx);
       S._debug(BaseServer.logger, log -> log.debug("RELEASING IO-CTX: " + ctx.toString()));
-//      }
       resetDecoder();
     }
   }

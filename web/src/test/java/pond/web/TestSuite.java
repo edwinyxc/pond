@@ -11,7 +11,6 @@ import org.junit.Test;
 import pond.common.*;
 import pond.common.f.Callback;
 import pond.common.f.Holder;
-import pond.web.spi.BaseServer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -327,7 +326,7 @@ public class TestSuite {
       app.use("/ctrl/*",
               new DemoController());
       app.use("/ctx/*",
-              (req, resp) -> req.ctx().put("k", "v"),
+              CtxHandler.mid((req, resp) -> req.ctx().put("k", "v")),
               new DemoController());
     });
 
@@ -465,15 +464,15 @@ public class TestSuite {
       app.cleanAndBind(
           app ->
               app.get("/", (req, res) -> {
-                        WebCtx ctx = req.ctx();
+                        HttpCtx ctx = req.ctx();
                         ctx.put("user", 1);
                       },
                       (req, res) -> {
-                        WebCtx ctx = req.ctx();
+                        HttpCtx ctx = req.ctx();
                         ctx.put("user", (int) ctx.get("user") + 1);
                       },
                       (req, res) -> {
-                        WebCtx ctx = req.ctx();
+                        HttpCtx ctx = req.ctx();
                         ctx.put("user", (int) ctx.get("user") + 1);
                       },
                       (req, res) -> {

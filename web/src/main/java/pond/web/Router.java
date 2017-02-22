@@ -3,9 +3,8 @@ package pond.web;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
-import pond.common.SPILoader;
 import pond.web.http.HttpMethod;
-import pond.web.spi.PathToRegCompiler;
+import pond.web.http.HttpUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,40 +16,33 @@ import static pond.common.S._debug;
 import static pond.common.S._for;
 
 
-public class Router implements Mid, RouterAPI {
+public class Router implements CtxHandler, RouterAPI {
   /*
   TODO: add config for caseSensitive, mergeParams, strict
    */
   static Logger logger = LoggerFactory.getLogger(Router.class);
+  static PathToRegCompiler compiler = new ExpressPathToRegCompiler();
   Routes routes = new Routes();
 
-  List<Mid> defaultMids = new ArrayList<>();
+  List<CtxHandler> defaultMids = new ArrayList<>();
 
-  private String get_path_remainder(Request req) {
+  private String get_path_remainder(Ctx ctx) {
 
-    WebCtx ctx = req.ctx();
-    String path = S.avoidNull((String)ctx.get("last_remainder"),req.path());
+    String path = S.avoidNull((String) ctx.get("last_remainder"), ctx.path);
 
     Route entry_route = ctx.route;
-
-    PathToRegCompiler compiler = SPILoader.service(PathToRegCompiler.class);
-
     return compiler.preparePath(entry_route, path);
   }
 
   @Override
-  public void apply(Request req, Response resp) {
+  public void apply(Ctx ctx) {
 
-    WebCtx ctx = req.ctx();
+    HttpMethod method = HttpMethod.of(ctx.method);
 
-    HttpMethod method = HttpMethod.of(req.method());
+    List<Route> routes = this.routes.get(method.ordinal());
 
-    ctx.method = method;
-
-    List<Route> routes = this.routes.get(method);
-
-    String path = get_path_remainder(req);
-    req.ctx().set("last_remainder", path);
+    String path = get_path_remainder(ctx);
+    ctx.set("last_remainder", path);
 
     _debug(logger, log -> log.debug("Routing path:" + path));
 
@@ -70,7 +62,9 @@ public class Router implements Mid, RouterAPI {
 
         //put in-url params
         _for(matchResult.params.entrySet()).each(
-            e -> req.param(e.getKey(), e.getValue())
+            e -> ctx.updateInUrlParams(params -> {
+              HttpUtils.appendToMap(params, e.getKey(), e.getValue());
+            })
         );
 
         ctx.route = r;
@@ -89,15 +83,15 @@ public class Router implements Mid, RouterAPI {
   }
 
   @Override
-  public Router use(int mask, Pattern path, String[] inUrlParams, Mid[] mids) {
+  public Router use(int mask, Pattern path, String[] inUrlParams, CtxHandler[] mids) {
 
     List<HttpMethod> methods = HttpMethod.unMask(mask);
 
     for (HttpMethod m : methods) {
 
-      List<Route> routes = this.routes.get(m);
+      List<Route> routes = this.routes.get(m.ordinal());
 
-      List<Mid> middles = S.array(mids);
+      List<CtxHandler> middles = S.array(mids);
 
       Route route = new Route(path, inUrlParams, middles);
 
@@ -133,7 +127,7 @@ public class Router implements Mid, RouterAPI {
   }
 
   @Override
-  public Router otherwise(Mid... mids) {
+  public Router otherwise(CtxHandler... mids) {
     defaultMids.addAll(Arrays.asList(mids));
     return this;
   }
@@ -142,15 +136,16 @@ public class Router implements Mid, RouterAPI {
     routes = new Routes();
   }
 
+
   @SuppressWarnings("unchecked")
   private static class Routes {
 
     final private List<Route>[] all = new List[HttpMethod.values().length];
 
-    List<Route> get(HttpMethod method) {
-      List ret = all[method.ordinal()];
+    List<Route> get(int httpMethodOrdinal) {
+      List ret = all[httpMethodOrdinal];
       if (ret == null) {
-        ret = (all[method.ordinal()] = new LinkedList<>());
+        ret = (all[httpMethodOrdinal] = new LinkedList<>());
       }
       return (List<Route>) ret;
     }

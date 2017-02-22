@@ -3,7 +3,6 @@ package pond.security.jwt;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.impl.crypto.MacProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,34 +32,32 @@ public class HttpJwtAuth {
 
   private long age = 30 * 60 * 10000; /* 30min */
 
-  public HttpJwtAuth(String secretToken){
+  public HttpJwtAuth(String secretToken) {
     secret = secretToken;
   }
 
-  public Render error403(int errCode, String msg){
-    return (req, resp) -> {
-      resp.send(403, JSON.stringify(new HashMap(){{
-        this.put("code", errCode);
-        this.put("msg", msg);
-      }}));
-    };
+  public Render error403(int errCode, String msg) {
+    return ctx -> ctx.resp.send(403, JSON.stringify(new HashMap() {{
+      this.put("code", errCode);
+      this.put("msg", msg);
+    }}));
   }
 
-  public Claims getJwtClaims(WebCtx ctx) {
+  public Claims getJwtClaims(HttpCtx ctx) {
     return (Claims) ctx.get("jwt_claims");
   }
 
-  public String user(WebCtx ctx) {
+  public String user(HttpCtx ctx) {
     return getJwtClaims(ctx).getSubject();
   }
 
 
-  public HttpJwtAuth validator( Function.F2<Boolean, String, String> user_pass_checker){
+  public HttpJwtAuth validator(Function.F2<Boolean, String, String> user_pass_checker) {
     this.user_pass_checker = user_pass_checker;
     return this;
   }
 
-  public HttpJwtAuth onPasswordRequired( Callback.C2<Request, Response> onPasswordRequired){
+  public HttpJwtAuth onPasswordRequired(Callback.C2<Request, Response> onPasswordRequired) {
     this.onPasswordRequired = onPasswordRequired;
     return this;
   }
@@ -71,7 +68,7 @@ public class HttpJwtAuth {
 //  }
 
 
-  public Mid auth = (req, resp) ->{
+  public Mid auth = (req, resp) -> {
 
     String auth_string = req.header("Authorization");
 
@@ -79,8 +76,8 @@ public class HttpJwtAuth {
       logger.debug("auth_string:" + auth_string);
     });
 
-    if (auth_string == null ){
-      if(onPasswordRequired == null)
+    if (auth_string == null) {
+      if (onPasswordRequired == null)
         resp.send(400, "auth string null");
       else
         onPasswordRequired.apply(req, resp);
@@ -89,13 +86,13 @@ public class HttpJwtAuth {
 
     Claims claims;
 
-    try{
+    try {
       claims = Jwts.parser()
           .setSigningKey(secret)
           .parseClaimsJws(auth_string)
           .getBody();
-    }catch (Exception e){
-      if(onPasswordRequired == null) {
+    } catch (Exception e) {
+      if (onPasswordRequired == null) {
         S._debug(logger, log -> {
           logger.debug("Exception while parsing:", e);
         });
@@ -124,15 +121,14 @@ public class HttpJwtAuth {
       String username = req.paramNonBlank(usernameLabel);
       String password = req.paramNonBlank(passwordLabel);
 
-      if(this.user_pass_checker.apply(username, password)){
+      if (this.user_pass_checker.apply(username, password)) {
         String compactJws = Jwts.builder()
             .setSubject(username)
             .signWith(SignatureAlgorithm.HS512, secret)
             .setExpiration(new Date(S.now() + age))
             .compact();
         resp.send(200, compactJws);
-      }
-      else
+      } else
         resp.render(error403(403003, "Incorrect username or password"));
     };
   }
