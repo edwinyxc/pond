@@ -5,7 +5,6 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import pond.common.f.Callback;
-import pond.common.f.Function;
 
 /**
  * Created by ed on 21/02/17.
@@ -15,8 +14,8 @@ public class WSCtx extends HttpCtx{
   WebSocketServerHandshaker handshaker;
 
   Callback.C2<String, WSCtx> onMessageHandler = (msg, ctx) -> {};
-  Function<String, String> onOpenHandler = Function.EMPTY;
-  Function.F0<String> onCloseHandler = ()-> "socket closed";
+  Callback<WSCtx> onOpenHandler =  ctx -> {};
+  Callback<WSCtx> onCloseHandler = (ctx)-> {};
 
   public WSCtx(HttpCtx ctx, WebSocketServerHandshaker handshaker) {
     super(ctx.nettyRequest, ctx.context, ctx.isKeepAlive, ctx.isMultipart, ctx.inboundByteBuf);
@@ -27,11 +26,11 @@ public class WSCtx extends HttpCtx{
       onMessageHandler = handler;
   }
 
-  public void onOpen(Function<String, String> handler){
+  public void onOpen(Callback<WSCtx> handler){
     onOpenHandler = handler;
   }
 
-  public void onClose(Function.F0<String> handler){
+  public void onClose(Callback<WSCtx> handler){
     onCloseHandler = handler;
   }
 

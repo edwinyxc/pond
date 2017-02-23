@@ -32,6 +32,7 @@ public class InternalMids {
 
       WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(ctx.nettyRequest);
       if (handshaker == null) {
+        ctx.send_type = HttpCtx.SEND_ERROR;
         WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.context.channel());
       } else {
         //build DefaultFullHttpRequest
@@ -48,15 +49,17 @@ public class InternalMids {
         });
 
         handshaker.handshake(ctx.context.channel(), fullreq);
+        WSCtx wsCtx = new WSCtx(ctx, handshaker);
+        NettyHttpHandler.channelRegister.put(ctx.context.channel(), wsCtx);
+        //build new Context
+        cb.apply(wsCtx);
+        //fire open event
+        wsCtx.onOpenHandler.apply(wsCtx);
+        //close this http request
+        //set upgrade flag
+        ctx.send_type = HttpCtx.SEND_UPGRADE_TO_WEBSOCKET;
+        ctx.setHandled();
       }
-      WSCtx wsCtx = new WSCtx(ctx, handshaker);
-      NettyHttpHandler.channelRegister.put(ctx.context.channel(), wsCtx);
-      //build new Context
-      cb.apply(wsCtx);
-      //close this http request
-      //set upgrade flag
-      ctx.send_type = HttpCtx.SEND_UPGRADE_TO_WEBSOCKET;
-      ctx.setHandled();
     };
   }
 
