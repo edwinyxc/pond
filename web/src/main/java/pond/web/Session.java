@@ -27,6 +27,10 @@ public class Session {
     this.map = map;
   }
 
+  public String id(){
+    return id;
+  }
+
   @SuppressWarnings("unchecked")
   public <E> E get(String name) {
     return (E) map.get(name);
@@ -155,4 +159,28 @@ public class Session {
     return ret;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    Session session = (Session) o;
+
+    if (!id.equals(session.id)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return id.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "Session{" +
+        "map=" + map +
+        ", id='" + id + '\'' +
+        '}';
+  }
 }
