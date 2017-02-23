@@ -281,4 +281,8 @@ public class HttpCtx extends Ctx {
     this.inboundByteBuf = inboundByteBuf;
   }
 
+  @Override
+  public void send(String msg) {
+    this.resp.send(msg);
+  }
 }

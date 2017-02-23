@@ -34,6 +34,12 @@ public class WSCtx extends HttpCtx{
     onCloseHandler = handler;
   }
 
+
+  public void close() {
+    this.onCloseHandler.apply(this);
+    this.context.close();
+  }
+
   /**
    * 暂时不考虑半包、黏包和数据过长问题
    * @param msg
@@ -49,4 +55,10 @@ public class WSCtx extends HttpCtx{
   public void sendBinaryFrame(ByteBuf byteBuf){
     this.context.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
   }
+
+  @Override
+  public void send(String msg) {
+    this.sendTextFrame(msg);
+  }
+
 }

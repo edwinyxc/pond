@@ -257,12 +257,16 @@ public class ManualTest {
           p.get("/websocket", InternalMids.websocket(wsctx -> {
             all_wssockets.add(wsctx);
             wsctx.onMessage((request, ctx) -> {
-              S._for(all_wssockets).forEach(s -> {
+              if(request.equalsIgnoreCase("close")){
+                wsctx.close();
+              }else {
+                S._for(all_wssockets).forEach(s -> {
 //                s.context.writeAndFlush(new TextWebSocketFrame(request.toUpperCase()));
-                s.sendTextFrame(request.toUpperCase());
-              });
+                  s.sendTextFrame(request.toUpperCase());
+                });
+              }
             });
-            wsctx.onClose(() -> "CLOSE");
+            wsctx.onClose((wsCtx) -> wsCtx.sendTextFrame("CLOSE"));
           }));
           p.get("/", (req, resp) -> {
             resp.send(200, "<html><head><title>Web Socket Test</title></head>" + NEWLINE +

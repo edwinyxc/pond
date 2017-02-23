@@ -395,7 +395,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
       S._assert(wsCtx);
       // Check for closing frame
       if (frame instanceof CloseWebSocketFrame) {
-        ctx.channel().write(new TextWebSocketFrame(wsCtx.onCloseHandler.apply()));
+        wsCtx.onCloseHandler.apply(wsCtx);
         wsCtx.handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
         channelRegister.remove(ctx.channel());
         return;
