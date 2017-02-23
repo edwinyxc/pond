@@ -16,6 +16,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 import static pond.web.Render.text;
@@ -28,6 +29,7 @@ public class ManualTest {
     static Charset utf8 = Charset.forName("UTF-8");
 
     static void form_verify() throws IOException {
+        AtomicInteger finished = new AtomicInteger(0);
         Pond.init(p -> {
             p.post("/a", (req, resp) -> {
                 resp.render(Render.json(req.toMap()));
@@ -37,7 +39,9 @@ public class ManualTest {
                 resp.render(Render.json(req.toMap()));
             });
 
-        }).debug().listen(9090);
+        })
+//                .debug()
+                .listen(9090);
         Runnable a = () -> {
             try {
                 HTTP.post("http://localhost:9090/a", S._tap(new HashMap<>(), map -> {
@@ -55,6 +59,8 @@ public class ManualTest {
                         assertEquals(m.get("sss"), "909908923");
                         assertEquals(m.get("aaa"), "nnmn,m");
                         assertEquals(m.get("ssdaiuouuu"), "ssdaw123kk");
+                        finished.addAndGet(1);
+                        S.echo(finished);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -80,6 +86,8 @@ public class ManualTest {
                         assertEquals(m.get("sss_b"), "9099089b23");
                         assertEquals(m.get("aaa_b"), "nnmn,mb");
                         assertEquals(m.get("ssdaiuouuu_b"), "ssssdaw123kk");
+                        finished.addAndGet(1);
+                        S.echo(finished);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -99,13 +107,12 @@ public class ManualTest {
 
         Collections.shuffle(futures);
 
-        try {
-            CompletableFuture.allOf(S._for(futures).join()).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
+        CompletableFuture
+                .allOf(S._for(futures).join())
+                .thenRun(() -> {
+                    S.echo("all finished", finished);
+                });
+
     }
 
     static void a() {
@@ -267,7 +274,7 @@ public class ManualTest {
 
     public static void echo_server() {
         Pond.init(p -> {
-            p.get("/:msg", (req, resp)-> {
+            p.get("/:msg", (req, resp) -> {
                 resp.send(200, req.paramNonBlank("msg"));
             });
         }).debug().listen(9090);
@@ -418,9 +425,9 @@ public class ManualTest {
     public static void main(String[] args) throws IOException {
 
 //        form_verify();
-        echo_server();
+//        echo_server();
 
-//        test_web_socket();
+        test_web_socket();
 //    test_file_server();
 //    S.echo(JSON.parse("sss"));
 //    test_end2end_exception();

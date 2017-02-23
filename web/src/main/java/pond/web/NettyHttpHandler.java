@@ -11,6 +11,7 @@ import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.CharsetUtil;
 import pond.common.S;
 import pond.common.STRING;
+import pond.common.f.Callback;
 import pond.common.f.Tuple;
 import pond.web.http.Cookie;
 import pond.web.http.HttpUtils;
@@ -26,8 +27,9 @@ import java.util.concurrent.ExecutorService;
  */
 class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 
-    Ctx webCtx;
+    private Ctx webCtx;
     final CtxHandler handler;
+    final static String WEBSOCKET_HANDLER_LABEL = "WEBSOCKET_HANDLER_LABEL";
 
     static {
         DiskFileUpload.deleteOnExitTemporaryFile = true; // should delete file
@@ -42,7 +44,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     //hold the ctx;
 //  final Map<ChannelHandlerContext, HttpCtx> ctxRegister = new LinkedHashMap<>()LinkedHashMap;
     //use for websocket
-  final static Map<Channel, HttpCtx> channelRegister = new ConcurrentHashMap<>();
+//  final static Map<Channel, HttpCtx> channelRegister = new ConcurrentHashMap<>();
 //  final ExecutorService executorService;
 
     NettyHttpHandler(CtxHandler handler, ExecutorService executorService) {
@@ -330,9 +332,47 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                     switch (preprocessed.send_type) {
                         case HttpCtx.SEND_UPGRADE_TO_WEBSOCKET: {
                             BaseServer.logger.info("upgrade to websocket");
-                            //TODO websocketContext bind here
-                            preprocessed.context.flush();
-                            return;
+                            //Upgrade httpCtx to WSCtx
+                            // Handshake
+                            WebSocketServerHandshakerFactory wsFactory =
+                                    new WebSocketServerHandshakerFactory(
+                                            "ws://"
+                                                    + preprocessed.nettyRequest.headers().get(HttpHeaderNames.HOST)
+                                                    + preprocessed.path,
+                                            null,
+                                            false);
+
+                            WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(preprocessed.nettyRequest);
+                            if (handshaker == null) {
+                                WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(preprocessed.context.channel());
+                            } else {
+                                //build DefaultFullHttpRequest
+                                HttpRequest req = preprocessed.nettyRequest;
+                                FullHttpRequest fullreq =
+                                        new DefaultFullHttpRequest(request.protocolVersion(),
+                                                request.method(),
+                                                request.uri(),
+                                                preprocessed.inboundByteBuf,
+                                                true);
+                                S._for(request.headers().entries()).each(l -> {
+                                    fullreq.headers().add(l.getKey(), l.getValue());
+                                });
+
+                                handshaker.handshake(preprocessed.context.channel(), fullreq);
+                                //get the callback
+                                Callback<WSCtx> cb =
+                                        (Callback<WSCtx>) preprocessed.get(NettyHttpHandler.WEBSOCKET_HANDLER_LABEL);
+                                //build new Context
+                                WSCtx wsCtx = new WSCtx(preprocessed, handshaker);
+                                this.webCtx = wsCtx;
+                                cb.apply(wsCtx);
+                                //fire open event
+                                wsCtx.onOpenHandler.apply(wsCtx);
+                                //close this http request
+                                //set upgrade flag
+                                //TODO websocketContext bind here
+                                return;
+                            }
                         }
                         case HttpCtx.SEND_UNHANDLED: {
                             BaseServer.logger.warn("unhandled request reach. send 400 bad request");
@@ -391,7 +431,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
             //TODO WSCTX
             WebSocketFrame frame = (WebSocketFrame) msg;
             // get wsctx;
-            WSCtx wsCtx = (WSCtx) channelRegister.get(ctx.channel());
+            WSCtx wsCtx = (WSCtx) this.webCtx;
             //build wsctx
 
             S._assert(wsCtx);
@@ -399,7 +439,6 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
             if (frame instanceof CloseWebSocketFrame) {
                 wsCtx.onCloseHandler.apply(wsCtx);
                 wsCtx.handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
-                channelRegister.remove(ctx.channel());
                 return;
             }
             if (frame instanceof PingWebSocketFrame) {
@@ -610,10 +649,9 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
         HttpCtx preprocessedWebCtx = (HttpCtx) webCtx;
         if (preprocessedWebCtx != null) {
             ByteBuf byteBuf = preprocessedWebCtx.inboundByteBuf;
-            if (byteBuf != null && byteBuf.refCnt() >= 0) {
+            if (byteBuf != null && byteBuf.refCnt() > 0) {
                 byteBuf.release(byteBuf.refCnt());
             }
-//            channelRegister.remove(ctx.channel());
             S._debug(BaseServer.logger, log -> log.debug("RELEASING IO-CTX: " + ctx.toString()));
             resetDecoder();
         }

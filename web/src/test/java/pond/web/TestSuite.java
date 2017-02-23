@@ -97,6 +97,8 @@ public class TestSuite {
 
     });
 
+    AtomicInteger finished_count = new AtomicInteger(0);
+
     Runnable a = () -> {
       try {
         HTTP.post("http://localhost:9090/a", S._tap(new HashMap<>(), map -> {
@@ -114,6 +116,7 @@ public class TestSuite {
             assertEquals(m.get("sss"), "909908923");
             assertEquals(m.get("aaa"), "nnmn,m");
             assertEquals(m.get("ssdaiuouuu"), "ssdaw123kk");
+            finished_count.addAndGet(1);
           } catch (IOException e) {
             e.printStackTrace();
           }
@@ -139,6 +142,7 @@ public class TestSuite {
             assertEquals(m.get("sss_b"), "9099089b23");
             assertEquals(m.get("aaa_b"), "nnmn,mb");
             assertEquals(m.get("ssdaiuouuu_b"), "ssssdaw123kk");
+            finished_count.addAndGet(1);
           } catch (IOException e) {
             e.printStackTrace();
           }
@@ -151,20 +155,16 @@ public class TestSuite {
     ExecutorService executorService = Executors.newFixedThreadPool(10);
     List<CompletableFuture> futures = new ArrayList<>();
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 100; i++) {
       futures.add(CompletableFuture.runAsync(a, executorService));
       futures.add(CompletableFuture.runAsync(b, executorService));
     }
 
     Collections.shuffle(futures);
 
-    try {
-      CompletableFuture.allOf(S._for(futures).join()).get();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    } catch (ExecutionException e) {
-      e.printStackTrace();
-    }
+    CompletableFuture.allOf(S._for(futures).join()).thenRun(()->{
+      S.echo("all verified forms", finished_count);
+    });
   }
 
 //  public void require_test() throws IOException {
