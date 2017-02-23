@@ -23,18 +23,18 @@ import java.util.Map;
 public class Ctx extends Context {
   public static Logger logger = LoggerFactory.getLogger(Ctx.class);
 
-  final String method;
-  final String uri;
-  final String path;
+  public final String method;
+  public final String uri;
+  public final String path;
   final Object raw;
-  final ChannelHandlerContext context;
+  public final ChannelHandlerContext context;
   final Map<String, List<String>> inUrlParams = new HashMap<>();
 
   boolean handled = false;
   List<CtxHandler> handledCtxCallbacks = new LinkedList<>();
   Route route;
 
-  Ctx updateInUrlParams(Callback<Map<String, List<String>>> b) {
+  public Ctx updateInUrlParams(Callback<Map<String, List<String>>> b) {
     b.apply(inUrlParams);
     return this;
   }

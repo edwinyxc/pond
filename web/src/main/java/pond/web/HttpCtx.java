@@ -18,22 +18,22 @@ import java.util.Map;
  * Execution Context, attached to a single thread.
  */
 public class HttpCtx extends Ctx {
-  public final static int SEND_UNHANDLED = 0;
-  public final static int SEND_NORMAL = 1;
-  public final static int SEND_STATIC_FILE = 2;
-  public final static int SEND_ERROR = -1;
-  public final static int SEND_UPGRADE_TO_WEBSOCKET = 3;
+  final static int SEND_UNHANDLED = 0;
+  final static int SEND_NORMAL = 1;
+  final static int SEND_STATIC_FILE = 2;
+  final static int SEND_ERROR = -1;
+  final static int SEND_UPGRADE_TO_WEBSOCKET = 3;
 
   RandomAccessFile sendfile;
   Long sendfile_offset;
   Long sendfile_length;
   int send_type = SEND_UNHANDLED;
 
-  OutputStream out;
-  PrintWriter printWriter;
+  public OutputStream out;
+  public PrintWriter printWriter;
   Throwable cause;
 
-  Charset charset = Charset.forName(
+  public final Charset charset = Charset.forName(
       S.avoidNull(System.getProperty("file.encoding"),
                   "UTF-8")
   );

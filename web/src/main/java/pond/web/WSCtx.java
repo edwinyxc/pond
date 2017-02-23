@@ -1,5 +1,8 @@
 package pond.web;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import pond.common.f.Callback;
 import pond.common.f.Function;
@@ -30,5 +33,21 @@ public class WSCtx extends HttpCtx{
 
   public void onClose(Function.F0<String> handler){
     onCloseHandler = handler;
+  }
+
+  /**
+   * 暂时不考虑半包、黏包和数据过长问题
+   * @param msg
+   */
+  public void sendTextFrame(String msg){
+    this.context.writeAndFlush(new TextWebSocketFrame(msg));
+  }
+
+  /**
+   * 暂时不考虑半包、黏包和数据过长问题
+   * @param byteBuf
+   */
+  public void sendBinaryFrame(ByteBuf byteBuf){
+    this.context.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
   }
 }

@@ -258,7 +258,8 @@ public class ManualTest {
             all_wssockets.add(wsctx);
             wsctx.onMessage((request, ctx) -> {
               S._for(all_wssockets).forEach(s -> {
-                s.context.writeAndFlush(new TextWebSocketFrame(request.toUpperCase()));
+//                s.context.writeAndFlush(new TextWebSocketFrame(request.toUpperCase()));
+                s.sendTextFrame(request.toUpperCase());
               });
             });
             wsctx.onClose(() -> "CLOSE");
