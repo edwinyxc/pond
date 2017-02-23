@@ -116,6 +116,7 @@ public class Context {
     return null;
   }
 
+
   public List<Object> getAll(String name) {
     return S._for(content).filter(t -> name.equals(t._a)).map(t -> t._b).toList();
   }
@@ -160,6 +161,15 @@ public class Context {
     Context ret = localCtxHolder.get();
     S._assert(ret, "failed to get current context");
     return ret;
+  }
+
+  public <E extends Context> E copyContentTo(E newCtx ){
+    S._for(this.content).each(entry -> {
+      String key = entry._a;
+      Object value = entry._b;
+      newCtx.set(key, value);
+    });
+    return newCtx;
   }
 
   @Override

@@ -367,7 +367,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                                 this.webCtx = wsCtx;
                                 cb.apply(wsCtx);
                                 //fire open event
-                                wsCtx.onOpenHandler.apply(wsCtx);
+//                                wsCtx.onOpenHandler.apply(wsCtx);
                                 //close this http request
                                 //set upgrade flag
                                 //TODO websocketContext bind here

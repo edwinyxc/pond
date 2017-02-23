@@ -14,21 +14,23 @@ public class WSCtx extends HttpCtx{
   WebSocketServerHandshaker handshaker;
 
   Callback.C2<String, WSCtx> onMessageHandler = (msg, ctx) -> {};
-  Callback<WSCtx> onOpenHandler =  ctx -> {};
+//  Callback<WSCtx> onOpenHandler =  ctx -> {};
   Callback<WSCtx> onCloseHandler = (ctx)-> {};
 
   public WSCtx(HttpCtx ctx, WebSocketServerHandshaker handshaker) {
     super(ctx.nettyRequest, ctx.context, ctx.isKeepAlive, ctx.isMultipart, ctx.inboundByteBuf);
     this.handshaker = handshaker;
+    ctx.copyContentTo(this);
+    //merge all other information
   }
 
   public void onMessage(Callback.C2<String, WSCtx> handler){
       onMessageHandler = handler;
   }
-
-  public void onOpen(Callback<WSCtx> handler){
-    onOpenHandler = handler;
-  }
+//
+//  public void onOpen(Callback<WSCtx> handler){
+//    onOpenHandler = handler;
+//  }
 
   public void onClose(Callback<WSCtx> handler){
     onCloseHandler = handler;
