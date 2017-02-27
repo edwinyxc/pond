@@ -66,6 +66,10 @@ public final class DB {
         return ret;
       };
 
+  public Map<String, Map<String, Integer>> getDbStructures() {
+    return dbStructures;
+  }
+
   /**
    * database structures (types as int)
    */
@@ -78,6 +82,7 @@ public final class DB {
     this.dbStructures = getDatabaseStructures();
     this.dialect = dialect;
   }
+
 
   public void refreshStructure() {
     this.dbStructures = getDatabaseStructures();
