@@ -32,7 +32,6 @@ public class XLSTable extends RowBasedModelTable
   //返回指定sheet对象
   final HSSFSheet sheet;
   //设置Cell之间以空格分割
-  private final static String EXCEL_LINE_DELIMITER = "|";
 
   private int sheet_cols = 0;
   private int sheet_rows = 0;
@@ -73,6 +72,7 @@ public class XLSTable extends RowBasedModelTable
   public XLSRow row(int i, Map<Integer, Function<Object, HSSFCell>> customerParsers) {
 
     customerParsers = S.avoidNull(customerParsers, Collections.emptyMap());
+
     if (i >= this.rows())
       throw new IllegalArgumentException("" + i + "not a valid rowNum");
 

@@ -15,12 +15,12 @@
         <dependency>
             <groupId>pond</groupId>
             <artifactId>pond-web</artifactId>
-            <version>0.2.2</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pond</groupId>
             <artifactId>pond-db</artifactId>
-            <version>0.2.2</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
