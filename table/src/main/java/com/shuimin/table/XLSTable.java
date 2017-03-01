@@ -38,8 +38,9 @@ public class XLSTable extends RowBasedModelTable
   private Object[][] _value;
 
   //constructor
-  public XLSTable(InputStream is, Map<Integer, Function<Object, HSSFCell>> customerParsers) throws IOException {
-    customerParsers = S.avoidNull(customerParsers, Collections.emptyMap());
+  public XLSTable(InputStream is, final Map<Integer, Function<Object, HSSFCell>> parsers) throws IOException {
+
+    Map<Integer, Function<Object, HSSFCell>> customerParsers = S.avoidNull(parsers, Collections.emptyMap());
     //创建workbook
     workbook = new HSSFWorkbook(is);
     this.is = is;
@@ -69,9 +70,9 @@ public class XLSTable extends RowBasedModelTable
     }
   }
 
-  public XLSRow row(int i, Map<Integer, Function<Object, HSSFCell>> customerParsers) {
+  public XLSRow row(int i, final Map<Integer, Function<Object, HSSFCell>> parsers) {
 
-    customerParsers = S.avoidNull(customerParsers, Collections.emptyMap());
+    Map<Integer, Function<Object, HSSFCell>> customerParsers = S.avoidNull(parsers, Collections.emptyMap());
 
     if (i >= this.rows())
       throw new IllegalArgumentException("" + i + "not a valid rowNum");
