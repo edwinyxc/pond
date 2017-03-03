@@ -53,7 +53,7 @@ public final class DB {
           int field_idx;
           for (int i = 0; i < cnt; i++) {
             field_idx = i + 1;
-            field_name = metaData.getColumnName(field_idx);
+            field_name = metaData.getColumnLabel(field_idx);
             field_type = metaData.getColumnType(field_idx);
 
             S._assert(ret);
