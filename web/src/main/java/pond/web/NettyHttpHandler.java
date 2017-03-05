@@ -621,7 +621,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
         httpCtx.context.write(response);
         //write content
         httpCtx.context.write(content);
-
+        content.release();
         writeLastContentAndFlush(httpCtx.context);
     }
 

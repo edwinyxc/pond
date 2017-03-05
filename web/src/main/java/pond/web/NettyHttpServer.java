@@ -92,7 +92,9 @@ public class NettyHttpServer implements BaseServer {
         S.avoidNull(Convert.toInt(
             S.config.get(NettyHttpServer.class,
                          NettyHttpServer.EVENT_GROUP_BOSS_GROUP_COUNT)
-        ),Runtime.getRuntime().availableProcessors() + 1)
+        ),
+//                1)
+                Runtime.getRuntime().availableProcessors() + 1)
     );
     workerGroup = new NioEventLoopGroup();
 

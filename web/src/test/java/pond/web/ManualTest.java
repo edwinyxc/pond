@@ -425,6 +425,14 @@ public class ManualTest {
     public static void main(String[] args) throws IOException {
 
 //        form_verify();
+//          Pond.init(
+//        app -> app.get("/api/*", new Router().use("/evil/*", new Router()
+//            .get("/a",(req, resp) -> resp.send(200,"OK"))
+//            .get("/",(req, resp) -> resp.send(200,"OK"))
+//                       )
+//        )
+//    ).debug(Router.class).listen();
+
         echo_server();
 
 //        test_web_socket();
