@@ -36,7 +36,7 @@ public class PerformanceTest {
     db.batch("DROP TABLE IF EXISTS p_test",
              "CREATE TABLE p_test (id varchar(60), percent varchar(60), title varchar(60))");
 
-    for(int i = 0; i <10000; i++) {
+    for(int i = 0; i <200; i++) {
       String final_idx = "" + i;
       db.post(t -> t.exec("INSERT INTO p_test VALUES(?,?,?)", final_idx, Math.random()*100, Math.random()*10 ));
     }

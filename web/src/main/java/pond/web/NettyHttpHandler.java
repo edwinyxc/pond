@@ -309,6 +309,8 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                 //json
             }
 
+            S._debug(BaseServer.logger,
+                log -> log.debug("TRACE: IO-READ finished"));
             //execution context
 
             S._debug(BaseServer.logger, log -> log.debug(String.valueOf(preprocessed)));
@@ -318,6 +320,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
             S._debug(BaseServer.logger, logger -> {
                 logger.debug("resp build at " + _start_time);
             });
+
 
             S._debug(BaseServer.logger,
                     log -> log.debug("TRACE: run the exe-ctx"));
@@ -405,10 +408,6 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                         log -> log.debug("TRACE: Clean finished"));
             }
         }
-
-        S._debug(BaseServer.logger,
-                log -> log.debug("TRACE: IO-READ finished"));
-
     }
 
 
@@ -599,7 +598,6 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
             response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
         }
 
-
         ByteBuf content = httpCtx.outBoundByteBuf;
 
         S._debug(BaseServer.logger, log -> {
@@ -621,7 +619,6 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
         httpCtx.context.write(response);
         //write content
         httpCtx.context.write(content);
-        content.release();
         writeLastContentAndFlush(httpCtx.context);
     }
 
@@ -649,8 +646,14 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
         if (preprocessedWebCtx != null) {
             ByteBuf byteBuf = preprocessedWebCtx.inboundByteBuf;
             if (byteBuf != null && byteBuf.refCnt() > 0) {
-                byteBuf.release(byteBuf.refCnt());
+                byteBuf.release();
             }
+
+            ByteBuf byteBufOut = preprocessedWebCtx.outBoundByteBuf;
+            if (byteBufOut != null && byteBufOut.refCnt() > 0) {
+                byteBufOut.release();
+            }
+
             S._debug(BaseServer.logger, log -> log.debug("RELEASING IO-CTX: " + ctx.toString()));
             resetDecoder();
         }

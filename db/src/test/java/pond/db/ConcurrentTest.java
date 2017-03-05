@@ -51,7 +51,7 @@ public class ConcurrentTest {
       futures.add(CompletableFuture.runAsync(
           () -> {
             db.post(tmpl -> {
-              for (int i = 0; i < 400; i++)
+              for (int i = 0; i < 20; i++)
                 tmpl.exec("INSERT INTO test values(?,?)",
                           String.valueOf(Math.random()), String.valueOf(acc.getAndIncrement()));
             });

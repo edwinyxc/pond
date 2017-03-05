@@ -57,6 +57,7 @@ public class TestSuite {
 
     //ROUTER
     complex_route();
+    test_nested_router();
 
     //STATIC
     static_bind_non_root();
@@ -79,13 +80,20 @@ public class TestSuite {
     session_custom_test();
 
     //FORM-VERIFY
-    form_verify();
+    try {
+      form_verify();
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
 
     //user-custom
     test_end2end_exception();
+    app.stop();
   }
 
-  public void form_verify() throws IOException {
+  public void form_verify() throws IOException, ExecutionException, InterruptedException {
     app.cleanAndBind(p -> {
       p.post("/a", (req, resp) -> {
         resp.render(Render.json(req.toMap()));
@@ -162,9 +170,7 @@ public class TestSuite {
 
     Collections.shuffle(futures);
 
-    CompletableFuture.allOf(S._for(futures).join()).thenRun(()->{
-      S.echo("all verified forms", finished_count);
-    });
+    CompletableFuture.allOf(S._for(futures).join()).get();
   }
 
 //  public void require_test() throws IOException {
@@ -653,7 +659,6 @@ public class TestSuite {
   //TODO
 //  public void test_validation_error
 
-  @Test
   public void test_nested_router() throws IOException{
     app.cleanAndBind(
         app -> app.get("/api/*", new Router().use("/evil/*", new Router()
@@ -667,9 +672,5 @@ public class TestSuite {
     TestUtil.assertContentEqualsForGet("OK", "http://localhost:9090/api/evil/");
   }
 
-  @After
-  public void stop() {
-    app.stop();
-  }
 
 }
