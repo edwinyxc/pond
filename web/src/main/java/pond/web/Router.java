@@ -92,8 +92,15 @@ public class Router implements CtxHandler, RouterAPI {
       List<Route> routes = this.routes.get(m.ordinal());
 
       List<CtxHandler> middles = S.array(mids);
-
+      //build route
       Route route = new Route(path, inUrlParams, middles);
+
+      //install the paramsGetters
+      for( CtxHandler h: middles) {
+        if( h instanceof ParametrisedCtxHandler) {
+          ((ParametrisedCtxHandler) h).install(route);
+        }
+      }
 
       String pattern = path.pattern();
 

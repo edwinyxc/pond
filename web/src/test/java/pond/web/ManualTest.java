@@ -425,9 +425,9 @@ public class ManualTest {
     public static void main(String[] args) throws IOException {
 
 //        form_verify();
-//        echo_server();
+        echo_server();
 
-        test_web_socket();
+//        test_web_socket();
 //    test_file_server();
 //    S.echo(JSON.parse("sss"));
 //    test_end2end_exception();

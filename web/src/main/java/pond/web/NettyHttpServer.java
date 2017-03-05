@@ -1,6 +1,7 @@
 package pond.web;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -46,15 +47,6 @@ public class NettyHttpServer implements BaseServer {
     this.handler = handler;
   }
 
-  //    //executorServices -- for user threads
-  private ExecutorService executorService = Executors.newFixedThreadPool(
-      S.avoidNull(Convert.toInt(
-          S.config.get(
-              NettyHttpServer.class,
-              NettyHttpServer.EXECUTOR_THREAD_POOL_SIZE
-          )
-      ), Runtime.getRuntime().availableProcessors() + 1)
-  );
 
   public NettyHttpServer() { }
 
@@ -100,20 +92,17 @@ public class NettyHttpServer implements BaseServer {
         S.avoidNull(Convert.toInt(
             S.config.get(NettyHttpServer.class,
                          NettyHttpServer.EVENT_GROUP_BOSS_GROUP_COUNT)
-        ), 1)
+        ),Runtime.getRuntime().availableProcessors() + 1)
     );
-    workerGroup = new NioEventLoopGroup(
-        S.avoidNull(Convert.toInt(
-                        S.config.get(NettyHttpServer.class,
-                                     NettyHttpServer.EVENT_GROUP_WORKER_GROUP_COUNT)),
-                    Runtime.getRuntime().availableProcessors() + 1)
-    );
+    workerGroup = new NioEventLoopGroup();
 
     ServerBootstrap b = new ServerBootstrap();
 
     //max concurrent income connections in queue
     b.option(ChannelOption.SO_BACKLOG, backlog())
-        .option(ChannelOption.SO_REUSEADDR, true);
+        .option(ChannelOption.SO_REUSEADDR, true)
+        .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+
 //        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000);
 
     b.group(bossGroup, workerGroup)
@@ -125,10 +114,11 @@ public class NettyHttpServer implements BaseServer {
             ChannelPipeline pipeline = socketChannel.pipeline();
             pipeline.addLast(new HttpServerCodec());
             pipeline.addLast(new ChunkedWriteHandler());
-            pipeline.addLast(new NettyHttpHandler(handler(), executorService));
+            pipeline.addLast(new NettyHttpHandler(handler()));
           }
-        })
-        .childOption(ChannelOption.SO_KEEPALIVE, keepAlive())
+        }).childOption(ChannelOption.SO_KEEPALIVE, keepAlive())
+          .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+    ;
 //        .childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024)
 //        .childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024)
     ;

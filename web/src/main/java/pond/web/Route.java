@@ -1,7 +1,10 @@
 package pond.web;
 
-import java.util.Arrays;
-import java.util.List;
+import pond.common.S;
+import pond.common.f.Function;
+import pond.common.f.Tuple;
+
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -9,37 +12,48 @@ import java.util.regex.Pattern;
  */
 public class Route {
 
-  private final List<CtxHandler> mids;
-  private final Pattern definition;
-  private final String[] inUrlParamNames;
+    private final List<CtxHandler> mids;
+    private final Pattern definition;
+    private final String[] inUrlParamNames;
+    private final Map<String, Tuple<Class, Function<?, Ctx>>> inRequestParamGetters;
 
-  /**
-   * Returns the definition path
-   */
-  public Pattern defPath() {
-    return definition;
-  }
+    /**
+     * Returns the definition path
+     */
+    public Pattern defPath() {
+        return definition;
+    }
 
-  public Route(Pattern def, String[] names, List<CtxHandler> mids) {
-    definition = def;
-    inUrlParamNames = names;
-    this.mids = mids;
-  }
+    public Route(Pattern def, String[] names, List<CtxHandler> mids) {
+        definition = def;
+        inUrlParamNames = names;
+        inRequestParamGetters = new LinkedHashMap<>();
+        this.mids = mids;
+    }
 
-  List<CtxHandler> mids() {
-    return mids;
-  }
+    void addRequestParamNameAndTypes(ParamDef paramDef) {
+        this.inRequestParamGetters.put(paramDef.name(), Tuple.pair(paramDef.type(), paramDef::get));
+    }
 
-  RegPathMatchResult match(String path) {
-    return RegPathMatcher.match(definition, path, inUrlParamNames);
-  }
+    public Map<String, Tuple<Class, Function<?, Ctx>>> inRequestParamGetters() {
+        return inRequestParamGetters;
+    }
 
-  @Override
-  public String toString() {
-    return "Route{" +
-        "mids=" + mids +
-        ", definition=" + definition +
-        ", inUrlParamNames=" + Arrays.toString(inUrlParamNames) +
-        '}';
-  }
+    List<CtxHandler> mids() {
+        return mids;
+    }
+
+    RegPathMatchResult match(String path) {
+        return RegPathMatcher.match(definition, path, inUrlParamNames);
+    }
+
+    @Override
+    public String toString() {
+        return "Route{" +
+                "mids=" + mids +
+                ", definition=" + definition +
+                ", inUrlParamNames=" + Arrays.toString(inUrlParamNames) +
+                ", inRequestParamGetters=" + S.dump(inRequestParamGetters) +
+                '}';
+    }
 }

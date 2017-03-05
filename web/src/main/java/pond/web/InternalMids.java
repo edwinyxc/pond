@@ -1,13 +1,8 @@
 package pond.web;
 
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
-import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
+import pond.common.f.Function;
 
 /**
  * Put my mids here
@@ -30,3 +25,4 @@ public class InternalMids {
         };
     }
 }
+

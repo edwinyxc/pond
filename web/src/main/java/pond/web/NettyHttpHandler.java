@@ -47,9 +47,8 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 //  final static Map<Channel, HttpCtx> channelRegister = new ConcurrentHashMap<>();
 //  final ExecutorService executorService;
 
-    NettyHttpHandler(CtxHandler handler, ExecutorService executorService) {
+    NettyHttpHandler(CtxHandler handler ) {
         this.handler = handler;
-//    this.executorService = executorService;
     }
 
     private static final HttpDataFactory factory =
