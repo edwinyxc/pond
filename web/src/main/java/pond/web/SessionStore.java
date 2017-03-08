@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * Session SPI, designed to provide a simple facade to read/write session.
- * The session store mechanism & policy depends on the implementation of SPI provider
+ * The session store mechanism & policy depends on the implementation handle SPI provider
  */
 
 public interface SessionStore {
@@ -55,7 +55,7 @@ public interface SessionStore {
   void update(String sessionID, Map map);
 
   /**
-   * This method returns a copy of the session map
+   * This method returns a copy handle the session map
    */
   Map<String, Map> all();
 

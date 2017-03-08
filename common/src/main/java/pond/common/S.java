@@ -85,19 +85,6 @@ public class S {
     return new Array<>(data);
   }
 
-  /**
-   * A predication that the value must present.
-   */
-  public static <T> Some<T> some(T t) {
-    return Option.some(t);
-  }
-
-  /**
-   * A predication that the value must not present.
-   */
-  public static <T> None<T> none() {
-    return Option.none();
-  }
 
   /**
    * print things to System#out

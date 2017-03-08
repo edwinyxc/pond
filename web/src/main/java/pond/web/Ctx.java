@@ -50,7 +50,7 @@ public class Ctx extends Context {
           final CtxHandler finalCtxHandler = ctxHandler;
 
           S._debug(logger, log ->
-              log.debug("Ctx Executing... uri: " + ctx.uri + ", mid: " + finalCtxHandler.toString()));
+              log.debug("Ctx Executing... uri: " + ctx.uri + ", express: " + finalCtxHandler.toString()));
 
           ctxHandler.apply(ctx);
           ctx.handledCtxCallbacks.add(ctxHandler);
@@ -160,6 +160,14 @@ public class Ctx extends Context {
 
   public boolean isHandled(CtxHandler mid) {
     return handledCtxCallbacks.contains(mid);
+  }
+
+  public <T> void result(ResultDef<T> resultDef, T value){
+    resultDef.apply(this, value);
+  }
+
+  public void result(ResultDef<Void> resultDef){
+    resultDef.apply(this, null);
   }
 
   public List<CtxHandler> handledCtxCalbacks() {

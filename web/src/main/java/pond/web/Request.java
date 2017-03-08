@@ -99,7 +99,7 @@ public interface Request {
         HttpUtils.appendToMap(params(), key, val);
     }
 
-    //upload File
+    //upload file
     default List<UploadFile> files(String file) {
         return files().get(file);
     }
@@ -165,7 +165,7 @@ public interface Request {
         InputStream inputStream() throws IOException;
 
         /**
-         * File
+         * file
          */
         File file() throws IOException;
 

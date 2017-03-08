@@ -5,7 +5,6 @@ import io.netty.handler.codec.http.ClientCookieEncoder;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.util.CharsetUtil;
 import org.apache.http.Header;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import pond.common.*;
@@ -332,7 +331,7 @@ public class TestSuite {
       app.use("/ctrl/*",
               new DemoController());
       app.use("/ctx/*",
-              CtxHandler.mid((req, resp) -> req.ctx().put("k", "v")),
+              CtxHandler.express((req, resp) -> req.ctx().put("k", "v")),
               new DemoController());
     });
 

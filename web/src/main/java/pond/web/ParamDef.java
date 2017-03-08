@@ -1,82 +1,126 @@
 package pond.web;
 
 import pond.common.Convert;
+import pond.common.JSON;
+import pond.common.S;
 import pond.common.f.Function;
-import pond.common.f.Tuple;
 
-import java.util.Date;
+import java.util.*;
 
-/**
- * Created by ed on 3/5/17.
- */
-public class ParamDef<A> extends Tuple<String, Function<A, Ctx>> {
+public class ParamDef<A> {
+    final String name;
+    Function<A, Ctx> handler;
 
-    private Class<A> aClass;
-
-    protected ParamDef(String name, Class<A> aClass, Function<A, Ctx> handler) {
-        super(name, handler);
-        this.aClass = aClass;
+    ParamDef(String name) {
+        this.name = name;
     }
 
+    ParamDef(String name, Function<A, Ctx> handler) {
+        this.name = name;
+        this.handler = handler;
+    }
 
     public String name() {
-        return super._a;
+        return this.name;
     }
 
-    public Class<A> type() {
-        return aClass;
-    }
-
-    public A get(Ctx req) {
-        return super._b.apply(req);
+    public A get(Ctx c) {
+        return this.handler.apply(c);
     }
 
     @SuppressWarnings("unchecked")
     public ParamDef<A> required(String errMsg) {
-        return new ParamDef<A>(this.name() + "_required", this.aClass, ctx -> {
-
-            if (this.aClass.equals(Request.UploadFile.class)) {
-                Request.UploadFile file = ((HttpCtx) ctx).req.file(this.name());
-                if (file == null) throw new EndToEndException(400, errMsg);
-                return (A) file;
-            } else {
-                String param = ((HttpCtx) ctx).req.paramNonBlank(this.name(), errMsg);
-                if (this.aClass.equals(String.class)) return (A) param;
-                if (this.aClass.equals(Integer.class)) return (A) Convert.toInt(param);
-                if (this.aClass.equals(Date.class)) return (A) Convert.toDate(Convert.toLong(param));
-                if (this.aClass.equals(Long.class)) return (A) Convert.toLong(param);
-                if (this.aClass.equals(Double.class)) return (A) Convert.toDouble(param);
-                throw new EndToEndException(400, String.format("Unsupported type: %s", this.aClass.getCanonicalName()));
-            }
+        return new ParamDef<A>(this.name() + "_required", ctx -> {
+            A ret;
+            if ((ret = this.handler.apply(ctx)) == null)
+                throw new EndToEndException(400, errMsg);
+            return ret;
+//            if (this.aClass.equals(Request.UploadFile.class)) {
+//                Request.UploadFile file = ((HttpCtx) ctx).req.file(this.name());
+//                if (file == null) throw new EndToEndException(400, errMsg);
+//                return (A) file;
+//            } else {
+//                String str = ((HttpCtx) ctx).req.paramNonBlank(this.name(), errMsg);
+//                if (this.aClass.equals(String.class)) return (A) str;
+//                if (this.aClass.equals(Integer.class)) return (A) Convert.toInt(str);
+//                if (this.aClass.equals(date.class)) return (A) Convert.toDate(Convert.toLong(str));
+//                if (this.aClass.equals(Long.class)) return (A) Convert.toLong(str);
+//                if (this.aClass.equals(Double.class)) return (A) Convert.toDouble(str);
+//                throw new EndToEndException(400, String.format("Unsupported type: %s", this.aClass.getCanonicalName()));
+//            }
         });
     }
 
-    public static ParamDef<String> param(String name) {
-        return new ParamDef<>(name, String.class, ctx -> ((HttpCtx) ctx).req.param(name));
+    public static ParamDef<String> header(String name) {
+        return new ParamDef<String>(name, ctx-> ((HttpCtx) ctx).req.header(name));
     }
 
-    public static ParamDef<Integer> paramInt(String name) {
-        return new ParamDef<>(name, Integer.class, ctx -> Convert.toInt(((HttpCtx) ctx).req.param(name)));
+    public static ParamDef<String> str(String name) {
+        return new ParamDef<>(name, ctx -> ((HttpCtx) ctx).req.param(name));
     }
 
-    public static ParamDef<Double> paramDouble(String name) {
-        return new ParamDef<>(name, Double.class, ctx -> Convert.toDouble(((HttpCtx) ctx).req.param(name)));
+    public static ParamDef<Integer> Int(String name) {
+        return new ParamDef<>(name, ctx -> Convert.toInt(((HttpCtx) ctx).req.param(name)));
     }
 
-    public static ParamDef<Date> paramDate(String name) {
-        return new ParamDef<>(name, Date.class, ctx -> Convert.toDate(Convert.toLong(((HttpCtx) ctx).req.param(name))));
+    public static ParamDef<Long> Long(String name) {
+        return new ParamDef<>(name, ctx -> Convert.toLong(((HttpCtx) ctx).req.param(name)));
     }
 
-    public static ParamDef<Long> paramLong(String name) {
-        return new ParamDef<>(name, Long.class, ctx -> Convert.toLong(((HttpCtx) ctx).req.param(name)));
+    public static ParamDef<Double> Double(String name) {
+        return new ParamDef<>(name, ctx -> Convert.toDouble(((HttpCtx) ctx).req.param(name)));
+    }
+
+    public static ParamDef<Date> date(String name) {
+        return new ParamDef<>(name, ctx -> Convert.toDate(Convert.toLong(((HttpCtx) ctx).req.param(name))));
+    }
+
+    public static ParamDef<Map<String, Object>> requestToMap() {
+        return new ParamDef<>("request_map", ctx -> (((HttpCtx) ctx).req.toMap()));
     }
 
     public static ParamDef<Request.UploadFile> file(String name) {
-        return new ParamDef<>(name, Request.UploadFile.class, ctx -> ((HttpCtx) ctx).req.file(name));
+        return new ParamDef<>(name, ctx -> ((HttpCtx) ctx).req.file(name));
     }
 
-    public static <X> ParamDef<X> raw(String name, Class<X> cls, Function<X, Ctx> handler) {
-        return new ParamDef<X>(name, cls, handler);
+    public static <X> ParamDef<X> any(String name, Function<X, Ctx> handler) {
+        return new ParamDef<X>(name, handler);
     }
 
+    public static <X> ParamDefStruct<X> obj(String name, List<ParamDef> defs, Function<X, Map<String, Object>> parser ) {
+        return new ParamDefStruct<>(name, parser, defs);
+    }
+
+    /**
+     * default to required
+     *
+     * @param name
+     * @param itemParser
+     * @param <X>
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static <X> ParamDef<X> json(String name, Function<X, Map<String, Object>> itemParser) {
+        return new ParamDef<X>(name + "_required", ctx ->
+                (X) itemParser.apply(JSON.parse(((HttpCtx) ctx).req
+                        .paramNonBlank(name, String.format("%s must not null", name))
+                )));
+    }
+
+    /**
+     * default to required
+     *
+     * @param name
+     * @param arrayItemParser
+     * @param <X>
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static <X> ParamDef<List<X>> jsonArray(String name, Function<X, Map<String, Object>> arrayItemParser) {
+        return new ParamDef<>(name + "_required", ctx -> {
+            List<Map<String, Object>> l = JSON.parseArray(((HttpCtx) ctx).req
+                    .paramNonBlank(name, String.format("%s must not null", name)));
+            return S._for(l).map(arrayItemParser).toList();
+        });
+    }
 }

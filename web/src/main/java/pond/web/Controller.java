@@ -44,7 +44,7 @@ public class Controller extends Router {
 
                ctrl.use(HttpMethod.mask(((Mapping) a).methods()),
                         val,
-                        CtxHandler.mid((req, resp) -> {
+                        CtxHandler.express((req, resp) -> {
                           Object[] args = new Object[]{req, resp};
 
                           m.setAccessible(true);

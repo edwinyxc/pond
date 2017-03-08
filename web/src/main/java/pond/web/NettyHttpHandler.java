@@ -228,7 +228,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
             }
         }
 
-        //end of message
+        //end handle message
         if (httpContent instanceof LastHttpContent) {
 //      S._assert(preprocessed);
             //bind inputStream

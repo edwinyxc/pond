@@ -1,8 +1,6 @@
 package pond.web;
 
-import pond.common.S;
 import pond.common.f.Function;
-import pond.common.f.Tuple;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -15,7 +13,9 @@ public class Route {
     private final List<CtxHandler> mids;
     private final Pattern definition;
     private final String[] inUrlParamNames;
-    private final Map<String, Tuple<Class, Function<?, Ctx>>> inRequestParamGetters;
+    private final Map<String, Function<?, Ctx>> inRequestParamGetters;
+
+    private final List<ResultDef> results;
 
     /**
      * Returns the definition path
@@ -28,14 +28,23 @@ public class Route {
         definition = def;
         inUrlParamNames = names;
         inRequestParamGetters = new LinkedHashMap<>();
+        results = new LinkedList<>();
         this.mids = mids;
     }
 
     void addRequestParamNameAndTypes(ParamDef paramDef) {
-        this.inRequestParamGetters.put(paramDef.name(), Tuple.pair(paramDef.type(), paramDef::get));
+        this.inRequestParamGetters.put(paramDef.name(), paramDef::get);
     }
 
-    public Map<String, Tuple<Class, Function<?, Ctx>>> inRequestParamGetters() {
+    void addResultDef(ResultDef resultDef) {
+        this.results.add(resultDef);
+    }
+
+    public List<ResultDef> results() {
+        return results;
+    }
+
+    public Map<String, Function<?, Ctx>> inRequestParamGetters() {
         return inRequestParamGetters;
     }
 
@@ -53,7 +62,8 @@ public class Route {
                 "mids=" + mids +
                 ", definition=" + definition +
                 ", inUrlParamNames=" + Arrays.toString(inUrlParamNames) +
-                ", inRequestParamGetters=" + S.dump(inRequestParamGetters) +
+                ", inRequestParamGetters=" + inRequestParamGetters +
+                ", results=" + results +
                 '}';
     }
 }

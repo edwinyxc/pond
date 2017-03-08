@@ -1,16 +1,13 @@
 package pond.web;
 
 import pond.common.S;
-import pond.common.f.Callback;
-import pond.common.f.Function;
-import pond.common.f.Tuple;
 import pond.web.http.HttpMethod;
 
 import java.util.regex.Pattern;
 
 /**
  * Router  API
- * Holder of responsibility chain, also called business chain
+ * Holder handle responsibility chain, also called business chain
  *
  * @param <ROUTER>
  */
@@ -33,30 +30,30 @@ public interface RouterAPI<ROUTER extends Router> {
      */
     ROUTER use(int mask, Pattern path, String[] inUrlParams, CtxHandler[] handlers);
 
-//    <A> ROUTER def(int mask,
+//    <A> ROUTER any(int mask,
 //                   Pattern pattern,
 //                   String[] inUrlParams,
 //                   CtxHandler[] filters,
-//                   Function<Request.Param<A>, HttpCtx> def,
+//                   Function<Request.Param<A>, HttpCtx> any,
 //                   Callback<A> callback);
 //
-//    <A, B> ROUTER def(int mask, Pattern pattern, String[] inUrlParams, CtxHandler[] filters,
-//                      Function<Tuple<Request.Param<A>, Request.Param<B>>, HttpCtx> def, Callback.C2<A, B> callback);
+//    <A, B> ROUTER any(int mask, Pattern pattern, String[] inUrlParams, CtxHandler[] filters,
+//                      Function<Tuple<Request.Param<A>, Request.Param<B>>, HttpCtx> any, Callback.C2<A, B> callback);
 //
-//    <A, B, C> ROUTER def(int mask, Pattern pattern, String[] inUrlParams, CtxHandler[] filters,
+//    <A, B, C> ROUTER any(int mask, Pattern pattern, String[] inUrlParams, CtxHandler[] filters,
 //                         Function<Tuple.T3<Request.Param<A>, Request.Param<B>, Request.Param<C>>,
-//                                 HttpCtx> def, Callback.C3<A, B, C> callback);
+//                                 HttpCtx> any, Callback.C3<A, B, C> callback);
 //
-//    <A, B, C, D> ROUTER def(int mask, Pattern pattern, String[] inUrlParams, CtxHandler[] filters,
-//                            Function<Tuple.T4<Request.Param<A>, Request.Param<B>, Request.Param<C>, Request.Param<D>>, HttpCtx> def,
+//    <A, B, C, D> ROUTER any(int mask, Pattern pattern, String[] inUrlParams, CtxHandler[] filters,
+//                            Function<Tuple.T4<Request.Param<A>, Request.Param<B>, Request.Param<C>, Request.Param<D>>, HttpCtx> any,
 //                            Callback.C4<A, B, C, D> callback);
 //
-//    <A, B, C, D, E> ROUTER def(int mask, Pattern pattern, String[] inUrlParams, CtxHandler[] filters,
-//                               Function<Tuple.T5<Request.Param<A>,Request.Param<B>,Request.Param<C>,Request.Param<D>,Request.Param<E>>, HttpCtx> def,
-//                               Callback.C5<A,B,C,D,E> callback);
+//    <A, B, C, D, E4> ROUTER any(int mask, Pattern pattern, String[] inUrlParams, CtxHandler[] filters,
+//                               Function<Tuple.T5<Request.Param<A>,Request.Param<B>,Request.Param<C>,Request.Param<D>,Request.Param<E4>>, HttpCtx> any,
+//                               Callback.C5<A,B,C,D,E4> callback);
 
     default ROUTER use(int mask, Pattern path, String[] inUrlParams, Mid... mids) {
-        return use(mask, path, inUrlParams, S._for(mids).map(CtxHandler::mid).join());
+        return use(mask, path, inUrlParams, S._for(mids).map(CtxHandler::express).join());
     }
 
     default ROUTER use(int mask, String path, Mid... mids) {
@@ -124,6 +121,6 @@ public interface RouterAPI<ROUTER extends Router> {
     ROUTER otherwise(CtxHandler... mids);
 
     default ROUTER otherwise(Mid... mids) {
-        return otherwise(S._for(mids).map(CtxHandler::mid).join());
+        return otherwise(S._for(mids).map(CtxHandler::express).join());
     }
 }

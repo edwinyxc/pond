@@ -120,7 +120,7 @@ public final class DB {
     try {
       conn = connProvider.apply();
       DatabaseMetaData meta = conn.getMetaData();
-      rs_db = meta.getTables(null, "%", "%", new String[]{"TABLE"});
+      rs_db = meta.getTables(null, "%", "%", new String[]{"TABLE", "VIEW"});
       while (rs_db.next()) {
         String tablename = rs_db.getString("TABLE_NAME");
         table_types.put(tablename, new HashMap<>());

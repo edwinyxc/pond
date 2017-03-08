@@ -6,7 +6,7 @@ import pond.common.f.Callback;
 import java.util.concurrent.Future;
 
 /**
- * SPI of basic http server
+ * SPI handle basic http server
  * This server SHOULD
  * 1) Implements Request & Response
  * 2) Meets the HTTP protocol

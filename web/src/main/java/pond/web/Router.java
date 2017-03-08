@@ -97,8 +97,8 @@ public class Router implements CtxHandler, RouterAPI {
 
       //install the paramsGetters
       for( CtxHandler h: middles) {
-        if( h instanceof ParametrisedCtxHandler) {
-          ((ParametrisedCtxHandler) h).install(route);
+        if( h instanceof WellDefinedHandler) {
+          ((WellDefinedHandler) h).install(route);
         }
       }
 

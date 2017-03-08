@@ -1,6 +1,7 @@
 package pond.security;
 
 import pond.security.ba.HttpBasicAuth;
+import pond.web.CtxHandler;
 import pond.web.Pond;
 
 /**
@@ -15,9 +16,9 @@ public class TestBA {
         );
 
     Pond.init().debug(HttpBasicAuth.class).cleanAndBind(
-        p -> p.get("/secret", ba.auth, (req, resp) -> {
+        p -> p.get("/secret", ba.auth, CtxHandler.express((req, resp) -> {
           resp.send(200, "Welcome " + ba.user(req.ctx()));
-        })
+        }))
     ).listen(9090);
 
   }

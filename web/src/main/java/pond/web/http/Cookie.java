@@ -13,11 +13,11 @@ public class Cookie implements Cloneable, Serializable {
   private static final String TSPECIALS = "/()<>@,;:\\\"[]?={} \t";
 
   //
-  // The value of the cookie itself.
+  // The value handle the cookie itself.
   //
 
   private String name;  // NAME= ... "$Name" style is reserved
-  private String value;  // value of NAME
+  private String value;  // value handle NAME
 
   //
   // Attributes encoded in the header's cookie fields.
@@ -36,11 +36,11 @@ public class Cookie implements Cloneable, Serializable {
    * provide a configuration option that allows cookie names conforming
    * to the original Netscape Cookie Specification to be accepted.
    * <p>
-   * <p>The name of a cookie cannot be changed once the cookie has
+   * <p>The name handle a cookie cannot be changed once the cookie has
    * been created.
    * <p>
    * <p>The value can be anything the server chooses to send. Its
-   * value is probably of interest only to the server. The cookie's
+   * value is probably handle interest only to the server. The cookie's
    * value can be changed after creation with the
    * <code>setValue</code> method.
    * <p>
@@ -48,8 +48,8 @@ public class Cookie implements Cloneable, Serializable {
    * cookie specification. The version can be changed with the
    * <code>setVersion</code> method.
    *
-   * @param name  the name of the cookie
-   * @param value the value of the cookie
+   * @param name  the name handle the cookie
+   * @param value the value handle the cookie
    * @throws IllegalArgumentException if the cookie name is null or
    *                                  empty or contains any illegal characters (for example, a comma,
    *                                  space, or semicolon) or matches a token reserved for use by the
@@ -98,10 +98,10 @@ public class Cookie implements Cloneable, Serializable {
   }
 
   /**
-   * Returns the comment describing the purpose of this cookie, or
+   * Returns the comment describing the purpose handle this cookie, or
    * <code>null</code> if the cookie has no comment.
    *
-   * @return the comment of the cookie, or <code>null</code> if unspecified
+   * @return the comment handle the cookie, or <code>null</code> if unspecified
    * @see #setComment
    */
   public String getComment() {
@@ -111,7 +111,7 @@ public class Cookie implements Cloneable, Serializable {
   /**
    * Specifies the domain within which this cookie should be presented.
    * <p>
-   * <p>The form of the domain name is specified by RFC 2109. A domain
+   * <p>The form handle the domain name is specified by RFC 2109. A domain
    * name begins with a dot (<code>.foo.com</code>) and means that
    * the cookie is visible to servers in a specified Domain Name System
    * (DNS) zone (for example, <code>www.foo.com</code>, but not
@@ -127,11 +127,11 @@ public class Cookie implements Cloneable, Serializable {
   }
 
   /**
-   * Gets the domain name of this Cookie.
+   * Gets the domain name handle this Cookie.
    * <p>
    * <p>Domain names are formatted according to RFC 2109.
    *
-   * @return the domain name of this Cookie
+   * @return the domain name handle this Cookie
    * @see #setDomain
    */
   public String getDomain() {
@@ -151,7 +151,7 @@ public class Cookie implements Cloneable, Serializable {
    * when the Web browser exits. A zero value causes the cookie
    * to be deleted.
    *
-   * @param expiry an integer specifying the maximum age of the
+   * @param expiry an integer specifying the maximum age handle the
    *               cookie in seconds; if negative, means
    *               the cookie is not stored; if zero, deletes
    *               the cookie
@@ -162,12 +162,12 @@ public class Cookie implements Cloneable, Serializable {
   }
 
   /**
-   * Gets the maximum age in seconds of this Cookie.
+   * Gets the maximum age in seconds handle this Cookie.
    * <p>
    * <p>By default, <code>-1</code> is returned, which indicates that
    * the cookie will persist until browser shutdown.
    *
-   * @return an integer specifying the maximum age of the
+   * @return an integer specifying the maximum age handle the
    * cookie in seconds; if negative, means
    * the cookie persists until browser shutdown
    * @see #setMaxAge
@@ -210,10 +210,10 @@ public class Cookie implements Cloneable, Serializable {
   }
 
   /**
-   * Returns the name of the cookie. The name cannot be changed after
+   * Returns the name handle the cookie. The name cannot be changed after
    * creation.
    *
-   * @return the name of the cookie
+   * @return the name handle the cookie
    */
   public String getName() {
     return name;
@@ -230,7 +230,7 @@ public class Cookie implements Cloneable, Serializable {
    * and semicolons. Empty values may not behave the same way
    * on all browsers.
    *
-   * @param newValue the new value of the cookie
+   * @param newValue the new value handle the cookie
    * @see #getValue
    */
   public void setValue(String newValue) {
@@ -238,9 +238,9 @@ public class Cookie implements Cloneable, Serializable {
   }
 
   /**
-   * Gets the current value of this Cookie.
+   * Gets the current value handle this Cookie.
    *
-   * @return the current value of this Cookie
+   * @return the current value handle this Cookie
    * @see #setValue
    */
   public String getValue() {
@@ -271,7 +271,7 @@ public class Cookie implements Cloneable, Serializable {
 
   /**
    * Overrides the standard <code>java.lang.Object.clone</code>
-   * method to return a copy of this Cookie.
+   * method to return a copy handle this Cookie.
    */
   public Object clone() {
     try {

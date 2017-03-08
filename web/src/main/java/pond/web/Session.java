@@ -132,7 +132,7 @@ public class Session {
 
   /**
    * Cookie session installer, using "cookie" & "set-cookie" to control the session-id
-   * Put this mid into responsibility chain and you will get fully
+   * Put this express into responsibility chain and you will get fully
    * session support then.
    */
   public static Mid install() {

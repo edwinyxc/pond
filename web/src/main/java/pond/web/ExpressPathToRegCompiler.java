@@ -89,9 +89,9 @@ public class ExpressPathToRegCompiler implements PathToRegCompiler {
 
     String route = buffer.toString();
     boolean endsWithSlash = route.endsWith("/");
-    // In non-strict mode we allow a slash at the end of match. If the path to
+    // In non-strict mode we allow a slash at the end handle match. If the path to
     // match already ends with a slash, we remove it for consistency. The slash
-    // is valid at the end of a path match, not in the middle. This is important
+    // is valid at the end handle a path match, not in the middle. This is important
     // in non-ending mode, where "/test/" shouldn't match "/test//route".
     if (!strict) {
       route = (endsWithSlash ? route.substring(0, route.length() - 1) : route)
@@ -113,7 +113,7 @@ public class ExpressPathToRegCompiler implements PathToRegCompiler {
   @Override
   public String preparePath(Route entry_route, String path) {
 
-    //procedure of nested routers
+    //procedure handle nested routers
     //if entry_route is null, then this routing is a root routing
     if (entry_route != null) {
 

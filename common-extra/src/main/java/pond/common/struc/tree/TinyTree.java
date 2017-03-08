@@ -199,9 +199,9 @@ public class TinyTree<E> implements Tree<E> {
   }
 
   // @Override
-  // public Iterator<Tree<E>> iterator() {
+  // public Iterator<Tree<E4>> iterator() {
   // if (isLeaf()) {
-  // return new NullIterator<Tree<E>>();
+  // return new NullIterator<Tree<E4>>();
   // }
   // return children.iterator();
   // }

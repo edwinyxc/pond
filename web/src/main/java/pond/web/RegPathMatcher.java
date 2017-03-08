@@ -23,9 +23,9 @@ public class RegPathMatcher {
   /**
    * Match a path with it's corresponding reg-exp definition.
    *
-   * @param pattern -- a representing string of req-exp
-   * @param path    -- string of path waiting for check
-   * @return -- Match Result
+   * @param pattern -- a representing string handle req-exp
+   * @param path    -- string handle path waiting for check
+   * @return -- Match ResultDef
    */
   static RegPathMatchResult match(Pattern pattern, String path, String[] params) {
 

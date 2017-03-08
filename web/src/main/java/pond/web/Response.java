@@ -1,5 +1,6 @@
 package pond.web;
 
+import pond.common.f.Callback;
 import pond.web.http.Cookie;
 
 import java.io.File;
@@ -123,6 +124,10 @@ public interface Response {
   default void render(Render r) {
     r.render(ctx());
   }
+
+//  default <T> void render(Callback.C2<Ctx,T> r, T t) {
+//      r.apply(ctx(), t);
+//  }
 
   HttpCtx ctx();
 

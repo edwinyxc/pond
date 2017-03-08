@@ -92,7 +92,7 @@ public class DefaultStaticFileServer implements StaticFileServer {
         uri = "/" + uri.substring(matcher.start(1));
       }
 
-      //String prefix = def.substring(0, def.lastIndexOf("/"));
+      //String prefix = any.substring(0, any.lastIndexOf("/"));
     }
 
     // Convert file separators.
@@ -122,7 +122,7 @@ public class DefaultStaticFileServer implements StaticFileServer {
     File file = new File(absPath);
 
     if (file.isHidden() || !file.exists()) {
-      //do not handle since this is a mid
+      //do not handle since this is a express
 //      response.sendError(404, "Not Found");
       return;
     }
@@ -203,11 +203,11 @@ public class DefaultStaticFileServer implements StaticFileServer {
     PrintWriter buf = resp.writer()
         .append("<!DOCTYPE html>\r\n")
         .append("<html><head><title>")
-        .append("Listing of: ")
+        .append("Listing handle: ")
         .append(dirPath)
         .append("</title></head><body>\r\n")
 
-        .append("<h3>Listing of: ")
+        .append("<h3>Listing handle: ")
         .append(dirPath)
         .append("</h3>\r\n")
 
@@ -243,16 +243,16 @@ public class DefaultStaticFileServer implements StaticFileServer {
     dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
 
     Calendar time = new GregorianCalendar();
-    response.header("Date", dateFormatter.format(time.getTime()));
+    response.header("date", dateFormatter.format(time.getTime()));
   }
 
   private static void setDateAndCacheHeaders(Response response, File fileToCache) {
     SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
     dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
 
-    // Date header
+    // date header
     Calendar time = new GregorianCalendar();
-    response.header("Date", dateFormatter.format(time.getTime()));
+    response.header("date", dateFormatter.format(time.getTime()));
 
     // Add cache headers
     time.add(Calendar.SECOND, HTTP_CACHE_SECONDS);

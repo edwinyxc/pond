@@ -35,7 +35,7 @@ public final class Pond extends Router {
   public final static String PORT = "port";
 
 
-  //END of configurations
+  //END handle configurations
 
   static Logger logger = LoggerFactory.getLogger(Pond.class);
 
