@@ -2,11 +2,18 @@ package pond.web;
 
 import pond.common.JSON;
 import pond.common.S;
+import pond.web.CtxHandler;
+import pond.web.HttpCtx;
+import pond.web.Pond;
+import pond.web.Router;
+import pond.web.restful.API;
+import pond.web.restful.ParamDef;
+import pond.web.restful.ResultDef;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static pond.web.ParamDef.*;
+import static pond.web.restful.ParamDef.*;
 
 /**
  * Created by ed on 3/5/17.
@@ -58,7 +65,7 @@ public class TestParamDef {
                 .debug(Router.class, Pond.class)
                 .cleanAndBind(p -> {
 
-                    p.get("/custom_record", CtxHandler.def(
+                    p.get("/custom_record", API.def(
                             ParamDef.any("order", ctx -> {
                                 Map ret = new HashMap();
                                 ret.putAll(((HttpCtx) ctx).req.toMap());
@@ -70,47 +77,54 @@ public class TestParamDef {
                             }
                     ));
 
-                    p.get("/complex/", CtxHandler.def(
-                            obj("complex", S.array(
+                    p.get("/complex/", API.def(
+                            compose("complex", S.array(
                                     str("name"),
-                                    obj("inner", S.array(
+                                    compose("inner", S.array(
                                             str("inner_name"),
-                                            obj("inner2", S.array(
+                                            compose("inner2", S.array(
                                                     str("inner2_name")
                                             ), map -> {
+                                                S.echo("DEBUG", map);
                                                 Inner2 inner2 = new Inner2();
                                                 inner2.name = (String) map.get("inner2_name");
                                                 return inner2;
                                             })
                                     ), map -> {
+                                        S.echo("DEBUG2", map);
                                         Inner inner = new Inner();
                                         inner.name = (String) map.get("inner_name");
                                         inner.value = (Inner2) map.get("inner2");
                                         return inner;
                                     })
                             ), map -> {
+                                S.echo("DEBUG3", map);
                                 DummyComplexRecord record = new DummyComplexRecord();
                                 record.name = (String) map.get("name");
                                 record.value = (Inner) map.get("inner");
                                 record.time = S.now();
                                 return record;
                             }),
-                            ResultDef.any(200, "success", (ctx, t) -> ((HttpCtx) ctx).resp.send(200, JSON.stringify(t))),
+                            ResultDef.any(200, "success", (ctx, t) -> {
+                                S.echo("DEBUG5", t, JSON.stringify(t));
+                                ((HttpCtx) ctx).resp.send(200, t.toString());
+                            }),
                             ResultDef.any(400, "parse error", (ctx, t) -> ((HttpCtx) ctx).resp.sendError(400, S.dump(t))),
                             (ctx, record, suc, err) -> {
+                                S.echo("DEBUG4", record);
                                 ctx.result(suc, record);
                             }
                     ));
 
-                    p.get("/well", CtxHandler.def(
+                    p.get("/well", API.def(
                             ParamDef.str("q"),
                             ResultDef.ok(),
-                            ResultDef.error(400,"Not Found"),
-                            ResultDef.error(500,"Error 500"),
+                            ResultDef.error(400, "Not Found"),
+                            ResultDef.error(500, "Error 500"),
                             (ctx, t1, ok, not_found, internal_err) -> {
                                 if (t1.equals("1")) ctx.result(ok);
-                                else if (t1.equals("2")) ctx.result(not_found,"");
-                                ctx.result(internal_err,"unhandled");
+                                else if (t1.equals("2")) ctx.result(not_found, "");
+                                else ctx.result(internal_err, "unhandled");
                             }
                     ));
 

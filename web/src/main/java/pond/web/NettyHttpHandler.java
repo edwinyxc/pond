@@ -19,8 +19,6 @@ import pond.web.http.HttpUtils;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 
 /**
  * Created by ed on 9/3/15.
@@ -135,7 +133,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                                         )
                                 )
         );
-        httpCtx.updateParams(params -> params.putAll(parsedParams));
+        httpCtx.updateQueries(params -> params.putAll(parsedParams));
 
         //parse cookies
         httpCtx.updateCookies(cookies -> {
@@ -193,7 +191,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                         )
                 );
 
-                preprocessed.updateParams(
+                preprocessed.updateFormData(
                         params ->
                                 S._for(tuple._a).each(attr -> {
                                     String k = attr.getName();
@@ -283,7 +281,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                     List<String> value = entry.getValue();
                     S._debug(BaseServer.logger, log -> log.debug(key + S.dump(value)));
                     S._assert(preprocessed);
-                    preprocessed.updateParams(params -> HttpUtils.appendToMap(params, key, value));
+                    preprocessed.updateQueries(params -> HttpUtils.appendToMap(params, key, value));
                 });
             }
       /*else if ((contentType == null
@@ -301,7 +299,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 //          String key = entry.getKey();
 //          List<String> value = entry.getValue();
 //          S._debug(BaseServer.logger, log -> log.debug(key + S.dump(value)));
-//          reqWrapper.updateParams(params -> HttpUtils.appendToMap(params, key, value));
+//          reqWrapper.updateQueries(queries -> HttpUtils.appendToMap(queries, key, value));
 //        });
       }*/
             else {

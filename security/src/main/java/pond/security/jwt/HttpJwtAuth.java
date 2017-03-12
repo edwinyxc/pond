@@ -6,15 +6,17 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.crypto.MacProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pond.common.JSON;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.common.f.Tuple;
 import pond.web.*;
+import pond.web.restful.API;
+import pond.web.restful.APIHandler;
+import pond.web.restful.ParamDef;
+import pond.web.restful.ResultDef;
 
 import java.util.Date;
-import java.util.HashMap;
 
 /**
  * Created by ed on 10/13/16.
@@ -61,16 +63,16 @@ public class HttpJwtAuth {
 //    return this;
 //  }
 
-    public WellDefinedHandler auth = CtxHandler.def(
+    public APIHandler auth = API.def(
             ParamDef.header("Authorization"),
             ResultDef.error(400, "Authorization null"),
             ResultDef.errorJSON(403, "Detailed Error"),
 
-            (ctx, auth, require_auth, forbidden) -> {
+            (ctx, auth_string, require_auth, forbidden) -> {
                 Request req = ((HttpCtx) ctx).req;
                 Response resp = ((HttpCtx) ctx).resp;
 
-                String auth_string = req.header("Authorization");
+//                String auth_string = req.header("Authorization");
                 S._debug(logger, log -> {
                     logger.debug("auth_string:" + auth_string);
                 });
@@ -106,11 +108,11 @@ public class HttpJwtAuth {
 
             });
 
-    public final WellDefinedHandler basicSignIn(String usernameLabel, String passwordLabel) {
-        return CtxHandler.def(
+    public final APIHandler basicSignIn(String usernameLabel, String passwordLabel) {
+        return API.def(
+
                 ParamDef.str(usernameLabel).required("username must not null"),
                 ParamDef.str(passwordLabel).required("password must not null"),
-
 
                 ResultDef.text("compactJWS"),
                 ResultDef.errorJSON(403, "JSON formatted error detail info with inner code and msg"),

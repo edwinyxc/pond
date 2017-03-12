@@ -22,8 +22,11 @@ public interface Function<R, A> {
 
     R apply(A t);
 
-    interface F0<R> {
+    default <X> Function<X, A> compose(Function<X,R> f){
+        return a -> f.apply(apply(a));
+    }
 
+    interface F0<R> {
         R apply();
     }
 

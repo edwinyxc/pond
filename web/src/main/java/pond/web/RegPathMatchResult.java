@@ -5,7 +5,7 @@ import java.util.Map;
 public class RegPathMatchResult {
   /*
   *TODO: could be more elegant by add type information into the PreCompiledPath
-  //final Map<String,Object> params;
+  //final Map<String,Object> queries;
   */
   final Map<String, String> params;
   final boolean matches;
@@ -20,7 +20,7 @@ public class RegPathMatchResult {
   @Override
   public String toString() {
     return "RegPathMatchResult{" +
-        "params=" + params +
+        "queries=" + params +
         ", matches=" + matches +
         '}';
   }

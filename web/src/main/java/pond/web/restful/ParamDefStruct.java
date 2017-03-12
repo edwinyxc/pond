@@ -1,7 +1,8 @@
-package pond.web;
+package pond.web.restful;
 
 import pond.common.S;
 import pond.common.f.Function;
+import pond.web.Ctx;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,21 +14,26 @@ import java.util.Map;
 
 public class ParamDefStruct<A> extends ParamDef<A> {
 
-    final Map<String, ParamDef> innerParamDefs;
-    final Function<A, Map<String, Object>> funcParser;
+    private final Map<String, ParamDef> schema;
+    public final Function<A, Map<String, Object>> funcParser;
 
     ParamDefStruct(String name, Function<A, Map<String, Object>> funcParser, List<ParamDef> inners) {
         super(name);
         this.funcParser = funcParser;
-        this.innerParamDefs = new LinkedHashMap<>();
+        this.schema = new LinkedHashMap<>();
         for (ParamDef def : inners) {
-            this.innerParamDefs.put(def.name, def);
+            this.schema.put(def.name, def);
         }
+        this.handler = this::get;
+    }
+
+    public Schema schema(){
+        return Schema.PARAMS_SCHEMA(schema);
     }
 
     @Override
     public A get(Ctx c) {
-        return funcParser.apply(S._for(this.innerParamDefs).map(paramDef -> paramDef.get(c)).val());
+        return funcParser.apply(S._for(this.schema).map(paramDef -> paramDef.get(c)).val());
     }
 
 }

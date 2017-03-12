@@ -5,7 +5,11 @@ import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Function;
 import pond.web.*;
+import pond.web.restful.API;
+import pond.web.restful.APIHandler;
 import pond.web.HttpCtx;
+import pond.web.restful.ParamDef;
+import pond.web.restful.ResultDef;
 
 import java.util.Arrays;
 import java.util.Base64;
@@ -27,13 +31,14 @@ public class HttpBasicAuth {
     public HttpBasicAuth validator(Function.F2<Boolean, String, String> user_pass_checker) {
         this.user_pass_checker = user_pass_checker;
         return this;
+    }
 
 
     public String user(HttpCtx ctx) {
         return (String) ctx.get(IN_CTX_USER_ID);
     }
 
-    public final WellDefinedHandler auth = CtxHandler.def(
+    public final APIHandler auth = API.def(
             ParamDef.header("Authorization"),
 
             ResultDef.<Void>any(401, "require Basic Authenticate header", (ctx, t) -> {

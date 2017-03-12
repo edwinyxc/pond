@@ -50,7 +50,8 @@ public class HttpCtx extends Ctx {
   final ByteBuf outBoundByteBuf = Unpooled.buffer();
 
   final protected Map<String, List<String>> headers = new HashMap<>();
-  final protected Map<String, List<String>> params = new HashMap<>();
+  final protected Map<String, List<String>> queries = new HashMap<>();
+  final protected Map<String, List<String>> formData = new HashMap<>();
   final protected Map<String, List<Request.UploadFile>> uploadFiles = new HashMap<>();
   final protected Map<String, Cookie> cookies = new HashMap<>();
 
@@ -78,10 +79,16 @@ public class HttpCtx extends Ctx {
     return this;
   }
 
-  HttpCtx updateParams(Callback<Map<String, List<String>>> b) {
-    b.apply(params);
+  HttpCtx updateQueries(Callback<Map<String, List<String>>> b) {
+    b.apply(queries);
     return this;
   }
+
+  HttpCtx updateFormData(Callback<Map<String, List<String>>> b) {
+    b.apply(formData);
+    return this;
+  }
+
 
   HttpCtx updateHeaders(Callback<Map<String, List<String>>> b) {
     b.apply(headers);
@@ -126,11 +133,18 @@ public class HttpCtx extends Ctx {
     }
 
     @Override
-    public Map<String, List<String>> params() {
-      Map<String, List<String>> all_params = new HashMap<>();
-      all_params.putAll(params);
-      all_params.putAll(inUrlParams);
-      return all_params;
+    public Map<String, List<String>> queries() {
+      return queries;
+    }
+
+    @Override
+    public Map<String, List<String>> inUrlParams() {
+      return inUrlParams;
+    }
+
+    @Override
+    public Map<String, List<String>> formData() {
+      return formData;
     }
 
     @Override

@@ -65,7 +65,7 @@ public class Generator {
 
     public static void genDef() {
         S._for(S.range(0, 16)).each(i -> S._for(S.range(0, 8)).each(r -> {
-            System.out.printf("static <", i);
+            System.out.printf("public static <", i);
             S._for(S.range(1, i)).each(
                     ii -> {
                         System.out.printf("P%d", ii);

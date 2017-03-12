@@ -18,6 +18,7 @@ public interface RouterAPI<ROUTER extends Router> {
     Pattern all_through = Pattern.compile("/.*");
     String[] empty_params = new String[0];
 
+    void configRoute(Route route, CtxHandler handler);
 
     /**
      * Add a middleware to Router
@@ -28,7 +29,7 @@ public interface RouterAPI<ROUTER extends Router> {
      * @return Router
      * @see pond.web.http.HttpMethod
      */
-    ROUTER use(int mask, Pattern path, String[] inUrlParams, CtxHandler[] handlers);
+    ROUTER use(int mask, Pattern path, String rawDef, String[] inUrlParams, CtxHandler[] handlers);
 
 //    <A> ROUTER any(int mask,
 //                   Pattern pattern,
@@ -52,26 +53,26 @@ public interface RouterAPI<ROUTER extends Router> {
 //                               Function<Tuple.T5<Request.Param<A>,Request.Param<B>,Request.Param<C>,Request.Param<D>,Request.Param<E4>>, HttpCtx> any,
 //                               Callback.C5<A,B,C,D,E4> callback);
 
-    default ROUTER use(int mask, Pattern path, String[] inUrlParams, Mid... mids) {
-        return use(mask, path, inUrlParams, S._for(mids).map(CtxHandler::express).join());
+    default ROUTER use(int mask, Pattern path, String rawDef, String[] inUrlParams, Mid... mids) {
+        return use(mask, path, rawDef, inUrlParams, S._for(mids).map(CtxHandler::express).join());
     }
 
     default ROUTER use(int mask, String path, Mid... mids) {
         PreCompiledPath preCompiledPath = compiler.compile(path);
-        return use(mask, preCompiledPath.pattern, preCompiledPath.names, mids);
+        return use(mask, preCompiledPath.pattern, path, preCompiledPath.names, mids);
     }
 
     default ROUTER use(int mask, String path, CtxHandler... mids) {
         PreCompiledPath preCompiledPath = compiler.compile(path);
-        return use(mask, preCompiledPath.pattern, preCompiledPath.names, mids);
+        return use(mask, preCompiledPath.pattern, path, preCompiledPath.names, mids);
     }
 
     default ROUTER use(CtxHandler... mids) {
-        return use(HttpMethod.maskAll(), all_through, empty_params, mids);
+        return use(HttpMethod.maskAll(), all_through, "/*", empty_params, mids);
     }
 
     default ROUTER use(Mid... mids) {
-        return use(HttpMethod.maskAll(), all_through, empty_params, mids);
+        return use(HttpMethod.maskAll(), all_through, "/*", empty_params, mids);
     }
 
     default ROUTER use(String path, Mid... mids) {

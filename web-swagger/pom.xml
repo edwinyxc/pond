@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>pond-parent</artifactId>
+        <groupId>pond</groupId>
+        <version>0.3.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>pond-web-swagger</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>pond</groupId>
+            <artifactId>pond-web</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pond</groupId>
+            <artifactId>pond-web-restful</artifactId>
+            <version>0.3.0</version>
+        </dependency>
+    </dependencies>
+</project>

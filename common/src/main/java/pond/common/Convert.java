@@ -10,6 +10,13 @@ import java.util.Date;
  */
 public class Convert {
 
+  public static Boolean toBoolean(Object obj) {
+    if (obj == null) return null;
+    if (obj instanceof Boolean ) {
+      return (Boolean) obj;
+    } else return Boolean.parseBoolean(String.valueOf(obj));
+  }
+
   public static Integer toInt(Object obj) {
     if (obj == null) return null;
     if (obj instanceof Integer) {

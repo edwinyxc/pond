@@ -11,10 +11,7 @@ import pond.web.http.HttpUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * event
@@ -22,6 +19,19 @@ import java.util.Objects;
  * @author ed
  */
 public interface Request {
+
+
+//    class CanonicalParam<T> {
+//        private final ParamType type;
+//        private final ParamIn in;
+//        private final T val;
+//
+//        public CanonicalParam(ParamType type, ParamIn in, T val) {
+//            this.type = type;
+//            this.in = in;
+//            this.val = val;
+//        }
+//    }
 
     String method();
 
@@ -33,7 +43,52 @@ public interface Request {
 
     Map<String, List<String>> headers();
 
-    Map<String, List<String>> params();
+    Map<String, List<String>> queries();
+
+    Map<String, List<String>> inUrlParams();
+
+    Map<String, List<String>> formData();
+
+//    default CanonicalParam<List<String>> canonicalParams(String name) {
+//        List<String> f;
+//        ParamIn in;
+//        if ((f = queries().get(name)).size() > 0) {
+//            in = ParamIn.QUERY;
+//        } else if ((f = inUrlParams().get(name)).size() > 0) {
+//            in = ParamIn.PATH;
+//        } else if ((f = formData().get(name)).size() > 0) {
+//            in = ParamIn.FORM_DATA;
+//        } else {
+//            return null;
+//        }
+//        return new CanonicalParam<>(ParamType.STRING, in, f);
+//    }
+//
+//    default CanonicalParam<List<String>> canonicalHeaders(String name) {
+//        List<String> ret = headers(name);
+//        return ret.size() > 0
+//                ? new CanonicalParam<>(ParamType.STRING, ParamIn.HEADER, ret)
+//                : null;
+//    }
+//
+//    default CanonicalParam<List<UploadFile>> canonicalFiles(String name) {
+//        List<UploadFile> ret = files(name);
+//        return  ret.size() > 0
+//                ? new CanonicalParam<>( ParamType.FILE, ParamIn.FORM_DATA, ret)
+//                : null;
+//    }
+//
+//    default <T> CanonicalParam<T> canonicalBody(Function<T, InputStream> bodyParser) {
+//        return new CanonicalParam<>(ParamType.SCHEMA, ParamIn.BODY, bodyParser.apply(in()));
+//    }
+
+    default Map<String, List<String>> params() {
+        Map<String, List<String>> all_params = new HashMap<>();
+        all_params.putAll(queries());
+        all_params.putAll(formData());
+        all_params.putAll(inUrlParams());
+        return all_params;
+    }
 
     Map<String, List<UploadFile>> files();
 
@@ -139,7 +194,7 @@ public interface Request {
     HttpCtx ctx();
 
     /**
-     * Returns all params as a Map
+     * Returns all queries as a Map
      */
     default Map<String, Object> toMap() {
         Map<String, Object> ret = new HashMap<>();

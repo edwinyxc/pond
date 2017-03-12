@@ -114,7 +114,6 @@ public class RestfulRouterTest {
   }
 
 
-  @Test
   public void test_conflict() throws IOException {
     HTTP.get("http://localhost:9091/can_i_come_in", resp -> {
       String s = null;
@@ -127,13 +126,13 @@ public class RestfulRouterTest {
     });
   }
 
-  @Test
   public void test_search_single_item_by_id() throws IOException {
     HTTP.get("http://localhost:9091/1", resp -> {
       String s = null;
       try {
         s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
         List<Map> arr = JSON.parseArray(s);
+        S.echo("ARRR", arr);
         assertEquals(arr.size(), 1);
         assertEquals(arr.get(0).get("name"), "yxc");
       } catch (IOException e) {
@@ -142,7 +141,6 @@ public class RestfulRouterTest {
     });
   }
 
-  @Test
   public void test_insert() throws IOException {
     HTTP.post("http://localhost:9091/",new HashMap<String, Object>(){{
       put("id", 121);
@@ -153,7 +151,7 @@ public class RestfulRouterTest {
       String s = null;
       try {
         s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
-        S.echo(s);
+        S.echo("###", s);
         Map obj = JSON.parse(s);
         assertEquals(obj.get("name"), "name1");
         assertEquals(obj.get("birthday"), "111");
@@ -165,7 +163,6 @@ public class RestfulRouterTest {
     });
   }
 
-  @Test
   public void test_update() throws IOException {
     HTTP.put("http://localhost:9091/1", new HashMap<String, Object>() {{
       put("name", "name1");
@@ -183,20 +180,20 @@ public class RestfulRouterTest {
     });
   }
 
-  @Test
   public void test_delete() throws IOException {
     HTTP.delete("http://localhost:9091/1", resp -> {
       assertEquals(204, resp.getStatusLine().getStatusCode());
     });
   }
 
-  @Test
   public void test_unified_search() throws IOException {
     HTTP.get("http://localhost:9091/?name=yxc", resp -> {
       String s = null;
       try {
         s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
         List<Map> arr = JSON.parseArray(s);
+        S.echo("ARR", arr);
+        S.echo("headers", resp.getAllHeaders());
         assertEquals(11, arr.size());
       } catch (IOException e) {
         e.printStackTrace();
@@ -215,6 +212,15 @@ public class RestfulRouterTest {
     });
   }
 
+  @Test
+  public void testAll() throws IOException {
+    test_conflict();
+    test_insert();
+    test_search_single_item_by_id();
+    test_unified_search();
+    test_update();
+    test_delete();
+  }
 
   @After
   public void stop() {

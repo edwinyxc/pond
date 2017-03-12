@@ -37,7 +37,7 @@ public final class Pond extends Router {
 
   //END handle configurations
 
-  static Logger logger = LoggerFactory.getLogger(Pond.class);
+  public static Logger logger = LoggerFactory.getLogger(Pond.class);
 
   private BaseServer server;
 

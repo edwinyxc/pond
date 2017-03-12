@@ -52,7 +52,6 @@
             <version>${project.version}</version>
         </dependency>
 
-
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>pond-security</artifactId>
@@ -62,6 +61,12 @@
         <dependency>
             <groupId>pond</groupId>
             <artifactId>pond-web-restful</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>pond</groupId>
+            <artifactId>pond-web-swagger</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

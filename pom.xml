@@ -37,6 +37,7 @@
         <module>core</module>
         <module>security</module>
         <module>web-restful</module>
+        <module>web-swagger</module>
     </modules>
 
     <properties>

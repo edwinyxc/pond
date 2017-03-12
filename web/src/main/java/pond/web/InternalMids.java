@@ -5,7 +5,7 @@ import pond.common.f.Callback;
 import pond.common.f.Function;
 
 /**
- * Put my mids here
+ * Put my handlers here
  */
 public class InternalMids {
 

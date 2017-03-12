@@ -1,6 +1,8 @@
 package pond.web;
 
+import pond.common.f.Callback;
 import pond.common.f.Function;
+import pond.web.http.HttpMethod;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -10,12 +12,13 @@ import java.util.regex.Pattern;
  */
 public class Route {
 
+    public final HttpMethod method;
     private final List<CtxHandler> mids;
     private final Pattern definition;
+    private final String basePath;
     private final String[] inUrlParamNames;
-    private final Map<String, Function<?, Ctx>> inRequestParamGetters;
-
-    private final List<ResultDef> results;
+//    private final Map<String, Function<?, Ctx>> paramDefs;
+//    private final List<Callback.C2<Ctx, ?>> resultDefs;
 
     /**
      * Returns the definition path
@@ -24,31 +27,37 @@ public class Route {
         return definition;
     }
 
-    public Route(Pattern def, String[] names, List<CtxHandler> mids) {
+    public String basePath() {
+        return basePath;
+    }
+
+    public Route(HttpMethod method, Pattern def, String[] inUrlNames, String basePath, List<CtxHandler> mids) {
+        this.method = method;
         definition = def;
-        inUrlParamNames = names;
-        inRequestParamGetters = new LinkedHashMap<>();
-        results = new LinkedList<>();
+        this.basePath = basePath;
+        inUrlParamNames = inUrlNames;
+//        paramDefs = new LinkedHashMap<>();
+//        resultDefs = new LinkedList<>();
         this.mids = mids;
     }
 
-    void addRequestParamNameAndTypes(ParamDef paramDef) {
-        this.inRequestParamGetters.put(paramDef.name(), paramDef::get);
-    }
+//    void addRequestParamNameAndTypes(String name, Function<?, Ctx> paramDef) {
+//        this.paramDefs.put(name, paramDef);
+//    }
+//
+//    void addResultDef(Callback.C2<Ctx, ?> resultDef) {
+//        this.resultDefs.add(resultDef);
+//    }
+//
+//    public List<Callback.C2<Ctx, ?>> resultDefs() {
+//        return resultDefs;
+//    }
+//
+//    public Map<String, Function<?, Ctx>> paramDefs() {
+//        return paramDefs;
+//    }
 
-    void addResultDef(ResultDef resultDef) {
-        this.results.add(resultDef);
-    }
-
-    public List<ResultDef> results() {
-        return results;
-    }
-
-    public Map<String, Function<?, Ctx>> inRequestParamGetters() {
-        return inRequestParamGetters;
-    }
-
-    List<CtxHandler> mids() {
+    public List<CtxHandler> handlers() {
         return mids;
     }
 
@@ -59,11 +68,9 @@ public class Route {
     @Override
     public String toString() {
         return "Route{" +
-                "mids=" + mids +
+                "handlers=" + mids +
                 ", definition=" + definition +
                 ", inUrlParamNames=" + Arrays.toString(inUrlParamNames) +
-                ", inRequestParamGetters=" + inRequestParamGetters +
-                ", results=" + results +
                 '}';
     }
 }
