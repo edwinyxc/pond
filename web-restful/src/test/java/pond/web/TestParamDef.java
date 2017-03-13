@@ -2,10 +2,6 @@ package pond.web;
 
 import pond.common.JSON;
 import pond.common.S;
-import pond.web.CtxHandler;
-import pond.web.HttpCtx;
-import pond.web.Pond;
-import pond.web.Router;
 import pond.web.restful.API;
 import pond.web.restful.ParamDef;
 import pond.web.restful.ResultDef;
@@ -79,11 +75,11 @@ public class TestParamDef {
 
                     p.get("/complex/", API.def(
                             compose("complex", S.array(
-                                    str("name"),
+                                    param("name"),
                                     compose("inner", S.array(
-                                            str("inner_name"),
+                                            param("inner_name"),
                                             compose("inner2", S.array(
-                                                    str("inner2_name")
+                                                    param("inner2_name")
                                             ), map -> {
                                                 S.echo("DEBUG", map);
                                                 Inner2 inner2 = new Inner2();
@@ -117,7 +113,7 @@ public class TestParamDef {
                     ));
 
                     p.get("/well", API.def(
-                            ParamDef.str("q"),
+                            ParamDef.param("q"),
                             ResultDef.ok(),
                             ResultDef.error(400, "Not Found"),
                             ResultDef.error(500, "Error 500"),
@@ -148,7 +144,7 @@ public class TestParamDef {
 //
 //                    p.get("/:name", CtxHandler.any(
 //                            ParamDef.Int("len"),
-//                            ParamDef.str("name").required("name must not null"),
+//                            ParamDef.param("name").required("name must not null"),
 //                            (ctx, len, name) -> {
 //                                HttpCtx httpCtx = (HttpCtx) ctx;
 //                                httpCtx.resp.send(200, name + len + ", " + ctx.route.toString());

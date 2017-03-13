@@ -149,7 +149,7 @@ public class ParamDef<A> {
     }
 
     public static ParamDef<String> query(String name) {
-        return new ParamDef<>(name, ctx -> ((HttpCtx) ctx).req.header(name))
+        return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.queries().get(name)).first())
                 .type(ParamType.STRING).in(ParamIn.QUERY);
     }
 
@@ -164,7 +164,7 @@ public class ParamDef<A> {
                 .type(ParamType.STRING).in(ParamIn.FORM_DATA);
     }
 
-    public static ParamDef<String> str(String name) {
+    public static ParamDef<String> param(String name) {
         return new ParamDef<>(name, ctx -> ((HttpCtx) ctx).req.param(name))
                 .type(ParamType.STRING)
                 //default to form data
@@ -250,7 +250,7 @@ public class ParamDef<A> {
 
     public static ParamDef<Map<String, Object>> composeAs(String name,
                                                           Map<String, Object> schema) {
-        return new ParamDefStruct<>(name, map -> map, parseSchema(schema, ParamDef::str))
+        return new ParamDefStruct<>(name, map -> map, parseSchema(schema, ParamDef::param))
                 .in(ParamIn.COMPOSED)
                 .type(ParamType.SCHEMA);
     }

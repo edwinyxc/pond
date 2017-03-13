@@ -4,6 +4,9 @@ import pond.web.Pond;
 import pond.web.restful.API;
 import pond.web.restful.ParamDef;
 import pond.web.restful.ResultDef;
+import pond.web.restful.Schema;
+
+import java.util.HashMap;
 
 
 /**
@@ -13,11 +16,34 @@ public class SwaggerBuilderTest {
 
     public static class MyAPI extends API {
         {
-            get("/:id", API.def(
-                    ParamDef.path("id"),
-                    ResultDef.text("id"),
-                    (ctx, id, send) -> {
-                        ctx.result(send, id);
+       //            get("/:id", API.def(
+//                    ParamDef.path("id"),
+//                    ResultDef.text("id"),
+//                    (ctx, id, send) -> {
+//                        ctx.result(send, id);
+//                    }
+//            ));
+
+            post("/test", API.def(
+                    ParamDef.param("name").toInteger(),
+                    ParamDef.form("email"),
+                    ParamDef.query("to").required(""),
+
+                    ResultDef.json("name&email&to").schema(Schema.OBJECT(
+                            new HashMap<String, Object>(){{
+                            put("name", "");
+                            put("email", "");
+                            put("to", "");
+                        }}
+                    )),
+
+                    (ctx, name, email, to, json) ->{
+
+                        ctx.result(json, new HashMap<String, Object>(){{
+                            put("name", name);
+                            put("email",email);
+                            put("to", to);
+                        }});
                     }
             ));
         }

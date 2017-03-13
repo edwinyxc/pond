@@ -41,7 +41,7 @@ public class RestfulRoutes<E extends Model> {
                 ParamDef.composeAs("proto", proto.toMap()).to(req -> Sql.selectFromRequest(req, proto)),
                 ResultDef.page("paged rows"),
                 (ctx, sql, ret) -> {
-                    S.echo("debug sql", sql);
+//                    S.echo("debug sql", sql);
                     db.post(t -> ctx.result(ret, Tuple.pair(t.query(sql), t.count(sql.count()))));
                 });
 

@@ -111,8 +111,8 @@ public class HttpJwtAuth {
     public final APIHandler basicSignIn(String usernameLabel, String passwordLabel) {
         return API.def(
 
-                ParamDef.str(usernameLabel).required("username must not null"),
-                ParamDef.str(passwordLabel).required("password must not null"),
+                ParamDef.param(usernameLabel).required("username must not null"),
+                ParamDef.param(passwordLabel).required("password must not null"),
 
                 ResultDef.text("compactJWS"),
                 ResultDef.errorJSON(403, "JSON formatted error detail info with inner code and msg"),

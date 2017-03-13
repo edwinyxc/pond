@@ -281,7 +281,7 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                     List<String> value = entry.getValue();
                     S._debug(BaseServer.logger, log -> log.debug(key + S.dump(value)));
                     S._assert(preprocessed);
-                    preprocessed.updateQueries(params -> HttpUtils.appendToMap(params, key, value));
+                    preprocessed.updateFormData(formData -> HttpUtils.appendToMap(formData, key, value));
                 });
             }
       /*else if ((contentType == null
