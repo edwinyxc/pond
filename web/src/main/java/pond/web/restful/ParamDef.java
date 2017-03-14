@@ -135,7 +135,7 @@ public class ParamDef<A> {
     public ParamDef<A> required(String errMsg) {
         this.required = true;
         this.handler = this.handler.compose(a -> {
-            if (a == null) {
+            if (a == null || a.equals("null") || a.equals("undefined")) {
                 throw new EndToEndException(400, errMsg);
             } else return a;
         });
@@ -194,7 +194,7 @@ public class ParamDef<A> {
             } catch (IOException | RuntimeException e) {
                 throw new EndToEndException(400, "parse error:" + e.getMessage());
             }
-        }).consumes(MimeTypes.MIME_APPLICATION_JSON);
+        }).consumes(MimeTypes.MIME_APPLICATION_JSON).in(ParamIn.BODY).type(ParamType.STRING);
     }
 
 //    public static ParamDefStruct<Map<String, Object>> requestToMap() {
@@ -206,7 +206,7 @@ public class ParamDef<A> {
     }
 
     public static <X> ParamDef<X> any(String name, Function<X, Ctx> handler) {
-        return new ParamDef<X>(name, handler);
+        return new ParamDef<X>(name, handler).in(ParamIn.QUERY).type(ParamType.STRING);
     }
 
     public static <X> ParamDef<X> compose(String name, List<ParamDef> defs, Function<X, Map<String, Object>> parser) {

@@ -2,6 +2,7 @@ package pond.web.restful;
 
 import pond.common.JSON;
 import pond.common.S;
+import pond.common.STREAM;
 import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.common.f.Tuple;
@@ -9,7 +10,10 @@ import pond.web.*;
 import pond.web.http.MimeTypes;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.*;
 
 
@@ -204,6 +208,30 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
             ((HttpCtx) ctx).resp.render(Render.file(t));
         }).produces("application/octet-stream");
     }
+
+    public static ResultDef<Tuple<Class, String>> resourceAsFile(String desc) {
+        return new ResultDef<Tuple<Class, String>>(200, desc, (ctx, t) -> {
+
+            ClassLoader loader = t._a.getClassLoader();
+            String filename = t._b;
+
+            Response resp = ((HttpCtx) ctx).resp;
+
+            int dot_pos = filename.lastIndexOf(".");
+            if (dot_pos != -1 && dot_pos < filename.length() - 1) {
+                resp.contentType(MimeTypes.getMimeType(filename.substring(dot_pos + 1)));
+            } else {
+                resp.contentType(MimeTypes.MIME_TEXT_HTML);
+            }
+            try(InputStream in = loader.getResourceAsStream(filename)){
+                STREAM.write(in, resp.out());
+                resp.send(200);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).produces("text/html", "text/css", MimeTypes.MIME_APPLICATION_JAVA_ARCHIVE);
+    }
+
 
     /**
      * send download file as octet-stream with filename defined

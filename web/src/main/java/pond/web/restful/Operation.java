@@ -1,11 +1,9 @@
 package pond.web.restful;
 
+import pond.common.S;
 import pond.common.f.Tuple;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by edwin on 3/12/2017.
@@ -40,15 +38,54 @@ class Operation extends HashMap<String, Object> {
         return this;
     }
 
+    public Set<String> consumes() {
+        return (Set<String>) this.get("consumes");
+    }
+
     public Operation produces(Set<String> produces) {
         this.put("produces", produces);
         return this;
     }
 
+    public Set<String> produces() {
+        return (Set<String>) this.get("produces");
+    }
 
     public Operation parameters(List<Parameter> parameters) {
-        this.put("parameters", parameters);
+        this.put("parameters",
+                S._tap(S.avoidNull((List<Parameter>) this.get("parameters"), new LinkedList<>()),
+                        (List<Parameter> x) -> x.addAll(parameters)
+                ));
         return this;
+    }
+
+    public List<Parameter> parameters() {
+        return (List<Parameter>) this.get("parameters");
+    }
+
+    public Map<String, Response> mergeResponse(List<Tuple<Integer, Response>> responses) {
+        Map<String, Response> ret = S.avoidNull(this.responses(), new HashMap<>());
+        for (Tuple<Integer, Response> t : responses) {
+            if (t._a != null) {
+                Response r;
+                if ((r = ret.get(String.valueOf(t._a))) != null) {
+                    r.merge(t._b);
+                } else r = t._b;
+                ret.put(String.valueOf(t._a), r);
+            } else {
+                ret.put("default", t._b);
+            }
+        }
+        return ret;
+    }
+
+    public Operation responses(List<Tuple<Integer, Response>> responses) {
+        this.put("responses", mergeResponse(responses));
+        return this;
+    }
+
+    public Map<String, Response> responses() {
+        return (Map<String, Response>) this.get("responses");
     }
 
     public static class Response extends HashMap<String, Object> {
@@ -79,20 +116,19 @@ class Operation extends HashMap<String, Object> {
             return this;
         }
 
+        public Response merge(Response s) {
+            this.put("description",
+                    String.valueOf(this.get("description")) + " | "
+                            + String.valueOf(s.get("description"))
+            );
+            this.headers(S._tap(S.avoidNull((Map<String, Header>) s.get("headers"), new HashMap<>()),
+                    x -> x.putAll((Map<String, Header>) S.avoidNull(s.get("headers"), new HashMap<>()))
+            ));
+            return this;
+        }
+
     }
 
-    public Operation responses(List<Tuple<Integer, Response>> responses) {
-        this.put("responses", new HashMap<String, Object>() {{
-            for (Tuple<Integer, Response> t : responses) {
-                if (t._a != null) {
-                    this.put(String.valueOf(t._a), t._b);
-                } else {
-                    this.put("default", t._b);
-                }
-            }
-        }});
-        return this;
-    }
 
     /**
      * http, https, ws, wss

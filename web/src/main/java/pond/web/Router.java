@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
 
 import static pond.common.S._debug;
 import static pond.common.S._for;
-import static pond.common.S.file;
 
 
 public class Router implements CtxHandler, RouterAPI {
@@ -25,7 +24,8 @@ public class Router implements CtxHandler, RouterAPI {
     static PathToRegCompiler compiler = new ExpressPathToRegCompiler();
 
     Routes routes = new Routes();
-    Router parent = null;
+    protected Router parent = null;
+    final protected List<Router> children = new LinkedList<>();
     protected String basePath = "/";
 
     public Routes routes() {
@@ -104,19 +104,42 @@ public class Router implements CtxHandler, RouterAPI {
         return parsed;
     }
 
-    protected String absolutePath(Route route) {
+    protected String buildPathForRoute(String base) {
         if (this.basePath.endsWith("/")) {
-            return this.basePath.substring(0, this.basePath.length() - 1) + sanitizedBasePath(route.basePath());
+            return this.basePath.substring(0, this.basePath.length() - 1) + sanitizedBasePath(base);
         }
-        return this.basePath + sanitizedBasePath(route.basePath());
+        return this.basePath + sanitizedBasePath(base);
+    }
+//
+//    void setBasePath(String base){
+//        String saned = buildPathForRoute(base);
+//        this.basePath = saned;
+//        S._for(children).each(child -> {
+//            child.setBasePath(saned);
+////            child.basePath = child.basePath + absPath;
+//        });
+//    }
+
+    protected String absolutePath(){
+        String ret = basePath;
+        if(parent != null){
+            String parentPath = parent.absolutePath();
+            if(parentPath.endsWith("/")){
+                parentPath = parentPath.substring(0, parentPath.length()-1);
+            }
+            ret = parentPath + ret;
+        }
+        return ret;
     }
 
     @Override
     public void configRoute(Route route, CtxHandler handler) {
         if (handler instanceof Router) {
             Router child = ((Router) handler);
+            this.children.add(child);
+//            child.setBasePath(route.basePath());
             child.parent = this;
-            child.basePath = absolutePath(route);
+            child.basePath = buildPathForRoute(route.basePath());
         }
     }
 

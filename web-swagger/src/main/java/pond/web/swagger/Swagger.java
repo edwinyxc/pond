@@ -1,18 +1,19 @@
 package pond.web.swagger;
 
 
-import pond.common.PATH;
 import pond.web.CtxHandler;
-import pond.web.DefaultStaticFileServer;
 import pond.web.restful.API;
 import pond.web.restful.APIHandler;
 import pond.web.restful.Path;
 import pond.web.restful.ResultDef;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static pond.common.f.Tuple.pair;
+import static pond.web.restful.ParamDef.*;
+import static pond.web.restful.ResultDef.*;
 
 /**
  * Swagger Json spec v2
@@ -60,8 +61,7 @@ public class Swagger extends HashMap<String, Object> {
         swagger.basePath(api.basePath());
         swagger.info(new Info().title(api.title)
                 .version(api.version).description(api.desc));
-        swagger.paths(api.paths);
-
+        swagger.paths(api.allPaths());
         return swagger;
     }
 
@@ -76,11 +76,59 @@ public class Swagger extends HashMap<String, Object> {
     }
 
     public static CtxHandler server() {
-        return CtxHandler.express(
-                new DefaultStaticFileServer().watch(
-                        new File(PATH.classpathRoot(), "swagger-ui").getAbsolutePath()
-                )
-        );
+        return new API() {
+            final Class swaggerClass = Swagger.class;
+            final String swaggerPrefix = "swagger-ui/";
+
+            {
+                get("/", API.def(
+                        resourceAsFile("index.html"),
+                        (ctx, render) ->
+                                ctx.result(render, pair(swaggerClass, swaggerPrefix + "index.html"))
+                ));
+                get("/:file", API.def(
+                        path("file"),
+                        resourceAsFile("file"),
+                        (ctx, file, render) ->
+                                ctx.result(render, pair(swaggerClass, swaggerPrefix + file))
+                ));
+                get("/css/:file", API.def(
+                        path("file"),
+                        resourceAsFile("css files"),
+                        (ctx, file, render) ->
+                                ctx.result(render, pair(swaggerClass, swaggerPrefix + "css/" + file))
+                ));
+                get("/fonts/:file", API.def(
+                        path("file"),
+                        resourceAsFile("fonts"),
+                        (ctx, file, render) ->
+                                ctx.result(render, pair(swaggerClass, swaggerPrefix + "fonts/" + file))
+                ));
+                get("/images/:file", API.def(
+                        path("file"),
+                        resourceAsFile("images"),
+                        (ctx, file, render) ->
+                                ctx.result(render, pair(swaggerClass, swaggerPrefix + "images/" + file))
+                ));
+                get("/lang/:file", API.def(
+                        path("file"),
+                        resourceAsFile("lang"),
+                        (ctx, file, render) ->
+                                ctx.result(render, pair(swaggerClass, swaggerPrefix + "lang/" + file))
+                ));
+                get("/lib/:file", API.def(
+                        path("file"),
+                        resourceAsFile("lib"),
+                        (ctx, file, render) ->
+                                ctx.result(render, pair(swaggerClass, swaggerPrefix + "lib/" + file))
+                ));
+
+                otherwise(API.def(
+                        error(404, "404"),
+                        (ctx, e404) -> ctx.result(e404, "not found")
+                ));
+            }
+        };
     }
 
 

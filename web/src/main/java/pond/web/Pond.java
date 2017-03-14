@@ -5,12 +5,13 @@ import org.slf4j.LoggerFactory;
 import pond.common.PATH;
 import pond.common.S;
 import pond.common.f.Callback;
+import pond.web.restful.API;
 
 
 /**
  * Main Class
  */
-public final class Pond extends Router {
+public final class Pond extends API {
 
   //configurations
   /***** Internal ****/
