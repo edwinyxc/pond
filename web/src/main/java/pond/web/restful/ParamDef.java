@@ -171,6 +171,11 @@ public class ParamDef<A> {
                 .in(ParamIn.FORM_DATA);
     }
 
+    public static ParamDef<Map<String,Object>> reqAsMap() {
+        return new ParamDef<>("req as map", ctx -> ((HttpCtx) ctx).req.toMap())
+                .type(ParamType.SCHEMA).in(ParamIn.COMPOSED);
+    }
+
     private static final String CACHED_BODY_AS_JSON = "CACHED_BODY_AS_JSON";
 
     static void cacheBodyAsJSON(Ctx c) throws IOException {
