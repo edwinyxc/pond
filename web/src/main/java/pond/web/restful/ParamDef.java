@@ -99,6 +99,10 @@ public class ParamDef<A> {
         return new ParamDef<>(this.name, this.handler.compose(compose), this.required);
     }
 
+    public ParamDef<Long> toLong() {
+        return to(Convert::toLong).in(this.in).type(ParamType.INTEGER);
+    }
+
     public ParamDef<Boolean> toBoolean() {
         return to(Convert::toBoolean).in(this.in).type(ParamType.BOOLEAN);
     }

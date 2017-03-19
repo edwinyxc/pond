@@ -22,8 +22,12 @@ public interface Function<R, A> {
 
     R apply(A t);
 
-    default <X> Function<X, A> compose(Function<X,R> f){
+    default <X> Function<X, A> compose(Function<X, R> f) {
         return a -> f.apply(apply(a));
+    }
+
+    static <X> Function<Boolean, X> not(Function<Boolean, X> f) {
+        return x -> !f.apply(x);
     }
 
     interface F0<R> {
