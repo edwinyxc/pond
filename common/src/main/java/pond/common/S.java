@@ -70,6 +70,10 @@ public class S {
     return range;
   }
 
+  public static <T> T[] join(T... data) {
+    return S._for(data).join();
+  }
+
   /**
    * Create an ArrayList for input ordered by the input sequence.
    */
