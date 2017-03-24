@@ -22,6 +22,7 @@ public interface BaseServer {
   final static String PORT         = "port";
   final static String SO_BACKLOG   = "so_backlog";
   final static String SO_KEEPALIVE = "so_keepalive";
+  final static String SSL = "ssl";
 
   /**
    * Bind configured PORT and start server, normally this operation will block the thread.
