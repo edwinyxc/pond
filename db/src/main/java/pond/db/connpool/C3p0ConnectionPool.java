@@ -37,8 +37,8 @@ class C3p0ConnectionPool extends AbstractConnectionPool {
     //test every 60s
     cpds.setIdleConnectionTestPeriod(60);
 
-    //wait 3000ms to get the connection or fail
-    cpds.setCheckoutTimeout(3000);
+    //wait 30000ms to get the connection or fail
+    cpds.setCheckoutTimeout(30000);
 
 //    cpds.setAcquireIncrement(10);
     cpds.setMaxIdleTime(300);
