@@ -11,6 +11,8 @@ import static org.junit.Assert.assertEquals;
 
 public class ArrayTest {
 
+
+
   @Test
   public void testJoin() throws Exception {
     Integer[] joined = S.array(12, 2, 3, 14, 15).join();

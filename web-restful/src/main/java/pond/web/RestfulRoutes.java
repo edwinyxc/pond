@@ -137,12 +137,12 @@ public class RestfulRoutes<E extends Model> {
     }
 
     public RestfulRoutes<E> putRoot(Mid cb) {
-        router.put("/", cb);
+        router.put("/:id", cb);
         return this;
     }
 
     public RestfulRoutes<E> putRoot(CtxHandler cb) {
-        router.put("/", cb);
+        router.put("/:id", cb);
         return this;
     }
 

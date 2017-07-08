@@ -166,7 +166,7 @@ public class RestfulRouterTest {
   public void test_update() throws IOException {
     HTTP.put("http://localhost:9091/1", new HashMap<String, Object>() {{
       put("name", "name1");
-      put("birthday", "name2");
+      put("birthday", 111);
       put("type", "type3");
     }}, resp -> {
       String s = null;
@@ -175,7 +175,7 @@ public class RestfulRouterTest {
       } catch (IOException e) {
         e.printStackTrace();
       }
-      List<Map> arr = JSON.parseArray(s);
+      Map arr = JSON.parse(s);
       S.echo("PUT", arr);
     });
   }

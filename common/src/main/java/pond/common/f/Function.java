@@ -1,5 +1,12 @@
 package pond.common.f;
 
+import pond.common.S;
+
+import java.util.List;
+import java.util.Map;
+
+import static pond.common.f.Tuple.pair;
+
 @SuppressWarnings({"rawtypes"})
 public interface Function<R, A> {
 
@@ -20,7 +27,27 @@ public interface Function<R, A> {
         return NUL;
     }
 
+    static <R, A> Function<List<R>, List<A>> listProj(Function<R,A> fn) {
+        return fn.listProj();
+    }
+
+    default Function<List<R>, List<A>> listProj() {
+        return list -> S._for(list).map(this).toList();
+    }
+
+
+
+//    static <A, B, PA, PB> Function<Tuple<PA, PB>, Tuple<A, B>>
+//    tupleProj(Function<PA, A> prjA,  Function<PB, B> prjB)
+//    {
+//        return tuple -> pair(prjA.apply(tuple._a), prjB.apply(tuple._b));
+//    }
+
     R apply(A t);
+
+    static <X, R, A> Function<X, A> compose(Function<R, A> t, Function<X, R> f) {
+        return t.compose(f);
+    }
 
     default <X> Function<X, A> compose(Function<X, R> f) {
         return a -> f.apply(apply(a));
