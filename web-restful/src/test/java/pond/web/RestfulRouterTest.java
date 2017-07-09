@@ -175,8 +175,9 @@ public class RestfulRouterTest {
       } catch (IOException e) {
         e.printStackTrace();
       }
-      Map arr = JSON.parse(s);
-      S.echo("PUT", arr);
+      Map<String,Object> ret = JSON.parse(s);
+      S.echo("PUT", ret);
+      assertEquals(111, Integer.parseInt((String)ret.get("birthday")));
     });
   }
 

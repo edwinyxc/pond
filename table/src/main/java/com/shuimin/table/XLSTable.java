@@ -84,7 +84,7 @@ public class XLSTable extends RowBasedModelTable
     XLSRow list = new XLSRow(filledColumns);
     //循环遍历所有列
     for (int j = 0; j < filledColumns; j++) {
-      list.add(cellValue(rowline.getCell(j), customerParsers.get(i)));
+      list.add(cellValue(rowline.getCell(j), customerParsers.get(j)));
     }
     return list;
   }
