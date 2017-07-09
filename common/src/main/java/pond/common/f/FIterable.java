@@ -83,13 +83,31 @@ public interface FIterable<E> extends Iterable<E> {
   }
 
   /**
-   * Join items to an array with separator
+   * more Safely join
+   * @param arr
+   * @return
    */
+  E[] joinArray(E[] arr);
+
+  /**
+   * more Safely join
+   * @param arr
+   * @return
+   */
+  E[] joinArray(E sep, E[] arr);
+
+  /**
+   * Join items to an array with separator
+   * @see #joinArray(Object[])
+   */
+  @Deprecated
   E[] join(E sep);
 
   /**
    * Join items to an array without any separator
+   * @see #joinArray(Object[])
    */
+  @Deprecated
   E[] join();
 
   /**

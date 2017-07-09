@@ -84,20 +84,50 @@ public class Array<E> extends ArrayList<E> implements FIterable<E> {
   }
 
   @Override
-  public E[] join(E sep) {
-    Array<E> retArr = new Array<>();
-    Iterator<E> iter = this.iterator();
-    while (iter.hasNext()) {
-      retArr.add(iter.next());
-      if (iter.hasNext())
-        retArr.add(sep);
-    }
-    return ARRAY.of(retArr);
+  public E[] joinArray(E[] arr) {
+    return super.toArray(arr);
   }
 
   @Override
+  public E[] joinArray(E sep, E[] arr) {
+    if(this.size() > 0){
+      Array<E> retArr = new Array<>();
+      Iterator<E> iter = this.iterator();
+      while (iter.hasNext()) {
+        retArr.add(iter.next());
+        if (iter.hasNext())
+          retArr.add(sep);
+      }
+      return ARRAY.of(retArr);
+    }
+    else return arr;
+  }
+
+  @Override
+  public E[] join(E sep) {
+    if(this.size() > 0){
+      Array<E> retArr = new Array<>();
+      Iterator<E> iter = this.iterator();
+      while (iter.hasNext()) {
+        retArr.add(iter.next());
+        if (iter.hasNext())
+          retArr.add(sep);
+      }
+      return ARRAY.of(retArr);
+    }
+    else
+      throw new IllegalArgumentException("zero-length Array can't be joined");
+  }
+
+  @Override
+  /**
+   * @see #joinSafely()
+   */
   public E[] join() {
-    return ARRAY.of(this);
+    if(this.size() > 0)
+      return ARRAY.of(this);
+    else
+      throw new IllegalArgumentException("zero-length Array can't be joined");
   }
 
   @Override
