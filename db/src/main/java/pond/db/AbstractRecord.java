@@ -14,7 +14,7 @@ import static pond.common.S._try_ret;
  * AbstractRecord
  */
 @SuppressWarnings("rawtypes")
-public class AbstractRecord extends HashMap<String, Object>
+public class AbstractRecord extends LinkedHashMap<String, Object>
     implements Record {
 
   DB _db;

@@ -12,6 +12,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -123,7 +124,7 @@ public final class DB {
       rs_db = meta.getTables(null, "%", "%", new String[]{"TABLE", "VIEW"});
       while (rs_db.next()) {
         String tablename = rs_db.getString("TABLE_NAME");
-        table_types.put(tablename, new HashMap<>());
+        table_types.put(tablename, new LinkedHashMap<>());
       }
 
       for (Map.Entry<String, Map<String, Integer>> e : table_types.entrySet()) {
