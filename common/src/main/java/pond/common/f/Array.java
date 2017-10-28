@@ -44,16 +44,17 @@ public class Array<E> extends ArrayList<E> implements FIterable<E> {
   }
 
   @Override
-  public E reduce(Function.F4<E, E, E, Integer, FIterable<E>> reduceFunc, E init) {
+  public <ACC> ACC reduce(Function.F4<ACC, ACC, E, Integer, FIterable<E>> reduceFunc, ACC init) {
     if (this.size() < 1) return init;
     int start;
-    E acc;
+    ACC acc;
     E cur;
     if (init != null) {
       acc = init;
       start = 0;
     } else {
-      acc = this.get(0);
+      //TODO add some check
+      acc = (ACC) this.get(0);
       start = 1;
     }
     for (int i = start; i < this.size(); i++) {

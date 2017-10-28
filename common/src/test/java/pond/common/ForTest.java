@@ -29,7 +29,7 @@ public class ForTest {
 
     Integer[] arr = {1, 2, 3, 4, 5, 6, 6, 6344, 3, 2, 2, 3, 4};
 
-    assertEquals((long) _for(arr).map(i -> i + 1).reduce((a, b) -> a > b ? a : b), 6345);
+    assertEquals((int) _for(arr).map(i -> i + 1).<Integer>reduce((a, b) -> a > b ? a : b), 6345);
   }
 
   @Test
@@ -40,7 +40,7 @@ public class ForTest {
     for (int i : arr) {
       sum = sum + i;
     }
-    assertEquals((int) _for(arr).reduce((acc, r) -> acc + r), sum);
+    assertEquals((int) _for(arr).<Integer>reduce((acc, r) -> acc + r), sum);
   }
 
 

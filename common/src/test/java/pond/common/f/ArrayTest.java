@@ -35,7 +35,7 @@ public class ArrayTest {
   @Test
   public void testReduce() throws Exception {
     Array<Integer> arr = S.array(1, 23, 4, 5, 6, 7, 8, 9);
-    assertEquals((long) arr.reduce((acc, cur) -> acc + cur), (1 + 23 + 4 + 5 + 6 + 7 + 8 + 9));
+    assertEquals((int)arr.<Integer>reduce((acc, cur) -> acc + cur), (1 + 23 + 4 + 5 + 6 + 7 + 8 + 9));
   }
 
   @Test

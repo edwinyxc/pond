@@ -27,16 +27,18 @@ public interface FIterable<E> extends Iterable<E> {
    * @param init       initial value
    * @return Accumulated value
    */
-  E reduce(Function.F4<E, E, E, Integer, FIterable<E>> reduceFunc, E init);
+//  E reduce(Function.F4<E, E, E, Integer, FIterable<E>> reduceFunc, E init);
 
-  default E reduce(Function.F2<E, E, E> acc, E init) {
+  <ACC> ACC reduce(Function.F4<ACC, ACC, E, Integer, FIterable<E>> reduceFunc, ACC init);
+
+  default <ACC> ACC reduce(Function.F2<ACC, ACC, E> acc, ACC init) {
     return reduce((accm, cur, idx, array) -> acc.apply(accm, cur), init);
   }
 
   /**
    * reduce without initial value
    */
-  default E reduce(Function.F2<E, E, E> acc) {
+  default <ACC> ACC reduce(Function.F2<ACC, ACC, E> acc) {
     return reduce(acc, null);
   }
 
