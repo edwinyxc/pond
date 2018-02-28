@@ -1,5 +1,7 @@
 package pond.web.restful;
 
+import pond.common.S;
+
 import java.util.HashMap;
 import java.util.List;
 
@@ -11,6 +13,14 @@ class Parameter extends HashMap<String, Object> {
     public Parameter name(String name) {
         this.put("name", name);
         return this;
+    }
+
+    public String name() {
+        return S.avoidNull((String)this.get("name"), "");
+    }
+
+    public String in() {
+        return S.avoidNull((String) this.get("in"), "");
     }
 
 

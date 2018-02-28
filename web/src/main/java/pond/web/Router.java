@@ -162,11 +162,6 @@ public class Router implements CtxHandler, RouterAPI {
             for (CtxHandler handler : mids) {
                 configRoute(route, handler);
             }
-//      for( CtxHandler h: middles) {
-//        if( h instanceof WellDefinedHandler) {
-//          ((WellDefinedHandler) h).install(route);
-//        }
-//      }
 
             String pattern = path.pattern();
 

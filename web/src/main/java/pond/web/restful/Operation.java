@@ -79,6 +79,12 @@ class Operation extends HashMap<String, Object> {
         return ret;
     }
 
+    public Operation responses(Map<String, Response> responses) {
+        Map<String, Response> thisMap = responses();
+        thisMap.putAll(responses);
+        return this;
+    }
+
     public Operation responses(List<Tuple<Integer, Response>> responses) {
         this.put("responses", mergeResponse(responses));
         return this;

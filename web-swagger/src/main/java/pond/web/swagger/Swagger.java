@@ -61,7 +61,7 @@ public class Swagger extends HashMap<String, Object> {
         swagger.basePath(api.basePath());
         swagger.info(new Info().title(api.title)
                 .version(api.version).description(api.desc));
-        swagger.paths(api.allPaths());
+        swagger.paths(api.getAllPathsRecursively());
         return swagger;
     }
 

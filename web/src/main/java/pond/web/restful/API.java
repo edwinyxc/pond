@@ -80,78 +80,133 @@ public class API extends Router {
         //find path
         Path path = paths.computeIfAbsent(abs_path, Path::new);
 
-        //find existing operation
-
-        Operation operation = path.method(route.method);
-
-        if (operation == null) {
-            //build Operation
-            operation = new Operation()
-                    .operationId(route.method + " " + abs_path)
-                    .description(route.method.toString());
-            Set<String> consumes = new HashSet<>();
-            Set<String> produces = new HashSet<>();
-
-            operation.parameters(
-                    S._for(def.paramDefs).map(p -> {
-                        consumes.addAll(Arrays.asList(p.consumes));
-                        return parameter(p);
-                    }).compact().toList()
-            );
-
-            operation.responses(
-                    S._for(def.resultDefs).map(r -> {
-                        produces.addAll(r.produces);
-                        return response(r);
-                    }).compact().toList()
-            );
-
-            operation.consumes(consumes);
-            operation.produces(produces);
-
-            //
-            path.method(route.method, operation);
+        //if the current ctx-Handler is not the last handler, treat def as a filter-handler
+        if (route.handlers().indexOf(def) != route.handlers().size() - 1) {
+            List<Parameter> parameters_path = path.parameters();
+            for (ParamDef paramDef : def.paramDefs) {
+                // if no such identical (name & in) in path's parameters
+                if (S._for(parameters_path).every(p -> !(p.name().equals(paramDef.name)) && p.in().equals(paramDef.in.val))) {
+                    //add paramDef as a new Path parameter
+                    parameters_path.add(parameter(paramDef));
+                }
+            }
+//            S.echo("New Path parameters Added @ " + path.path, path.parameters(), path.parameters() == parameters_path);
         } else {
 
-            Set<String> consumes = operation.consumes();
-            Set<String> produces = operation.produces();
+            //find existing operation
+            Operation operation = path.method(route.method);
 
-            operation.parameters(
-                    S._for(def.paramDefs).map(p -> {
-                        consumes.addAll(Arrays.asList(p.consumes));
-                        return parameter(p);
-                    }).compact().toList()
-            );
+            if (operation == null) {
+                //build Operation
+                operation = new Operation()
+                        .operationId(route.method + " " + abs_path)
+                        .description(route.method.toString());
+                Set<String> consumes = new HashSet<>();
+                Set<String> produces = new HashSet<>();
 
-            operation.responses(
-                    S._for(def.resultDefs).map(r -> {
-                        produces.addAll(r.produces);
-                        return response(r);
-                    }).compact().toList()
-            );
+                operation.parameters(
+                        S._for(def.paramDefs).map(p -> {
+                            consumes.addAll(Arrays.asList(p.consumes));
+                            return parameter(p);
+                        }).compact().toList()
+                );
 
-            operation.consumes(consumes);
-            operation.produces(produces);
-            path.method(route.method, operation);
+                operation.responses(
+                        S._for(def.resultDefs).map(r -> {
+                            produces.addAll(r.produces);
+                            return response(r);
+                        }).compact().toList()
+                );
+
+                operation.consumes(consumes);
+                operation.produces(produces);
+
+                //
+                path.method(route.method, operation);
+            } else {
+
+                Set<String> consumes = operation.consumes();
+                Set<String> produces = operation.produces();
+
+                operation.parameters(
+                        S._for(def.paramDefs).map(p -> {
+                            consumes.addAll(Arrays.asList(p.consumes));
+                            return parameter(p);
+                        }).compact().toList()
+                );
+
+                operation.responses(
+                        S._for(def.resultDefs).map(r -> {
+                            produces.addAll(r.produces);
+                            return response(r);
+                        }).compact().toList()
+                );
+
+                operation.consumes(consumes);
+                operation.produces(produces);
+                path.method(route.method, operation);
+            }
         }
 
     }
 
-    public Map<String, Path> allPaths() {
+    //TODO why we need this? try to remove
+    private String santiliseNewPath(String base, String path) {
+        // Path root is "" rather than "/", so we need to make sure path length > 0
+        String newPath = (base.endsWith("/") && path.length() > 0)
+                ? (base.substring(0, base.length() - 1) + path)
+                : (base + path);
+        if (newPath.equals("")) newPath = "/";
+        return newPath;
+    }
+
+    public Map<String, Path> getAllPathsRecursively() {
         Map<String, Path> ret = new LinkedHashMap<>();
         String base = this.absolutePath();
+//        S.echo("++++");
+//        S.echo("BasePath", base);
+//        S.echo("hasChildren", children.size() > 0);
+//        S.echo("Paths", S._for(paths.entrySet()).map(Map.Entry::getKey).toList(), paths.size());
+
+
         S._for(paths.entrySet()).each(entry -> {
-            Path val = entry.getValue();
-            String newPath = base.endsWith("/")
-                    ? (base.substring(0, base.length() - 1) + val.path)
-                    : (base + val.path);
-            ret.put(newPath, val);
+            Path path = entry.getValue();
+            ret.put(santiliseNewPath(base, path.path), path);
         });
-        S._for(children).each(r -> {
-            if (r instanceof API) {
-                ret.putAll(((API) r).allPaths());
+
+        S._for(children).each(child -> {
+            if (child instanceof API) {
+//                S.echo("child_base", ((API) child).basePath());
+
+                Path path_this = ret.get(santiliseNewPath(((API) child).basePath(), "/"));
+//                if (path_this != null)
+//                    S.echo("child_base_path", path_this.path, path_this.parameters());
+//                else
+//                    S.echo("child_base_path", "Null");
+
+                for (Map.Entry<String, Path> entry : ((API) child).getAllPathsRecursively().entrySet()) {
+                    String pathStr = entry.getKey();
+                    Path path_child = entry.getValue();
+                    if (path_this != null && path_this.parameters().size() > 0) {
+
+//                        S.echo("Found path params @ " + pathStr, path_this.parameters());
+
+                        List<Parameter> parameters_path_child = path_child.parameters();
+                        for (Parameter parameter : path_this.parameters()) {
+                            // if no such identical (name & in) in path's parameters
+                            if (S._for(parameters_path_child).every(p ->
+                                    !(p.name().equals(parameter.name())) && p.in().equals(parameter.in()))) {
+                                //add paramDef as a new Path parameter
+                                parameters_path_child.add(parameter);
+                            }
+                        }
+                    }
+                    ret.put(pathStr, path_child);
+                }
             }
         });
+
+//        S.echo("----");
         return ret;
     }
 

@@ -52,7 +52,7 @@ public interface FIterable<E> extends Iterable<E> {
   }
 
   default FIterable<E> compact() {
-    return filter(e -> e != null);
+    return filter(Objects::nonNull);
   }
 
   default FIterable<E> excludes(Function<Boolean, E> nonIncludes) {
