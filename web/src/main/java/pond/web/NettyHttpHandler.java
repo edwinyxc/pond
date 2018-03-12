@@ -28,8 +28,8 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
     private Ctx webCtx;
     final CtxHandler handler;
     final static String WEBSOCKET_HANDLER_LABEL = "WEBSOCKET_HANDLER_LABEL";
-
     static {
+
         DiskFileUpload.deleteOnExitTemporaryFile = true; // should delete file
         // on exit (in normal // exit)
         DiskFileUpload.baseDirectory = null; // system temp directory
@@ -127,7 +127,10 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                                 .each(entry ->
                                         HttpUtils.appendToMap(
                                                 headers,
-                                                entry.getKey().toString(),
+                                                S._wrap(entry.getKey().toString(), key -> {
+                                                    if(key == null) return null;
+                                                    return BaseServer.IS_HEADER_SENSITIVE()? key : key.toLowerCase();
+                                                }),
                                                 finalHttpRequest.headers()
                                                         .getAllAndConvert(entry.getKey())
                                         )
@@ -253,7 +256,12 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
                         request.headers().set(name, value);
 //            S._assert(reqWrapper);
                         preprocessed.updateHeaders(
-                                headers -> HttpUtils.appendToMap(headers, name.toString(), value.toString()));
+                                headers -> HttpUtils.appendToMap(
+                                        headers,
+                                        S._wrap(name.toString(), n -> BaseServer.IS_HEADER_SENSITIVE()? n : n.toLowerCase()),
+                                        value.toString()
+                                )
+                        );
                     }
                 }
             }

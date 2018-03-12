@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static pond.web.Render.text;
 
 /**
@@ -35,7 +36,6 @@ public class TestSuite {
   Pond app;
 
   Charset utf8 = Charset.forName("UTF-8");
-
 
   @Before
   public void init() {
@@ -90,6 +90,9 @@ public class TestSuite {
     //user-custom
     test_end2end_exception();
     app.stop();
+
+    //test environment configs
+    test_http_header_insensitivity();
   }
 
   public void form_verify() throws IOException, ExecutionException, InterruptedException {
@@ -273,8 +276,8 @@ public class TestSuite {
              }
     );
 
-    HTTP.get("http://localhost:9090/invalidate",
-             S._tap(new HashMap<>(), h -> h.put("Cookie", ClientCookieEncoder.encode(Session.LABEL_SESSION, sessionHolder.val())))
+    HTTP.get("http://localhost:9090/invalidate", S._tap(new HashMap<String, String>(),
+            h -> h.put("Cookie", ClientCookieEncoder.encode(Session.LABEL_SESSION, sessionHolder.val())))
     );
 
     //read session
@@ -669,6 +672,47 @@ public class TestSuite {
 
     TestUtil.assertContentEqualsForGet("OK", "http://localhost:9090/api/evil/a");
     TestUtil.assertContentEqualsForGet("OK", "http://localhost:9090/api/evil/");
+  }
+
+  public void test_http_header_insensitivity() throws IOException {
+    S.config.set(BaseServer.class, BaseServer.HTTP_PARSER_HEADER_CASE_SENSITIVE, "true");
+    init();
+    app.cleanAndBind(
+            app -> app.get("/", (req, resp) -> {
+              resp.send(req.header("IgnoreCase"));
+            })
+    );
+
+    try {
+      HTTP.get("http://localhost:9090/", new HashMap<String, String>(){{
+        put("IGNORECASE","ABCD");
+      }}, resp -> S._try(() -> assertEquals("null", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+
+      HTTP.get("http://localhost:9090/", new HashMap<String, String>(){{
+        put("IgnoreCase","ABCD");
+      }}, resp -> S._try(() -> assertEquals("ABCD", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    app.stop();
+    S.config.set(BaseServer.class, BaseServer.HTTP_PARSER_HEADER_CASE_SENSITIVE, "false");
+    init();
+    app.cleanAndBind(
+            app -> app.get("/", (req, resp) -> {
+              resp.send(req.header("IgnoreCase"));
+            })
+    );
+
+    try {
+      HTTP.get("http://localhost:9090/", new HashMap<String, String>(){{
+        put("IGNORECASE","ABCD");
+      }}, resp -> S._try(() -> assertEquals("ABCD", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    app.stop();
   }
 
 

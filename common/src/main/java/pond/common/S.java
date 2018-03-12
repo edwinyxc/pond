@@ -269,6 +269,10 @@ public class S {
     }
   }
 
+  public static <O, E> E _wrap(O e, Function<E, O> adapter) {
+      return adapter.apply(e);
+  }
+
   //FOR -- THE FOR ITERATION
 
   /**

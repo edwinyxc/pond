@@ -101,7 +101,7 @@ public interface Request {
     }
 
     default List<String> headers(String string) {
-        return headers().get(string);
+        return headers().get(BaseServer.IS_HEADER_SENSITIVE() ? string : string.toLowerCase());
     }
 
     default String header(String string) {

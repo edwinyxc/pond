@@ -1,6 +1,7 @@
 package pond.web.restful;
 
 import io.netty.util.CharsetUtil;
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import pond.common.Convert;
 import pond.common.JSON;
 import pond.common.S;
@@ -42,7 +43,7 @@ public class ParamDef<A> {
         HEADER("header"),
         PATH("path"),
         BODY("body"),
-        COMPOSED("composed");//we compose our own, excluded against the doc
+        COMPOSED("composed");//we compose our own, ignore OpenAPI Spec
         public final String val;
 
         ParamIn(String val) {
@@ -152,6 +153,16 @@ public class ParamDef<A> {
                 .consumes();
     }
 
+    public static ParamDef<List<String>> arrayInQuery(String name) {
+        return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.queries().get(name)).toList())
+                .type(ParamType.ARRAY).in(ParamIn.QUERY);
+    }
+
+    public static <E> ParamDef<List<E>> arrayInQuery(String name, Function<E, String> parserFn) {
+        return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.queries().get(name)).map(parserFn).toList())
+                .type(ParamType.ARRAY).in(ParamIn.QUERY);
+    }
+
     public static ParamDef<String> query(String name) {
         return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.queries().get(name)).first())
                 .type(ParamType.STRING).in(ParamIn.QUERY);
@@ -161,6 +172,16 @@ public class ParamDef<A> {
         return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.inUrlParams().get(name)).first())
                 .type(ParamType.STRING).in(ParamIn.PATH)
                 .consumes().required("in-path parameters are auto-required");
+    }
+
+    public static ParamDef<List<String>> arrayInForm(String name) {
+        return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.formData().get(name)).toList())
+                .type(ParamType.ARRAY).in(ParamIn.FORM_DATA);
+    }
+
+    public static <E> ParamDef<List<E>> arrayInForm(String name, Function<E, String> parserFn) {
+        return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.formData().get(name)).map(parserFn).toList())
+                .type(ParamType.ARRAY).in(ParamIn.FORM_DATA);
     }
 
     public static ParamDef<String> form(String name) {

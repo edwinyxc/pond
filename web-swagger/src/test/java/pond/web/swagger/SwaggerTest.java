@@ -17,17 +17,17 @@ public class SwaggerTest {
 
     public static void swagger_integration() {
         APIHandler auth = API.def(
-                        ParamDef.header("Authorization"),
-                        ResultDef.error(403, "Forbidden"),
-                        (ctx, header, forbidden) -> {
-                            if("Ohh".equals(header)){
-                                S.echo("Passed Ohh");
-                                //ok
-                            }else {
-                                ctx.result(forbidden, "");
-                            }
-                        }
-                );
+                ParamDef.header("Authorization"),
+                ResultDef.error(403, "Forbidden"),
+                (ctx, header, forbidden) -> {
+                    if ("Ohh".equals(header)) {
+                        S.echo("Passed Ohh");
+                        //ok
+                    } else {
+                        ctx.result(forbidden, "");
+                    }
+                }
+        );
 
         Pond.init(p -> {
             p.get("/", API.def(
@@ -38,7 +38,7 @@ public class SwaggerTest {
                     }
 
             ));
-            p.use("/xb/*", auth, new API(){{
+            p.use("/xb/*", auth, new API() {{
 
                 get("/", API.def(
                         ParamDef.header("X-header"),
@@ -56,7 +56,7 @@ public class SwaggerTest {
                         }
                 ));
 
-                use("/inner/*", new API(){{
+                use("/inner/*", new API() {{
                     get("/x", API.def(
                             ParamDef.header("X-header"),
                             ResultDef.text("X-header echo"),
@@ -67,6 +67,13 @@ public class SwaggerTest {
                 }});
 
             }});
+            p.get("/x_test_array_1", API.def(
+                    ParamDef.arrayInQuery("Any String array"),
+                    ResultDef.text("echo"),
+                    (ctx, arr, echo) -> {
+                        ctx.result(echo, S.dump(arr));
+                    }
+            ));
             p.get("/x", auth, API.def(
                     ResultDef.text("Normal output of some texts"),
                     (ctx, txt) -> {

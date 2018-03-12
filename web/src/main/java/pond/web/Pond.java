@@ -27,7 +27,6 @@ public final class Pond extends API {
    */
   public final static String CONFIG_CLASS_ROOT = "class_root";
 
-
   /*** Basic ***/
 
   /**

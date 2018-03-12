@@ -1,6 +1,7 @@
 package pond.web;
 
 import org.slf4j.Logger;
+import pond.common.S;
 import pond.common.f.Callback;
 
 import java.util.concurrent.Future;
@@ -9,8 +10,7 @@ import java.util.concurrent.Future;
  * SPI handle basic http server
  * This server SHOULD
  * 1) Implements Request & Response
- * 2) Meets the HTTP protocol
- * 3)
+ * 2) Implements the HTTP protocol
  */
 public interface BaseServer {
 
@@ -19,10 +19,16 @@ public interface BaseServer {
   /**
    * CONFIGS
    */
-  final static String PORT         = "port";
-  final static String SO_BACKLOG   = "so_backlog";
-  final static String SO_KEEPALIVE = "so_keepalive";
-  final static String SSL = "ssl";
+  String PORT         = "port";
+  String HTTP_PARSER_HEADER_CASE_SENSITIVE = "http_parser_header_case_sensitive";
+  String SO_BACKLOG   = "so_backlog";
+  String SO_KEEPALIVE = "so_keepalive";
+  String SSL = "ssl";
+
+  static boolean IS_HEADER_SENSITIVE() {
+    return "true".equals(S.config.get(BaseServer.class, BaseServer.HTTP_PARSER_HEADER_CASE_SENSITIVE));
+  }
+
 
   /**
    * Bind configured PORT and start server, normally this operation will block the thread.

@@ -1,5 +1,7 @@
 package pond.common.config;
 
+import pond.common.S;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +15,9 @@ public class SystemBasedConfig implements Config {
 
   @Override
   public String get(String name) {
-    return System.getProperty(name);
+    return S._tap(System.getProperty(name), config -> {
+//      S.echo("Config:", name, config);
+    });
   }
 
   @Override
