@@ -10,6 +10,9 @@ import org.junit.Test;
 import pond.common.*;
 import pond.common.f.Callback;
 import pond.common.f.Holder;
+import pond.web.restful.API;
+import pond.web.restful.ParamDef;
+import pond.web.restful.ResultDef;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -89,6 +92,9 @@ public class TestSuite {
 
     //user-custom
     test_end2end_exception();
+
+    test_ParamDef_array();
+
     app.stop();
 
     //test environment configs
@@ -660,6 +666,48 @@ public class TestSuite {
 
   //TODO
 //  public void test_validation_error
+
+  public void test_ParamDef_array() throws IOException {
+    app.cleanAndBind( app -> {
+                app.get("/api/:path_array/inpath", API.def(
+                        ParamDef.arrayInPath("path_array"),
+                        ResultDef.text("echo"),
+                        (ctx, pathArr, Echo) -> {
+                            ctx.result(Echo, S.dump(pathArr)+":"+pathArr.size());
+                        }
+                ));
+
+                app.get("/api/get", API.def(
+                        ParamDef.arrayInQuery("q"),
+                        ResultDef.text("echo"),
+                        (ctx, qArr, Echo) -> {
+                            ctx.result(Echo, S.dump(qArr)+":"+qArr.size());
+                        }
+                ));
+
+                app.post("/api/post", API.def(
+                        ParamDef.arrayInForm("q"),
+                        ResultDef.text("echo"),
+                        (ctx, qArr, Echo) -> {
+                            ctx.result(Echo, S.dump(qArr)+":"+qArr.size());
+                        }
+                ));
+            }
+    );
+
+    TestUtil.assertContentEqualsForGet("[1,2,3]:3", "http://localhost:9090/api/1,2,3/inpath");
+    TestUtil.assertContentEqualsForGet("[1,2,3]:3", "http://localhost:9090/api/get?q=1,2,3");
+    TestUtil.assertContentEqualsForGet("[1,2,3]:3", "http://localhost:9090/api/get?q=1&q=2&q=3");
+
+    HTTP.post("http://localhost:9090/api/post", new HashMap<String, Object>(){{
+        put("q", "1,2,3");
+    }}, resp -> S._try(() -> assertEquals("[1,2,3]:3", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+
+//    HTTP.post("http://localhost:9090/post", new HashMap<String, Object>(){{
+//          put("q", new String[]{"1","2","3"});
+//    }}, resp -> S._try(() -> assertEquals("1,2,3:3", STREAM.readFully(resp.getEntity().getContent(), utf8))));
+
+  }
 
   public void test_nested_router() throws IOException{
     app.cleanAndBind(

@@ -71,7 +71,7 @@ public class SwaggerTest {
                     ParamDef.arrayInQuery("Any String array"),
                     ResultDef.text("echo"),
                     (ctx, arr, echo) -> {
-                        ctx.result(echo, S.dump(arr));
+                        ctx.result(echo, S.dump(arr) + "size:" + arr.size());
                     }
             ));
             p.get("/x", auth, API.def(

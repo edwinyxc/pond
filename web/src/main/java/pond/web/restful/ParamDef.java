@@ -6,6 +6,7 @@ import pond.common.Convert;
 import pond.common.JSON;
 import pond.common.S;
 import pond.common.STREAM;
+import pond.common.f.FIterable;
 import pond.common.f.Function;
 import pond.web.*;
 import pond.web.http.MimeTypes;
@@ -154,13 +155,13 @@ public class ParamDef<A> {
     }
 
     public static ParamDef<List<String>> arrayInQuery(String name) {
-        return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.queries().get(name)).toList())
-                .type(ParamType.ARRAY).in(ParamIn.QUERY);
-    }
-
-    public static <E> ParamDef<List<E>> arrayInQuery(String name, Function<E, String> parserFn) {
-        return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.queries().get(name)).map(parserFn).toList())
-                .type(ParamType.ARRAY).in(ParamIn.QUERY);
+        return new ParamDef<>(name, ctx -> {
+            List<String> originalQueries = S._for(((HttpCtx) ctx).req.queries().get(name)).toList();
+            if( originalQueries.size() > 1 || originalQueries.size() == 0) {
+                return originalQueries;
+            }
+            else return Arrays.asList(originalQueries.get(0).split(","));
+        }).type(ParamType.ARRAY).in(ParamIn.QUERY);
     }
 
     public static ParamDef<String> query(String name) {
@@ -174,14 +175,24 @@ public class ParamDef<A> {
                 .consumes().required("in-path parameters are auto-required");
     }
 
-    public static ParamDef<List<String>> arrayInForm(String name) {
-        return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.formData().get(name)).toList())
-                .type(ParamType.ARRAY).in(ParamIn.FORM_DATA);
+    public static ParamDef<List<String>> arrayInPath(String name) {
+        return new ParamDef<>(name, ctx -> {
+            List<String> originalQueries = S._for(((HttpCtx) ctx).req.inUrlParams().get(name)).toList();
+            if( originalQueries.size() > 1 || originalQueries.size() == 0) {
+                return originalQueries;
+            }
+            else return Arrays.asList(originalQueries.get(0).split(","));
+        }).type(ParamType.ARRAY).in(ParamIn.PATH);
     }
 
-    public static <E> ParamDef<List<E>> arrayInForm(String name, Function<E, String> parserFn) {
-        return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.formData().get(name)).map(parserFn).toList())
-                .type(ParamType.ARRAY).in(ParamIn.FORM_DATA);
+    public static ParamDef<List<String>> arrayInForm(String name) {
+        return new ParamDef<>(name, ctx -> {
+            List<String> originalQueries = S._for(((HttpCtx) ctx).req.formData().get(name)).toList();
+            if( originalQueries.size() > 1 || originalQueries.size() == 0) {
+                return originalQueries;
+            }
+            else return Arrays.asList(originalQueries.get(0).split(","));
+        }).type(ParamType.ARRAY).in(ParamIn.FORM_DATA);
     }
 
     public static ParamDef<String> form(String name) {

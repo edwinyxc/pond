@@ -424,29 +424,29 @@ public class RBAC {
 
   public class Roles {
 
-    List<String> _roles = new LinkedList<>();
+    final public List<String> roles = new LinkedList<>();
 
     Roles(Collection<String> roles) {
-      this._roles.addAll(roles);
+      this.roles.addAll(roles);
     }
 
-    public boolean hasEvery(String... roles) {
+    public boolean hasEvery(String... _roles) {
 
-      return S._for(roles).every(_roles::contains);
+      return S._for(_roles).every(roles::contains);
     }
 
-    public boolean hasAny(String... roles) {
-      return S._for(roles).some(_roles::contains);
+    public boolean hasAny(String... _roles) {
+      return S._for(_roles).some(roles::contains);
     }
 
-    public boolean hasNone(String... roles) {
-      return S._for(roles).every(r -> (!_roles.contains(r)));
+    public boolean hasNone(String... _roles) {
+      return S._for(_roles).every(r -> (!roles.contains(r)));
     }
 
     @Override
     public String toString() {
       return "Roles{" +
-          "_roles=" + _roles +
+          "_roles=" + roles +
           '}';
     }
   }
