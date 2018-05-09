@@ -2,6 +2,7 @@ package pond.web.swagger;
 
 
 import pond.web.CtxHandler;
+import pond.web.Router;
 import pond.web.restful.API;
 import pond.web.restful.APIHandler;
 import pond.web.restful.Path;
@@ -55,17 +56,24 @@ public class Swagger extends HashMap<String, Object> {
         return this;
     }
 
-    public static Swagger buildAPI(API api) {
+    public static Swagger buildAPI(Router api) {
 
         Swagger swagger = new Swagger();
-        swagger.basePath(api.basePath());
-        swagger.info(new Info().title(api.title)
-                .version(api.version).description(api.desc));
-        swagger.paths(api.getAllPathsRecursively());
-        return swagger;
+        if(api instanceof API){
+            API _api = (API) api;
+            swagger.basePath(_api.basePath());
+            swagger.info(new Info().title(_api.title)
+                    .version(_api.version)
+                    .description(_api.desc));
+            swagger.paths(_api.getAllPathsRecursively());
+            return swagger;
+        }
+        else {
+            throw new IllegalArgumentException("not a valid API");
+        }
     }
 
-    public static APIHandler swaggerJSON(API api) {
+    public static APIHandler swaggerJSON(Router api) {
 
         return API.def(
                 ResultDef.json(200, "Swagger JSON file v2.0.0"),

@@ -27,6 +27,10 @@ public class ParamDefStruct<A> extends ParamDef<A> {
         this.handler = this::get;
     }
 
+    public List<ParamDef> defs() {
+        return S._for(schema.entrySet()).map(Map.Entry::getValue).toList();
+    }
+
     public Schema schema(){
         return Schema.PARAMS_SCHEMA(schema);
     }

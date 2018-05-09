@@ -1,14 +1,19 @@
 package pond.web.restful;
 
 import pond.common.S;
+import pond.db.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by edwin on 3/12/2017.
  */
 public class Schema extends HashMap<String, Object> {
+
+    static Map<Class<?>, Schema> innerCache = new ConcurrentHashMap<>();
+
     private Schema() {
     }
 
@@ -33,6 +38,11 @@ public class Schema extends HashMap<String, Object> {
     public static Schema FILE() {
         return S._tap(new Schema(), s -> s.put("type", "file"));
     }
+
+//    static private Map<String, Object> proto(Record record) {
+//        S._for(record.declaredFields()).each(f -> {
+//        });
+//    }
 
     static private Map<String, Object> proto(Map<String, Object> proto) {
         return S._for(proto).map(o -> {
@@ -69,6 +79,25 @@ public class Schema extends HashMap<String, Object> {
             s.put("properties", proto(proto));
         });
     }
+
+//    public static Schema OBJECT_MODEL(DB db, Class<? extends Record> type) {
+//        Record proto = Prototype.proto(type);
+//        String tableName = proto.table();
+//        Map<String, Map<String, Integer>> dbStruct = db.getDbStructures();
+//        Map<String, Integer> tableStruct = dbStruct.get(tableName);
+//        S._assert(tableStruct != null, "No such table found : " + tableName);
+//        return S._tap(new Schema(), s -> {
+//            s.put("type", "object");
+//            s.put("properties", S._tap(new HashMap(), m -> {
+//                S._for(proto.declaredFields()).each(f -> {
+//                    int type_int = tableStruct.get(f.name());
+//                    //insert new schema entry
+//                    s.put(f.name(), )
+//                });
+//            }));
+//        });
+//    }
+
 
     public static Schema PARAMS_SCHEMA(Map<String, ParamDef> proto) {
         return S._tap(new Schema(), s -> {

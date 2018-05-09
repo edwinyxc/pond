@@ -23,6 +23,8 @@ public class Router implements CtxHandler, RouterAPI {
     static Logger logger = LoggerFactory.getLogger(Router.class);
     static PathToRegCompiler compiler = new ExpressPathToRegCompiler();
 
+    public Router(){ }
+
     Routes routes = new Routes();
     protected Router parent = null;
     final protected List<Router> children = new LinkedList<>();

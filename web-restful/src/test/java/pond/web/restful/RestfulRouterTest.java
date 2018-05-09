@@ -1,4 +1,4 @@
-package pond.web;
+package pond.web.restful;
 
 import io.netty.util.CharsetUtil;
 import org.junit.After;
@@ -11,6 +11,9 @@ import pond.common.STREAM;
 import pond.db.DB;
 import pond.db.JDBCTmpl;
 import pond.db.connpool.ConnectionPool;
+import pond.web.Pond;
+import pond.web.RestfulRoutes;
+import pond.web.Router;
 
 import java.io.IOException;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package pond.web;
+package pond.web.restful;
 
 import pond.db.Model;
 

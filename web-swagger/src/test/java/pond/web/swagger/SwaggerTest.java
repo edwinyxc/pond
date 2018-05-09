@@ -8,9 +8,6 @@ import pond.web.restful.APIHandler;
 import pond.web.restful.ParamDef;
 import pond.web.restful.ResultDef;
 
-import java.util.*;
-
-import static org.junit.Assert.*;
 
 @Ignore
 public class SwaggerTest {
@@ -29,7 +26,7 @@ public class SwaggerTest {
                 }
         );
 
-        Pond.init(p -> {
+        Pond.init(API.class, p -> {
             p.get("/", API.def(
                     ParamDef.header("X-header"),
                     ResultDef.text("X-header echo"),
@@ -87,7 +84,7 @@ public class SwaggerTest {
                     }
             ));
             //test
-            p.get("/swagger/api/p", Swagger.swaggerJSON(p));
+            p.get("/swagger/api/p", Swagger.swaggerJSON(p.rootRouter));
             p.get("/swagger/*", Swagger.server());
 
         }).listen();

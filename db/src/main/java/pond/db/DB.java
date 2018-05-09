@@ -59,6 +59,7 @@ public final class DB {
 
             S._assert(ret);
             ret.set(field_name, rule.getMethod(field_type).apply(rs, field_name));
+
           }
 
         } catch (SQLException e) {

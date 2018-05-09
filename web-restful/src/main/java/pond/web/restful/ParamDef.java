@@ -1,21 +1,21 @@
 package pond.web.restful;
 
 import io.netty.util.CharsetUtil;
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import pond.common.Convert;
 import pond.common.JSON;
 import pond.common.S;
 import pond.common.STREAM;
-import pond.common.f.FIterable;
 import pond.common.f.Function;
 import pond.web.*;
 import pond.web.http.MimeTypes;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 public class ParamDef<A> {
     public final String name;
+    public Schema schema = Schema.STRING();
     public ParamType type;
     public ParamIn in;
     public String desc;
@@ -89,6 +89,11 @@ public class ParamDef<A> {
 
     public ParamDef<A> consumes(String... consumes){
         this.consumes = consumes;
+        return this;
+    }
+
+    public ParamDef<A> schema(Schema schema) {
+        this.schema = schema;
         return this;
     }
 
@@ -218,24 +223,31 @@ public class ParamDef<A> {
         c.put(CACHED_BODY_AS_JSON, JSON.parse(STREAM.readFully(((HttpCtx) c).req.in(), CharsetUtil.UTF_8)));
     }
 
-    static <X> X getFromCachedBody(Ctx c, String name) throws IOException {
-        Map<String, Object> cache = (Map<String, Object>) c.get(CACHED_BODY_AS_JSON);
-        if (cache == null) {
-            cacheBodyAsJSON(c);
-            return getFromCachedBody(c, name);
-        }
-        return (X) cache.getOrDefault(name, null);
+    public static ParamDef<InputStream> bodyAsInputStream(String name) {
+        return new ParamDef<InputStream>(name, ctx -> {
+            return ((HttpCtx) ctx).req.in();
+        }).in(ParamIn.BODY);
     }
 
-    //non-public to ensure swagger policy
-    static <X> ParamDef<X> parseBodyAndGet(String name) {
+    public static ParamDef<Map<String, Object>> bodyAsJsonMap(String name) {
+        return bodyAsX(name, map -> map);
+    }
+
+    public static <X> ParamDef<X> bodyAsX(String name, Function<X, Map<String, Object>> mapToXFn) {
         return new ParamDef<X>(name, ctx -> {
             try {
-                return getFromCachedBody(ctx, name);
+                Map cached = (Map) ctx.get(CACHED_BODY_AS_JSON);
+                if(cached == null) {
+                    cacheBodyAsJSON(ctx);
+                    cached = (Map) ctx.get(CACHED_BODY_AS_JSON);
+                }
+                return mapToXFn.apply((Map<String, Object>) cached);
             } catch (IOException | RuntimeException e) {
                 throw new EndToEndException(400, "parse error:" + e.getMessage());
             }
-        }).consumes(MimeTypes.MIME_APPLICATION_JSON).in(ParamIn.BODY).type(ParamType.STRING);
+        }) .consumes(MimeTypes.MIME_APPLICATION_JSON)
+                .in(ParamIn.BODY)
+                .type(ParamType.SCHEMA);
     }
 
 //    public static ParamDefStruct<Map<String, Object>> requestToMap() {
@@ -264,7 +276,7 @@ public class ParamDef<A> {
             name = entry.getKey();
             val = entry.getValue();
             if (val instanceof Map) {
-                def = composeAs(name, (Map<String, Object>) val, itemDef);
+                def = composeAs(name, (Map<String, Object>) val);
             } else {
                 def = itemDef.apply(name);
             }
@@ -281,26 +293,23 @@ public class ParamDef<A> {
      * @param schema
      * @return
      */
-    public static ParamDef<Map<String, Object>> composeAs(String name,
-                                                          Map<String, Object> schema,
-                                                          Function<ParamDef<?>, String> itemDef) {
-        return new ParamDefStruct<>(name, map -> map, parseSchema(schema, itemDef))
-                .in(ParamIn.COMPOSED)
-                .type(ParamType.SCHEMA);
+    public static <X> ParamDef<X> composeAs(String name,
+                                        Map<String, Object> schema,
+                                        Function<X, Map<String, Object>> mapToXFunc) {
+        return new ParamDefStruct<>(name, mapToXFunc, parseSchema(schema, ParamDef::param))
+                .in(ParamIn.FORM_DATA)
+                .type(ParamType.SCHEMA)
+                .schema(Schema.OBJECT(schema))
+                ;
     }
 
     public static ParamDef<Map<String, Object>> composeAs(String name,
                                                           Map<String, Object> schema) {
         return new ParamDefStruct<>(name, map -> map, parseSchema(schema, ParamDef::param))
-                .in(ParamIn.COMPOSED)
-                .type(ParamType.SCHEMA);
-    }
-
-    public static ParamDef<Map<String, Object>> composeBodyAs(String name,
-                                                          Map<String, Object> schema) {
-        return new ParamDefStruct<>(name, map -> map, parseSchema(schema, ParamDef::parseBodyAndGet))
-                .in(ParamIn.BODY)
-                .type(ParamType.SCHEMA);
+                .in(ParamIn.FORM_DATA)
+                .type(ParamType.SCHEMA)
+                .schema(Schema.OBJECT(schema))
+                ;
     }
 
 

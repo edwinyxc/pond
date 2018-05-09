@@ -29,7 +29,21 @@ public class API extends Router {
         return super.basePath;
     }
 
-    Parameter parameter(ParamDef def) {
+    private List<Parameter> implodeParaDefStruct(ParamDefStruct def) {
+        List<Parameter> ret = new ArrayList<>();
+        List<ParamDef> defs = def.defs();
+        for(ParamDef d : defs) {
+           if(d instanceof ParamDefStruct) {
+               ret.addAll(implodeParaDefStruct((ParamDefStruct) d));
+           } else {
+               Parameter p = parameter(d);
+               if(p != null) ret.add(parameter(d));
+           }
+        }
+        return ret;
+    }
+
+    private Parameter parameter(ParamDef def) {
         if (def.in == ParamDef.ParamIn.COMPOSED) {
             //ignore
             return null;
@@ -39,7 +53,10 @@ public class API extends Router {
                 .description(def.desc)
                 .name(def.name)
                 .in(S.avoidNull(def.in, ParamDef.ParamIn.FORM_DATA))
-                .type(S.avoidNull(def.type, ParamDef.ParamType.STRING));
+                .type(S.avoidNull(def.type, ParamDef.ParamType.STRING))
+                .schema(def.schema)
+                ;
+
 
         if (def.in == ParamDef.ParamIn.BODY
                 && def instanceof ParamDefStruct) {
@@ -55,6 +72,18 @@ public class API extends Router {
 
         //TODO collectionFormat
 
+        return ret;
+    }
+
+    private List<Parameter> parameters(List<ParamDef> defs) {
+        List<Parameter> ret = new ArrayList<>();
+        for(ParamDef def : defs) {
+            if(def instanceof ParamDefStruct) {
+                ret.addAll(implodeParaDefStruct((ParamDefStruct) def));
+            } else {
+                ret.add(parameter(def));
+            }
+        }
         return ret;
     }
 
@@ -87,7 +116,7 @@ public class API extends Router {
                 // if no such identical (name & in) in path's parameters
                 if (S._for(parameters_path).every(p -> !(p.name().equals(paramDef.name)) && p.in().equals(paramDef.in.val))) {
                     //add paramDef as a new Path parameter
-                    parameters_path.add(parameter(paramDef));
+                    parameters_path.addAll(parameters(Collections.singletonList(paramDef)));
                 }
             }
 //            S.echo("New Path parameters Added @ " + path.path, path.parameters(), path.parameters() == parameters_path);
@@ -101,51 +130,33 @@ public class API extends Router {
                 operation = new Operation()
                         .operationId(route.method + " " + abs_path)
                         .description(route.method.toString());
-                Set<String> consumes = new HashSet<>();
-                Set<String> produces = new HashSet<>();
 
-                operation.parameters(
-                        S._for(def.paramDefs).map(p -> {
-                            consumes.addAll(Arrays.asList(p.consumes));
-                            return parameter(p);
-                        }).compact().toList()
-                );
+                operation.consumes(new HashSet<>());
+                operation.produces(new HashSet<>());
 
-                operation.responses(
-                        S._for(def.resultDefs).map(r -> {
-                            produces.addAll(r.produces);
-                            return response(r);
-                        }).compact().toList()
-                );
-
-                operation.consumes(consumes);
-                operation.produces(produces);
-
-                //
-                path.method(route.method, operation);
-            } else {
-
-                Set<String> consumes = operation.consumes();
-                Set<String> produces = operation.produces();
-
-                operation.parameters(
-                        S._for(def.paramDefs).map(p -> {
-                            consumes.addAll(Arrays.asList(p.consumes));
-                            return parameter(p);
-                        }).compact().toList()
-                );
-
-                operation.responses(
-                        S._for(def.resultDefs).map(r -> {
-                            produces.addAll(r.produces);
-                            return response(r);
-                        }).compact().toList()
-                );
-
-                operation.consumes(consumes);
-                operation.produces(produces);
                 path.method(route.method, operation);
             }
+
+            Set<String> consumes = operation.consumes();
+            Set<String> produces = operation.produces();
+
+            operation.parameters( parameters(def.paramDefs));
+//                        S._for(def.paramDefs).map(p -> {
+//                            consumes.addAll(Arrays.asList(p.consumes));
+//                            return parameters(Collections.singletonList(p));
+//                        }).compact().toList()
+//                );
+
+            operation.responses(
+                    S._for(def.resultDefs).map(r -> {
+                        produces.addAll(r.produces);
+                        return response(r);
+                    }).compact().toList()
+            );
+
+            operation.consumes(consumes);
+            operation.produces(produces);
+            path.method(route.method, operation);
         }
 
     }
@@ -219,7 +230,12 @@ public class API extends Router {
         }
     }
 
-    /*Generated*/
+//    /*Def schemas */
+//    public API def(String name, Schema schema) {
+//
+//    }
+
+    /*Generated def routers */
 
     public static APIHandler def(Callback<Ctx> handler) {
         return new APIHandler(S.array(), S.array(), handler::apply);

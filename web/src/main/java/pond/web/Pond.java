@@ -5,13 +5,14 @@ import org.slf4j.LoggerFactory;
 import pond.common.PATH;
 import pond.common.S;
 import pond.common.f.Callback;
-import pond.web.restful.API;
+
+import java.util.regex.Pattern;
 
 
 /**
  * Main Class
  */
-public final class Pond extends API {
+public final class Pond implements RouterAPI, CtxHandler {
 
   //configurations
   /***** Internal ****/
@@ -43,7 +44,16 @@ public final class Pond extends API {
 
   StaticFileServer staticFileServer;// Executor
 
-  private Pond() {
+  public final Router rootRouter;
+
+  private Pond(Class<? extends Router> routerClass) {
+    logger.info("RootRouterClass: " + routerClass.getCanonicalName());
+    try {
+      rootRouter = routerClass.newInstance();
+    } catch (InstantiationException | IllegalAccessException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    }
 
     logger.info("POND:");
 
@@ -75,18 +85,17 @@ public final class Pond extends API {
 
 
   public Pond cleanAndBind(Callback<Pond> config) {
-    super.clean();
+    rootRouter.clean();
     config.apply(this);
 //    this.bindLastMids();
     return this;
   }
 
-  @Override
   /**
    * @link pond.web.Pond#cleanAndBind
    */
   public void clean() {
-    super.clean();
+    rootRouter.clean();
     //do nothing
   }
 
@@ -119,9 +128,6 @@ public final class Pond extends API {
     return staticFileServer.watch(dir);
   }
 
-  public static Pond init() {
-    return init(Callback.noop());
-  }
 
   /**
    * open debug
@@ -143,10 +149,22 @@ public final class Pond extends API {
   /**
    * Custom initialization
    */
-  public static Pond init(Callback<Pond> config) {
-    Pond pond = new Pond();
+  public static Pond init(Class<? extends Router> clazz, Callback<Pond> config) {
+    Pond pond = new Pond(clazz);
     config.apply(pond);
     return pond;
+  }
+
+  public static Pond init() {
+    return init(Router.class, Callback.noop());
+  }
+
+  public static Pond init(Class<? extends Router> clazz) {
+    return init(clazz, Callback.noop());
+  }
+
+  public static Pond init(Callback<Pond> config) {
+    return init(Router.class, config);
   }
 
   public Pond debug() {
@@ -190,4 +208,23 @@ public final class Pond extends API {
     }
   }
 
+  @Override
+  public void apply(Ctx t) {
+    rootRouter.apply(t);
+  }
+
+  @Override
+  public void configRoute(Route route, CtxHandler handler) {
+    rootRouter.configRoute(route, handler);
+  }
+
+  @Override
+  public Router use(int mask, Pattern path, String rawDef, String[] inUrlParams, CtxHandler[] handlers) {
+    return rootRouter.use(mask, path, rawDef, inUrlParams, handlers);
+  }
+
+  @Override
+  public Router otherwise(CtxHandler... mids) {
+    return rootRouter.otherwise(mids);
+  }
 }

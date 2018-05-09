@@ -107,6 +107,8 @@ public class AbstractRecord extends LinkedHashMap<String, Object>
 
     Function.F0 init = () -> null;
 
+    Object nil;
+
     public SimpleField(String name) {
       this.name = name;
     }
@@ -119,6 +121,12 @@ public class AbstractRecord extends LinkedHashMap<String, Object>
     @Override
     public Field<E> mapper(Function.F2<E, String, ResultSet> e) {
       this.rs_mapper = e;
+      return this;
+    }
+
+    @Override
+    public Field<E> nil(Object nil) {
+      this.nil = nil;
       return this;
     }
 

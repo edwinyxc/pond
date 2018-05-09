@@ -44,6 +44,13 @@ public interface Record {
         Field<E> init(Function.F0<E> init);
 
         /**
+         * set the nil value of the record
+         * @param o
+         * @return
+         */
+        Field<E> nil(Object o);
+
+        /**
          * Used for merge (form req, from anything as a query)
          */
         Field<E> merge(Function<E, ?> validator);

@@ -1,12 +1,62 @@
 package pond.db;
 
+
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.Types;
 
 import static pond.common.f.Function.F2;
 
 public class MappingRule {
-    /*BASIC JDBC types*/
+
+  /*BASIC JDBC types*/
+  final public Object getNilOfType(int sqlType) {
+    switch (sqlType) {
+      case Types.CHAR:
+        return '\0';
+      case Types.VARCHAR:
+      case Types.LONGVARCHAR:
+        return "";
+      case Types.BIT:
+        return Boolean.FALSE;
+      case Types.TINYINT:
+      case Types.SMALLINT:
+      case Types.INTEGER:
+        return 0;
+      case Types.BIGINT:
+        return 0L;
+      case Types.REAL:
+        return 0f;
+      case Types.DOUBLE:
+      case Types.FLOAT:
+        return 0d;
+      case Types.DECIMAL:
+      case Types.NUMERIC:
+        return new BigDecimal(0);
+      case Types.DATE:
+      case Types.TIME:
+      case Types.TIMESTAMP:
+        return new java.sql.Date(0L);
+
+      //TODO advanced types
+
+      /*
+       * [ADVANCED] -- not supported
+       *
+       * BLOB
+       * CLOB
+       * ARRAY
+       * REF
+      case Types.BLOB:
+        return BLOB();
+      case Types.CLOB:
+        return CLOB();
+      case Types.ARRAY:
+        return ARRAY();
+        */
+    }
+    throw new IllegalArgumentException("Unknown type: " + sqlType);
+  }
 
   final public F2<?, ResultSet, String> getMethod(int sqlType) {
     switch (sqlType) {
