@@ -1,6 +1,5 @@
 package pond.web;
 
-import pond.common.S;
 import pond.common.STREAM;
 import pond.common.f.Callback;
 
@@ -9,8 +8,6 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -43,7 +40,7 @@ public interface CtxHandler extends Callback<Ctx> {
         };
     }
 
-    static void trustAllCertsWhenHttps (){
+    static void trustAllCertsOnHttps (){
         try {
         TrustManager[] trustAll = new TrustManager[] { new X509TrustManager() {
             @Override
@@ -70,6 +67,12 @@ public interface CtxHandler extends Callback<Ctx> {
         }
     }
 
+    static CtxHandler proxyEntireSite(String site) {
+        return new Router(){{
+            use("/*", proxy(site));
+        }};
+    }
+
     static CtxHandler proxy(String url) {
         return ctx -> {
             if (ctx instanceof HttpCtx) {
@@ -77,10 +80,14 @@ public interface CtxHandler extends Callback<Ctx> {
 
                 HttpURLConnection connection = null;
                 try {
-                    String tail = (String) ctx.get("last_remainder");
-                    if(tail.startsWith("/")) tail = tail.substring(1);
-                    S.echo("uri ", hctx.route);
-                    URL remote = new URL(url + tail);
+                    URL remote;
+                    if(url.endsWith("/")) {
+                        String tail = (String) ctx.get("last_remainder");
+                        if (tail.startsWith("/")) tail = tail.substring(1);
+                        remote = new URL(url + tail);
+                    } else {
+                        remote = new URL(url);
+                    }
                     connection = (HttpURLConnection) remote.openConnection();
                     connection.setDoOutput(true);
                     connection.setDoInput(true);

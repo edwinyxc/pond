@@ -28,6 +28,12 @@
         </dependency>
 
         <dependency>
+            <groupId>pond</groupId>
+            <artifactId>pond-web-restful</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
             <version>0.7.0</version>

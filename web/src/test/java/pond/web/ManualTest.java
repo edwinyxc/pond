@@ -423,7 +423,8 @@ public class ManualTest {
 
     public static void proxy() throws IOException {
         Pond.init(p -> {
-            p.use("/*", CtxHandler.proxy("http://www.yatu.tv/"));
+            p.use("/baidu/*", CtxHandler.proxyEntireSite("https://www.baidu.com/"));
+            p.use("/sina/*", CtxHandler.proxyEntireSite("http://www.sina.com/"));
         }).listen(9090);
     }
 
