@@ -23,6 +23,7 @@ public class HttpCtx extends Ctx {
   final static int SEND_STATIC_FILE = 2;
   final static int SEND_ERROR = -1;
   final static int SEND_UPGRADE_TO_WEBSOCKET = 3;
+  final static int SEND_PROXY = 4;
 
   RandomAccessFile sendfile;
   Long sendfile_offset;

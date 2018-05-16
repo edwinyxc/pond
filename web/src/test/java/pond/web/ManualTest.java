@@ -421,10 +421,17 @@ public class ManualTest {
 
     }
 
+    public static void proxy() throws IOException {
+        Pond.init(p -> {
+            p.use("/*", CtxHandler.proxy("http://www.yatu.tv/"));
+        }).listen(9090);
+    }
+
 
     public static void main(String[] args) throws IOException {
+            proxy();
 
-        form_verify();
+//        form_verify();
 //          Pond.init(
 //        app -> app.get("/api/*", new Router().use("/evil/*", new Router()
 //            .get("/a",(req, resp) -> resp.send(200,"OK"))

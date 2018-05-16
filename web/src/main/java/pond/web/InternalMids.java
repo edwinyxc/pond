@@ -24,5 +24,6 @@ public class InternalMids {
             ctx.put(NettyHttpHandler.WEBSOCKET_HANDLER_LABEL, cb);
         };
     }
+
 }
 
