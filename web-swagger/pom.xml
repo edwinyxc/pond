@@ -20,7 +20,7 @@
         <dependency>
             <groupId>pond</groupId>
             <artifactId>pond-web-restful</artifactId>
-            <version>0.3.0</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

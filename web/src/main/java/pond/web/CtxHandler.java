@@ -126,7 +126,7 @@ public interface CtxHandler extends Callback<Ctx> {
                 } catch (MalformedURLException e) {
                     throw new RuntimeException(e);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new EndToEndException(500, e.getMessage());
                 } finally {
                     ctx.setHandled();
                 }
