@@ -5,6 +5,9 @@ import org.apache.http.Header;
 import pond.common.HTTP;
 import pond.common.S;
 import pond.common.STREAM;
+import pond.web.CtxHandler;
+import pond.web.InternalMids;
+import pond.web.Pond;
 
 import java.io.IOException;
 
@@ -31,6 +34,22 @@ public class TestUtil {
       assertTrue(S._for(s).some(header -> header.getValue().contains(judge)));
     });
 
+  }
+
+  static void _proxy() throws IOException {
+    Pond.init(API.class, p -> {
+      p.use("/file/*", CtxHandler.proxyEntireSite("http://localhost:9333/"));
+    }).listen(9090);
+
+    new Thread(() -> {
+      Pond.init(API.class, p -> {
+        p.get("/*", p._static("www")).otherwise(InternalMids.FORCE_CLOSE);
+      }).listen(9333);
+    }).run();
+  }
+
+  public static void main (String[] args) throws IOException{
+    _proxy();
   }
 
 

@@ -27,6 +27,8 @@ public class ManualTest {
 
     static Charset utf8 = Charset.forName("UTF-8");
 
+
+
     static void form_verify() throws IOException {
         AtomicInteger finished = new AtomicInteger(0);
         Pond.init(p -> {
@@ -421,7 +423,7 @@ public class ManualTest {
 
     }
 
-    public static void proxy() throws IOException {
+    static void proxy() throws IOException {
         Pond.init(p -> {
             p.use("/baidu/*", CtxHandler.proxyEntireSite("https://www.baidu.com/"));
             p.use("/sina/*", CtxHandler.proxyEntireSite("http://www.sina.com/"));
@@ -429,8 +431,21 @@ public class ManualTest {
     }
 
 
+    static void _proxy() throws IOException {
+        Pond.init(p -> {
+            p.use("/file/*", CtxHandler.proxyEntireSite("http://localhost:9333/"));
+        }).listen(9090);
+
+        new Thread(() -> {
+            Pond.init(p -> {
+                p.get("/*", p._static("www")).otherwise(InternalMids.FORCE_CLOSE);
+            }).listen(9333);
+        }).run();
+    }
+
+
     public static void main(String[] args) throws IOException {
-            proxy();
+            _proxy();
 
 //        form_verify();
 //          Pond.init(
