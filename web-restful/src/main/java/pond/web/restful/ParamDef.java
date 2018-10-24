@@ -212,6 +212,12 @@ public class ParamDef<A> {
                 .in(ParamIn.FORM_DATA);
     }
 
+    public static ParamDef<List<String>> params(String name) {
+        return new ParamDef<>(name, ctx -> ((HttpCtx) ctx).req.params(name))
+                .type(ParamType.ARRAY)
+                .in(ParamIn.FORM_DATA);
+    }
+
     public static ParamDef<Map<String,Object>> reqAsMap() {
         return new ParamDef<>("req as map", ctx -> ((HttpCtx) ctx).req.toMap())
                 .type(ParamType.SCHEMA).in(ParamIn.COMPOSED);

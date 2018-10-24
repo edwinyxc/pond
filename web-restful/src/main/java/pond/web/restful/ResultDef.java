@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.util.*;
 
 
@@ -106,6 +105,13 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
         return new ResultDef<String>(200, desc, (ctx, t) -> {
             ((HttpCtx) ctx).resp.render(Render.text(S.avoidNull(t, "ok")));
         }).produces(MimeTypes.MIME_TEXT_PLAIN);
+    }
+
+    public static ResultDef<String> html(String desc) {
+        return new ResultDef<String>(200, desc, (ctx, t) -> {
+            ((HttpCtx) ctx).resp.contentType(MimeTypes.MIME_TEXT_HTML);
+            ((HttpCtx) ctx).resp.send(200, t);
+        }).produces(MimeTypes.MIME_TEXT_HTML);
     }
 
 
