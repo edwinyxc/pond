@@ -33,7 +33,7 @@ public class HttpJwtAuth {
 
     private Callback.C2<Request, Response> onPasswordRequired;
 
-    private long age = 30 * 60 * 10000; /* 30min */
+    private long age = 2 * 60 * 60 * 1000; /* 7200 sec */
 
     public HttpJwtAuth(String secretToken) {
         secret = secretToken;

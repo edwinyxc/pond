@@ -81,7 +81,8 @@ public class API extends Router {
             if(def instanceof ParamDefStruct) {
                 ret.addAll(implodeParaDefStruct((ParamDefStruct) def));
             } else {
-                ret.add(parameter(def));
+                Parameter parameter = parameter(def);
+                if(parameter != null) ret.add(parameter);
             }
         }
         return ret;
