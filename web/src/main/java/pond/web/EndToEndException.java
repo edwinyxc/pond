@@ -6,6 +6,13 @@ package pond.web;
 public class EndToEndException extends RuntimeException{
     final public int http_status;
     final public String message;
+    public Throwable cause;
+
+    public EndToEndException(int code, String message, Throwable cause){
+        this.http_status = code;
+        this.message = message;
+        this.cause = cause;
+    }
 
     public EndToEndException(int code, String message){
         this.http_status = code;

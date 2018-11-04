@@ -8,10 +8,7 @@ import pond.db.connpool.ConnectionPool;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -60,7 +57,7 @@ public class ConcurrentTest {
     }, 10);
 
     try {
-      CompletableFuture.allOf(S._for(futures).join()).thenRun(() -> {
+      CompletableFuture.allOf(S._for(futures).joinArray(CompletableFuture::new)).thenRun(() -> {
         long beforeSelect = S.now();
         S._for((List<Record>) db.get(t -> t.query("SELECT * FROM test")));
         S.echo("Query time:" + (S.now() - beforeSelect));

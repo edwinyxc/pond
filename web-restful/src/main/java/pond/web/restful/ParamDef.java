@@ -1,5 +1,6 @@
 package pond.web.restful;
 
+import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.util.CharsetUtil;
 import pond.common.Convert;
 import pond.common.JSON;
@@ -7,7 +8,9 @@ import pond.common.S;
 import pond.common.STREAM;
 import pond.common.f.Function;
 import pond.web.*;
-import pond.web.http.MimeTypes;
+import pond.web.http.HttpCtx;
+import pond.web.http.MIME;
+import pond.web.router.Route;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,9 +22,9 @@ public class ParamDef<A> {
     public ParamType type;
     public ParamIn in;
     public String desc;
-    public Function<A, Ctx> handler;
+    public Function<A, HttpCtx> handler;
     public boolean required = false;
-    public String[] consumes = {"application/x-www-form-urlencoded", "multipart/form-data"};
+    public String[] consumes = {"application/x-www-form-urlencoded", "bodyAsMultipart/form-data"};
 
     public enum ParamType {
         STRING("string"),
@@ -74,13 +77,13 @@ public class ParamDef<A> {
         this.desc = name;
     }
 
-    ParamDef(String name, Function<A, Ctx> handler) {
+    ParamDef(String name, Function<A, HttpCtx> handler) {
         this.name = name;
         desc = name;
         this.handler = handler;
     }
 
-    ParamDef(String name, Function<A, Ctx> handler, boolean required) {
+    ParamDef(String name, Function<A, HttpCtx> handler, boolean required) {
         this.name = name;
         desc = name;
         this.handler = handler;
@@ -139,7 +142,7 @@ public class ParamDef<A> {
 //        this.schema = schema;
 //    }
 
-    public A get(Ctx c) {
+    public A get(HttpCtx c) {
         return this.handler.apply(c);
     }
 
@@ -154,14 +157,14 @@ public class ParamDef<A> {
     }
 
     public static ParamDef<String> header(String name) {
-        return new ParamDef<>(name, ctx -> ((HttpCtx) ctx).req.header(name))
+        return new ParamDef<>(name, ctx -> ((HttpCtx.Lazy) ctx::bind).req().header(name))
                 .type(ParamType.STRING).in(ParamIn.HEADER)
                 .consumes();
     }
 
     public static ParamDef<List<String>> arrayInQuery(String name) {
         return new ParamDef<>(name, ctx -> {
-            List<String> originalQueries = S._for(((HttpCtx) ctx).req.queries().get(name)).toList();
+            List<String> originalQueries = S._for(((HttpCtx.Lazy) ctx::bind).req().queries().get(name)).toList();
             if( originalQueries.size() > 1 || originalQueries.size() == 0) {
                 return originalQueries;
             }
@@ -170,19 +173,19 @@ public class ParamDef<A> {
     }
 
     public static ParamDef<String> query(String name) {
-        return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.queries().get(name)).first())
+        return new ParamDef<>(name, ctx -> S._for(((HttpCtx.Lazy) ctx::bind).req().queries().get(name)).first())
                 .type(ParamType.STRING).in(ParamIn.QUERY);
     }
 
     public static ParamDef<String> path(String name) {
-        return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.inUrlParams().get(name)).first())
+        return new ParamDef<>(name, ctx -> S._for(((HttpCtx.Lazy) ctx::bind).req().inUrlParams().get(name)).first())
                 .type(ParamType.STRING).in(ParamIn.PATH)
                 .consumes().required("in-path parameters are auto-required");
     }
 
     public static ParamDef<List<String>> arrayInPath(String name) {
         return new ParamDef<>(name, ctx -> {
-            List<String> originalQueries = S._for(((HttpCtx) ctx).req.inUrlParams().get(name)).toList();
+            List<String> originalQueries = S._for(((HttpCtx.Lazy) ctx::bind).req().inUrlParams().get(name)).toList();
             if( originalQueries.size() > 1 || originalQueries.size() == 0) {
                 return originalQueries;
             }
@@ -192,7 +195,7 @@ public class ParamDef<A> {
 
     public static ParamDef<List<String>> arrayInForm(String name) {
         return new ParamDef<>(name, ctx -> {
-            List<String> originalQueries = S._for(((HttpCtx) ctx).req.formData().get(name)).toList();
+            List<String> originalQueries = S._for(((HttpCtx.Lazy) ctx::bind).req().formData().get(name)).toList();
             if( originalQueries.size() > 1 || originalQueries.size() == 0) {
                 return originalQueries;
             }
@@ -201,38 +204,36 @@ public class ParamDef<A> {
     }
 
     public static ParamDef<String> form(String name) {
-        return new ParamDef<>(name, ctx -> S._for(((HttpCtx) ctx).req.formData().get(name)).first())
+        return new ParamDef<>(name, ctx -> S._for(((HttpCtx.Lazy) ctx::bind).req().formData().get(name)).first())
                 .type(ParamType.STRING).in(ParamIn.FORM_DATA);
     }
 
     public static ParamDef<String> param(String name) {
-        return new ParamDef<>(name, ctx -> ((HttpCtx) ctx).req.param(name))
+        return new ParamDef<>(name, ctx -> ((HttpCtx.Lazy) ctx::bind).req().param(name))
                 .type(ParamType.STRING)
                 //default to form data
                 .in(ParamIn.FORM_DATA);
     }
 
     public static ParamDef<List<String>> params(String name) {
-        return new ParamDef<>(name, ctx -> ((HttpCtx) ctx).req.params(name))
+        return new ParamDef<>(name, ctx -> ((HttpCtx.Lazy) ctx::bind).req().params(name))
                 .type(ParamType.ARRAY)
                 .in(ParamIn.FORM_DATA);
     }
 
     public static ParamDef<Map<String,Object>> reqAsMap() {
-        return new ParamDef<>("req as map", ctx -> ((HttpCtx) ctx).req.toMap())
+        return new ParamDef<>("req as map", ctx -> ((HttpCtx.Lazy) ctx).req().toMap())
                 .type(ParamType.SCHEMA).in(ParamIn.COMPOSED);
     }
 
     private static final String CACHED_BODY_AS_JSON = "CACHED_BODY_AS_JSON";
 
-    static void cacheBodyAsJSON(Ctx c) throws IOException {
-        c.put(CACHED_BODY_AS_JSON, JSON.parse(STREAM.readFully(((HttpCtx) c).req.in(), CharsetUtil.UTF_8)));
+    static void cacheBodyAsJSON(HttpCtx c) throws IOException {
+        c.put(CACHED_BODY_AS_JSON, JSON.parse(STREAM.readFully(((HttpCtx.Lazy) c::bind).req().in(), CharsetUtil.UTF_8)));
     }
 
     public static ParamDef<InputStream> bodyAsInputStream(String name) {
-        return new ParamDef<InputStream>(name, ctx -> {
-            return ((HttpCtx) ctx).req.in();
-        }).in(ParamIn.BODY);
+        return new ParamDef<>(name, ctx -> ((HttpCtx.Lazy) ctx::bind).req().in()).in(ParamIn.BODY);
     }
 
     public static ParamDef<Map<String, Object>> bodyAsJsonMap(String name) {
@@ -251,7 +252,7 @@ public class ParamDef<A> {
             } catch (IOException | RuntimeException e) {
                 throw new EndToEndException(400, "parse error:" + e.getMessage());
             }
-        }) .consumes(MimeTypes.MIME_APPLICATION_JSON)
+        }) .consumes(MIME.MIME_APPLICATION_JSON)
                 .in(ParamIn.BODY)
                 .type(ParamType.SCHEMA);
     }
@@ -260,12 +261,12 @@ public class ParamDef<A> {
 //        return new ParamDefStruct<>("all_params",  ctx -> (((HttpCtx) ctx).req.toMap()));
 //    }
 
-    public static ParamDef<Request.UploadFile> file(String name) {
-        return new ParamDef<>(name, ctx -> ((HttpCtx) ctx).req.file(name)).in(ParamIn.BODY).type(ParamType.FILE);
+    public static ParamDef<FileUpload> file(String name) {
+        return new ParamDef<>(name, ctx -> ((HttpCtx.Lazy) ctx).req().file(name)).in(ParamIn.BODY).type(ParamType.FILE);
     }
 
-    public static <X> ParamDef<X> any(String name, Function<X, Ctx> handler) {
-        return new ParamDef<X>(name, handler).in(ParamIn.QUERY).type(ParamType.STRING);
+    public static <X> ParamDef<X> any(String name, Function<X, HttpCtx> handler) {
+        return new ParamDef<>(name, handler).in(ParamIn.QUERY).type(ParamType.STRING);
     }
 
     public static <X> ParamDef<X> compose(String name, List<ParamDef> defs, Function<X, Map<String, Object>> parser) {
@@ -330,7 +331,7 @@ public class ParamDef<A> {
     @SuppressWarnings("unchecked")
     public static <X> ParamDef<X> json(String name, Function<X, Map<String, Object>> itemParser) {
         return new ParamDef<X>(name + "_required", ctx ->
-                (X) itemParser.apply(JSON.parse(((HttpCtx) ctx).req
+                (X) itemParser.apply(JSON.parse(((HttpCtx.Lazy) ctx::bind).req()
                         .paramNonBlank(name, String.format("%s must not null", name))
                 )));
     }
@@ -346,7 +347,7 @@ public class ParamDef<A> {
     @SuppressWarnings("unchecked")
     public static <X> ParamDef<List<X>> jsonArray(String name, Function<X, Map<String, Object>> arrayItemParser) {
         return new ParamDef<>(name + "_required", ctx -> {
-            List<Map<String, Object>> l = JSON.parseArray(((HttpCtx) ctx).req
+            List<Map<String, Object>> l = JSON.parseArray(((HttpCtx.Lazy) ctx::bind).req()
                     .paramNonBlank(name, String.format("%s must not null", name)));
             return S._for(l).map(arrayItemParser).toList();
         });

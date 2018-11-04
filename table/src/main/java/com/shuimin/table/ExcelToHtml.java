@@ -33,7 +33,7 @@ public class ExcelToHtml {
         throw new RuntimeException("can not create tmp files");
       FILE.inputStreamToFile(xls, f);
       Document doc = ExcelToHtmlConverter.process(f);
-      PrintWriter out = new PrintWriter(new OutputStreamWriter(out_, Charset.defaultCharset()));
+      PrintWriter out = new PrintWriter(new OutputStreamWriter(out_, Charset.forName("UTF-8")));
       DOMSource domSource = new DOMSource(doc);
       StreamResult streamResult = new StreamResult(out);
 

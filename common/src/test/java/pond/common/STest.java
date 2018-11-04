@@ -9,8 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 @SuppressWarnings("all")
 public class STest {
@@ -127,7 +126,7 @@ public class STest {
   @Test
   public void test_range() throws Exception {
     Array<Integer> arr = S.range(1, 5);
-    assertArrayEquals((int[]) Convert.toPrimitiveArray(arr.join()),
+    assertArrayEquals((int[]) Convert.toPrimitiveArray(arr.joinArray(new Integer[0])),
                       new int[]{1, 2, 3, 4, 5});
   }
 
@@ -195,5 +194,20 @@ public class STest {
   @Test
   public void testTime_nano() throws Exception {
 
+  }
+
+  @Test
+  public void test_equal(){
+    assertTrue("S_equal", S._equal("a", "a"));
+    assertFalse("S_equal_False", S._equal("a", "_a"));
+  }
+
+  @Test
+  public void test_same() {
+    assertTrue("S_same", S._same("a", "a", "a"));
+    assertFalse("S_same_False", S._same("a", "_a", "b", null));
+    assertFalse("S_same_False", S._same("a", "_a", "a", "a"));
+    assertFalse("S_same_False", S._same("a", "null", "b", "a"));
+    assertFalse("S_same_False", S._same(null, "_a", "b", "a"));
   }
 }

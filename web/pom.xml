@@ -9,6 +9,7 @@
     </parent>
 
     <packaging>jar</packaging>
+
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>pond-web</artifactId>
@@ -17,16 +18,10 @@
 
         <dependency>
             <groupId>pond</groupId>
-            <artifactId>pond-core</artifactId>
-            <version>${project.version}</version>
+            <artifactId>pond-net</artifactId>
+            <version>0.3.0</version>
+            <scope>compile</scope>
         </dependency>
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>5.0.0.Alpha2</version>
-        </dependency>
-
 
     </dependencies>
 

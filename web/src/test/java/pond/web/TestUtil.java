@@ -1,12 +1,17 @@
 package pond.web;
 
 import io.netty.util.CharsetUtil;
-import org.apache.http.Header;
-import pond.common.HTTP;
 import pond.common.S;
 import pond.common.STREAM;
+import pond.web.http.HttpConfigBuilder;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.*;
 
@@ -14,24 +19,23 @@ import static org.junit.Assert.*;
  * Created by ed on 8/24/15.
  */
 public class TestUtil {
+    public static final HttpClient client = HttpClient.newHttpClient();
 
-  public static void assertContentEqualsForGet(String judge, String url) throws IOException {
-    assertNotNull(judge);
-    HTTP.get(url, null, resp ->
-        S._try(() -> assertEquals(new String(judge.trim().getBytes(), CharsetUtil.UTF_8),
-                                  STREAM.readFully(resp.getEntity().getContent(), CharsetUtil.UTF_8).trim()
-               )
-        ));
-  }
+    public static CompletableFuture<String> GET_BODY_AS_STRING(String url) throws IOException {
 
-  public static void assertHeaderContains(String judge, String url, String name) throws IOException {
-
-    HTTP.get(url, null, resp -> {
-      Header[] s = resp.getHeaders(name);
-      assertTrue(S._for(s).some(header -> header.getValue().contains(judge)));
-    });
-
-  }
+        HttpRequest request = null;
+        try {
+            request = HttpRequest.newBuilder()
+                        .GET()
+                        .uri(new URI(url))
+                        .build();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return client
+				.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+				.thenApply(HttpResponse::body);
+    }
 
 
 }

@@ -1,16 +1,15 @@
 package pond.web;
 
 
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.multipart.FileUpload;
 import pond.common.S;
 import pond.common.STRING;
 import pond.common.f.Function;
-import pond.common.f.Tuple;
-import pond.web.http.Cookie;
-import pond.web.http.HttpUtils;
+import pond.web.http.HttpCtx;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.*;
 
 /**
@@ -33,21 +32,57 @@ public interface Request {
 //        }
 //    }
 
-    String method();
+    default String method() {
+        return ctx().method();
+    }
 
-    String remoteIp();
+    default String remoteIp() {
+        return ctx().remoteAddress().toString();
+    }
 
-    InputStream in();
+    default InputStream in() {
+        var body = (HttpCtx.Body)ctx()::bind;
+        return body.bodyAsInputStream();
+    }
 
-    String uri();
+    default String uri(){
+        return ctx().uri();
+    }
 
-    Map<String, List<String>> headers();
+    default Map<String, List<String>> headers(){
+        var rebind = (HttpCtx.Headers)ctx()::bind;
+        return rebind.headers();
+    }
 
-    Map<String, List<String>> queries();
+    default Map<String, List<String>> queries() {
+        var rebind = (HttpCtx.Queries)ctx()::bind;
+        return rebind.queries();
+    }
 
-    Map<String, List<String>> inUrlParams();
+    default Map<String, List<String>> inUrlParams(){
+        var queries = (HttpCtx.Queries)ctx()::bind;
+        return queries.inUrlParams();
+    }
 
-    Map<String, List<String>> formData();
+    default Map<String, List<String>> formData() {
+        var body = (HttpCtx.Body)ctx()::bind;
+        if(body.bodyIsMultipart()){
+            try {
+                return body.bodyAsMultipart().params();
+            } catch (IllegalAccessException ignore) { }
+        }
+        return body.params();
+    }
+
+    default Map<String, List<FileUpload>> files(){
+        var body = (HttpCtx.Body)ctx()::bind;
+        if(body.bodyIsMultipart()) {
+            try {
+                return body.bodyAsMultipart().files();
+            } catch (IllegalAccessException ignore) { }
+        }
+        return Collections.emptyMap();
+    }
 
 //    default CanonicalParam<List<String>> canonicalParams(String name) {
 //        List<String> f;
@@ -90,18 +125,29 @@ public interface Request {
         return all_params;
     }
 
-    Map<String, List<UploadFile>> files();
 
-    Map<String, Cookie> cookies();
 
-    String path();
+    default Map<String, Cookie> cookies(){
+        var bind = (HttpCtx.Cookies) ctx()::bind;
+        var set = bind.cookies();
+        var ret = new HashMap<String, Cookie>();
+        for(Cookie c : set) {
+            ret.put(c.name(), c);
+        }
+        return ret;
+    }
+
+    default String path() {
+        return S._try_ret(() -> new URI(this.uri()).getPath());
+    }
 
     default Cookie cookie(String s) {
         return cookies().get(s);
     }
 
     default List<String> headers(String string) {
-        return headers().get(BaseServer.IS_HEADER_SENSITIVE() ? string : string.toLowerCase());
+        var ctx = (HttpCtx)this.ctx()::bind;
+        return headers().get(ctx.get(HttpCtx.CONFIG).isHeaderCaseSensitive() ? string : string.toLowerCase());
     }
 
     default String header(String string) {
@@ -128,15 +174,16 @@ public interface Request {
         throw new EndToEndException(400, err_msg);
     }
 
+    /*
     default <R> R paramConvert(String key, Function<R, String> converter, String err_msg) {
-        String ret = param(key);
+        String ret = query(key);
         try {
             return converter.apply(ret);
         } catch (Exception e) {
             Pond.logger.warn("convert error:", e);
             throw new EndToEndException(400, e.getMessage() + err_msg);
         }
-    }
+    }*/
 
     default String paramNonBlank(String key) {
         return paramCheck(key, STRING::notBlank, key + "can not be blank");
@@ -150,80 +197,30 @@ public interface Request {
         return paramCheck(key, Objects::nonNull, err_msg);
     }
 
-    default void param(String key, String val) {
-        HttpUtils.appendToMap(params(), key, val);
-    }
+//    default void query(String key, String val) {
+//        .appendToMap(queries(), key, val);
+//    }
 
     //upload file
-    default List<UploadFile> files(String file) {
+    default List<FileUpload> files(String file) {
         return files().get(file);
     }
 
-    default UploadFile file(String file) {
+    default FileUpload file(String file) {
         return S._for(files(file)).first();
     }
 
-    @Deprecated
-    default Integer paramInt(String para) {
-        String data = param(para);
-        if (STRING.isBlank(para)) return null;
-        return S._try_ret(() -> Integer.parseInt(data));
-    }
-
-    @Deprecated
-    default Boolean paramBool(String para) {
-        String data = param(para);
-        if (STRING.isBlank(data)) return null;
-        return S._try_ret(() -> Boolean.parseBoolean(data));
-    }
-
-    @Deprecated
-    default Double paramDouble(String para) {
-        String data = param(para);
-        if (STRING.isBlank(data)) return null;
-        return S._try_ret(() -> Double.parseDouble(data));
-    }
-
-    @Deprecated
-    default Long paramLong(String para) {
-        String data = param(para);
-        if (STRING.isBlank(para)) return null;
-        return S._try_ret(() -> Long.parseLong(data));
-    }
 
     HttpCtx ctx();
 
     /**
-     * Returns all queries as a Map
+     * Returns headers queries as a Map
      */
     default Map<String, Object> toMap() {
         Map<String, Object> ret = new HashMap<>();
         //ret.putAll(S._for(attrs()).map(attr -> S._for(attr).limit()).val());
         ret.putAll(S._for(params()).map(param -> S._for(param).first()).val());
         return ret;
-    }
-
-    interface UploadFile {
-        /**
-         * attr name
-         */
-        String name();
-
-        /**
-         * original filename provided by client
-         */
-        String filename();
-
-        /**
-         * input for file
-         */
-        InputStream inputStream() throws IOException;
-
-        /**
-         * file
-         */
-        File file() throws IOException;
-
     }
 
 

@@ -12,14 +12,13 @@ import static org.junit.Assert.assertEquals;
 public class ArrayTest {
 
 
-
   @Test
   public void testJoin() throws Exception {
-    Integer[] joined = S.array(12, 2, 3, 14, 15).join();
+    Integer[] joined = S.array(12, 2, 3, 14, 15).joinArray(new Integer[0]);
     assertArrayEquals(new int[]{12, 2, 3, 14, 15},
                       (int[]) Convert.toPrimitiveArray(joined));
 
-    joined = S.array(12, 2, 3, 14, 15).join(0);
+    joined = S.array(12, 2, 3, 14, 15).joinArray(0, new Integer[0]);
     assertArrayEquals(new int[]{12, 0, 2, 0, 3, 0, 14, 0, 15},
                       (int[]) Convert.toPrimitiveArray(joined));
   }
@@ -28,8 +27,8 @@ public class ArrayTest {
   @Test
   public void testMap() throws Exception {
     Array<String> arr = S.array("This", "is", "A", "GOOD", "Day");
-    assertArrayEquals(arr.map(str -> str.toUpperCase()).join(),
-                      S.array("THIS", "IS", "A", "GOOD", "DAY").join());
+    assertArrayEquals(arr.map(str -> str.toUpperCase()).joinArray(new String[0]),
+                      S.array("THIS", "IS", "A", "GOOD", "DAY").joinArray(new String[0]));
   }
 
   @Test
@@ -41,7 +40,7 @@ public class ArrayTest {
   @Test
   public void testFilter() throws Exception {
     Array<Integer> arr = S.array(1, 23, 4, 5, 6, 7, 8, 9);
-    assertArrayEquals(new int[]{23}, (int[]) Convert.toPrimitiveArray(arr.filter(x -> x > 20).join()));
+    assertArrayEquals(new int[]{23}, (int[]) Convert.toPrimitiveArray(arr.filter(x -> x > 20).joinArray(new Integer[0])));
   }
 
   @Test
@@ -55,14 +54,14 @@ public class ArrayTest {
   @Test
   public void testReverse() throws Exception {
     Array<Integer> arr = S.array(1, 2, 3, 4, 5, 6, 7, 8, 9);
-    assertArrayEquals(new int[]{9, 8, 7, 6, 5, 4, 3, 2, 1}, (int[]) Convert.toPrimitiveArray(arr.reverse().join()));
+    assertArrayEquals(new int[]{9, 8, 7, 6, 5, 4, 3, 2, 1}, (int[]) Convert.toPrimitiveArray(arr.reverse().joinArray(new Integer[0])));
   }
 
   @Test
   public void testConcat() throws Exception {
     Array<Integer> arr1 = S.array(1, 2, 3, 4, 5, 6);
     Array<Integer> arr2 = S.array(7, 8, 9);
-    assertArrayEquals(new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9}, (int[]) Convert.toPrimitiveArray(arr1.concat(arr2).join()));
+    assertArrayEquals(new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9}, (int[]) Convert.toPrimitiveArray(arr1.concat(arr2).joinArray(new Integer[0])));
   }
 
   @Test
@@ -75,7 +74,7 @@ public class ArrayTest {
   @Test
   public void testLimit() throws Exception {
     Array<Integer> arr = S.array(1, 2, 3, 4, 5, 6, 7, 8, 9);
-    assertArrayEquals(new int[]{1, 2, 3}, (int[]) Convert.toPrimitiveArray(arr.limit(3).join()));
+    assertArrayEquals(new int[]{1, 2, 3}, (int[]) Convert.toPrimitiveArray(arr.limit(3).joinArray(new Integer[0])));
   }
 
   @Test
@@ -107,7 +106,7 @@ public class ArrayTest {
   public void testPartition() {
     Array<Integer> arr = S.array(1, 2, 3, 4, 5, 6, 7, 8, 9);
     FIterable.Partition<Integer> p = arr.partition(x -> x > 5);
-    assertArrayEquals((int[]) Convert.toPrimitiveArray(p._true().join()), new int[]{6, 7, 8, 9});
-    assertArrayEquals((int[]) Convert.toPrimitiveArray(p._false().join()), new int[]{1, 2, 3, 4, 5});
+    assertArrayEquals((int[]) Convert.toPrimitiveArray(p._true().joinArray(new Integer[0])), new int[]{6, 7, 8, 9});
+    assertArrayEquals((int[]) Convert.toPrimitiveArray(p._false().joinArray(new Integer[0])), new int[]{1, 2, 3, 4, 5});
   }
 }

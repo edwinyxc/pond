@@ -1,8 +1,10 @@
 package pond.common;
 
 import pond.common.config.Config;
-import pond.common.f.*;
+import pond.common.f.Array;
+import pond.common.f.Callback;
 import pond.common.f.Callback.C0;
+import pond.common.f.Function;
 import pond.common.struc.EnumerationIterable;
 
 import java.util.*;
@@ -63,16 +65,16 @@ public class S {
    * S._range(0,3) --> [0,1,2,3]
    */
   public static Array<Integer> range(int start, int end) {
-    Array<Integer> range = new Array<>();
+    List<Integer> range = new ArrayList<>();
     for (int i = start; i <= end; i++) {
       range.add(i);
     }
-    return range;
+    return new Array<>(range);
   }
 
-  public static <T> T[] join(T... data) {
-    return S._for(data).join();
-  }
+//  public static <T> T[] join(T... data) {
+//    return S._for(data).join();
+//  }
 
   /**
    * Create an ArrayList for input ordered by the input sequence.
@@ -117,6 +119,17 @@ public class S {
     return false;
   }
 
+  public static boolean _equal(Object a, Object b) {
+    return a != null && a.equals(b);
+  }
+
+  public static boolean _same(Object... args) {
+    return S._for(args).reduce((acc, cur) -> {
+      if(acc!= null && acc.equals(cur)) return cur;
+      return null;
+    })!= null;
+  }
+
   //inner data register
   private static Set<String> debugModeReg = new HashSet<>();
 
@@ -158,6 +171,10 @@ public class S {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static <T> T _try_get(T t, T or) {
+    return t == null ? or : t;
   }
 
   /**
@@ -333,7 +350,8 @@ public class S {
       }
       return "[" + String.join(",", _for(oArr).<String>map(S::dump)) + "]";
     } else if (o instanceof Map) {
-      return _for((Map) o).map((i) -> (dump(i))).val().toString();
+      S.echo("dumping map" + o.getClass() + ":", ((Map)o).keySet());
+      return _for((Map) o).map((i) -> (i == o? "[error Ring]":dump(i))).val().toString();
     } else {
       return o.toString();
     }
@@ -475,6 +493,7 @@ public class S {
   final public static STREAM stream = new STREAM();
   final public static STRING str = new STRING();
 
+
   public static class uuid {
 
     public static String str() {
@@ -490,6 +509,27 @@ public class S {
       return uuid.toString().replaceAll("-", "");
     }
 
+  }
+
+  private static final Set<Class<?>> WRAPPER_TYPES = getWrapperTypes();
+
+  private static Set<Class<?>> getWrapperTypes()
+  {
+    Set<Class<?>> ret = new HashSet<Class<?>>();
+    ret.add(Boolean.class);
+    ret.add(Character.class);
+    ret.add(Byte.class);
+    ret.add(Short.class);
+    ret.add(Integer.class);
+    ret.add(Long.class);
+    ret.add(Float.class);
+    ret.add(Double.class);
+    ret.add(Void.class);
+    return ret;
+  }
+
+  public static boolean _is_wrapper_type(Class<?> clazz){
+    return WRAPPER_TYPES.contains(clazz);
   }
 
   /**

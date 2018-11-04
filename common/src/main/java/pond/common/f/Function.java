@@ -3,10 +3,16 @@ package pond.common.f;
 import pond.common.S;
 
 import java.util.List;
-import java.util.Map;
 
-import static pond.common.f.Tuple.pair;
-
+/**
+ * Callback function, that is a function consume parameters and return void (not return at all).
+ * Another version of java.utl.function.*. The author prefer the Scala-like style
+ * : To put the return type first and using Decimal to represent parameters length.
+ * i.e."Supplier", "Function", "BiFunction" has a shorter name of F0, Function, F2...
+ *
+ * @see java.util.function.Consumer
+ * @see java.util.concurrent.Callable
+ */
 @SuppressWarnings({"rawtypes"})
 public interface Function<R, A> {
 

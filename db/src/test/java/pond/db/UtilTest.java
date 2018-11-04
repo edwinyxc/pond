@@ -1,6 +1,5 @@
 package pond.db;
 
-import org.apache.http.util.CharsetUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 import pond.common.FILE;

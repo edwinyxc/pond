@@ -118,7 +118,7 @@ public class STRING {
   public static String underscore(String camel) {
 
     List<Integer> upper = new ArrayList<Integer>();
-    byte[] bytes = camel.getBytes(Charset.defaultCharset());
+    byte[] bytes = camel.getBytes(Charset.forName("UTF-8"));
     for (int i = 0; i < bytes.length; i++) {
       byte b = bytes[i];
       if (b < 97 || b > 122) {

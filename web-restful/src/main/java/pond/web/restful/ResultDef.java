@@ -1,13 +1,17 @@
 package pond.web.restful;
 
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import pond.common.JSON;
 import pond.common.S;
 import pond.common.STREAM;
 import pond.common.f.Callback;
 import pond.common.f.Function;
 import pond.common.f.Tuple;
+import pond.core.Ctx;
 import pond.web.*;
-import pond.web.http.MimeTypes;
+import pond.web.http.HttpCtx;
+import pond.web.http.MIME;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,8 +23,8 @@ import java.util.*;
 /**
  * Created by ed on 3/8/17.
  */
-public class ResultDef<T> implements Callback.C2<Ctx, T> {
-    final Callback.C2<Ctx, T> handler;
+public class ResultDef<T> implements Callback.C2<HttpCtx, T> {
+    final Callback.C2<HttpCtx, T> handler;
     final Integer httpStatusCode;
     final String description;
     final Set<String> produces;
@@ -28,10 +32,10 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
     Schema schema = Schema.STRING();
     final Set<String> headers;
 
-    private ResultDef(Integer code, String desc, Callback.C2<Ctx, T> handler) {
+    private ResultDef(Integer code, String desc, Callback.C2<HttpCtx, T> handler) {
         this.headers = new HashSet<>();
         this.produces = S._tap(new HashSet<>(), s -> {
-            s.add(MimeTypes.MIME_TEXT_PLAIN);
+            s.add(MIME.MIME_TEXT_PLAIN);
         });
         this.httpStatusCode = code;
         this.handler = handler;
@@ -43,7 +47,7 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
         return this;
     }
 
-    public static <T> ResultDef<T> any(Integer code, String desc, Callback.C2<Ctx, T> cb) {
+    public static <T> ResultDef<T> any(Integer code, String desc, Callback.C2<HttpCtx, T> cb) {
         return new ResultDef<T>(code, desc, cb);
     }
 
@@ -71,13 +75,13 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
                     String[] values = t._a;
                     for (int i = 0, len = Math.min(values.length, headers.length);
                          i < len; i++) {
-                        ((HttpCtx) ctx).resp.header(headers[i], values[i]);
+                        ((HttpCtx.Lazy) ctx).resp().header(headers[i], values[i]);
                     }
                     finish.handler.apply(ctx, t._b);
                 });
 
         def.headers.addAll(Arrays.asList(headers));
-        def.produces(MimeTypes.MIME_TEXT_PLAIN);
+        def.produces(MIME.MIME_TEXT_PLAIN);
         return def;
     }
 
@@ -88,9 +92,9 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
      */
     public static ResultDef<Void> debug() {
         ResultDef<Void> def = new ResultDef<>(200, "debug", (ctx, t) -> {
-            ((HttpCtx) ctx).resp.send(200, ctx.toString());
+            ((HttpCtx.Lazy) ctx::bind).resp().send(200, ctx.toString());
         });
-        def.produces(MimeTypes.MIME_TEXT_PLAIN);
+        def.produces(MIME.MIME_TEXT_PLAIN);
         return def;
     }
 
@@ -99,19 +103,19 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
      *
      * @param desc description of this result
      * @return a lambda takes a string value
-     * @see Render#text(String)
      */
     public static ResultDef<String> text(String desc) {
         return new ResultDef<String>(200, desc, (ctx, t) -> {
-            ((HttpCtx) ctx).resp.render(Render.text(S.avoidNull(t, "ok")));
-        }).produces(MimeTypes.MIME_TEXT_PLAIN);
+            ctx.response().headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
+            ctx.response().write(S.avoidNull(t, "ok"));
+        }).produces(MIME.MIME_TEXT_PLAIN);
     }
 
     public static ResultDef<String> html(String desc) {
         return new ResultDef<String>(200, desc, (ctx, t) -> {
-            ((HttpCtx) ctx).resp.contentType(MimeTypes.MIME_TEXT_HTML);
-            ((HttpCtx) ctx).resp.send(200, t);
-        }).produces(MimeTypes.MIME_TEXT_HTML);
+            ctx.response().headers().set(HttpHeaderNames.CONTENT_TYPE, MIME.MIME_TEXT_HTML);
+            ctx.response().write(t);
+        }).produces(MIME.MIME_TEXT_HTML);
     }
 
 
@@ -119,9 +123,10 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
      * @return
      */
     public static ResultDef<Void> ok() {
-        return new ResultDef<Void>(200, "ok", (ctx, t) -> {
-            ((HttpCtx) ctx).resp.render(Render.text("OK"));
-        }).produces(MimeTypes.MIME_TEXT_PLAIN);
+        return new ResultDef<Void>(200, "ok",  (ctx, t) -> {
+            ctx.response().headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
+            ctx.response().write("ok");
+        }).produces(MIME.MIME_TEXT_PLAIN);
     }
 
     /**
@@ -133,8 +138,8 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
      */
     public static ResultDef<Void> lazy(int code, String desc) {
         return new ResultDef<Void>(code, desc, (ctx, t) -> {
-            ((HttpCtx) ctx).resp.send(code, S.avoidNull(desc, "ok"));
-        }).produces(MimeTypes.MIME_TEXT_PLAIN);
+            ctx.response(HttpResponseStatus.valueOf(code)).write(desc);
+        }).produces(MIME.MIME_TEXT_PLAIN);
     }
 
     /**
@@ -142,14 +147,13 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
      *
      * @param desc description of this result
      * @return a lambda takes a Object value
-     * @see Render#json(Object)
      */
     public static <T> ResultDef<T> json(int code, String desc) {
         return new ResultDef<T>(code, desc, (ctx, t) -> {
-            Response resp = ((HttpCtx) ctx).resp;
-            resp.contentType(MimeTypes.MIME_APPLICATION_JSON);
+            Response resp = ((HttpCtx.Lazy) ctx::bind).resp();
+            resp.contentType(MIME.MIME_APPLICATION_JSON);
             resp.send(code, JSON.stringify(t));
-        }).produces(MimeTypes.MIME_TEXT_PLAIN, MimeTypes.MIME_APPLICATION_JSON);
+        }).produces(MIME.MIME_TEXT_PLAIN, MIME.MIME_APPLICATION_JSON);
     }
 
     /**
@@ -157,14 +161,13 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
      *
      * @param desc description of this result
      * @return a lambda takes a Object value
-     * @see Render#json(Object)
      */
     public static <T> ResultDef<T> json(int code, String desc, Schema schema) {
         return new ResultDef<T>(code, desc, (ctx, t) -> {
-            Response resp = ((HttpCtx) ctx).resp;
-            resp.contentType(MimeTypes.MIME_APPLICATION_JSON);
+            Response resp = ((HttpCtx.Lazy) ctx::bind).resp();
+            resp.contentType(MIME.MIME_APPLICATION_JSON);
             resp.send(code, JSON.stringify(t));
-        }).produces(MimeTypes.MIME_TEXT_PLAIN, MimeTypes.MIME_APPLICATION_JSON)
+        }).produces(MIME.MIME_TEXT_PLAIN, MIME.MIME_APPLICATION_JSON)
                 .schema(schema);
     }
 
@@ -173,12 +176,11 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
      *
      * @param desc description of this result
      * @return a lambda takes a Object value
-     * @see Render#json(Object)
      */
     public static <T> ResultDef<T> json(String desc) {
         return new ResultDef<T>(200, desc, (ctx, t) -> {
-            ((HttpCtx) ctx).resp.render(Render.json(t));
-        }).produces(MimeTypes.MIME_TEXT_PLAIN, MimeTypes.MIME_APPLICATION_JSON);
+            ctx.response(200).write(JSON.stringify(S.avoidNull(t, "{}")));
+        }).produces(MIME.MIME_TEXT_PLAIN, MIME.MIME_APPLICATION_JSON);
     }
 
     /**
@@ -199,7 +201,7 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
                                 new String[]{"X-Total-Count"},
                                 ResultDef.<T>json(desc)
                         )
-                ).produces(MimeTypes.MIME_TEXT_PLAIN, MimeTypes.MIME_APPLICATION_JSON);
+                ).produces(MIME.MIME_TEXT_PLAIN, MIME.MIME_APPLICATION_JSON);
     }
 
     /**
@@ -207,11 +209,10 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
      *
      * @param desc description of this result
      * @return a lambda takes a File input
-     * @see Render#file
      */
     public static ResultDef<File> file(String desc) {
         return new ResultDef<File>(200, desc, (ctx, t) -> {
-            ((HttpCtx) ctx).resp.render(Render.file(t));
+
         }).produces("application/octet-stream");
     }
 
@@ -221,13 +222,13 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
             ClassLoader loader = t._a.getClassLoader();
             String filename = t._b;
 
-            Response resp = ((HttpCtx) ctx).resp;
+            Response resp = ((HttpCtx.Lazy) ctx).resp();
 
             int dot_pos = filename.lastIndexOf(".");
             if (dot_pos != -1 && dot_pos < filename.length() - 1) {
-                resp.contentType(MimeTypes.getMimeType(filename.substring(dot_pos + 1)));
+                resp.contentType(MIME.getMimeType(filename.substring(dot_pos + 1)));
             } else {
-                resp.contentType(MimeTypes.MIME_TEXT_HTML);
+                resp.contentType(MIME.MIME_TEXT_HTML);
             }
             try(InputStream in = loader.getResourceAsStream(filename)){
                 STREAM.write(in, resp.out());
@@ -235,7 +236,7 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }).produces("text/html", "text/css", MimeTypes.MIME_APPLICATION_JAVA_ARCHIVE);
+        }).produces("text/html", "text/css", MIME.MIME_APPLICATION_JAVA_ARCHIVE);
     }
 
 
@@ -249,7 +250,7 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
         return new ResultDef<Tuple<String, Callback<OutputStream>>>(200, desc, (ctx, t) -> {
             String filename = t._a;
             Callback<OutputStream> outputStreamCallback = t._b;
-            Response resp = ((HttpCtx) ctx).resp;
+            Response resp = ((HttpCtx.Lazy) ctx::bind).resp();
             resp.header("Content-Disposition", String.format("attachment;filename=%s", filename));
             resp.contentType("application/octet-stream");
             outputStreamCallback.apply(resp.out());
@@ -261,7 +262,7 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
 
     public static ResultDef<String> error(int code, String desc) {
         return new ResultDef<>(code, desc, (ctx, msg) -> {
-            ((HttpCtx) ctx).resp.sendError(code, msg);
+            ((HttpCtx.Lazy) ctx).resp().sendError(code, msg);
         });
     }
 
@@ -276,20 +277,20 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
         return new ResultDef<Tuple<Integer, String>>(code, desc, (ctx, t) -> {
             int inner_code = t._a;
             String msg = t._b;
-            ((HttpCtx) ctx).resp.sendError(code, JSON.stringify(new HashMap<String, Object>() {{
+            ((HttpCtx.Lazy) ctx::bind).resp().sendError(code, JSON.stringify(new HashMap<String, Object>() {{
                 put("code", inner_code);
                 put("msg", msg);
             }}));
-        }).produces(MimeTypes.MIME_APPLICATION_JSON);
+        }).produces(MIME.MIME_APPLICATION_JSON);
     }
 
     public static ResultDef<Exception> errorException(int code, String desc) {
         return new ResultDef<Exception>(code, desc, (ctx, e) -> {
-            S._debug(Pond.logger, log -> {
+            S._debug(Ctx.logger, log -> {
                 log.debug("errorTrace:", e);
             });
-            ((HttpCtx) ctx).resp.sendError(code, e.getMessage());
-        }).produces(MimeTypes.MIME_TEXT_PLAIN);
+            ((HttpCtx.Lazy) ctx::bind).resp().sendError(code, e.getMessage());
+        }).produces(MIME.MIME_TEXT_PLAIN);
     }
 
     /**
@@ -301,8 +302,8 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
      */
     public static ResultDef<Object[]> printf(int code, String format) {
         return new ResultDef<Object[]>(code, format, (ctx, arr) -> {
-            ((HttpCtx) ctx).resp.send(code, String.format(format, arr));
-        }).produces(MimeTypes.MIME_TEXT_PLAIN);
+            ((HttpCtx.Lazy) ctx::bind).resp().send(code, String.format(format, arr));
+        }).produces(MIME.MIME_TEXT_PLAIN);
     }
 
     /**
@@ -314,12 +315,12 @@ public class ResultDef<T> implements Callback.C2<Ctx, T> {
      */
     public static ResultDef<Object[]> errorf(int code, String format) {
         return new ResultDef<Object[]>(code, format, (ctx, arr) -> {
-            ((HttpCtx) ctx).resp.sendError(code, String.format(format, arr));
-        }).produces(MimeTypes.MIME_TEXT_PLAIN);
+            ((HttpCtx.Lazy) ctx::bind).resp().sendError(code, String.format(format, arr));
+        }).produces(MIME.MIME_TEXT_PLAIN);
     }
 
     @Override
-    public void apply(Ctx ctx, T t) {
+    public void apply(HttpCtx ctx, T t) {
         handler.apply(ctx, t);
     }
 

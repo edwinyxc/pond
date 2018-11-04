@@ -1,7 +1,8 @@
 package pond.web.restful;
 
-import pond.web.Ctx;
-import pond.web.CtxHandler;
+import pond.common.f.FIterable;
+import pond.core.CtxHandler;
+import pond.web.http.HttpCtx;
 
 import java.util.Collections;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
  * Created by ed on 3/5/17.
  */
 
-public class APIHandler implements CtxHandler {
+public class APIHandler implements CtxHandler<HttpCtx> {
 
     final List<ParamDef> paramDefs;
     final List<ResultDef> resultDefs;
@@ -22,16 +23,20 @@ public class APIHandler implements CtxHandler {
         this.handler = handler;
     }
 
-    public <R> APIHandler(List<ParamDef> defs, List<ResultDef> results, CtxHandler handler) {
-        this.paramDefs = defs;
-        this.resultDefs = results;
+    public <R> APIHandler(
+        FIterable<ParamDef> defs,
+        FIterable<ResultDef> results,
+        CtxHandler<HttpCtx> handler)
+    {
+        this.paramDefs = defs.toList();
+        this.resultDefs = results.toList();
         this.handler = handler;
     }
 
+
     @Override
-    public void apply(Ctx t) {
+    public void apply(HttpCtx t) {
         handler.apply(t);
     }
-
 }
 

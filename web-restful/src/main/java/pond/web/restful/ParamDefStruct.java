@@ -2,7 +2,7 @@ package pond.web.restful;
 
 import pond.common.S;
 import pond.common.f.Function;
-import pond.web.Ctx;
+import pond.web.http.HttpCtx;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,7 +36,7 @@ public class ParamDefStruct<A> extends ParamDef<A> {
     }
 
     @Override
-    public A get(Ctx c) {
+    public A get(HttpCtx c) {
         return funcParser.apply(S._for(this.schema).map(paramDef -> paramDef.get(c)).val());
     }
 
