@@ -136,7 +136,7 @@ public final class Pond implements RouterAPI, CtxHandler {
     if ("true".equals(System.getProperty("pond.debug"))) {
       //read all debug class message from system properties
       String classes = System.getProperty("pond.debug_classes");
-      S._debug_on(S._for(classes.split(":")).map(cls -> {
+      S._debug_on(S._for(classes.split("[:,t ]")).map(cls -> {
         try {
           return S._tap(Class.forName(cls), S::echo);
         } catch (ClassNotFoundException e) {

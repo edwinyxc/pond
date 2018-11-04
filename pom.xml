@@ -4,6 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <organization>
+        <name>The Pond Project</name>
+    </organization>
+
     <artifactId>pond-parent</artifactId>
     <groupId>pond</groupId>
     <packaging>pom</packaging>
@@ -23,9 +27,48 @@
             <url>http://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
-    <organization>
-        <name>The Pond Project</name>
-    </organization>
+
+    <profiles>
+      <profile>
+          <id>java11</id>
+          <activation>
+            <jdk>11</jdk>
+          </activation>
+          <properties>
+            <argLine.java11></argLine.java11>
+            <maven.compiler.source>1.8</maven.compiler.source>
+            <maven.compiler.target>1.8</maven.compiler.target>
+            <enforcer.plugin.version>3.0.0-M1</enforcer.plugin.version>
+          </properties>
+        </profile>
+
+        <profile>
+          <id>jdk8</id>
+          <activation>
+            <jdk>[1.8,)</jdk>
+          </activation>
+          <properties>
+              <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
+            <enforcer.plugin.version>3.0.0-M1</enforcer.plugin.version>
+          </properties>
+        </profile>
+
+    </profiles>
+
+    <properties>
+      <maven.compiler.source>1.8</maven.compiler.source>
+      <maven.compiler.target>1.8</maven.compiler.target>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+      <enforcer.plugin.version>3.0.0-M1</enforcer.plugin.version>
+      <javaHome>${env.JAVA_HOME}</javaHome>
+      <argLine.common>
+        -server
+        -XX:+HeapDumpOnOutOfMemoryError
+      </argLine.common>
+      <argLine.printGC>-XX:+PrintGCDetails</argLine.printGC>
+      <argLine.java11/>
+    </properties>
 
     <modules>
         <module>common</module>
@@ -40,18 +83,11 @@
         <module>web-swagger</module>
     </modules>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8
-        </project.reporting.outputEncoding>
-    </properties>
-
-
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -73,16 +109,95 @@
 
     <build>
         <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>versions-maven-plugin</artifactId>
+          <version>2.5</version>
+          <configuration>
+            <generateBackupPoms>false</generateBackupPoms>
+          </configuration>
+        </plugin>
+          <!--plugin>
+            <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${enforcer.plugin.version}</version>
+                <executions>
+                  <execution>
+                    <id>enforce-tools</id>
+                    <goals>
+                      <goal>enforce</goal>
+                    </goals>
+                    <configuration>
+                      <rules>
+                        <requireJavaVersion>
+                          <version>[1.8.0,)</version>
+                        </requireJavaVersion>
+                        <requireMavenVersion>
+                          <version>[3.1.1,)</version>
+                        </requireMavenVersion>
+                        <requireProperty>
+                          <regexMessage>
+                            x86_64/AARCH64 JDK must be used
+                          </regexMessage>
+                          <property>os.detacted.arch</property>
+                          <regex>^(x86_64|aarch_64)$</regex>
+                        </requireProperty>
+                      </rules>
+                    </configuration>
+                  </execution>
+                </executions>
+              </plugin-->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
+                <version>3.8.0</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <compilerVersion>1.8</compilerVersion>
+                    <fork>true</fork>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
                     <encoding>UTF-8</encoding>
+                    <debug>true</debug>
+                    <optimize>true</optimize>
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                    <compilerArgument>-Xlint:-options</compilerArgument>
+                    <!-- XXX: maven-release-plugin complains - MRELEASE-715 -->
+                    <!--
+                    <compilerArguments>
+                      <Xlint:-options />
+                      <Xlint:unchecked />
+                      <Xlint:deprecation />
+                    </compilerArguments>
+                    -->
+                    <meminitial>256m</meminitial>
+                    <maxmem>1024m</maxmem>
+                    <excludes>
+                        <exclude>**/package-info.java</exclude>
+                    </excludes>
                 </configuration>
-            </plugin>
-            <plugin>
+              </plugin>
+              <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.1</version>
+                <configuration>
+                  <includes>
+                    <include>**/*Test*.java</include>
+                    <include>**/*Benchmark*.java</include>
+                  </includes>
+                  <excludes>
+                    <exclude>**/Abstract*</exclude>
+                    <exclude>**/*TestUTil*</exclude>
+                  </excludes>
+                  <argLine>
+                    -XX:+IgnoreUnrecognizedVMOptions 
+                    --illegal-access=permit
+                    ${argLine.common} ${argLine.printGC} ${argLine.java11}
+                  </argLine>
+                <!--jvm>${javaHome}/bin/java</jvm-->
+                <trimStackTrace>false</trimStackTrace>
+                <!--useSystemClassLoader>false</useSystemClassLoader-->
+                </configuration>
+              </plugin>
+            <!--plugin>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>2.1</version>
                 <configuration>
@@ -96,7 +211,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin-->
         </plugins>
     </build>
 </project>

@@ -57,6 +57,7 @@ public class Ctx extends Context {
 
                 } catch (RuntimeException e) {
                     ctx.unwrapRuntimeException(e);
+                    e.printStackTrace();
                 } catch (Exception e) {
                     logger.error("Internal Error", e);
                     ctx.send(e.getMessage());
