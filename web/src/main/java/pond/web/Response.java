@@ -125,7 +125,7 @@ public interface Response {
     r.render(ctx());
   }
 
-//  default <T> void render(Callback.C2<Ctx,T> r, T t) {
+//  default <T> void render(Callback.C2<Context,T> r, T t) {
 //      r.apply(ctx(), t);
 //  }
 

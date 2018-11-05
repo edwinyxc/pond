@@ -2,8 +2,9 @@ package pond.common.f;
 
 /**
  * A final holder for non-final value
+ * @Deprecated use Tuple.unit instead
  */
-public class Holder<T> {
+@Deprecated public class Holder<T> {
   protected T val;
 
   public Holder<T> init(T t) {

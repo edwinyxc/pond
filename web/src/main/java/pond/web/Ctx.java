@@ -6,9 +6,7 @@ import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.common.f.Function;
-import pond.core.Context;
 import pond.core.Service;
-import pond.core.Services;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -50,7 +48,7 @@ public class Ctx extends Context {
                     final CtxHandler finalCtxHandler = ctxHandler;
 
                     S._debug(logger, log ->
-                            log.debug("Ctx Executing... uri: " + ctx.uri + ", express: " + finalCtxHandler.toString()));
+                            log.debug("Context Executing... uri: " + ctx.uri + ", express: " + finalCtxHandler.toString()));
 
                     ctxHandler.apply(ctx);
                     ctx.handledCtxCallbacks.add(ctxHandler);
@@ -68,7 +66,8 @@ public class Ctx extends Context {
             return ret;
         };
 
-        Services.adapter(CtxHandler.class, ctx_handler_to_service);
+        //TODO
+        //Services.adapter(CtxHandler.class, ctx_handler_to_service);
     }
 
     public Ctx(String method, String uri, Object raw, ChannelHandlerContext channelHandlerContext) {

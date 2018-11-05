@@ -6,6 +6,7 @@ import java.util.Formatter;
 import java.util.List;
 import java.util.StringTokenizer;
 
+@Deprecated
 public class STRING {
 
   public static final String EMPTY = "";

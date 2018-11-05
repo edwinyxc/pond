@@ -190,7 +190,7 @@ public final class Pond implements RouterAPI, CtxHandler {
 //                Router.class,
 //                StaticFileServer.class,
 //                SessionStore.class,
-//                Ctx.class,
+//                Context.class,
 //                CtxHandler.class);
 
     S._debug_on(c);

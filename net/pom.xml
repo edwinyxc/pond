@@ -9,26 +9,21 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>pond-core</artifactId>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>10</source>
-                    <target>10</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <artifactId>pond-net</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>pond</groupId>
-            <artifactId>pond-common</artifactId>
-            <version>${project.version}</version>
+            <artifactId>pond-core</artifactId>
+            <version>0.3.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.31.Final</version>
         </dependency>
     </dependencies>
+
 
 </project>

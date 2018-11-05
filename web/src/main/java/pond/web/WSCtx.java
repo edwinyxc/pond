@@ -20,7 +20,7 @@ public class WSCtx extends HttpCtx{
   public WSCtx(HttpCtx ctx, WebSocketServerHandshaker handshaker) {
     super(ctx.nettyRequest, ctx.context, ctx.isKeepAlive, ctx.isMultipart, ctx.inboundByteBuf);
     this.handshaker = handshaker;
-    ctx.copyContentTo(this);
+    //TODO ctx.copyContentTo(this);
     //merge all other information
   }
 

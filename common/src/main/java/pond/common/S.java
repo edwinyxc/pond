@@ -7,6 +7,7 @@ import pond.common.struc.EnumerationIterable;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 public class S {
 
@@ -115,6 +116,17 @@ public class S {
       if (some.equals(o)) return true;
     }
     return false;
+  }
+
+  public static boolean _equal(Object a, Object b) {
+    return a != null && a.equals(b);
+  }
+
+  public static boolean _same(Object... args) {
+    return S._for(args).reduce((acc, cur) -> {
+      if(acc!= null && acc.equals(cur)) return cur;
+      return null;
+    })!= null;
   }
 
   //inner data register
@@ -474,6 +486,7 @@ public class S {
   final public static PATH path = new PATH();
   final public static STREAM stream = new STREAM();
   final public static STRING str = new STRING();
+
 
   public static class uuid {
 

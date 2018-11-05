@@ -17,8 +17,8 @@ public class Route {
     private final Pattern definition;
     private final String basePath;
     private final String[] inUrlParamNames;
-//    private final Map<String, Function<?, Ctx>> paramDefs;
-//    private final List<Callback.C2<Ctx, ?>> resultDefs;
+//    private final Map<String, Function<?, Context>> paramDefs;
+//    private final List<Callback.C2<Context, ?>> resultDefs;
 
     /**
      * Returns the definition path
@@ -41,19 +41,19 @@ public class Route {
         this.mids = mids;
     }
 
-//    void addRequestParamNameAndTypes(String name, Function<?, Ctx> paramDef) {
+//    void addRequestParamNameAndTypes(String name, Function<?, Context> paramDef) {
 //        this.paramDefs.put(name, paramDef);
 //    }
 //
-//    void addResultDef(Callback.C2<Ctx, ?> resultDef) {
+//    void addResultDef(Callback.C2<Context, ?> resultDef) {
 //        this.resultDefs.add(resultDef);
 //    }
 //
-//    public List<Callback.C2<Ctx, ?>> resultDefs() {
+//    public List<Callback.C2<Context, ?>> resultDefs() {
 //        return resultDefs;
 //    }
 //
-//    public Map<String, Function<?, Ctx>> paramDefs() {
+//    public Map<String, Function<?, Context>> paramDefs() {
 //        return paramDefs;
 //    }
 

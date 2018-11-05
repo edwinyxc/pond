@@ -31,7 +31,11 @@ public class Tuple<A, B> {
   }
 
   public static <A, B> Tuple<A, B> pair(A a, B b) {
-    return new Tuple<A, B>(a, b);
+    return new Tuple<>(a, b);
+  }
+
+  public static <A> Unit<A> unit(A init){
+    return new Unit<A>().init(init);
   }
 
   public static <A, B> Tuple<A, B> t2(A a, B b) {
@@ -63,6 +67,34 @@ public class Tuple<A, B> {
                                                      D d, E e) {
     return new T5<>(a, b, c, d, e);
   }
+
+  public static class Unit<T> {
+    protected T val;
+
+    public Unit<T> init(T t) {
+      this.val = t;
+      return this;
+    }
+
+    public T value() {
+      return val;
+    }
+
+    public Unit<T> value(T t) {
+      val = t;
+      return this;
+    }
+  }
+
+  /*public static class Pair<A, B> extends Tuple<A,B>{
+    public final A name;
+    public final B value;
+    protected Pair(A a, B b) {
+      super(a, b);
+      this.name = a;
+      this.value = b;
+    }
+  }*/
 
   public static class T3<A, B, C> {
     public final A _a;
@@ -216,4 +248,6 @@ public class Tuple<A, B> {
       return "<" + _a + "," + _b + "," + _c + "," + _d + "," + _e + ">";
     }
   }
+
 }
+
