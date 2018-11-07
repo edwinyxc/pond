@@ -5,7 +5,6 @@ import org.junit.Test;
 import pond.common.HTTP;
 import pond.common.S;
 import pond.common.STREAM;
-import pond.web.BaseServer;
 import pond.web.Pond;
 
 import java.io.IOException;

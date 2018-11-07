@@ -5,7 +5,10 @@ import org.junit.Test;
 import pond.common.S;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.*;
+
+import static org.awaitility.Awaitility.await;
 
 public class TestExecution {
 
@@ -42,7 +45,7 @@ public class TestExecution {
 
         static Executor singlePool = Executors.newFixedThreadPool(1);
 
-        default CompletableFuture<Void> runAsync(){
+        default CompletableFuture<Void> run(){
             Executable next;
             CompletableFuture<Void> cf = null;
             while (null != (next = this.next())){
@@ -62,23 +65,83 @@ public class TestExecution {
     }
 
     @Test
-    public void java11_traits(){
+    public void subAndPub(){
         CtxBase base = new CtxBase();
         var ctx = (Ctx & CtxRunner & CtxLogger) () -> base;
-        ctx.push(
-            Executable.of("1", _c -> _c.properties().put("user1", "new_user")),
+        //sub push when got
+        var subAndPut_subscriber = new ExecutableSubscriber(ctx, Ctx::push);
+        //pub
+        var publisher = new SubmissionPublisher<Executable>();
+        publisher.subscribe(subAndPut_subscriber);
+
+        Executable[] execs = {
+            Executable.of("1", _c -> {
+                _c.properties().put("user1", "new_user");
+                S.echo("Hello!!");
+            }),
             Executable.of("2", _c -> _c.properties().put("user2", "new_user")),
             Executable.of("3", _c -> _c.properties().put("user3", "new_user")),
             Executable.of("4", _c -> _c.properties().put("user4", "new_user"))
-        );
-        ctx.addInterceptorForEach(ctx.tomLog());
+        };
         try {
-            ctx.runAsync().get();
+            SubmissionPublisher<Executable> finalPublisher = publisher;
+            CompletableFuture.runAsync(() -> {
+                S._for(execs).each(exec ->{
+                    try {
+                        Thread.sleep(new Random().nextInt(1000));
+                        finalPublisher.submit(exec);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                });
+                finalPublisher.close();
+            })
+                .thenRun(()-> {
+                    await().atMost(10000, TimeUnit.MILLISECONDS)
+                        .until(() -> ctx.jobs().size() == 4);
+                    ctx.addInterceptorForEach(ctx.tomLog());
+                }).get();
+            ctx.run().get();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
+
+        var runAtOnce_sub = new ExecutableSubscriber(ctx, (c, exec) -> {
+            c.push(exec);
+            var next = c.next();
+            S.echo("c.jobs.size", c.jobs().size(), "next", next);
+            if(next != null){
+                S.echo("run at once", next);
+                next.body().apply(c);
+            }
+
+        });
+
+        publisher = new SubmissionPublisher<>();
+
+        publisher.subscribe(runAtOnce_sub);
+         try {
+             SubmissionPublisher<Executable> finalPublisher1 = publisher;
+             CompletableFuture.runAsync(() -> {
+                S._for(execs).each(exec ->{
+                    try {
+                        Thread.sleep(new Random().nextInt(1000));
+                        finalPublisher1.submit(exec);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                });
+                finalPublisher1.close();
+            }).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 

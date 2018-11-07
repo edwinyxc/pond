@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * Created by ed on 21/02/17.
  */
-public class Ctx extends Context {
+public class Ctx extends Object{
     public static Logger logger = LoggerFactory.getLogger(Ctx.class);
 
     public final String method;

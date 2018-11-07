@@ -25,7 +25,11 @@ public interface Executable {
         };
     }
 
-    interface Interceptor extends Executable{
+    interface InterceptorPre extends Executable{
+        //TODO
+    }
 
+    interface InterceptorPost extends Executable{
+        //TODO
     }
 }

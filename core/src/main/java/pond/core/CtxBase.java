@@ -31,9 +31,9 @@ public class CtxBase implements Context {
 
     @Override
     public Executable next() {
-        int nextId = index.getAndAdd(1);
+        int nextId = index.get();
         if(nextId >= jobs.size()) return null;
-        return jobs.get(nextId);
+        return jobs.get(index.getAndAdd(1));
     }
 
     @Override

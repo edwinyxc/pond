@@ -116,26 +116,14 @@ public class NettyHttpServer implements BaseServer {
         //max concurrent income connections in queue
         b.option(ChannelOption.SO_BACKLOG, backlog())
                 .option(ChannelOption.SO_REUSEADDR, true)
-                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+        ;
 
 //        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000);
 
         b.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .childHandler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel socketChannel) throws Exception {
-                        //TODO --- manual distinguish between static & dynamic
-                        ChannelPipeline pipeline = socketChannel.pipeline();
-
-//                        if (ssl()) {
-//                            SSLEngine engine = SecureChat
-//                        }
-                        pipeline.addLast(new HttpServerCodec());
-                        pipeline.addLast(new ChunkedWriteHandler());
-                        pipeline.addLast(new NettyHttpHandler(handler()));
-                    }
-                }).childOption(ChannelOption.SO_KEEPALIVE, keepAlive())
+                .childHandler().childOption(ChannelOption.SO_KEEPALIVE, keepAlive())
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
         ;
 //        .childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024)

@@ -8,6 +8,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.handler.stream.ChunkedFile;
+import io.netty.handler.stream.ChunkedNioFile;
 import io.netty.util.CharsetUtil;
 import pond.common.S;
 import pond.common.STRING;
@@ -550,8 +551,10 @@ class NettyHttpHandler extends SimpleChannelInboundHandler<Object> {
 //      lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 //    } else {
         try {
-            sendFileFuture = ctx.write(new HttpChunkedInput(new ChunkedFile(raf, offset, length, 65536)),
+                sendFileFuture = ctx.write(new DefaultFileRegion(raf.getChannel(),0, raf.length())
                     ctx.newProgressivePromise());
+            //sendFileFuture = ctx.write(new HttpChunkedInput(new ChunkedFile(raf, offset, length, 65536)),
+              //      ctx.newProgressivePromise());
 
             sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
                 @Override
