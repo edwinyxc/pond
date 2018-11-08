@@ -13,26 +13,23 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import io.netty.util.CharsetUtil;
 import pond.common.S;
-import pond.common.f.Callback;
-import pond.core.Ctx;
 import pond.core.CtxBase;
 import pond.net.CtxNet;
 import pond.net.NetServer;
 import pond.web.CtxHandler;
 
-import java.io.RandomAccessFile;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
-public class CtxHttpBuilder {
+class CtxHttpBuilder {
 
     final Iterable<CtxHandler> handlers;
-    CtxHttpBuilder(Iterable<CtxHandler> handlers){
+    final HttpConfigBuilder configBuilder;
+    CtxHttpBuilder(HttpConfigBuilder builder, Iterable<CtxHandler> handlers){
+        configBuilder = builder;
         this.handlers = handlers;
     }
 

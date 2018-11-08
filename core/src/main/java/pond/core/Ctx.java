@@ -73,6 +73,10 @@ public interface Ctx {
         public Entry(String key){
             this.key = key;
         }
+
+        public Entry(Class<? extends Ctx> cls, String key){
+            this.key = cls.getCanonicalName() + "." + key;
+        }
     }
 
 }

@@ -8,6 +8,7 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pond.common.S;
 import pond.net.ServerConfig;
 import pond.web.CtxHandler;
 
@@ -19,6 +20,11 @@ import java.util.LinkedList;
 public class HttpConfigBuilder extends ServerConfig.ServerConfigBuilder {
     public static Logger logger = LoggerFactory.getLogger(HttpServerInitializer.class);
     private LinkedList<CtxHandler> handlers = new LinkedList<>();
+
+    private boolean _isHeaderCaseSensitive = false;
+    public boolean isHeaderCaseSensitive(){
+        return _isHeaderCaseSensitive;
+    }
     /**
      *
      * @return

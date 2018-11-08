@@ -1,8 +1,7 @@
 package pond.web;
 
+import io.netty.buffer.Unpooled;
 import pond.common.S;
-import pond.core.Context;
-import pond.core.CtxBase;
 import pond.net.NetServer;
 import pond.web.http.CtxHttp;
 import pond.web.http.HttpConfigBuilder;
@@ -15,10 +14,9 @@ public class CodeOnFly {
         new NetServer(
             new HttpConfigBuilder()
             .handler(ctx -> {
-                //Context base = ctx.delegate();
                 //print all headers
-                S.echo("headers", ((CtxHttp.Headers) ctx::delegate).all());
-                ((CtxHttp.Send)ctx::delegate).ok();
+                S.echo("headers", ((CtxHttp.Headers) ctx::bind).all());
+                ((CtxHttp.Send) ctx::bind).Ok(CtxHttp.str("OK"));
             })
             .port(8333)
         ).listen().get();
