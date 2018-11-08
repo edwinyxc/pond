@@ -1,5 +1,8 @@
 package pond.core;
 
+import pond.common.S;
+import pond.common.f.Tuple;
+
 import java.util.*;
 
 @FunctionalInterface
@@ -41,7 +44,35 @@ public interface Ctx {
         jobs().addAll(Arrays.asList(executables));
     }
 
-    default void push(Collection<Executable> executables){
-        jobs().addAll(executables);
+    default void push(Iterable<Executable> executables){
+        S._for(executables).each(e -> jobs().add(e));
     }
+
+    @SuppressWarnings("unchecked")
+    default <T> T get(Entry<T> key){
+        return (T) this.delegate().properties().get(key.key);
+    }
+
+    default <T> Ctx set(Entry<T> key, T value) {
+        this.delegate().properties().put(key.key, value);
+        return this;
+    }
+
+    /**
+     * Run this Ctx in the same Thread
+     */
+    default void run(){
+        Executable exec;
+        while(null != (exec = this.next())){
+            exec.body().apply(this);
+        }
+    }
+
+    class Entry<T> {
+        final String key;
+        public Entry(String key){
+            this.key = key;
+        }
+    }
+
 }

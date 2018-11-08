@@ -9,12 +9,16 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.net.ServerConfig;
+import pond.web.CtxHandler;
+
+import java.util.LinkedList;
 
 /**
  * Http 1.1 ServerConfig
  */
 public class HttpConfigBuilder extends ServerConfig.ServerConfigBuilder {
     public static Logger logger = LoggerFactory.getLogger(HttpServerInitializer.class);
+    private LinkedList<CtxHandler> handlers = new LinkedList<>();
     /**
      *
      * @return
@@ -22,6 +26,11 @@ public class HttpConfigBuilder extends ServerConfig.ServerConfigBuilder {
     @Override
     protected ChannelHandler init() {
         return new HttpServerInitializer();
+    }
+
+    public HttpConfigBuilder handler(CtxHandler handler) {
+        this.handlers.add(handler);
+        return this;
     }
 
 
@@ -32,7 +41,7 @@ public class HttpConfigBuilder extends ServerConfig.ServerConfigBuilder {
             ChannelPipeline pipeline = socketChannel.pipeline();
             pipeline.addLast(new HttpServerCodec());
             pipeline.addLast(new ChunkedWriteHandler());
-            pipeline.addLast(new CtxHttpBuilder());
+            pipeline.addLast(new CtxHttpBuilder(handlers).build());
         }
     }
 }

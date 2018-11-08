@@ -45,7 +45,7 @@ public class TestExecution {
 
         static Executor singlePool = Executors.newFixedThreadPool(1);
 
-        default CompletableFuture<Void> run(){
+        default CompletableFuture<Void> runASync(){
             Executable next;
             CompletableFuture<Void> cf = null;
             while (null != (next = this.next())){
@@ -101,7 +101,7 @@ public class TestExecution {
                         .until(() -> ctx.jobs().size() == 4);
                     ctx.addInterceptorForEach(ctx.tomLog());
                 }).get();
-            ctx.run().get();
+            ctx.runASync().get();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {

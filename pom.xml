@@ -170,6 +170,8 @@
                     <fork>true</fork>
                     <compilerVersion>11</compilerVersion>
                     <release>11</release>
+                    <source>11</source>
+                    <target>11</target>
                     <!--
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>

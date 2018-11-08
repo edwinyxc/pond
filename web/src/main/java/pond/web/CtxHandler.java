@@ -2,6 +2,9 @@ package pond.web;
 
 import pond.common.STREAM;
 import pond.common.f.Callback;
+import pond.core.Ctx;
+import pond.core.Executable;
+import pond.web.http.CtxHttp;
 
 import javax.net.ssl.*;
 import java.io.*;
@@ -19,26 +22,22 @@ import java.util.Map;
 /**
  * Created by ed on 20/02/17.
  */
-public interface CtxHandler extends Callback<Ctx> {
+public interface CtxHandler extends Callback<CtxHttp> {
 
-    CtxHandler NOOP = ctx -> {
-    };
+    CtxHandler NOOP = ctx -> {};
 
     CtxHandler[] EMPTY_ARRAY = new CtxHandler[0];
 
-
-
-
-    static CtxHandler express(Mid m) {
-        return ctx -> {
-            if (ctx instanceof HttpCtx) {
-                HttpCtx hctx = (HttpCtx) ctx;
-                m.apply(hctx.req, hctx.resp);
-            } else {
-                throw new RuntimeException("can't Convert a non-http-web-ctx-handler to a middleware");
-            }
-        };
-    }
+//    static CtxHandler express(Mid m) {
+//        return ctx -> {
+//            if (ctx instanceof HttpCtx) {
+//                HttpCtx hctx = (HttpCtx) ctx;
+//                m.apply(hctx.req, hctx.resp);
+//            } else {
+//                throw new RuntimeException("can't Convert a non-http-web-ctx-handler to a middleware");
+//            }
+//        };
+//    }
 
     static void trustAllCertsOnHttps (){
         try {
@@ -67,12 +66,13 @@ public interface CtxHandler extends Callback<Ctx> {
         }
     }
 
-    static CtxHandler proxyEntireSite(String site) {
-        return new Router(){{
-            use("/*", proxy(site));
-        }};
-    }
+//    static CtxHandler proxyEntireSite(String site) {
+//        return new Router(){{
+//            use("/*", proxy(site));
+//        }};
+//    }
 
+    /*
     static CtxHandler proxy(String url) {
         return ctx -> {
             if (ctx instanceof HttpCtx) {
@@ -135,6 +135,7 @@ public interface CtxHandler extends Callback<Ctx> {
             }
         };
     }
+    */
 
 
 }

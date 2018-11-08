@@ -1,5 +1,6 @@
 package pond.net;
 
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import pond.core.Ctx;
@@ -15,38 +16,19 @@ public interface CtxNet extends Ctx {
         return nettyChannelHandlerContext().pipeline();
     }
 
-    default void nettyWrite(Object t) {
-        nettyChannelHandlerContext().write(t);
+    default ChannelFuture write(Object t) {
+        return nettyChannelHandlerContext().write(t);
     }
 
-    default void flush(){
+    default <T extends CtxNet> T flush(){
         nettyChannelHandlerContext().flush();
+        return (T) this;
+    }
+
+    static <T extends CtxNet> T adapt(T ctx, ChannelHandlerContext channelHandlerContext){
+        ctx.delegate().properties().put("nettyChannelHandlerContext", channelHandlerContext);
+        return ctx;
     }
 
 
-    class CtxNetAdapter{
-
-        final ChannelHandlerContext nettyChannelHandlerContext;
-
-        public CtxNetAdapter(ChannelHandlerContext nettyChannelHandlerContext) {
-            this.nettyChannelHandlerContext = nettyChannelHandlerContext;
-        }
-
-        public CtxNet adapt(Ctx ctx){
-            ctx.delegate().properties().put("nettyChannelHandlerContext", nettyChannelHandlerContext);
-            return (CtxNet) ctx;
-        }
-    }
-
-    class CtxNetBuilder{
-        final ChannelHandlerContext nettyChannelHandlerContext;
-
-        public CtxNetBuilder(ChannelHandlerContext nettyChannelHandlerContext) {
-            this.nettyChannelHandlerContext = nettyChannelHandlerContext;
-        }
-
-        public CtxNet build(){
-            return new CtxNetAdapter(this.nettyChannelHandlerContext).adapt(CtxBase::new);
-        }
-    }
 }

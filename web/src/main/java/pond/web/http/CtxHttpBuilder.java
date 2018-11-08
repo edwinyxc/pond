@@ -11,12 +11,17 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
+import io.netty.util.CharsetUtil;
 import pond.common.S;
 import pond.common.f.Callback;
+import pond.core.Ctx;
+import pond.core.CtxBase;
 import pond.net.CtxNet;
 import pond.net.NetServer;
+import pond.web.CtxHandler;
 
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +30,11 @@ import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class CtxHttpBuilder {
+
+    final Iterable<CtxHandler> handlers;
+    CtxHttpBuilder(Iterable<CtxHandler> handlers){
+        this.handlers = handlers;
+    }
 
     static HttpDataFactory factory;
     static{
@@ -49,6 +59,7 @@ public class CtxHttpBuilder {
     http parser aspect-callbacks
     ***/
 
+    /*
     public
 
     //in-bounds
@@ -103,6 +114,7 @@ public class CtxHttpBuilder {
         on_WebSocketFrames.add(handler);
         return this;
     }
+    */
 
     private static void send100Continue(ChannelHandlerContext ctx) {
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, CONTINUE);
@@ -118,18 +130,36 @@ public class CtxHttpBuilder {
     public SimpleChannelInboundHandler<Object> build(){
         return new SimpleChannelInboundHandler<Object>() {
 
+            HttpRequest httpRequest;
             HttpPostRequestDecoder postRequestDecoder;
+            CompositeByteBuf aggregatedContent;
+            Map<String, List<String>> queries;
+            HttpHeaders trailingHeaders;
+            boolean is_keepAlive;
+            boolean is_multipart;
+
+            private void clean(){
+                httpRequest = null;
+                aggregatedContent = null;
+                queries = null;
+                is_keepAlive = false;
+                is_multipart = false;
+
+                if(postRequestDecoder != null){
+                    postRequestDecoder.cleanFiles();
+                    postRequestDecoder.destroy();
+                    postRequestDecoder = null;
+                }
+            }
 
             private void receiveHttpRequest(ChannelHandlerContext ctx, HttpRequest request){
-
                 if (HttpUtil.is100ContinueExpected(request)) {
                     send100Continue(ctx);
                 }
-
-                boolean is_keepAlive = HttpUtil.isKeepAlive(request);
-                boolean is_multipart = HttpPostRequestDecoder.isMultipart(request);
-
-
+                clean();
+                httpRequest = request;
+                is_keepAlive = HttpUtil.isKeepAlive(request);
+                is_multipart = HttpPostRequestDecoder.isMultipart(request);
 
                 S._debug(NetServer.logger, log -> {
                     log.debug("GOT HTTP REQ: ");
@@ -150,19 +180,104 @@ public class CtxHttpBuilder {
                             sendBadRequest(ctx);
                         }
                     }
+                } else {
+                    //aggregated
+                    aggregatedContent = PooledByteBufAllocator.DEFAULT.compositeBuffer();
                 }
-                PooledByteBufAllocator.DEFAULT.
+
+                String uri = request.uri();
+                //queries
+                //TODO replace charset
+                queries = new QueryStringDecoder(uri, CharsetUtil.UTF_8).parameters();
+
+                S._debug(NetServer.logger, log -> {
+                    log.debug("URI : " + request.uri());
+                    log.debug("");
+                });
+
+                //TODO cookies
+            }
+
+            private void receiveHttpContent(ChannelHandlerContext ctx,
+                                            HttpContent content){
+
+                if(!content.decoderResult().isSuccess()) {
+                    sendBadRequest(ctx);
+                    return;
+                }
+
+                if(postRequestDecoder != null && is_multipart){
+                    postRequestDecoder.offer(content);
+                }
+
+                //merge chunks -- retain at all cases
+                ByteBuf chunk = content.content();
+                assert aggregatedContent != null;
+                if(chunk.isReadable()) {
+                    chunk.retain();
+                    aggregatedContent.addComponent(chunk);
+                    int cur_writer = aggregatedContent.writerIndex();
+                    aggregatedContent.writerIndex(cur_writer + chunk.readableBytes());
+                }
+
+                if(content instanceof LastHttpContent){
+                    LastHttpContent tail = (LastHttpContent) content;
+                    if(!tail.decoderResult().isSuccess()) {
+                        sendBadRequest(ctx);
+                        return;
+                    }
+
+                    //trailing headers
+                    trailingHeaders = tail.trailingHeaders();
+                }
+
+                //compose into fullCtx :)
+                CtxBase base = new CtxBase();
+                CtxHttp http = () -> base;
+                CtxNet.adapt(http, ctx);
+                http.set(CtxHttp.Keys.NettyRequest, httpRequest);
+                http.set(CtxHttp.Keys.TrailingHeaders, trailingHeaders);
+                http.set(CtxHttp.Keys.FromData, postRequestDecoder);
+                http.set(CtxHttp.Keys.Builder, CtxHttpBuilder.this);
+                http.set(CtxHttp.Keys.In, aggregatedContent);
+                http.set(CtxHttp.Keys.Queries, queries);
+
+                //inject handlers
+                http.addHandlers(handlers);
+
+                //Server processing CompletionFuture
+                http.run();
+            }
 
 
+            @Override
+            protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
+                if(msg instanceof HttpRequest){
+                    receiveHttpRequest(ctx, (HttpRequest)msg);
+                } else if(msg instanceof HttpContent) {
+                    if(httpRequest == null){
+                        ctx.fireExceptionCaught(
+                            new RuntimeException("HttpContent received without HttpRequest ...dropped"
+                            + ((HttpContent) msg).content().toString(CharsetUtil.UTF_8))
+                        );
+                    } else receiveHttpContent(ctx, (HttpContent)msg);
+                } else if(msg instanceof WebSocketFrame) {
+                    WebSocketFrame frame = (WebSocketFrame) msg;
+                    //TODO
+                } else {
+                    //unknown read
+                    ctx.fireExceptionCaught(
+                        new RuntimeException("Unknown msg received")
+                    );
+                }
             }
 
             @Override
-            protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object o) {
-
-
+            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+                clean();
+                sendBadRequest(ctx);
+                super.exceptionCaught(ctx, cause);
             }
-
-
         };
     }
 
