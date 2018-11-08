@@ -1,25 +1,29 @@
 package pond.web.http;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.CompositeByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.*;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import io.netty.util.CharsetUtil;
+import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
 import pond.common.S;
+import pond.common.STRING;
+import pond.common.f.Tuple;
 import pond.core.CtxBase;
 import pond.net.CtxNet;
 import pond.net.NetServer;
 import pond.web.CtxHandler;
+import pond.web.Request;
 
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -27,9 +31,9 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 class CtxHttpBuilder {
 
     final Iterable<CtxHandler> handlers;
-    final HttpConfigBuilder configBuilder;
+    final HttpConfigBuilder httpConfig;
     CtxHttpBuilder(HttpConfigBuilder builder, Iterable<CtxHandler> handlers){
-        configBuilder = builder;
+        httpConfig = builder;
         this.handlers = handlers;
     }
 
@@ -129,8 +133,11 @@ class CtxHttpBuilder {
 
             HttpRequest httpRequest;
             HttpPostRequestDecoder postRequestDecoder;
+
             CompositeByteBuf aggregatedContent;
             Map<String, List<String>> queries;
+            List<FileUpload> mul_fileUploads;
+            Map<String, List<String>> formData;
             HttpHeaders trailingHeaders;
             boolean is_keepAlive;
             boolean is_multipart;
@@ -141,11 +148,13 @@ class CtxHttpBuilder {
                 queries = null;
                 is_keepAlive = false;
                 is_multipart = false;
+                formData = null;
 
                 if(postRequestDecoder != null){
                     postRequestDecoder.cleanFiles();
                     postRequestDecoder.destroy();
                     postRequestDecoder = null;
+                    mul_fileUploads = null;
                 }
             }
 
@@ -172,15 +181,17 @@ class CtxHttpBuilder {
                     if(S._in(method, HttpMethod.PATCH, HttpMethod.PUT, HttpMethod.POST)){
                         try {
                             postRequestDecoder = new HttpPostRequestDecoder(factory, request);
+                            formData = new LinkedHashMap<>();
+                            mul_fileUploads = new LinkedList<>();
                         } catch (Throwable e) {
                             NetServer.logger.error(e.getMessage(), e);
                             sendBadRequest(ctx);
                         }
                     }
-                } else {
-                    //aggregated
-                    aggregatedContent = PooledByteBufAllocator.DEFAULT.compositeBuffer();
                 }
+
+                //aggregated
+                aggregatedContent = PooledByteBufAllocator.DEFAULT.compositeBuffer();
 
                 String uri = request.uri();
                 //queries
@@ -202,9 +213,56 @@ class CtxHttpBuilder {
                     sendBadRequest(ctx);
                     return;
                 }
+                try {
+                    if (postRequestDecoder != null && is_multipart) {
+                        postRequestDecoder.offer(content);
+                        for (InterfaceHttpData data = postRequestDecoder.next();
+                             data != null && postRequestDecoder.hasNext();
+                             data = postRequestDecoder.next()) {
+//          // check if current HttpData is a FileUpload and previously set as partial
+//          if (partialContent == data) {
+//            S._debug(logger, log -> log.debug(" 100% (FinalSize: " + partialContent.length() + ")" + " 100% (FinalSize: " + partialContent.length() + ")"));
+////            partialContent = null;
+//          }
+                            InterfaceHttpData.HttpDataType type = data.getHttpDataType();
+                            switch (type) {
+                                case Attribute: {
+                                    Attribute attr = (Attribute) data;
 
-                if(postRequestDecoder != null && is_multipart){
-                    postRequestDecoder.offer(content);
+                                    S._debug(NetServer.logger, log -> {
+                                        try {
+                                            log.debug("PARSE ATTR: " + attr.getName() + " : " + attr.getValue());
+                                        } catch (IOException e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                    });
+                                    HttpUtils.appendToMap(formData, attr.getName(), attr.getValue());
+                                    break;
+                                }
+                                case FileUpload: {
+                                    FileUpload fileUpload = (FileUpload) data;
+                                    S._debug(NetServer.logger, log -> {
+                                        try {
+                                            log.debug("PARSE FILE: " + fileUpload.getName()
+                                                          + " : " + fileUpload.getFilename()
+                                                          + " : " + fileUpload.getFile().getAbsolutePath());
+                                        } catch (IOException e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                    });
+                                    mul_fileUploads.add(fileUpload);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }catch (HttpPostRequestDecoder.EndOfDataDecoderException end){
+                    //ignore
+                }catch (Exception e){
+                    NetServer.logger.error(e.getMessage(), e);
+                    sendBadRequest(ctx);
+                    clean();
+                    return;
                 }
 
                 //merge chunks -- retain at all cases
@@ -227,6 +285,7 @@ class CtxHttpBuilder {
                     //trailing headers
                     trailingHeaders = tail.trailingHeaders();
                 }
+                //parse http finished
 
                 //compose into fullCtx :)
                 CtxBase base = new CtxBase();
@@ -234,10 +293,109 @@ class CtxHttpBuilder {
                 CtxNet.adapt(http, ctx);
                 http.set(CtxHttp.Keys.NettyRequest, httpRequest);
                 http.set(CtxHttp.Keys.TrailingHeaders, trailingHeaders);
-                http.set(CtxHttp.Keys.FromData, postRequestDecoder);
-                http.set(CtxHttp.Keys.Builder, CtxHttpBuilder.this);
-                http.set(CtxHttp.Keys.In, aggregatedContent);
+                http.set(CtxHttp.Keys.FormData, Tuple.pair(formData, mul_fileUploads));
+                http.set(CtxHttp.Keys.Config, httpConfig);
                 http.set(CtxHttp.Keys.Queries, queries);
+
+                //in & out
+                http.set(CtxHttp.Keys.In, aggregatedContent);
+                http.set(CtxHttp.Keys.Out, PooledByteBufAllocator.DEFAULT.heapBuffer());
+                var header_bind = (CtxHttp.Headers) http::bind;
+                String content_type = header_bind.ContentType();
+
+                //handle http-contents
+                if(is_multipart) {
+                    //has all consumed
+
+                }else {
+                    //treat as default application/x-www-urlencoded
+                    if(content_type == null || content_type.toLowerCase().contains(HttpHeaderNames.CONTENT_TYPE.toLowerCase())) {
+                        var s = aggregatedContent.toString(CharsetUtil.UTF_8);
+                        new QueryStringDecoder(s, CharsetUtil.UTF_8);
+                    }
+                }
+
+
+                //cookies
+
+                //merge into one
+                var cookie = httpRequest.headers().getAsString(HttpHeaderNames.COOKIE);
+                if(STRING.notBlank(cookie)){
+                    cookie += trailingHeaders.getAsString(HttpHeaderNames.COOKIE);
+                }
+                if(STRING.notBlank(cookie)){
+                    var cookies = ServerCookieDecoder.STRICT.decode(cookie);
+                    http.set(CtxHttp.Keys.HasCookie, true);
+                    http.set(CtxHttp.Keys.Cookies, cookies);
+                }
+
+                //handle httpContent
+
+                //req & resp
+                Request request = new Request() {
+                    Map<String, List<String>> _in_url_params;
+                    @Override
+                    public String method() {
+                        return httpRequest.method().toString();
+                    }
+
+                    @Override
+                    public String remoteIp() {
+                        return ctx.channel().remoteAddress().toString();
+                    }
+
+                    @Override
+                    public InputStream in() {
+                        return new ByteBufInputStream(aggregatedContent);
+                    }
+
+                    @Override
+                    public String uri() {
+                        return httpRequest.uri();
+                    }
+
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        var ctx = (CtxHttp.Headers)http::bind;
+                        return ctx.all();
+                    }
+
+                    @Override
+                    public Map<String, List<String>> queries() {
+                        return queries;
+                    }
+
+                    @Override
+                    public Map<String, List<String>> inUrlParams() {
+                        return _in_url_params;
+                    }
+
+                    @Override
+                    public Map<String, List<String>> formData() {
+                        return formData;
+                    }
+
+                    @Override
+                    public Map<String, List<UploadFile>> files() {
+                        return null;
+                    }
+
+                    @Override
+                    public Map<String, Cookie> cookies() {
+                        return null;
+                    }
+
+                    @Override
+                    public String path() {
+                        return ;
+                    }
+
+                    @Override
+                    public CtxHttp ctx() {
+                        return http;
+                    }
+                };
+
 
                 //inject handlers
                 http.addHandlers(handlers);

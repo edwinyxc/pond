@@ -1,11 +1,10 @@
 package pond.web;
 
 
+import io.netty.handler.codec.http.cookie.Cookie;
 import pond.common.S;
 import pond.common.STRING;
 import pond.common.f.Function;
-import pond.common.f.Tuple;
-import pond.web.http.Cookie;
 import pond.web.http.CtxHttp;
 import pond.web.http.HttpUtils;
 
@@ -102,7 +101,8 @@ public interface Request {
     }
 
     default List<String> headers(String string) {
-        return headers().get(BaseServer.IS_HEADER_SENSITIVE() ? string : string.toLowerCase());
+        var ctx = (CtxHttp)this.ctx()::bind;
+        return headers().get(ctx.get(CtxHttp.Keys.Config).isHeaderCaseSensitive() ? string : string.toLowerCase());
     }
 
     default String header(String string) {
@@ -129,6 +129,7 @@ public interface Request {
         throw new EndToEndException(400, err_msg);
     }
 
+    /*
     default <R> R paramConvert(String key, Function<R, String> converter, String err_msg) {
         String ret = param(key);
         try {
@@ -137,7 +138,7 @@ public interface Request {
             Pond.logger.warn("convert error:", e);
             throw new EndToEndException(400, e.getMessage() + err_msg);
         }
-    }
+    }*/
 
     default String paramNonBlank(String key) {
         return paramCheck(key, STRING::notBlank, key + "can not be blank");

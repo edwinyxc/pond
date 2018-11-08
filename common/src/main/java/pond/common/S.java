@@ -172,6 +172,10 @@ public class S {
     }
   }
 
+  public static <T> T _try_get(T t, T or) {
+    return t == null ? or : t;
+  }
+
   /**
    * Same as the S#_try except this function takes a Function and return the result.
    * @see
