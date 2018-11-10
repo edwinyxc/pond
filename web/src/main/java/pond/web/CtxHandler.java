@@ -1,43 +1,34 @@
 package pond.web;
 
-import pond.common.STREAM;
 import pond.common.f.Callback;
 import pond.core.Ctx;
-import pond.core.Executable;
 import pond.web.http.CtxHttp;
 
 import javax.net.ssl.*;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by ed on 20/02/17.
  */
-public interface CtxHandler extends Callback<CtxHttp> {
+public interface CtxHandler<T extends Ctx> extends Callback<T> {
 
     CtxHandler NOOP = ctx -> {};
 
     CtxHandler[] EMPTY_ARRAY = new CtxHandler[0];
 
-//    static CtxHandler express(Mid m) {
-//        return ctx -> {
-//            if (ctx instanceof HttpCtx) {
-//                HttpCtx hctx = (HttpCtx) ctx;
-//                m.apply(hctx.req, hctx.resp);
-//            } else {
-//                throw new RuntimeException("can't Convert a non-http-web-ctx-handler to a middleware");
-//            }
-//        };
-//    }
+    static CtxHandler<CtxHttp> express(Mid m) {
+        return ctx -> {
+            var lazy = (CtxHttp.Lazy)ctx::bind;
+            var req = lazy.req();
+            var resp = lazy.resp();
+            m.apply(req, resp);
+        };
+    }
+
 
     static void trustAllCertsOnHttps (){
         try {

@@ -10,7 +10,10 @@ import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.CharsetUtil;
 import pond.common.S;
+import pond.core.Ctx;
 import pond.core.CtxBase;
+import pond.core.CtxFlowProcessor;
+import pond.core.Executable;
 import pond.net.CtxNet;
 import pond.net.NetServer;
 import pond.web.CtxHandler;
@@ -24,9 +27,9 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 class CtxHttpBuilder {
 
-    final Iterable<CtxHandler> handlers;
+    final Iterable<Executable<? extends Ctx>> handlers;
     final HttpConfigBuilder httpConfig;
-    CtxHttpBuilder(HttpConfigBuilder builder, Iterable<CtxHandler> handlers){
+    CtxHttpBuilder(HttpConfigBuilder builder, Iterable<Executable<? extends Ctx>> handlers){
         httpConfig = builder;
         this.handlers = handlers;
     }
@@ -126,12 +129,13 @@ class CtxHttpBuilder {
         return new SimpleChannelInboundHandler<Object>() {
 
             HttpRequest httpRequest;
-
             CompositeByteBuf aggregatedContent;
             Map<String, List<String>> queries;
             CtxHttp.Body.FormData formData;
             HttpHeaders trailingHeaders;
             String path;
+
+            CtxFlowProcessor flowProcessor;
 
             boolean is_keepAlive;
             boolean is_multipart;
@@ -255,18 +259,7 @@ class CtxHttpBuilder {
                 var header_bind = (CtxHttp.Headers) http::bind;
                 String content_type = header_bind.ContentType();
 
-                //cookies
-//                //merge into one
-//                var cookie = httpRequest.headers().getAsString(HttpHeaderNames.COOKIE);
-//                if(STRING.notBlank(cookie)){
-//                    cookie += trailingHeaders.getAsString(HttpHeaderNames.COOKIE);
-//                }
-//
-//                if(STRING.notBlank(cookie)){
-//                    var cookies = ServerCookieDecoder.STRICT.decode(cookie);
-//                    http.set(CtxHttp.Keys.HasCookie, true);
-//                    http.set(CtxHttp.Keys.Cookies, cookies);
-//                }
+
 
                 //handle httpContent
 
@@ -287,15 +280,36 @@ class CtxHttpBuilder {
 //
 //                http.set(Ctx)
 //
-//                Re
 
                 //inject handlers
-                http.addHandlers(handlers);
-
+                http.pushAll(handlers);
+                http.push(Executable.of(hctx -> {
+                    var bind = (CtxHttp & CtxHttp.Send)hctx::bind;
+                    var builder = bind.get(CtxHttp.Keys.ResponseBuilder);
+                    if( builder != null ){
+                        bind.send(builder.build());
+                    }
+                }).flowTo(flowProcessor));
                 //Server processing CompletionFuture
-                http.run();
+                http.runReactiveFlow(Ctx.ReactiveFlowConfig.DEFAULT);
             }
 
+
+            @Override
+            public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                super.channelActive(ctx);
+                assert flowProcessor == null;
+                flowProcessor = new CtxFlowProcessor(ctx.name());
+            }
+
+            @Override
+            public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                super.channelInactive(ctx);
+                if(flowProcessor != null) {
+                    flowProcessor.close();
+                    flowProcessor = null;
+                }
+            }
 
             @Override
             protected void channelRead0(ChannelHandlerContext ctx, Object msg) {

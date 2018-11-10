@@ -10,11 +10,11 @@ public interface Context extends Serializable, Iterable<Executable>{
     };
     List<Executable> jobs();
     Executable next();
-    Executable peek();
+    Executable current();
     List<Throwable> errors();
     HashMap<String, Service> services();
     LinkedHashMap<String, Object> properties();
-
+    void terminate();
     void error(Throwable a);
 
     /*

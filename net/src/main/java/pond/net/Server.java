@@ -44,4 +44,8 @@ public interface Server {
      * stop server
      */
     Future stop(Callback<Future> listener) throws Exception;
+
+    default void stop() throws Exception{
+        stop(null);
+    }
 }

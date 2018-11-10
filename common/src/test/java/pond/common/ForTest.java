@@ -11,7 +11,7 @@ public class ForTest {
   @Test
   public void testArrayMapping() {
     String[] testee = new String[]{"a", "b", "c"};
-    String[] result = _for(testee).map((t) -> t + t).join();
+    String[] result = _for(testee).map((t) -> t + t).joinArray(String::new);
     assertArrayEquals(result, new String[]{"aa", "bb", "cc"});
   }
 
@@ -21,7 +21,7 @@ public class ForTest {
 
     Iterable<String> testee = S.array("aa", "bb", "cc");
 
-    assertArrayEquals(_for(testee).map(t -> "a").join(), new String[]{"a", "a", "a"});
+    assertArrayEquals(_for(testee).map(t -> "a").joinArray(new String[0]), new String[]{"a", "a", "a"});
   }
 
   @Test

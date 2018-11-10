@@ -4,4 +4,6 @@ target/
 *.classpath
 *.project
 *.settings/
+*.log
+*.zip
 .vscode/

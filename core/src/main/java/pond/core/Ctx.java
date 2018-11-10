@@ -4,7 +4,6 @@ import pond.common.S;
 import pond.common.f.Tuple;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 
@@ -14,6 +13,14 @@ import static pond.common.f.Tuple.pair;
 public interface Ctx {
 
     Context delegate();
+    /**
+     * Short hand for delegate
+     * use like this var x = (Ctx & CtxHttp & CtxXXX.XXX)ctx::bind
+     * @return
+     */
+    default Context bind() {
+        return delegate();
+    }
 
     class Keys {
         static
@@ -23,7 +30,7 @@ public interface Ctx {
     default CtxFlowProcessor flowProcessor(){
         var ret = this.get(Keys.CtxFlowProcessor);
         if(ret == null){
-            ret = new CtxFlowProcessor();
+            ret = new CtxFlowProcessor("Ctx@"+this.delegate().hashCode());
             this.set(Keys.CtxFlowProcessor, ret);
         }
         return ret;
@@ -37,8 +44,8 @@ public interface Ctx {
         return delegate().jobs();
     }
 
-    default Executable peek() {
-        return delegate().peek();
+    default Executable current() {
+        return delegate().current();
     }
 
     default Executable next() {
@@ -61,11 +68,10 @@ public interface Ctx {
         delegate().error(a);
     }
 
-    default void push(Executable... executables) {
-        push(S._for(executables));
+    default void push(Executable<? extends Ctx> executable) {
+        jobs().add(executable);
     }
-
-    default void push(Iterable<Executable> executables) {
+    default void pushAll(Iterable<Executable<? extends Ctx>> executables) {
         S._for(executables).each(e -> jobs().add(e));
     }
 
@@ -74,24 +80,35 @@ public interface Ctx {
         return (T) this.delegate().properties().get(key.key);
     }
 
+    default <T> T getLazy(Entry<T> key, T _default) {
+        if (this.get(key) == null) this.set(key, _default);
+        return this.get(key);
+    }
+
     default <T> Ctx set(Entry<T> key, T value) {
         this.delegate().properties().put(key.key, value);
         return this;
     }
 
+    default void terminate() {
+        delegate().terminate();
+    }
+
     /**
      * Run this Ctx in the same Thread by force
      */
+    @SuppressWarnings("unchecked")
     default void run() {
-        Executable exec;
-        while (null != (exec = this.next())) {
-            exec.body().apply(this);
+        Executable exec = current();
+
+        for(;exec != null;exec = this.next()) {
+            exec.apply(this);
         }
     }
 
     /**
      *
-     * Run this Ctx in a Reactive-Flow thus,
+     * Run this Ctx in a Completion Reactive-Flow thus,
      * a) Each Executable is converted to a Executable.Flow targeted to Ctx.CtxFlowProcessor by default
      *    except those has defined already (target to an external Subscriber)
      * b) Publish Ctx to CtxFlowProcessor defined in Executable.Flow.target
@@ -100,7 +117,9 @@ public interface Ctx {
      *    Then submit the Ctx to it in this case.
      *    The target subscriber MUST BE subscribed to this.flowProcessor and promise to submit Ctx back in same manner.
      *    Consider CtxFlowProcessor be the target as your first choice.
+     * d) Completion is promised in this pattern, the final state is the Ctx itself.
      *
+     * PS: This is a Observable-Command combined pattern (Command: Executable; Observable: CtxFlowProcessor(Ctx))
      * All hail to ReactiveStreams!!!
      */
     default void runReactiveFlow(ReactiveFlowConfig config) {
@@ -117,6 +136,9 @@ public interface Ctx {
                 jobs().set(i, executable.flowTo(p));
             });
         });
+        S._for(jobs()).each(t -> {
+            assert t instanceof Executable.Flow;
+        });
 
         //when
         temp_publisher.subscribe(processor);
@@ -131,20 +153,24 @@ public interface Ctx {
 
     @FunctionalInterface
     interface ReactiveFlowConfig{
-        List<Tuple<Flow.Subscriber<Ctx>, List<Integer>>> build(Ctx ctx);
+        List<Tuple<CtxFlowProcessor, List<Integer>>> build(Ctx ctx);
 
-        ReactiveFlowConfig DEFAULT = ctx -> {
-            //convert all executable to Flow
-            List<Integer> wild_executables =
-                S._for(ctx.jobs())
-                    .map((e, i) -> pair(i, e))
-                    .filter(t -> !(t._b instanceof Executable.Flow))
-                    .map(t -> t._a)
-                    .toList();
-            return new ArrayList<>(){{
-                add(pair(ctx.flowProcessor(), wild_executables));
-            }};
-        };
+        ReactiveFlowConfig DEFAULT = ctx -> defaultTo(ctx.flowProcessor()).build(ctx);
+
+        static ReactiveFlowConfig defaultTo(CtxFlowProcessor processor){
+            return ctx -> {
+                //convert all executable to Flow
+                List<Integer> wild_executables =
+                    S._for(ctx.jobs())
+                        .map((e, i) -> pair(i, e))
+                        .filter(t -> !(t._b instanceof Executable.Flow))
+                        .map(t -> t._a)
+                        .toList();
+                return new ArrayList<>(){{
+                    add(pair(processor, wild_executables));
+                }};
+            };
+        }
     }
 
     default void close() {

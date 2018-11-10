@@ -1,7 +1,5 @@
 package pond.common.f;
 
-import pond.common.S;
-
 import java.util.Optional;
 
 public class Either<A, B> {

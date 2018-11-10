@@ -9,18 +9,7 @@
     </parent>
 
     <packaging>jar</packaging>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>10</source>
-                    <target>10</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>pond-web</artifactId>
@@ -33,13 +22,6 @@
             <version>0.3.0</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>pond</groupId>
-            <artifactId>pond-net</artifactId>
-            <version>0.3.0</version>
-            <scope>compile</scope>
-        </dependency>
-
 
     </dependencies>
 

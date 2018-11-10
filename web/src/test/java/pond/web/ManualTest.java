@@ -256,7 +256,7 @@
 //        List<Tuple<String, String>> params_list =
 //                S._for(new Integer[400])
 //                        .map(s -> Tuple.pair(S.uuid.vid(), S.uuid.str()))
-//                        .peek(t -> too_long_url.append(t._a).append("&").append(t._b))
+//                        .current(t -> too_long_url.append(t._a).append("&").append(t._b))
 //                        .toList();
 //
 //        Pond app = Pond.init().debug().listen(9090);

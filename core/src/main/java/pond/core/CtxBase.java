@@ -20,6 +20,14 @@ public class CtxBase implements Context {
     }
 
     @Override
+    public void terminate() {
+        var j = (LinkedList<Executable>) jobs;
+        if(index.get() + 1 <= jobs.size()){
+            j.add(index.get() + 1, null);
+        }
+    }
+
+    @Override
     public HashMap<String, Service> services() {
         return services;
     }
@@ -31,16 +39,16 @@ public class CtxBase implements Context {
 
     @Override
     public Executable next() {
-        int nextId = index.get();
-        if(nextId >= jobs.size()) return null;
-        return jobs.get(index.getAndAdd(1));
+        int cur = index.get();
+        if(cur + 1>= jobs.size()) return null;
+        return jobs.get(index.addAndGet(1));
     }
 
     @Override
-    public Executable peek() {
-        int nextId = index.get();
-        if(nextId >= jobs.size()) return null;
-        return jobs.get(nextId);
+    public Executable current() {
+        int curId = index.get();
+        if(curId >= jobs.size()) return null;
+        return jobs.get(curId);
     }
 
     @Override

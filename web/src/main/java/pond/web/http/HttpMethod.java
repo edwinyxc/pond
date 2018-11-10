@@ -2,6 +2,7 @@ package pond.web.http;
 
 import pond.common.S;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public enum HttpMethod {
@@ -15,7 +16,7 @@ public enum HttpMethod {
   }
 
   public static List<HttpMethod> unMask(int i) {
-    List<HttpMethod> ret = S.array();
+    List<HttpMethod> ret = new ArrayList<>();
     for (HttpMethod m : HttpMethod.values()) {
       if (m.match(i)) {
         ret.add(m);

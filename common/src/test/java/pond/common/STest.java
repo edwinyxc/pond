@@ -126,7 +126,7 @@ public class STest {
   @Test
   public void test_range() throws Exception {
     Array<Integer> arr = S.range(1, 5);
-    assertArrayEquals((int[]) Convert.toPrimitiveArray(arr.join()),
+    assertArrayEquals((int[]) Convert.toPrimitiveArray(arr.joinArray(new Integer[0])),
                       new int[]{1, 2, 3, 4, 5});
   }
 

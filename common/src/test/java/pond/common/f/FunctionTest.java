@@ -3,6 +3,7 @@ package pond.common.f;
 import org.junit.Test;
 import pond.common.S;
 
+import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -18,7 +19,7 @@ public class FunctionTest {
 
   @Test
   public void testListProj() throws Exception {
-    List<Integer> input = S.array(1,2,3,4,5,6,7,8,9,10);
-    echo(input, itod.listProj());
+    Iterable<Integer> input = S.array(1,2,3,4,5,6,7,8,9,10);
+    echo(S._for(input).toList(), itod.listProj());
   }
 }

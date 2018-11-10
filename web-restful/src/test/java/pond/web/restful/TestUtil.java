@@ -2,7 +2,6 @@ package pond.web.restful;
 
 import io.netty.util.CharsetUtil;
 import org.apache.http.Header;
-import pond.common.HTTP;
 import pond.common.S;
 import pond.common.STREAM;
 import pond.web.CtxHandler;

@@ -8,6 +8,8 @@ import io.netty.handler.logging.LoggingHandler;
 import pond.common.PATH;
 import pond.common.S;
 import pond.common.f.Callback;
+import pond.core.Ctx;
+import pond.core.CtxFlowProcessor;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -15,6 +17,8 @@ import java.util.concurrent.Future;
 public class NetServer implements Server {
 
     final ServerConfig config;
+
+    final CtxFlowProcessor flowProcessor;
 
     public NetServer(ServerConfig config){
         this.config = config;
@@ -34,12 +38,17 @@ public class NetServer implements Server {
         S.config.set(NetServer.class, CONFIG_WEB_ROOT, webroot);
 
         logger.info("root : " + root);
+
+        this.flowProcessor = new CtxFlowProcessor(this.getClass().getName());
     }
 
     public NetServer(ServerConfig.ServerConfigBuilder builder){
         this(builder.build());
     }
 
+    public CtxFlowProcessor processor() {
+        return this.flowProcessor;
+    }
 
     /**
      * open debug
@@ -54,7 +63,7 @@ public class NetServer implements Server {
                 } catch (ClassNotFoundException e) {
                     return null;
                 }
-            }).compact().join());
+            }).compact().joinArray(new Class[0]));
         }
     }
 
@@ -99,10 +108,9 @@ public class NetServer implements Server {
             .childHandler(config.toChannelHandler());
 
         // Start the server.
-        return CompletableFuture.runAsync(() -> {
-            ChannelFuture cf = b.bind(config.port());
+        return S._tap(b.bind(config.port()), f-> new Thread(() -> {
             try {
-                serverChannelFuture = cf.sync();
+                serverChannelFuture = f.sync();
                 serverChannelFuture.channel().closeFuture().sync();
             } catch (InterruptedException e) {
                 logger.error(e.getMessage(), e);
@@ -111,7 +119,7 @@ public class NetServer implements Server {
                 workerGroup.shutdownGracefully();
                 bossGroup.shutdownGracefully();
             }
-        });
+        }).start());
     }
 
     @Override

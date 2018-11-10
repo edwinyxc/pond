@@ -26,7 +26,7 @@ public interface FIterable<E> extends Iterable<E> {
     return map((e, i, all) -> mapper.apply(e, i));
   }
 
-  <R> FIterable<R> map(Function.F3<R, E, Integer, FIterable<R>> mapper);
+  <R> FIterable<R> map(Function.F3<R, E, Integer, FIterable<E>> mapper);
 
   /**
    * Make a reduction on the iterable items.
@@ -99,6 +99,14 @@ public interface FIterable<E> extends Iterable<E> {
    */
   E[] joinArray(E[] arr);
 
+  default E[] joinArray(Function.F0<E> sgl){
+    E e = sgl.apply();
+    return joinArray(
+    (E[])java.lang.reflect.Array.newInstance(e.getClass(), 0)
+    );
+  }
+
+
   /**
    * more Safely join
    * @param arr
@@ -106,19 +114,6 @@ public interface FIterable<E> extends Iterable<E> {
    */
   E[] joinArray(E sep, E[] arr);
 
-  /**
-   * Join items to an array with separator
-   * @see #joinArray(Object[])
-   */
-  @Deprecated
-  E[] join(E sep);
-
-  /**
-   * Join items to an array without any separator
-   * @see #joinArray(Object[])
-   */
-  @Deprecated
-  E[] join();
 
   /**
    * Returns new iterable of items with values reversed.

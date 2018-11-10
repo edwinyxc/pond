@@ -17,6 +17,10 @@ public class JSON {
     return json.fromString(List.class, s);
   }
 
+  public static <T> T parse(String s, Class<T> x){
+    return  json.fromString(x,s);
+  }
+
   public static Map parse(String s) {
     return json.fromString(Map.class, s);
   }

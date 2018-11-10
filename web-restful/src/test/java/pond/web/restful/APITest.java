@@ -2,7 +2,6 @@ package pond.web.restful;
 
 import org.junit.Before;
 import org.junit.Test;
-import pond.common.HTTP;
 import pond.common.S;
 import pond.common.STREAM;
 import pond.web.Pond;

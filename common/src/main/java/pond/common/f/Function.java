@@ -3,9 +3,6 @@ package pond.common.f;
 import pond.common.S;
 
 import java.util.List;
-import java.util.Map;
-
-import static pond.common.f.Tuple.pair;
 
 @SuppressWarnings({"rawtypes"})
 public interface Function<R, A> {

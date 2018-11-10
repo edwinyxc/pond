@@ -1,13 +1,14 @@
 package pond.common;
 
 import pond.common.config.Config;
-import pond.common.f.*;
+import pond.common.f.Array;
+import pond.common.f.Callback;
 import pond.common.f.Callback.C0;
+import pond.common.f.Function;
 import pond.common.struc.EnumerationIterable;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.Stream;
 
 public class S {
 
@@ -64,16 +65,16 @@ public class S {
    * S._range(0,3) --> [0,1,2,3]
    */
   public static Array<Integer> range(int start, int end) {
-    Array<Integer> range = new Array<>();
+    List<Integer> range = new ArrayList<>();
     for (int i = start; i <= end; i++) {
       range.add(i);
     }
-    return range;
+    return new Array<>(range);
   }
 
-  public static <T> T[] join(T... data) {
-    return S._for(data).join();
-  }
+//  public static <T> T[] join(T... data) {
+//    return S._for(data).join();
+//  }
 
   /**
    * Create an ArrayList for input ordered by the input sequence.

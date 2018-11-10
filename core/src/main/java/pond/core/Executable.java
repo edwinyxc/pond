@@ -4,57 +4,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.f.Callback;
 
-public interface Executable {
+public interface Executable<T extends Ctx> extends Callback<T> {
 
     Logger logger = LoggerFactory.getLogger(Executable.class);
-    String name();
-    Callback<Ctx> body();
 
-
-    interface Flow extends Executable{
-        java.util.concurrent.Flow.Subscriber<Ctx> targetSubscriber();
+    interface Flow<T extends Ctx> extends Executable<T> {
+        CtxFlowProcessor targetSubscriber();
     }
 
 
-    default Executable flowTo(java.util.concurrent.Flow.Subscriber<Ctx> target) {
+    default Executable<T> flowTo(CtxFlowProcessor target) {
         var _this = this;
-        return new Flow() {
+        return new Flow<>() {
             @Override
-            public java.util.concurrent.Flow.Subscriber<Ctx> targetSubscriber() {
+            public void apply(T t) {
+                _this.apply(t);
+            }
+
+            @Override
+            public CtxFlowProcessor targetSubscriber() {
                 return target;
             }
 
             @Override
-            public String name() {
-                return _this.name();
-            }
-
-            @Override
-            public Callback<Ctx> body() {
-                return _this.body();
+            public String toString(){
+                return "Flow["+hashCode()+ "::=>" + target.name() + "]";
             }
 
         };
     }
 
-    static Executable of(String name, Callback<Ctx> callback){
-        return new Executable() {
-            @Override
-            public String name() {
-                return name;
-            }
-
-            @Override
-            public Callback<Ctx> body() {
-                return callback;
-            }
-
-            @Override
-            public String toString() {
-                return "name " + name + " : " + callback.hashCode();
-            }
-
-        };
+    static <T extends Ctx> Executable<T> of(Callback<T> callback){
+        return callback::apply;
     }
 
 }

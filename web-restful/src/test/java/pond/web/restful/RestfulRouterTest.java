@@ -4,7 +4,6 @@ import io.netty.util.CharsetUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import pond.common.HTTP;
 import pond.common.JSON;
 import pond.common.S;
 import pond.common.STREAM;

@@ -8,6 +8,10 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pond.common.S;
+import pond.common.f.Callback;
+import pond.core.Ctx;
+import pond.core.Executable;
 import pond.net.ServerConfig;
 import pond.web.CtxHandler;
 
@@ -18,7 +22,7 @@ import java.util.LinkedList;
  */
 public class HttpConfigBuilder extends ServerConfig.ServerConfigBuilder {
     public static Logger logger = LoggerFactory.getLogger(HttpServerInitializer.class);
-    private LinkedList<CtxHandler> handlers = new LinkedList<>();
+    private LinkedList<Executable<? extends Ctx>> handlers = new LinkedList<>();
 
     private boolean _isHeaderCaseSensitive = false;
     public boolean isHeaderCaseSensitive(){
@@ -34,11 +38,25 @@ public class HttpConfigBuilder extends ServerConfig.ServerConfigBuilder {
         return new HttpServerInitializer();
     }
 
-    public HttpConfigBuilder handler(CtxHandler handler) {
-        this.handlers.add(handler);
+    @SuppressWarnings("unchecked")
+    public HttpConfigBuilder handler(Callback<CtxHttp> handler) {
+        if(handler instanceof Executable){
+            this.handlers.add((Executable)handler);
+        }else {
+            this.handlers.add(Executable.of(handler));
+        }
         return this;
     }
 
+    public HttpConfigBuilder handlers(Iterable<Callback<CtxHttp>> handlers) {
+        S._for(handlers).each(this::handler);
+        return this;
+    }
+
+    public HttpConfigBuilder clean(){
+        handlers.clear();
+        return this;
+    }
 
     class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
         @Override
