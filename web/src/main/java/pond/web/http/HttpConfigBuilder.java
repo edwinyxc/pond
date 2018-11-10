@@ -8,8 +8,6 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pond.common.S;
-import pond.common.f.Callback;
 import pond.net.ServerConfig;
 import pond.web.CtxHandler;
 
@@ -49,7 +47,7 @@ public class HttpConfigBuilder extends ServerConfig.ServerConfigBuilder {
             ChannelPipeline pipeline = socketChannel.pipeline();
             pipeline.addLast(new HttpServerCodec());
             pipeline.addLast(new ChunkedWriteHandler());
-            pipeline.addLast(new CtxHttpBuilder(handlers).build());
+            pipeline.addLast(new CtxHttpBuilder(HttpConfigBuilder.this,handlers).build());
         }
     }
 }

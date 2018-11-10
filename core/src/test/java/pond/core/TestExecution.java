@@ -3,8 +3,11 @@ package pond.core;
 import org.junit.Ignore;
 import org.junit.Test;
 import pond.common.S;
+import pond.common.f.Tuple;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.*;
 
@@ -16,7 +19,7 @@ public class TestExecution {
         default Executable tomLog(){
             return Executable.of("tom", ctx->{
 
-                S.echo("Tom: Thread:"+this.currentThread()+" Ctx:", ctx.jobs());
+                S.echo("Tom: Thread:"+this.currentThread()+" Next:", this.peek());
             });
         }
 
@@ -45,7 +48,7 @@ public class TestExecution {
 
         static Executor singlePool = Executors.newFixedThreadPool(1);
 
-        default CompletableFuture<Void> runASync(){
+        default CompletableFuture<Void> runASync_(){
             Executable next;
             CompletableFuture<Void> cf = null;
             while (null != (next = this.next())){
@@ -62,6 +65,74 @@ public class TestExecution {
             }
             return cf;
         }
+    }
+
+
+
+     class CountAndLogSubscriber extends SubmissionPublisher<Ctx> implements  Flow.Subscriber<Ctx> {
+
+        Flow.Subscription subscription;
+
+        List<Executable> executables = new LinkedList<>();
+
+        @Override
+        public void onSubscribe(Flow.Subscription subscription) {
+            this.subscription = subscription;
+        }
+
+        @Override
+        public void onNext(Ctx item) {
+            S.echo("End Got Ctx" + item.delegate().hashCode());
+            if(item.peek() != null){
+                var e = item.next();
+                e.body().apply(item);
+                this.executables.add(e);
+            }
+            subscription.cancel();
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            e.printStackTrace();
+        }
+
+        @Override
+        public void onComplete() { S.echo("CountAndLogSubscriber done");}
+    };
+
+
+
+    @Test
+    public void runAsync() throws ExecutionException, InterruptedException {
+
+        CtxFlowProcessor end = new CtxFlowProcessor();
+        CtxBase base = new CtxBase();
+        var ctx = (Ctx & CtxRunner & CtxLogger) () -> base;
+
+        end.subscribe(ctx.flowProcessor());
+
+        ctx.push(
+            Executable.of("1", _c -> {
+                _c.properties().put("user1", "new_user");
+                S.echo("Hello!!");
+            }),
+            Executable.of("2", _c -> _c.properties().put("user2", "new_user")),
+            Executable.of("3", _c -> _c.properties().put("user3", "new_user")),
+            Executable.of("4", _c -> _c.properties().put("user4", "new_user"))
+        );
+        //tom log on end subscriber
+        ctx.addInterceptorForEach(ctx.tomLog().flowTo(end));
+//        ctx.runReactiveFlow(_ctx -> new ArrayList<>(){{
+//            add(Tuple.pair(end, List.of(1,3,5,7)));
+//            add(Tuple.pair(ctx.flowProcessor(), List.of(0,2,4,6)));
+//        }});
+
+        ctx.runReactiveFlow(Ctx.ReactiveFlowConfig.DEFAULT);
+        await().atMost(10000, TimeUnit.MILLISECONDS)
+            .until(() -> {
+                S.echo("size ", end.handled.size());
+                return end.handled.size() == 4;
+        });
     }
 
     @Test
@@ -101,7 +172,7 @@ public class TestExecution {
                         .until(() -> ctx.jobs().size() == 4);
                     ctx.addInterceptorForEach(ctx.tomLog());
                 }).get();
-            ctx.runASync().get();
+            ctx.runASync_().get();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {

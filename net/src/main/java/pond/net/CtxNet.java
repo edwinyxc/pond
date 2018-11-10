@@ -4,29 +4,34 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import pond.core.Ctx;
-import pond.core.CtxBase;
+
+import java.net.SocketAddress;
 
 public interface CtxNet extends Ctx {
 
-    default ChannelHandlerContext nettyChannelHandlerContext(){
-        return (ChannelHandlerContext) this.properties().get("nettyChannelHandlerContext");
+    default ChannelHandlerContext chctx(){
+        return (ChannelHandlerContext) this.properties().get("chctx");
     }
 
     default ChannelPipeline nettyChannelPipeline() {
-        return nettyChannelHandlerContext().pipeline();
+        return chctx().pipeline();
     }
 
     default ChannelFuture write(Object t) {
-        return nettyChannelHandlerContext().write(t);
+        return chctx().write(t);
+    }
+
+    default SocketAddress remoteAddress() {
+        return chctx().channel().remoteAddress();
     }
 
     default <T extends CtxNet> T flush(){
-        nettyChannelHandlerContext().flush();
+        chctx().flush();
         return (T) this;
     }
 
     static <T extends CtxNet> T adapt(T ctx, ChannelHandlerContext channelHandlerContext){
-        ctx.delegate().properties().put("nettyChannelHandlerContext", channelHandlerContext);
+        ctx.delegate().properties().put("chctx", channelHandlerContext);
         return ctx;
     }
 

@@ -36,6 +36,7 @@ public class ExecutableSubscriber implements Flow.Subscriber<Executable> {
 
     @Override
     public void onComplete() {
+        subscription.cancel();//cancel
     }
 
     public static ExecutableSubscriber run(Ctx ctx){

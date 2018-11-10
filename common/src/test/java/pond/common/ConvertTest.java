@@ -28,7 +28,7 @@ public class ConvertTest {
   @Test
   public void testNullJoinArray() throws Exception {
     Object[] t = {null, null, null};
-    String[] s  = S._for(t).<String>map(String::valueOf).join();
+    String[] s  = S._for(t).map(o -> o.toString()).joinArray(new String[t.length]);
 
     Assert.assertEquals("null", s[0]);
     Assert.assertEquals("null", s[1]);

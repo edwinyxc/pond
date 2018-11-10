@@ -18,7 +18,15 @@ public interface FIterable<E> extends Iterable<E> {
    * @param <R>    Mapped Return Type
    * @return Mapped iterable
    */
-  <R> FIterable<R> map(Function<R, E> mapper);
+  default <R> FIterable<R> map(Function<R, E> mapper){
+      return map((e, i, all) -> mapper.apply(e));
+  }
+
+  default <R> FIterable<R> map(Function.F2<R, E, Integer> mapper){
+    return map((e, i, all) -> mapper.apply(e, i));
+  }
+
+  <R> FIterable<R> map(Function.F3<R, E, Integer, FIterable<R>> mapper);
 
   /**
    * Make a reduction on the iterable items.

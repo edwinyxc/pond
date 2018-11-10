@@ -32,13 +32,13 @@ public class Array<E> extends ArrayList<E> implements FIterable<E> {
     }
   }
 
-  @Override
   @SuppressWarnings("all")
-  public <R> FIterable<R> map(Function<R, E> mapper) {
+  @Override
+  public <R> FIterable<R> map(Function.F3<R, E, Integer, FIterable<R>> mapper) {
     return S._tap((Array) this.clone(), clone -> {
       for (int i = 0; i < clone.size(); i++) {
         Object item = clone.get(i);
-        clone.set(i, mapper.apply((E) item));
+        clone.set(i, mapper.apply((E) item, i, clone));
       }
     });
   }

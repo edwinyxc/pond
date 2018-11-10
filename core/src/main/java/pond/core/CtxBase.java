@@ -38,7 +38,9 @@ public class CtxBase implements Context {
 
     @Override
     public Executable peek() {
-        return jobs.get(index.get());
+        int nextId = index.get();
+        if(nextId >= jobs.size()) return null;
+        return jobs.get(nextId);
     }
 
     @Override
