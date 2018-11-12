@@ -3,7 +3,7 @@
 //import pond.common.S;
 //import pond.common.STRING;
 //import pond.common.f.Callback;
-//import pond.web.http.HttpMethod;
+//import pond.web.router.HttpMethod;
 //
 //import java.lang.annotation.*;
 //import java.lang.reflect.InvocationTargetException;
@@ -18,7 +18,7 @@
 // * using Router instead.
 // *
 // * NOTICE:This Controller can not work with regex-router perfectly,
-// * use concrete name and wildcard name at same time may trigger conflicts.
+// * handler concrete name and wildcard name at same time may trigger conflicts.
 // * for example: GET /:id and GET /new_user are not able to work together.
 // */
 //@Deprecated
@@ -37,14 +37,14 @@
 //
 //               String val = ((Mapping) a).value();
 //
-//               //if blank, use methodName as mapping name
+//               //if blank, handler methodName as mapping name
 //               if (STRING.isBlank(val)) {
 //                 val = "/" + m.getName();
 //               }
 //
-//               ctrl.use(HttpMethod.mask(((Mapping) a).methods()),
+//               ctrl.handler(HttpMethod.mask(((Mapping) a).methods()),
 //                        val,
-//                        CtxHandler.express((req, resp) -> {
+//                        CtxHandler.toCtxHandler((req, resp) -> {
 //                          Object[] args = new Object[]{req, resp};
 //
 //                          m.setAccessible(true);

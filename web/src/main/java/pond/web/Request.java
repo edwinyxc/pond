@@ -6,7 +6,7 @@ import io.netty.handler.codec.http.multipart.FileUpload;
 import pond.common.S;
 import pond.common.STRING;
 import pond.common.f.Function;
-import pond.web.http.CtxHttp;
+import pond.web.http.HttpCtx;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -41,7 +41,7 @@ public interface Request {
     }
 
     default InputStream in() {
-        var body = (CtxHttp.Body)ctx()::bind;
+        var body = (HttpCtx.Body)ctx()::bind;
         return body.inputStream();
     }
 
@@ -50,22 +50,22 @@ public interface Request {
     }
 
     default Map<String, List<String>> headers(){
-        var rebind = (CtxHttp.Headers)ctx()::bind;
+        var rebind = (HttpCtx.Headers)ctx()::bind;
         return rebind.all();
     }
 
     default Map<String, List<String>> queries() {
-        var rebind = (CtxHttp.Queries)ctx()::bind;
+        var rebind = (HttpCtx.Queries)ctx()::bind;
         return rebind.params();
     }
 
     default Map<String, List<String>> inUrlParams(){
-        var queries = (CtxHttp.Queries)ctx()::bind;
+        var queries = (HttpCtx.Queries)ctx()::bind;
         return queries.inUrlParams();
     }
 
     default Map<String, List<String>> formData() {
-        var body = (CtxHttp.Body)ctx()::bind;
+        var body = (HttpCtx.Body)ctx()::bind;
         if(body.isMultipart()){
             try {
                 return body.multipart().params();
@@ -75,7 +75,7 @@ public interface Request {
     }
 
     default Map<String, List<FileUpload>> files(){
-        var body = (CtxHttp.Body)ctx()::bind;
+        var body = (HttpCtx.Body)ctx()::bind;
         if(body.isMultipart()) {
             try {
                 return body.multipart().files();
@@ -128,7 +128,7 @@ public interface Request {
 
 
     default Map<String, Cookie> cookies(){
-        var bind = (CtxHttp.Cookies) ctx()::bind;
+        var bind = (HttpCtx.Cookies) ctx()::bind;
         var set = bind.cookies();
         var ret = new HashMap<String, Cookie>();
         for(Cookie c : set) {
@@ -146,8 +146,8 @@ public interface Request {
     }
 
     default List<String> headers(String string) {
-        var ctx = (CtxHttp)this.ctx()::bind;
-        return headers().get(ctx.get(CtxHttp.Keys.Config).isHeaderCaseSensitive() ? string : string.toLowerCase());
+        var ctx = (HttpCtx)this.ctx()::bind;
+        return headers().get(ctx.get(HttpCtx.Keys.Config).isHeaderCaseSensitive() ? string : string.toLowerCase());
     }
 
     default String header(String string) {
@@ -211,7 +211,7 @@ public interface Request {
     }
 
 
-    CtxHttp ctx();
+    HttpCtx ctx();
 
     /**
      * Returns all queries as a Map

@@ -1,7 +1,6 @@
 package pond.web.restful;
 
-import pond.common.S;
-import pond.web.http.HttpMethod;
+import pond.web.router.HttpMethod;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +32,7 @@ public class Path extends HashMap<String, Object> {
      * but cannot be removed there.
      * The list MUST NOT include duplicated parameters.
      * A unique parameter is defined by a combination of a name and location.
-     * The list can use the Reference Object to link to parameters that are defined at the Swagger Object's parameters.
+     * The list can handler the Reference Object to link to parameters that are defined at the Swagger Object's parameters.
      * There can be one "body" parameter at most.
      */
     public Path parameters(List<Parameter> parameters) {

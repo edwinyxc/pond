@@ -109,7 +109,7 @@
 //
 //            //avoid different paths
 //            cookie.setPath("/");
-//            //now the user should be able to use the session
+//            //now the user should be able to handler the session
 //            resp.cookie(cookie);
 //        }
 //    }
@@ -144,7 +144,7 @@
 //
 //    /**
 //     * Cookie session installer, using "cookie" & "set-cookie" to control the session-id
-//     * Put this express into responsibility chain and you will get fully
+//     * Put this toCtxHandler into responsibility chain and you will get fully
 //     * session support then.
 //     */
 //    public static Mid install() {
@@ -152,7 +152,7 @@
 //    }
 //
 //    /**
-//     * use Cookie installer,
+//     * handler Cookie installer,
 //     * @param maxAge cookie max-age in minutes
 //     * @return
 //     */

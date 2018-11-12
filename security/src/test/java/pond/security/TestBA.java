@@ -1,7 +1,6 @@
 package pond.security;
 
 import pond.security.ba.HttpBasicAuth;
-import pond.web.CtxHandler;
 import pond.web.Pond;
 
 /**

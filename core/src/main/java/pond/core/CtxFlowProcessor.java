@@ -5,15 +5,21 @@ import pond.common.f.Callback;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Flow;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.SubmissionPublisher;
 
 
 public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.util.concurrent.Flow.Processor<Ctx, Ctx>{
 
     private java.util.concurrent.Flow.Subscription subscription;
-    public final List<Executable> handled = new LinkedList<>();
+    public final List<CtxHandler> handled = new LinkedList<>();
     private String name;
+    private Executor executor = null;
+    private Callback<Throwable> onError = Throwable::printStackTrace;
+    private Callback<Ctx> onFinal = ctx -> {
+        S.echo("Last but not least !!!");
+    };
 
     public CtxFlowProcessor(String name){
         super();
@@ -25,14 +31,29 @@ public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.u
         this.name = this.toString();
     }
 
+    public CtxFlowProcessor errorHandler(Callback<Throwable> onError){
+        this.onError = onError;
+        return this;
+    }
+
+    public CtxFlowProcessor finalHandler(CtxHandler<Ctx> onFinal) {
+        this.onFinal = onFinal;
+        return this;
+    }
+
     public String name(){
         return name;
+    }
+
+    public CtxFlowProcessor executor(Executor executor){
+        this.executor = executor;
+        return this;
     }
 
 
     @Override
     public void onSubscribe(java.util.concurrent.Flow.Subscription subscription) {
-        S.echo("FLOW(" + this.name + ")------------");
+        Ctx.logger.debug("FLOW(" + this.name + ")------------");
         if(this.getSubscribers().contains(this)){
             throw new IllegalArgumentException("Can not subscribe on self");
         }
@@ -43,48 +64,70 @@ public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.u
     @Override
     @SuppressWarnings("unchecked")
     public void onNext(Ctx c) {
-        S.echo("FLOW("+this.name()+ ")<<<" + c.current() + " On " + Thread.currentThread());
-        Executable exec = c.current();
-        while (exec != null) {
-            if(exec instanceof Executable.Flow ){
-                if(((Executable.Flow) exec).targetSubscriber() != this){
+        Ctx.logger.debug("FLOW("+this.name()+ ")<<<" + c.current() + " On " + Thread.currentThread());
+        CtxHandler exec = c.current();
+        if(exec != null) {
+            if(exec instanceof CtxHandler.Flow ){
+                if(((CtxHandler.Flow) exec).targetSubscriber() != this){
                     //rx
-                    CtxFlowProcessor target = ((Executable.Flow) exec).targetSubscriber();
+                    CtxFlowProcessor target = ((CtxHandler.Flow) exec).targetSubscriber();
                     //prevent ring publishing
                     subscription.cancel();
                     if(!this.getSubscribers().contains(target)){
                         this.subscribe(target);
                     }
-                    S.echo("FLOW(" + this.name()+")>>>" + target.name());
+                    Ctx.logger.debug("FLOW(" + this.name()+")>>>" + target.name());
                     submit(c);
                     //submit and wait the message
                     subscription.request(1);
                     return;
                 }
                 else {
-                    S.echo("FLOW("+this.name()+")=||" + exec + " On " + Thread.currentThread() );
-                    exec.apply(c);
-                    handled.add(exec);
-                    exec = c.next();
-                    ; //move to next
+                    if(executor == null){ //sync mode
+                        Ctx.logger.debug("FLOW("+this.name()+")=||" + exec + " On " + Thread.currentThread() );
+                        exec.apply(c);
+                        handled.add(exec);
+                        if(c.next() != null) onNext(c);
+                        else onFinal.apply(c);
+                    }else {
+                        CompletableFuture.supplyAsync(() -> {
+                            Ctx.logger.debug("FLOW(" + this.name() + ")~||" + exec + " On " + Thread.currentThread());
+                            exec.apply(c);
+                            handled.add(exec);
+                            return true;
+                        }, executor).handle((suc, ex) ->{
+                            if(suc){
+                                if(c.next() != null) onNext(c);
+                                else onFinal.apply(c);
+                                return true;
+                            } else {
+                                onError.apply(ex);
+                                return false;
+                            }
+                        });
+                    }
                 }
             }
             else {
-                S.echo("FLOW("+this.name()+")UNEXPECTED!!");
-                S.echo("FLOW("+this.name()+")==>" + exec + " On " + Thread.currentThread() );
+                Ctx.logger.debug("FLOW("+this.name()+")UNEXPECTED!!");
+                Ctx.logger.debug("FLOW("+this.name()+")==>" + exec + " On " + Thread.currentThread() );
                 exec.apply(c);
                 handled.add(exec);
-                exec = c.next(); //move to next
+                if(c.next() != null) onNext(c);
+                else onFinal.apply(c);
             }
         }
-        //close();
+        else {
+            onFinal.apply(c);
+            close();
+        }
         //we only process a single Ctx here
         //subscription.cancel();
     }
 
     @Override
     public void onError(Throwable throwable) {
-        throwable.printStackTrace();
+        onError.apply(throwable);
     }
 
     @Override

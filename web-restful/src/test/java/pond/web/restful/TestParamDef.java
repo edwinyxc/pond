@@ -132,7 +132,7 @@ public class TestParamDef {
 //                            ParamDef.any("name", ctx -> ((HttpCtx) ctx).req.param("name")),
 //                            (ctx, name) -> {
 //                                HttpCtx httpCtx = (HttpCtx) ctx;
-//                                httpCtx.resp.send(200, name + " " + ctx.route.toString());
+//                                httpCtx.resp.send(200, name + " " + ctx.currentRoute.toString());
 //                                //err
 //                                return Error(4001001)
 //                                //suc
@@ -150,7 +150,7 @@ public class TestParamDef {
 //                            ParamDef.param("name").required("name must not null"),
 //                            (ctx, len, name) -> {
 //                                HttpCtx httpCtx = (HttpCtx) ctx;
-//                                httpCtx.resp.send(200, name + len + ", " + ctx.route.toString());
+//                                httpCtx.resp.send(200, name + len + ", " + ctx.currentRoute.toString());
 //                            }
 //                    ));
 

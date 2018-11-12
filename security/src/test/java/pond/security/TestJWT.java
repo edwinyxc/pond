@@ -2,7 +2,6 @@ package pond.security;
 
 import io.jsonwebtoken.impl.crypto.MacProvider;
 import pond.security.jwt.HttpJwtAuth;
-import pond.web.CtxHandler;
 import pond.web.Pond;
 
 /**

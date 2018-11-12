@@ -23,7 +23,7 @@
 //  // Attributes encoded in the header's cookie fields.
 //  //
 //
-//  private String comment;  // ;Comment=VALUE ... describes cookie's use
+//  private String comment;  // ;Comment=VALUE ... describes cookie's handler
 //  // ;Discard ... implied by maxAge < 0
 //  private String domain;  // ;Domain=VALUE ... domain that sees cookie
 //  private int maxAge = -1;  // ;Max-Age=VALUE ... cookies auto-expire
@@ -52,7 +52,7 @@
 //   * @param value the value handle the cookie
 //   * @throws IllegalArgumentException if the cookie name is null or
 //   *                                  empty or contains any illegal characters (for example, a comma,
-//   *                                  space, or semicolon) or matches a token reserved for use by the
+//   *                                  space, or semicolon) or matches a token reserved for handler by the
 //   *                                  cookie protocol
 //   * @see #setValue
 //   */
@@ -222,7 +222,7 @@
 //  /**
 //   * Assigns a new value to this Cookie.
 //   * <p>
-//   * <p>If you use a binary value, you may want to use BASE64 encoding.
+//   * <p>If you handler a binary value, you may want to handler BASE64 encoding.
 //   * <p>
 //   * <p>With Version 0 cookies, values should not contain white
 //   * space, brackets, parentheses, equals signs, commas,

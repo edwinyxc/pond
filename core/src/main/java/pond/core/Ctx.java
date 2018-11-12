@@ -1,16 +1,21 @@
 package pond.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Tuple;
 
 import java.util.*;
-import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 
 import static pond.common.f.Tuple.pair;
 
 @FunctionalInterface
 public interface Ctx {
+
+    Logger logger = LoggerFactory.getLogger(Ctx.class);
+    Entry<CtxFlowProcessor> CtxFlowProcessor = new Entry<>(Ctx.class, "CtxFlowProcessor");
+    Entry<? extends Ctx> SELF = new Entry<>(Ctx.class, "_self");
 
     Context delegate();
     /**
@@ -22,16 +27,11 @@ public interface Ctx {
         return delegate();
     }
 
-    class Keys {
-        static
-        Entry<CtxFlowProcessor> CtxFlowProcessor = new Entry<>(Ctx.class, "CtxFlowProcessor");
-    }
-
     default CtxFlowProcessor flowProcessor(){
-        var ret = this.get(Keys.CtxFlowProcessor);
+        var ret = this.get(CtxFlowProcessor);
         if(ret == null){
             ret = new CtxFlowProcessor("Ctx@"+this.delegate().hashCode());
-            this.set(Keys.CtxFlowProcessor, ret);
+            this.set(CtxFlowProcessor, ret);
         }
         return ret;
     }
@@ -40,24 +40,20 @@ public interface Ctx {
         return delegate().currentThread();
     }
 
-    default List<Executable> jobs() {
+    default List<CtxHandler> jobs() {
         return delegate().jobs();
     }
 
-    default Executable current() {
+    default CtxHandler current() {
         return delegate().current();
     }
 
-    default Executable next() {
+    default CtxHandler next() {
         return delegate().next();
     }
 
     default List<Throwable> errors() {
         return delegate().errors();
-    }
-
-    default HashMap<String, Service> services() {
-        return delegate().services();
     }
 
     default LinkedHashMap<String, Object> properties() {
@@ -68,21 +64,31 @@ public interface Ctx {
         delegate().error(a);
     }
 
-    default void push(Executable<? extends Ctx> executable) {
-        jobs().add(executable);
+    default void push(CtxHandler<? extends Ctx> ctxHandler) {
+        jobs().add(ctxHandler);
     }
-    default void pushAll(Iterable<Executable<? extends Ctx>> executables) {
+    default void pushAll(Iterable<CtxHandler<? extends Ctx>> executables) {
         S._for(executables).each(e -> jobs().add(e));
+    }
+
+    default boolean contains(Entry entry) {
+        return this.properties().keySet().contains(entry.key);
+    }
+
+    default Ctx put(String k, Object v) {
+        this.delegate().properties().put(k,v);
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    default<T> T get(String k) {
+        return (T) this.delegate().properties().get(k);
     }
 
     @SuppressWarnings("unchecked")
     default <T> T get(Entry<T> key) {
+        if(key == SELF)  return (T) this;
         return (T) this.delegate().properties().get(key.key);
-    }
-
-    default <T> T getLazy(Entry<T> key, T _default) {
-        if (this.get(key) == null) this.set(key, _default);
-        return this.get(key);
     }
 
     default <T> Ctx set(Entry<T> key, T value) {
@@ -90,8 +96,17 @@ public interface Ctx {
         return this;
     }
 
+    default <T> T getLazy(Entry<T> key, T _default) {
+        if (this.get(key) == null) this.set(key, _default);
+        return this.get(key);
+    }
+
+    default void insert(CtxHandler<? extends Ctx> ctxHandler){
+        delegate().insert(ctxHandler);
+    }
+
     default void terminate() {
-        delegate().terminate();
+        insert(null);
     }
 
     /**
@@ -99,7 +114,7 @@ public interface Ctx {
      */
     @SuppressWarnings("unchecked")
     default void run() {
-        Executable exec = current();
+        CtxHandler exec = current();
 
         for(;exec != null;exec = this.next()) {
             exec.apply(this);
@@ -109,17 +124,17 @@ public interface Ctx {
     /**
      *
      * Run this Ctx in a Completion Reactive-Flow thus,
-     * a) Each Executable is converted to a Executable.Flow targeted to Ctx.CtxFlowProcessor by default
+     * a) Each CtxHandler is converted to a CtxHandler.Flow targeted to Ctx.CtxFlowProcessor by default
      *    except those has defined already (target to an external Subscriber)
-     * b) Publish Ctx to CtxFlowProcessor defined in Executable.Flow.target
+     * b) Publish Ctx to CtxFlowProcessor defined in CtxHandler.Flow.target
      * c) Run executables synchronously in the current thread UNTIL that
-     *    Executable.Flow's target is pointed to another Subscriber.
+     *    CtxHandler.Flow's target is pointed to another Subscriber.
      *    Then submit the Ctx to it in this case.
      *    The target subscriber MUST BE subscribed to this.flowProcessor and promise to submit Ctx back in same manner.
      *    Consider CtxFlowProcessor be the target as your first choice.
      * d) Completion is promised in this pattern, the final state is the Ctx itself.
      *
-     * PS: This is a Observable-Command combined pattern (Command: Executable; Observable: CtxFlowProcessor(Ctx))
+     * PS: This is a Observable-Command combined pattern (Command: CtxHandler; Observable: CtxFlowProcessor(Ctx))
      * All hail to ReactiveStreams!!!
      */
     default void runReactiveFlow(ReactiveFlowConfig config) {
@@ -132,12 +147,12 @@ public interface Ctx {
         S._for(cfg).each(t -> {
             var p = t._a;
             S._for(t._b).each(i -> {
-                Executable executable = this.jobs().get(i);
-                jobs().set(i, executable.flowTo(p));
+                CtxHandler ctxHandler = this.jobs().get(i);
+                jobs().set(i, ctxHandler.flowTo(p));
             });
         });
         S._for(jobs()).each(t -> {
-            assert t instanceof Executable.Flow;
+            assert t instanceof CtxHandler.Flow;
         });
 
         //when
@@ -163,7 +178,7 @@ public interface Ctx {
                 List<Integer> wild_executables =
                     S._for(ctx.jobs())
                         .map((e, i) -> pair(i, e))
-                        .filter(t -> !(t._b instanceof Executable.Flow))
+                        .filter(t -> !(t._b instanceof CtxHandler.Flow))
                         .map(t -> t._a)
                         .toList();
                 return new ArrayList<>(){{
@@ -174,11 +189,15 @@ public interface Ctx {
     }
 
     default void close() {
-        this.get(Keys.CtxFlowProcessor).close();
+        this.get(CtxFlowProcessor).close();
     }
 
     class Entry<T> {
         final String key;
+
+        public String name(){
+            return key;
+        }
 
         public Entry(String key) {
             this.key = key;
@@ -187,6 +206,8 @@ public interface Ctx {
         public Entry(Class<? extends Ctx> cls, String key) {
             this.key = cls.getCanonicalName() + "." + key;
         }
+
+        static Entry<Object> LAST_RESULT = new Entry<>("_LAST_RESULT");
     }
 
 }

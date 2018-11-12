@@ -4,25 +4,25 @@ import java.io.Serializable;
 import java.util.*;
 
 
-public interface Context extends Serializable, Iterable<Executable>{
+public interface Context extends Serializable, Iterable<CtxHandler>{
     default Thread currentThread(){
         return Thread.currentThread();
     };
-    List<Executable> jobs();
-    Executable next();
-    Executable current();
+    List<CtxHandler> jobs();
+    CtxHandler next();
+    CtxHandler current();
     List<Throwable> errors();
-    HashMap<String, Service> services();
     LinkedHashMap<String, Object> properties();
-    void terminate();
+    void insert(CtxHandler ctxHandler);
     void error(Throwable a);
+    void removeRest();
 
     /*
-    default void push(Executable... executables){
+    default void push(CtxHandler... executables){
         jobs().addAll(Arrays.asList(executables));
     }
 
-    default void push(Collection<Executable> executables){
+    default void push(Collection<CtxHandler> executables){
         jobs().addAll(executables);
     }
     */

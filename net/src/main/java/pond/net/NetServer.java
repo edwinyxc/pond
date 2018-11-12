@@ -18,7 +18,6 @@ public class NetServer implements Server {
 
     final ServerConfig config;
 
-    final CtxFlowProcessor flowProcessor;
 
     public NetServer(ServerConfig config){
         this.config = config;
@@ -39,15 +38,10 @@ public class NetServer implements Server {
 
         logger.info("root : " + root);
 
-        this.flowProcessor = new CtxFlowProcessor(this.getClass().getName());
     }
 
     public NetServer(ServerConfig.ServerConfigBuilder builder){
         this(builder.build());
-    }
-
-    public CtxFlowProcessor processor() {
-        return this.flowProcessor;
     }
 
     /**

@@ -1,4 +1,4 @@
-package pond.web;
+package pond.web.fileserver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

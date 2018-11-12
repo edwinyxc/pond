@@ -240,7 +240,7 @@
 //  public void session_test() throws IOException {
 //    app.cleanAndBind(
 //        app -> {
-//          app.use(Session.install());
+//          app.handler(Session.install());
 //
 //          app.get("/installSession", (req, resp) -> {
 //            Session ses = Session.get(req);
@@ -335,10 +335,10 @@
 //  public void controller_bind_controller() throws IOException {
 //
 //    app.cleanAndBind(app -> {
-//      app.use("/ctrl/*",
+//      app.handler("/ctrl/*",
 //              new DemoController());
-//      app.use("/ctx/*",
-//              CtxHandler.express((req, resp) -> req.ctx().put("k", "v")),
+//      app.handler("/ctx/*",
+//              CtxHandler.toCtxHandler((req, resp) -> req.ctx().put("k", "v")),
 //              new DemoController());
 //    });
 //
@@ -359,7 +359,7 @@
 //
 //    S._debug_on(Route.class);
 //    app.cleanAndBind(
-//        p -> p.use("/*", new DemoController())
+//        p -> p.handler("/*", new DemoController())
 //    );
 //
 //    TestUtil.assertContentEqualsForGet("1", "http://localhost:9090/read");
@@ -518,7 +518,7 @@
 //            app.get("/", (req, resp) -> resp.send("root"))
 //                .get("/:id", (req, resp) -> resp.send(req.param("id")))
 //                .get("/:id/text", (req, resp) -> resp.send("text"))
-//                .use("/user/*", router)
+//                .handler("/user/*", router)
 //    );
 //
 //    try {
@@ -583,7 +583,7 @@
 //
 //    S.echo("Testing min_group_route");
 //    app.cleanAndBind(
-//        p -> p.use("/*", new ClassicRestfulRouter())
+//        p -> p.handler("/*", new ClassicRestfulRouter())
 //    );
 //
 //    try {
@@ -611,7 +611,7 @@
 //
 //    app.cleanAndBind(
 //        app -> {
-//          app.use((req, resp) -> {
+//          app.handler((req, resp) -> {
 //            S.echo("INSTALLLLLLLLLLLLLLLLLLLLL");
 //            req.ctx().put("val", 1);
 //          });
@@ -655,7 +655,7 @@
 //    app.cleanAndBind(
 //        app -> app.get("/err", (req, resp) -> {
 //          throw new EndToEndException(400, "错误");
-//        }).use("/err_ctrl/*", new err_ctrl())
+//        }).handler("/err_ctrl/*", new err_ctrl())
 //    );
 //
 //    TestUtil.assertContentEqualsForGet("错误", "http://localhost:9090/err");
@@ -668,7 +668,7 @@
 //
 //  public void test_nested_router() throws IOException{
 //    app.cleanAndBind(
-//        app -> app.get("/api/*", new Router().use("/evil/*", new Router()
+//        app -> app.get("/api/*", new Router().handler("/evil/*", new Router()
 //            .get("/a",(req, resp) -> resp.send(200,"OK"))
 //            .get("/",(req, resp) -> resp.send(200,"OK"))
 //                       )

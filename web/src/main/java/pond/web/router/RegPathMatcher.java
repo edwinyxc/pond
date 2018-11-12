@@ -1,4 +1,4 @@
-package pond.web;
+package pond.web.router;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,7 @@ public class RegPathMatcher {
    * @param path    -- string handle path waiting for check
    * @return -- Match ResultDef
    */
-  static RegPathMatchResult match(Pattern pattern, String path, String[] params) {
+  public static RegPathMatchResult match(Pattern pattern, String path, String[] params) {
 
     S._assertNotNull(pattern, path);
 

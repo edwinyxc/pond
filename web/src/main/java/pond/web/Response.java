@@ -1,18 +1,14 @@
 package pond.web;
 
-import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
-import io.netty.util.CharsetUtil;
-import pond.common.f.Callback;
-import pond.web.http.CtxHttp;
+import pond.web.http.HttpCtx;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
@@ -81,12 +77,8 @@ public interface Response {
      */
     default
     void sendFile(File file, long offset, long length){
-        var rebind = (CtxHttp.Send)ctx()::bind;
-        try {
-            rebind.sendFile(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        var rebind = (HttpCtx.Send)ctx()::bind;
+            rebind.send(file);
     }
 
     default void sendFile(File file) {
@@ -152,7 +144,7 @@ public interface Response {
      * @param url destination location
      */
     default void redirect(String url) {
-        var send = (CtxHttp.Send) ctx()::bind;
+        var send = (HttpCtx.Send) ctx()::bind;
         var fullResp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.MOVED_PERMANENTLY);
         fullResp.headers().add(HttpHeaderNames.LOCATION, url);
         send.send(fullResp);
@@ -179,7 +171,7 @@ public interface Response {
 //      r.apply(ctx(), t);
 //  }
 
-    CtxHttp ctx();
+    HttpCtx ctx();
 
 
 }

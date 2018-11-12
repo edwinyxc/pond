@@ -1,42 +1,65 @@
-//package pond.web;
-//
-//import io.netty.channel.ChannelHandlerContext;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//import pond.common.S;
-//import pond.common.f.Callback;
-//import pond.common.f.Function;
-//import pond.core.Service;
-//
-//import java.net.URI;
-//import java.util.HashMap;
-//import java.util.LinkedList;
-//import java.util.List;
-//import java.util.Map;
-//
-//
-///**
-// * Created by ed on 21/02/17.
-// */
-//public class Ctx extends Object{
-//    public static Logger logger = LoggerFactory.getLogger(Ctx.class);
-//
-//    public final String method;
-//    public final String uri;
-//    public final String path;
-//    final Object raw;
-//    public final ChannelHandlerContext context;
-//    final Map<String, List<String>> inUrlParams = new HashMap<>();
-//
+package pond.web.router;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import pond.common.S;
+import pond.common.f.Callback;
+import pond.core.CtxHandler;
+import pond.web.http.HttpCtx;
+
+import java.util.List;
+import java.util.Map;
+
+import static pond.core.CtxHandler.NOOP;
+
+public interface RouterCtx extends HttpCtx {
+
+    Entry<Router> ROUTER = new Entry<>(RouterCtx.class, "ROUTER");
+    Entry<Route> ROUTE = new Entry<>(RouterCtx.class, "ROUTE");
+    Entry<Long> ROUTING_START_TIME = new Entry<>(RouterCtx.class, "ROUTING_START_TIME");
+    Entry<String> PATH_REMINDER = new Entry<>(RouterCtx.class,"PATH_REMINDER");
+    Entry<String> PATH = new Entry<>(RouterCtx.class,"PATH");
+    Entry<CtxHandler<HttpCtx>> CONTINUE = new Entry<>(RouterCtx.class, "CONTINUE");
+
+    Logger logger = LoggerFactory.getLogger(RouterCtx.class);
+
+
 //    boolean handled = false;
 //    List<CtxHandler> handledCtxCallbacks = new LinkedList<>();
-//    Route route;
-//
-//    public Ctx updateInUrlParams(Callback<Map<String, List<String>>> b) {
-//        b.apply(inUrlParams);
-//        return this;
-//    }
-//
+//    Route currentRoute;
+
+    default Route currentRoute() {
+        return this.get(ROUTE);
+    }
+
+    default String routingPath(){
+        return this.getLazy(PATH, this.path());
+    }
+
+    default RouterCtx updateInUrlParams(Callback<Map<String, List<String>>> b) {
+        var queries= (HttpCtx.Queries) this::bind;
+        b.apply(queries.inUrlParams());
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    default void continueRouting(){
+        insert(this.getLazy(CONTINUE, NOOP));
+    }
+
+    default void reRoute(String newPath){
+        this.reRoute(this.get(ROUTER), newPath);
+    }
+
+    default void reRoute(Router router, String newPath){
+        this.set(PATH_REMINDER, null);
+        this.set(PATH, newPath);
+        this.set(ROUTE, null);
+        S.echo("re-routing to" + newPath);
+        insert(router);
+    }
+
+
 //    static {
 //        Function<Service, CtxHandler> ctx_handler_to_service = ctxHandler -> {
 //
@@ -48,7 +71,7 @@
 //                    final CtxHandler finalCtxHandler = ctxHandler;
 //
 //                    S._debug(logger, log ->
-//                            log.debug("Context Executing... uri: " + ctx.uri + ", express: " + finalCtxHandler.toString()));
+//                            log.debug("Context Executing... uri: " + ctx.uri + ", toCtxHandler: " + finalCtxHandler.toString()));
 //
 //                    ctxHandler.apply(ctx);
 //                    ctx.handledCtxCallbacks.add(ctxHandler);
@@ -69,7 +92,7 @@
 //        //TODO
 //        //Services.adapter(CtxHandler.class, ctx_handler_to_service);
 //    }
-//
+
 //    public Ctx(String method, String uri, Object raw, ChannelHandlerContext channelHandlerContext) {
 //        super("system-web-ctx");
 //        this.method = method;
@@ -78,7 +101,7 @@
 //        this.path = S._try_ret(() -> new URI(uri).getPath());
 //        this.context = channelHandlerContext;
 //        S._debug(logger, log -> {
-//            log.debug("Main ctx route:");
+//            log.debug("Main ctx currentRoute:");
 //            super.set("_start_time", S.now());
 //            log.debug("ctx starts at: " + this.get("_start_time"));
 //            log.debug("method:" + method);
@@ -86,11 +109,11 @@
 //            log.debug("path:" + path);
 //        });
 //    }
-//
+
 //    public void send(String msg) {
 //        this.context.writeAndFlush(msg);
 //    }
-//
+
 //    public void unwrapRuntimeException(RuntimeException e) {
 //
 //        if (e instanceof EndToEndException) {
@@ -125,53 +148,7 @@
 //                send(e.getMessage());
 //        }
 //    }
-//
-//
-//    public Route route() {
-//        return route;
-//    }
-//
-//    public void execAll(CtxHandler... mids) {
-//        for (CtxHandler mid : mids) {
-//            if (handled) return;
-//            this.exec(mid);
-//        }
-//    }
-//
-//    public void execAll(Iterable<CtxHandler> mids) {
-//        for (CtxHandler mid : mids) {
-//            if (handled) return;
-//            this.exec(mid);
-//        }
-//    }
-//
-//    public <E extends Ctx> E setHandled() {
-//        this.handled = true;
-//        return (E) this;
-//    }
-//
-//    public Object rawMsg() {
-//        return this.raw;
-//    }
-//
-//    public void put(String name, Object o) {
-//        super.set(name, o);
-//    }
-//
-//    public boolean isHandled(CtxHandler mid) {
-//        return handledCtxCallbacks.contains(mid);
-//    }
-//
-//    public <T> void result(Callback.C2<Ctx, T> result, T value) {
-//        result.apply(this, value);
-//    }
-//
-//    public void result(Callback.C2<Ctx, Void> result) {
-//        result.apply(this, null);
-//    }
-//
-//    public List<CtxHandler> handledCtxCalbacks() {
-//        return handledCtxCallbacks;
-//    }
-//
-//}
+
+
+
+}

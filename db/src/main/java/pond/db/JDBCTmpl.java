@@ -407,7 +407,7 @@ public class JDBCTmpl implements Closeable {
         values.add(Tuple.t2(e.getKey(), e.getValue()));
     });
 
-    String[] keys = _for(values).map(t -> t._a).join();
+    String[] keys = _for(values).map(t -> t._a).joinArray(String::new);
 
     //TODO
     SqlInsert sql = Sql.insert().dialect(this.db.dialect);
@@ -442,7 +442,7 @@ public class JDBCTmpl implements Closeable {
     Map<String, Object> db = record.db();
 
     _for(db).each(e -> sets.add(Tuple.t2(e.getKey(), e.getValue())));
-    String[] keys = _for(sets).map(t -> t._a).join();
+    String[] keys = _for(sets).map(t -> t._a).joinArray(String::new);
     //TODO
     SqlUpdate sql = Sql.update(record.table()).dialect(this.db.dialect);
     sql.set(ARRAY.of(sets)).where(record.idName(), Criterion.EQ, (String) record.id());

@@ -119,7 +119,7 @@
 //    static void a() {
 //        Pond app = Pond.init();
 //
-//        app.use((req, resp) -> {
+//        app.handler((req, resp) -> {
 //            req.ctx().put("val", 1);
 //        });
 //
@@ -152,7 +152,7 @@
 //        Pond app = Pond.init().debug().listen(9090);
 //        app.cleanAndBind(p -> {
 //
-//            p.use(Session.install());
+//            p.handler(Session.install());
 //
 //            p.get("/install/${val}", (req, resp) -> {
 //                Session ses = Session.get(req);
@@ -177,7 +177,7 @@
 //
 //    static void test_router() {
 //        Pond.init(app -> {
-//            app.use((req, resp) -> {
+//            app.handler((req, resp) -> {
 //                S.echo("INSTALLLLLLLLLLLLLLLLLLLLL");
 //                req.ctx().put("val", 1);
 //            });
@@ -237,7 +237,7 @@
 //
 //    public static void controller_bind_controller() throws IOException {
 //        Pond app = Pond.init().debug().listen(9090);
-//        app.cleanAndBind(p -> p.use("/ctrl/.*", new DemoController()));
+//        app.cleanAndBind(p -> p.handler("/ctrl/.*", new DemoController()));
 //
 ////    TestUtil.assertContentEqualsForGet("1", "http://localhost:9090/ctrl/read");
 ////    HTTP.get("http://localhost:9090/ctrl/add", null, Callback.noop());
@@ -294,7 +294,7 @@
 //                        p.get("/", (req, resp) -> resp.send("root"))
 //                                .get("/:id", (req, resp) -> resp.send(req.param("id")))
 //                                .get("/:id/text", (req, resp) -> resp.send("text"))
-//                                .use("/user/*", router)
+//                                .handler("/user/*", router)
 //                                .otherwise(InternalMids.FORCE_CLOSE)
 //        );
 //
@@ -330,7 +330,7 @@
 //        Pond.init().cleanAndBind(
 //                p -> p.get("/err", (req, resp) -> {
 //                    throw new EndToEndException(400, "错误");
-//                }).use("/err_ctrl/*", new err_ctrl())
+//                }).handler("/err_ctrl/*", new err_ctrl())
 //        ).listen(9090);
 //
 ////    TestUtil.assertContentEqualsForGet("错误", "http://localhost:9090/err");
@@ -425,15 +425,15 @@
 //
 //    static void proxy() throws IOException {
 //        Pond.init(p -> {
-//            p.use("/baidu/*", CtxHandler.proxyEntireSite("https://www.baidu.com/"));
-//            p.use("/sina/*", CtxHandler.proxyEntireSite("http://www.sina.com/"));
+//            p.handler("/baidu/*", CtxHandler.proxyEntireSite("https://www.baidu.com/"));
+//            p.handler("/sina/*", CtxHandler.proxyEntireSite("http://www.sina.com/"));
 //        }).listen(9090);
 //    }
 //
 //
 //    static void _proxy() throws IOException {
 //        Pond.init(p -> {
-//            p.use("/file/*", CtxHandler.proxyEntireSite("http://localhost:9333/"));
+//            p.handler("/file/*", CtxHandler.proxyEntireSite("http://localhost:9333/"));
 //        }).listen(9090);
 //
 //        new Thread(() -> {
@@ -449,7 +449,7 @@
 //
 ////        form_verify();
 ////          Pond.init(
-////        app -> app.get("/api/*", new Router().use("/evil/*", new Router()
+////        app -> app.get("/api/*", new Router().handler("/evil/*", new Router()
 ////            .get("/a",(req, resp) -> resp.send(200,"OK"))
 ////            .get("/",(req, resp) -> resp.send(200,"OK"))
 ////                       )

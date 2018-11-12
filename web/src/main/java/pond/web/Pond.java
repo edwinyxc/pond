@@ -101,7 +101,7 @@
 //
 ////  private void bindLastMids() {
 ////    //add at last
-////    this.use(InternalMids.FORCE_CLOSE);
+////    this.handler(InternalMids.FORCE_CLOSE);
 ////  }
 //
 //  public void listen() {
@@ -214,13 +214,13 @@
 //  }
 //
 //  @Override
-//  public void configRoute(Route route, CtxHandler handler) {
-//    rootRouter.configRoute(route, handler);
+//  public void configRoute(Route currentRoute, CtxHandler handler) {
+//    rootRouter.configRoute(currentRoute, handler);
 //  }
 //
 //  @Override
-//  public Router use(int mask, Pattern path, String rawDef, String[] inUrlParams, CtxHandler[] handlers) {
-//    return rootRouter.use(mask, path, rawDef, inUrlParams, handlers);
+//  public Router handler(int mask, Pattern path, String rawDef, String[] inUrlParams, CtxHandler[] handlers) {
+//    return rootRouter.handler(mask, path, rawDef, inUrlParams, handlers);
 //  }
 //
 //  @Override

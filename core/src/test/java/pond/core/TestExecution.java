@@ -13,7 +13,7 @@ import static org.awaitility.Awaitility.await;
 public class TestExecution {
 
     interface CtxLogger extends Ctx {
-        default Executable<Ctx> tomLog(){
+        default CtxHandler<Ctx> tomLog(){
             return  ctx->{
 
                 S.echo("Tom: Thread:"+this.currentThread()+" Next:", this.current());
@@ -24,10 +24,10 @@ public class TestExecution {
 
     interface CtxRunner extends Ctx{
 
-        default void addInterceptorForEach(Executable interceptor){
+        default void addInterceptorForEach(CtxHandler interceptor){
             var origin = this.jobs();
-            var newList = new ArrayList<Executable>();
-            for(Executable o : origin){
+            var newList = new ArrayList<CtxHandler>();
+            for(CtxHandler o : origin){
                 newList.add(interceptor);
                 newList.add(o);
             }
@@ -38,13 +38,11 @@ public class TestExecution {
 
     }
 
-
-
      class CountAndLogSubscriber extends SubmissionPublisher<Ctx> implements  Flow.Subscriber<Ctx> {
 
         Flow.Subscription subscription;
 
-        List<Executable> executables = new LinkedList<>();
+        List<CtxHandler> ctxHandlers = new LinkedList<>();
 
         @Override
         public void onSubscribe(Flow.Subscription subscription) {
@@ -57,7 +55,7 @@ public class TestExecution {
             if(item.current() != null){
                 var e = item.next();
                 e.apply(item);
-                this.executables.add(e);
+                this.ctxHandlers.add(e);
             }
             subscription.cancel();
         }
@@ -69,6 +67,26 @@ public class TestExecution {
 
         @Override
         public void onComplete() { S.echo("CountAndLogSubscriber done");}
+    }
+
+    @Test
+    public void calculationTest() {
+        Ctx.Entry<Integer> ACC = new Ctx.Entry<Integer>("ACC");
+        Ctx.Entry<Integer> ADDER = new Ctx.Entry<Integer>("ADDER");
+        CtxBase base = new CtxBase();
+        var ctx = (Ctx)()-> base;
+
+        ctx.pushAll(List.of(
+            CtxHandler.provide(ACC, 1),
+            CtxHandler.provide(ADDER, 2),
+            CtxHandler.process(
+                ADDER, ACC,
+                (adder, acc) -> adder + acc ,
+                ACC
+            )
+        ));
+        ctx.run();
+        S.echo(ctx.get(ACC));
     }
 
 
@@ -84,7 +102,7 @@ public class TestExecution {
         //end.subscribe(ctx.flowProcessor());
 
         ctx.pushAll(List.of(
-            Executable.of(_c -> {
+            CtxHandler.of(_c -> {
                 _c.properties().put("user1", "new_user");
                 S.echo("Hello!");
             }).flowTo(hello),
@@ -100,8 +118,8 @@ public class TestExecution {
                 _c.properties().put("user4", "new_user");
                 S.echo("Hello!!!!");
             },
-            Executable.of(c -> {S.echo("Say Hello to another");}).flowTo(another),
-            Executable.of(c -> {S.echo("Say Hello to another!!");}).flowTo(another)
+            CtxHandler.of(c -> {S.echo("Say Hello to another");}).flowTo(another),
+            CtxHandler.of(c -> {S.echo("Say Hello to another!!");}).flowTo(another)
         ));
         //tom log on end subscriber
         ctx.addInterceptorForEach(ctx.tomLog().flowTo(log));
@@ -124,13 +142,14 @@ public class TestExecution {
 
         CtxFlowProcessor hello = new CtxFlowProcessor("hello");
         CtxFlowProcessor another = new CtxFlowProcessor("another");
+        CtxFlowProcessor heavy = new CtxFlowProcessor("heavy").executor(Executors.newSingleThreadExecutor());
         CtxBase base = new CtxBase();
         var ctx = (Ctx & CtxRunner & CtxLogger) () -> base;
 
         //end.subscribe(ctx.flowProcessor());
 
         ctx.pushAll(List.of(
-            Executable.of(_c -> {
+            CtxHandler.of(_c -> {
                 _c.properties().put("user1", "new_user");
                 S.echo("Hello!");
             }).flowTo(hello),
@@ -138,7 +157,7 @@ public class TestExecution {
                 _c.properties().put("user2", "new_user");
                 S.echo("Hello!!");
             },
-            _c -> {
+            CtxHandler.of(_c -> {
                 _c.properties().put("user3", "new_user");
                 try {
                     Thread.sleep(3000);
@@ -146,13 +165,22 @@ public class TestExecution {
                     e.printStackTrace();
                 }
                 S.echo("Hello!!!");
-            },
+            }).flowTo(heavy),
             _c -> {
                 _c.properties().put("user4", "new_user");
                 S.echo("Hello!!!!");
             },
-            Executable.of(c -> {S.echo("Say Hello to another");}).flowTo(another),
-            Executable.of(c -> {S.echo("Say Hello to another!!");}).flowTo(another)
+            CtxHandler.of(_c -> {
+                _c.properties().put("user4", "new_user");
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                S.echo("Hello!!!");
+            }).flowTo(heavy),
+            CtxHandler.of(c -> {S.echo("Say Hello to another");}).flowTo(another),
+            CtxHandler.of(c -> {S.echo("Say Hello to another!!");}).flowTo(another)
         ));
         //tom log on end subscriber
         S.echo(ctx.properties() , "job size", ctx.jobs().size());
@@ -166,9 +194,13 @@ public class TestExecution {
         S.echo("ReactiveStream would not block!");
         await().atMost(100000, TimeUnit.MILLISECONDS)
             .until(() -> {
-                S.echo("size ", ctx.flowProcessor().handled.size(), another.handled.size(), hello.handled.size());
+                S.echo("size ", ctx.flowProcessor().handled.size(),
+                    another.handled.size(), hello.handled.size(), heavy.handled.size());
                 //S.echo(ctx.properties());
-                return ctx.flowProcessor().handled.size() == 3 && another.handled.size() == 2 && hello.handled.size() == 1;
+                return ctx.flowProcessor().handled.size() == 2
+                           && another.handled.size() == 2
+                           && hello.handled.size() == 1
+                           && heavy.handled.size() == 2;
             });
     }
 

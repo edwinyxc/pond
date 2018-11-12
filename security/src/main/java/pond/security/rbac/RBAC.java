@@ -10,7 +10,7 @@ import pond.web.Controller;
 import pond.web.Render;
 import pond.web.Request;
 import pond.web.Response;
-import pond.web.http.HttpMethod;
+import pond.web.router.HttpMethod;
 
 import java.util.Collection;
 import java.util.Collections;

@@ -9,11 +9,11 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
-import pond.common.f.Callback;
 import pond.core.Ctx;
-import pond.core.Executable;
+import pond.core.CtxHandler;
+import pond.net.NetServer;
 import pond.net.ServerConfig;
-import pond.web.CtxHandler;
+import pond.web.router.Router;
 
 import java.util.LinkedList;
 
@@ -22,7 +22,7 @@ import java.util.LinkedList;
  */
 public class HttpConfigBuilder extends ServerConfig.ServerConfigBuilder {
     public static Logger logger = LoggerFactory.getLogger(HttpServerInitializer.class);
-    private LinkedList<Executable<? extends Ctx>> handlers = new LinkedList<>();
+    private LinkedList<CtxHandler<? extends Ctx>> handlers = new LinkedList<>();
 
     private boolean _isHeaderCaseSensitive = false;
     public boolean isHeaderCaseSensitive(){
@@ -39,16 +39,12 @@ public class HttpConfigBuilder extends ServerConfig.ServerConfigBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    public HttpConfigBuilder handler(Callback<CtxHttp> handler) {
-        if(handler instanceof Executable){
-            this.handlers.add((Executable)handler);
-        }else {
-            this.handlers.add(Executable.of(handler));
-        }
+    public HttpConfigBuilder handler(CtxHandler<HttpCtx> handler) {
+        this.handlers.add(handler);
         return this;
     }
 
-    public HttpConfigBuilder handlers(Iterable<Callback<CtxHttp>> handlers) {
+    public HttpConfigBuilder handlers(Iterable<CtxHandler<HttpCtx>> handlers) {
         S._for(handlers).each(this::handler);
         return this;
     }
@@ -58,6 +54,28 @@ public class HttpConfigBuilder extends ServerConfig.ServerConfigBuilder {
         return this;
     }
 
+
+    public HttpConfigBuilder debug() {
+
+        S._debug_on(
+            NetServer.class,
+            Router.class,
+            Ctx.class,
+            CtxHandler.class);
+        return this;
+    }
+
+    /**
+     * Open the debug mode for Pond
+     */
+    public HttpConfigBuilder debug(Class... c) {
+
+        S._debug_on(c);
+        return this;
+    }
+
+
+
     class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
         @Override
         protected void initChannel(SocketChannel socketChannel) throws Exception {
@@ -65,7 +83,7 @@ public class HttpConfigBuilder extends ServerConfig.ServerConfigBuilder {
             ChannelPipeline pipeline = socketChannel.pipeline();
             pipeline.addLast(new HttpServerCodec());
             pipeline.addLast(new ChunkedWriteHandler());
-            pipeline.addLast(new CtxHttpBuilder(HttpConfigBuilder.this,handlers).build());
+            pipeline.addLast(new HttpCtxBuilder(HttpConfigBuilder.this,handlers).build());
         }
     }
 }

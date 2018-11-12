@@ -192,7 +192,7 @@ public class MimeTypes {
         put1("mp1", MIME_AUDIO_MPEG);
         put1("mpga", MIME_AUDIO_MPEG);
         put1("kar", MIME_AUDIO_MIDI);
-        put1("express", MIME_AUDIO_MIDI);
+        put1("toCtxHandler", MIME_AUDIO_MIDI);
         put1("midi", MIME_AUDIO_MIDI);
         put1("dtd", MIME_APPLICATION_XML_DTD);
         put1("xsl", MIME_APPLICATION_XML);

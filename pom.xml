@@ -82,7 +82,7 @@
         <module>security</module>
         <module>web-restful</module>
         <module>web-swagger</module>
-        <module>net</module>
+        <module>web-fileserver</module>
     </modules>
 
     <dependencies>
@@ -211,8 +211,6 @@
                     </excludes>
                     <argLine>
                         -XX:+IgnoreUnrecognizedVMOptions
-                        --illegal-access=permit
-                        ${argLine.common} ${argLine.printGC} ${argLine.java11}
                     </argLine>
                     <!--jvm>${javaHome}/bin/java</jvm-->
                     <trimStackTrace>false</trimStackTrace>
