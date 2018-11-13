@@ -1,7 +1,5 @@
 package pond.web.api.contract;
 
-import pond.common.Convert;
-import pond.common.f.Function;
 import pond.web.http.MIME;
 import pond.web.router.HttpMethod;
 
@@ -9,8 +7,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public interface Contract {
 
