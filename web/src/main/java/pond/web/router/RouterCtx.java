@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
 import pond.core.CtxHandler;
+import pond.core.Entry;
 import pond.web.http.HttpCtx;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public interface RouterCtx extends HttpCtx {
     }
 
     default String routingPath(){
-        return this.getLazy(PATH, this.path());
+        return this.getOrPutDefault(PATH, this.path());
     }
 
     default RouterCtx updateInUrlParams(Callback<Map<String, List<String>>> b) {
@@ -44,7 +45,7 @@ public interface RouterCtx extends HttpCtx {
 
     @SuppressWarnings("unchecked")
     default void continueRouting(){
-        insert(this.getLazy(CONTINUE, NOOP));
+        insert(this.getOrPutDefault(CONTINUE, NOOP));
     }
 
     default void reRoute(String newPath){
@@ -93,11 +94,11 @@ public interface RouterCtx extends HttpCtx {
 //        //Services.adapter(CtxHandler.class, ctx_handler_to_service);
 //    }
 
-//    public Ctx(String method, String uri, Object raw, ChannelHandlerContext channelHandlerContext) {
+//    public Ctx(String method, String uri, Object bodyAsRaw, ChannelHandlerContext channelHandlerContext) {
 //        super("system-web-ctx");
 //        this.method = method;
 //        this.uri = uri;
-//        this.raw = raw;
+//        this.bodyAsRaw = bodyAsRaw;
 //        this.path = S._try_ret(() -> new URI(uri).getPath());
 //        this.context = channelHandlerContext;
 //        S._debug(logger, log -> {

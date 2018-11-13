@@ -83,6 +83,7 @@
         <module>web-restful</module>
         <module>web-swagger</module>
         <module>web-fileserver</module>
+        <module>web-api-contract</module>
     </modules>
 
     <dependencies>
@@ -182,6 +183,9 @@
                     <showDeprecation>true</showDeprecation>
                     <showWarnings>true</showWarnings>
                     <compilerArgument>-Xlint:-options</compilerArgument>
+                    <!--compilerArgument>-parameters</compilerArgument-->
+                    <parameters>true</parameters>
+
                     <!-- XXX: maven-release-plugin complains - MRELEASE-715 -->
                     <!--
                     <compilerArguments>
@@ -210,6 +214,7 @@
                         <exclude>**/*TestUTil*</exclude>
                     </excludes>
                     <argLine>
+                        --illegal-access=permit
                         -XX:+IgnoreUnrecognizedVMOptions
                     </argLine>
                     <!--jvm>${javaHome}/bin/java</jvm-->

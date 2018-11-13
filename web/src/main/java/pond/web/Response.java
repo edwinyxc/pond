@@ -37,7 +37,7 @@ public interface Response {
      * @param code http status code
      */
     default void send(int code) {
-        send(200, "");
+        send(code, "");
     }
 
     /**
@@ -66,7 +66,7 @@ public interface Response {
      * @param msg  error message
      */
     default void send(int code, String msg) {
-        ctx().response(HttpResponseStatus.valueOf(code)).write(msg);
+        ctx().response(HttpResponseStatus.valueOf(code)).write(String.valueOf(msg));
     }
 
     /**
@@ -162,10 +162,7 @@ public interface Response {
         return this;
     }
 
-    @Deprecated
-    default void render(Render r) {
-        r.apply(ctx());
-    }
+
 
 //  default <T> void render(Callback.C2<Context,T> r, T t) {
 //      r.apply(ctx(), t);

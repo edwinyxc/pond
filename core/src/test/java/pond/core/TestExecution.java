@@ -1,5 +1,6 @@
 package pond.core;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import pond.common.S;
 
@@ -71,8 +72,8 @@ public class TestExecution {
 
     @Test
     public void calculationTest() {
-        Ctx.Entry<Integer> ACC = new Ctx.Entry<Integer>("ACC");
-        Ctx.Entry<Integer> ADDER = new Ctx.Entry<Integer>("ADDER");
+        Entry<Integer> ACC = new Entry<Integer>("ACC");
+        Entry<Integer> ADDER = new Entry<Integer>("ADDER");
         CtxBase base = new CtxBase();
         var ctx = (Ctx)()-> base;
 
@@ -137,6 +138,8 @@ public class TestExecution {
                 return log.handled.size() == 6 && another.handled.size() == 2 && hello.handled.size() == 1;
         });
     }
+
+    @Ignore
     @Test
     public void runReactiveTest2() {
 

@@ -2,6 +2,7 @@ package pond.web;
 
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
 import pond.common.PATH;
 import pond.common.S;
 import pond.core.CtxFlowProcessor;
@@ -11,7 +12,6 @@ import pond.web.http.HttpCtx;
 import pond.web.http.HttpConfigBuilder;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -19,9 +19,9 @@ import java.util.concurrent.Executors;
 public class CodeOnFly {
 
     public static CtxHandler<HttpCtx> ok = ctx -> {
-        //print all headers
-        S.echo("headers", ((HttpCtx.Headers) ctx::bind).all());
-        ((HttpCtx.Send) ctx::bind).Ok(HttpCtx.str("OK"));
+        //print headers headers
+        S.echo("headers", ((HttpCtx.Headers) ctx::bind).headers());
+        ((HttpCtx.Send) ctx::bind).sendOk(HttpCtx.str("OK"));
     };
 
     public static CtxHandler<HttpCtx> sendFile = ctx -> {
@@ -48,6 +48,14 @@ public class CodeOnFly {
         );
     };
 
+    public static CtxHandler<HttpCtx> addTwoCookies = ctx -> {
+        var http = (HttpCtx.Send & HttpCtx.Cookies)ctx::bind;
+        http.removeCookie( http.cookie("pond"));
+        http.addCookie(new DefaultCookie("a", "aaa"))
+            .addCookie(new DefaultCookie("b", "bbb"));
+        http.response().write("All set");
+    };
+
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         S._debug_on(NetServer.class);
@@ -55,11 +63,8 @@ public class CodeOnFly {
         var heavyJobProcessor = new CtxFlowProcessor("heavy").executor(fixedThPool);
 
         new NetServer(
-            new HttpConfigBuilder().handlers(
-                List.of(
-                    blocking.flowTo(heavyJobProcessor),
-                    ok
-                )
+            new HttpConfigBuilder().handler(
+                addTwoCookies
             ).boosGroup(() -> new NioEventLoopGroup(1))
                 .workerGroup(() -> new NioEventLoopGroup(2))
             .port(8333)

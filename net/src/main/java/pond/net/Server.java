@@ -40,6 +40,8 @@ public interface Server {
      */
     Future listen() throws InterruptedException;
 
+    Future listen(int port) throws InterruptedException;
+
     /**
      * stop server
      */

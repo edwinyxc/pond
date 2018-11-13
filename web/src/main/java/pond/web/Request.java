@@ -42,7 +42,7 @@ public interface Request {
 
     default InputStream in() {
         var body = (HttpCtx.Body)ctx()::bind;
-        return body.inputStream();
+        return body.bodyAsInputStream();
     }
 
     default String uri(){
@@ -51,12 +51,12 @@ public interface Request {
 
     default Map<String, List<String>> headers(){
         var rebind = (HttpCtx.Headers)ctx()::bind;
-        return rebind.all();
+        return rebind.headers();
     }
 
     default Map<String, List<String>> queries() {
         var rebind = (HttpCtx.Queries)ctx()::bind;
-        return rebind.params();
+        return rebind.queries();
     }
 
     default Map<String, List<String>> inUrlParams(){
@@ -66,9 +66,9 @@ public interface Request {
 
     default Map<String, List<String>> formData() {
         var body = (HttpCtx.Body)ctx()::bind;
-        if(body.isMultipart()){
+        if(body.bodyIsMultipart()){
             try {
-                return body.multipart().params();
+                return body.bodyAsMultipart().params();
             } catch (IllegalAccessException ignore) { }
         }
         return body.params();
@@ -76,9 +76,9 @@ public interface Request {
 
     default Map<String, List<FileUpload>> files(){
         var body = (HttpCtx.Body)ctx()::bind;
-        if(body.isMultipart()) {
+        if(body.bodyIsMultipart()) {
             try {
-                return body.multipart().files();
+                return body.bodyAsMultipart().files();
             } catch (IllegalAccessException ignore) { }
         }
         return Collections.emptyMap();
@@ -147,7 +147,7 @@ public interface Request {
 
     default List<String> headers(String string) {
         var ctx = (HttpCtx)this.ctx()::bind;
-        return headers().get(ctx.get(HttpCtx.Keys.Config).isHeaderCaseSensitive() ? string : string.toLowerCase());
+        return headers().get(ctx.get(HttpCtx.CONFIG).isHeaderCaseSensitive() ? string : string.toLowerCase());
     }
 
     default String header(String string) {
@@ -176,7 +176,7 @@ public interface Request {
 
     /*
     default <R> R paramConvert(String key, Function<R, String> converter, String err_msg) {
-        String ret = param(key);
+        String ret = query(key);
         try {
             return converter.apply(ret);
         } catch (Exception e) {
@@ -197,8 +197,8 @@ public interface Request {
         return paramCheck(key, Objects::nonNull, err_msg);
     }
 
-//    default void param(String key, String val) {
-//        .appendToMap(params(), key, val);
+//    default void query(String key, String val) {
+//        .appendToMap(queries(), key, val);
 //    }
 
     //upload file
@@ -214,7 +214,7 @@ public interface Request {
     HttpCtx ctx();
 
     /**
-     * Returns all queries as a Map
+     * Returns headers queries as a Map
      */
     default Map<String, Object> toMap() {
         Map<String, Object> ret = new HashMap<>();

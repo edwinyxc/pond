@@ -10,15 +10,18 @@ import pond.common.Convert;
 import pond.common.PATH;
 import pond.common.S;
 import pond.common.STREAM;
+import pond.common.f.Holder;
 import pond.core.Context;
 import pond.core.Ctx;
 import pond.core.CtxHandler;
+import pond.core.Entry;
+import pond.web.http.HttpCtx;
 import pond.net.NetServer;
 import pond.net.Server;
-import pond.web.http.HttpCtx;
 import pond.web.http.HttpConfigBuilder;
 import pond.web.router.Router;
 import pond.web.router.RouterCtx;
+import pond.web.session.Session;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,10 +31,12 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import static org.junit.Assert.assertEquals;
 import static pond.core.CtxHandler.*;
 
 public class HttpTest {
@@ -55,7 +60,7 @@ public class HttpTest {
         HttpRequest req =
             HttpRequest.newBuilder(new URI(url)) .GET() .build();
         var result = client.send(req, HttpResponse.BodyHandlers.ofString()).body();
-        Assert.assertEquals(judge, result);
+        assertEquals(judge, result);
     }
 
     @Test
@@ -82,15 +87,15 @@ public class HttpTest {
 //        render_text();
 //
 //        //MULTIPART
-//        multipart();
+//        bodyAsMultipart();
 //
 //        //CONTROLLER
 //        controller_bind_controller();
 //        controller_bind_controller_to_root();
 //
 //        //SESSION
-//        session_test();
-//        session_custom_test();
+        session_test();
+        session_custom_test();
 
         test_reroute();
         test_ok();
@@ -99,6 +104,89 @@ public class HttpTest {
         test_cookie();
         //test_multipart();
         server.stop();
+    }
+
+    public void session_test() throws IOException, InterruptedException, URISyntaxException {
+        builder.clean().handler(new Router(
+            app -> {
+                app.use(Session.install());
+
+                app.get("/installSession", (req, resp) -> {
+                    Session ses = Session.get(req);
+                    ses.set("name", "user1");
+                    ses.save();
+                    resp.send(200);
+                });
+
+                app.get("/readSession", (req, resp) -> {
+                    Session ses = Session.get(req);
+                    resp.send(200, ses.get("name"));
+                });
+
+                app.get("/invalidate", (req, resp) -> {
+                    Session.get(req).invalidate();
+                    resp.send(200);
+                });
+            }
+        ));
+
+        Holder<String> sessionHolder = new Holder<>();
+        HttpRequest installSession =
+            HttpRequest.newBuilder(new URI("http://localhost:9090/installSession")).GET().build();
+
+        var set_cookie =
+            client.send(installSession, HttpResponse.BodyHandlers.ofString())
+                .headers()
+                .firstValue("Set-Cookie")
+                .orElse("Error");
+        var cookie = ClientCookieDecoder.LAX.decode(set_cookie);
+        sessionHolder.val(cookie.value());
+
+        HttpRequest readSession =
+            HttpRequest.newBuilder(new URI("http://localhost:9090/readSession"))
+                .GET()
+                .header("Cookie", ClientCookieEncoder.LAX.encode(Session.LABEL_SESSION, sessionHolder.val()))
+                .build();
+        var result = client.send(readSession, HttpResponse.BodyHandlers.ofString()).body();
+        assertEquals("user1", result);
+
+
+        HttpRequest invalidate =
+            HttpRequest.newBuilder(new URI("http://localhost:9090/invalidate"))
+                .GET()
+                .header("Cookie", ClientCookieEncoder.STRICT.encode(Session.LABEL_SESSION, sessionHolder.val()))
+                .build();
+        client.send(invalidate, HttpResponse.BodyHandlers.ofString());
+
+        //read again
+        var empty = client.send(readSession, HttpResponse.BodyHandlers.ofString()).body();
+        assertEquals("null", empty);
+    }
+
+    public void session_custom_test() throws IOException, URISyntaxException, InterruptedException {
+
+        var session = Session.install(req -> req.header("sessionid-in-header"),
+            (req, resp) -> resp.send(403, "require session"));
+
+        builder.clean().handler(new Router(
+                app -> {
+                    app.get("/test", session, Express.express(
+                        (req, resp) -> resp.send(200, Session.get(req).id())
+                    ));
+
+                    app.get("/login", (req, resp) -> resp.send(200, Session.store().create(new HashMap<>())));
+                }
+            )
+        );
+
+        HttpRequest request_login = HttpRequest.newBuilder(
+            new URI("http://localhost:9090/login")
+        ).GET().build();
+        var sid = client.send(request_login, HttpResponse.BodyHandlers.ofString()).body();
+        HttpRequest request_test = HttpRequest.newBuilder(
+            new URI("http://localhost:9090/test")
+        ).GET().header("sessionid-in-header", sid).build();
+        assertEquals(sid, client.send(request_test, HttpResponse.BodyHandlers.ofString()).body());
     }
 
     void test_reroute() throws InterruptedException, IOException, URISyntaxException {
@@ -119,8 +207,8 @@ public class HttpTest {
 
 
     void formal_executive_flow() throws InterruptedException, IOException, URISyntaxException {
-        Ctx.Entry<String> NAME = new Ctx.Entry<>("Name");
-        Ctx.Entry<String> VALUE = new Ctx.Entry<>("Value");
+        Entry<String> NAME = new Entry<>("Name");
+        Entry<String> VALUE = new Entry<>("Value");
 
         builder.clean().handler(new Router(
             app -> app.get("/*",
@@ -286,7 +374,7 @@ public class HttpTest {
                 .build();
 
         var result = client.send(req, HttpResponse.BodyHandlers.ofString()).body();
-        Assert.assertEquals("a1", result);
+        assertEquals("a1", result);
     }
 
     void basic() throws InterruptedException, IOException {
@@ -313,7 +401,7 @@ public class HttpTest {
                 )
         );
         HttpResponse response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        Assert.assertEquals("3", response.body());
+        assertEquals("3", response.body());
 
     }
     void test_cookie() throws IOException, InterruptedException {
@@ -337,7 +425,7 @@ public class HttpTest {
                           .orElse("Error");
         S.echo("Cookie Client Got", cookie_str);
         var cookie = ClientCookieDecoder.STRICT.decode(cookie_str);
-        Assert.assertEquals("XXX_XXX", cookie.value());
+        assertEquals("XXX_XXX", cookie.value());
     }
 
     public void test_partialWrite() throws IOException, InterruptedException {
@@ -358,14 +446,14 @@ public class HttpTest {
 
         HttpResponse response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        Assert.assertEquals("OKKO", response.body());
-        Assert.assertEquals("AAAA", response.headers().firstValue("AAAA").orElse("Error"));
+        assertEquals("OKKO", response.body());
+        assertEquals("AAAA", response.headers().firstValue("AAAA").orElse("Error"));
     }
 
     public void test_sendFile() throws URISyntaxException, IOException, InterruptedException {
         builder.clean();
         builder.handler(sendFile);
-        Assert.assertEquals(
+        assertEquals(
             STREAM.readFully(new FileInputStream(new File(PATH.classpathRoot() + "logback.xml")), CharsetUtil.UTF_8)
             ,
             client.send(request, HttpResponse.BodyHandlers.ofString()).body()
@@ -375,13 +463,13 @@ public class HttpTest {
     public void test_ok() throws URISyntaxException, IOException, InterruptedException {
         builder.clean();
         builder.handler(ok);
-        Assert.assertEquals("OK", client.send(request, HttpResponse.BodyHandlers.ofString()).body());
+        assertEquals("OK", client.send(request, HttpResponse.BodyHandlers.ofString()).body());
     }
 
     public static CtxHandler<HttpCtx> ok = ctx -> {
-        //print all headers
-        S.echo("headers", ((HttpCtx.Headers) ctx::bind).all());
-        ((HttpCtx.Send) ctx::bind).Ok(HttpCtx.str("OK"));
+        //print headers headers
+        S.echo("headers", ((HttpCtx.Headers) ctx::bind).headers());
+        ((HttpCtx.Send) ctx::bind).sendOk(HttpCtx.str("OK"));
     };
 
     public static CtxHandler<HttpCtx> sendFile = ctx -> {

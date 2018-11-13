@@ -350,7 +350,8 @@ public class S {
       }
       return "[" + String.join(",", _for(oArr).<String>map(S::dump)) + "]";
     } else if (o instanceof Map) {
-      return _for((Map) o).map((i) -> (dump(i))).val().toString();
+      S.echo("dumping map" + o.getClass() + ":", ((Map)o).keySet());
+      return _for((Map) o).map((i) -> (i == o? "[error Ring]":dump(i))).val().toString();
     } else {
       return o.toString();
     }
@@ -508,6 +509,27 @@ public class S {
       return uuid.toString().replaceAll("-", "");
     }
 
+  }
+
+  private static final Set<Class<?>> WRAPPER_TYPES = getWrapperTypes();
+
+  private static Set<Class<?>> getWrapperTypes()
+  {
+    Set<Class<?>> ret = new HashSet<Class<?>>();
+    ret.add(Boolean.class);
+    ret.add(Character.class);
+    ret.add(Byte.class);
+    ret.add(Short.class);
+    ret.add(Integer.class);
+    ret.add(Long.class);
+    ret.add(Float.class);
+    ret.add(Double.class);
+    ret.add(Void.class);
+    return ret;
+  }
+
+  public static boolean _is_wrapper_type(Class<?> clazz){
+    return WRAPPER_TYPES.contains(clazz);
   }
 
   /**

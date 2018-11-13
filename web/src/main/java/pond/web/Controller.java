@@ -60,8 +60,8 @@
 //      );
 //
 //  /**
-//   * @param cls    annotation class
-//   * @param policy policy procedure -- callback with controller, annotation, method
+//   * @query cls    annotation class
+//   * @query policy policy procedure -- callback with controller, annotation, method
 //   */
 //  public static void newAnnotationResolvePolicy(Class<? extends Annotation> cls,
 //                                                Callback.C3<Controller, Annotation, Method> policy) {

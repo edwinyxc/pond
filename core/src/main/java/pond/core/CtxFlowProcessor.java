@@ -85,10 +85,15 @@ public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.u
                 else {
                     if(executor == null){ //sync mode
                         Ctx.logger.debug("FLOW("+this.name()+")=||" + exec + " On " + Thread.currentThread() );
-                        exec.apply(c);
-                        handled.add(exec);
-                        if(c.next() != null) onNext(c);
-                        else onFinal.apply(c);
+                        try {
+                            exec.apply(c);
+                            handled.add(exec);
+                        }catch (Throwable th){
+                            onError.apply(th);
+                        }finally {
+                            if(c.next() != null) onNext(c);
+                            else onFinal.apply(c);
+                        }
                     }else {
                         CompletableFuture.supplyAsync(() -> {
                             Ctx.logger.debug("FLOW(" + this.name() + ")~||" + exec + " On " + Thread.currentThread());

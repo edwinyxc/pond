@@ -111,7 +111,7 @@
 //        CompletableFuture
 //                .allOf(S._for(futures).join())
 //                .thenRun(() -> {
-//                    S.echo("all finished", finished);
+//                    S.echo("headers finished", finished);
 //                });
 //
 //    }
@@ -156,7 +156,7 @@
 //
 //            p.get("/install/${val}", (req, resp) -> {
 //                Session ses = Session.get(req);
-//                ses.set("name", req.param("val"));
+//                ses.set("name", req.query("val"));
 //                ses.save();
 //                resp.send(200);
 //            });
@@ -218,7 +218,7 @@
 //
 //        @Mapping("/add/${_vol}")
 //        public void addN(Request req, Response resp) {
-//            String vol = req.param("_vol");
+//            String vol = req.query("_vol");
 //            value += Integer.valueOf(vol);
 //            resp.render(text(String.valueOf(value)));
 //        }
@@ -292,7 +292,7 @@
 //        app.cleanAndBind(
 //                p ->
 //                        p.get("/", (req, resp) -> resp.send("root"))
-//                                .get("/:id", (req, resp) -> resp.send(req.param("id")))
+//                                .get("/:id", (req, resp) -> resp.send(req.query("id")))
 //                                .get("/:id/text", (req, resp) -> resp.send("text"))
 //                                .handler("/user/*", router)
 //                                .otherwise(InternalMids.FORCE_CLOSE)
@@ -352,7 +352,7 @@
 //        Pond.init().cleanAndBind(
 //                p -> {
 //                    p.get("/notifyAll/:msg", (req, resp) -> {
-//                        String msg = req.param("msg");
+//                        String msg = req.query("msg");
 //                        S._for(all_wssockets).forEach(s -> {
 //                            s.context.writeAndFlush(new TextWebSocketFrame("headers:" + s.nettyRequest.headers()));
 //                        });

@@ -25,21 +25,6 @@ public class ConvertTest {
     Assert.assertEquals(true, 2 == Convert.toDouble(2));
   }
 
-  @Test
-  public void testNullJoinArray() throws Exception {
-    Object[] t = {null, null, null};
-    String[] s  = S._for(t).map(o -> o.toString()).joinArray(new String[t.length]);
-
-    Assert.assertEquals("null", s[0]);
-    Assert.assertEquals("null", s[1]);
-    Assert.assertEquals("null", s[2]);
-
-//    Object[] _t = {};
-//    s  = S._for(_t).<String>map(String::valueOf).join();
-//    Assert.assertEquals(s.length, 0);
-//    Assert.assertEquals(s.getClass(), "L[]");
-
-  }
 
   @Test
   public void testToDate() throws Exception {

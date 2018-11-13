@@ -140,6 +140,10 @@ public interface FIterable<E> extends Iterable<E> {
    */
   E first();
 
+  default E firstOrDefault(E e){
+    return S.avoidNull(first(), e);
+  }
+
   /**
    * The slice() method returns a shallow copy of a portion of an array into a new array object.
    * Slice an Iterable from the input index to the end.

@@ -1,14 +1,15 @@
 package pond.web.router;
 
+import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
+import pond.core.Ctx;
 import pond.core.CtxHandler;
 import pond.web.http.HttpCtx;
 
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,9 +22,9 @@ import static pond.web.http.HttpCtx.appendToMap;
 
 public class Router implements CtxHandler<HttpCtx>, RouterAPI {
 
-
     /*
     TODO: add config for caseSensitive, mergeParams, strict
+    TODO: MIME base routing consume Content-Type / provide Accpet
      */
     static Logger logger = LoggerFactory.getLogger(Router.class);
     static PathToRegCompiler compiler = new ExpressPathToRegCompiler();
@@ -38,11 +39,18 @@ public class Router implements CtxHandler<HttpCtx>, RouterAPI {
     final protected List<Router> children = new LinkedList<>();
     protected String basePath = "/";
 
+    private final List<CtxHandler> otherness = List.of(
+        //404 not found
+        (CtxHandler.consume(Ctx.SELF, ctx -> {
+            var s = (HttpCtx.Send)ctx::bind;
+            s.sendNotFound(Unpooled.wrappedBuffer("Router not Found Anything".getBytes()));
+        }))
+    );
+
     public Routes routes() {
         return routes;
     }
 
-    private List<CtxHandler> defaultMids = new ArrayList<>();
 
     private String pathRemainder(RouterCtx ctx) {
         String path = S.avoidNull(ctx.get(RouterCtx.PATH_REMINDER), ctx.routingPath());
@@ -117,10 +125,10 @@ public class Router implements CtxHandler<HttpCtx>, RouterAPI {
         }
 
         //end
-        _debug(logger, log -> log.debug("Found nothing, executing defaults"));
+        logger.debug("Found nothing, executing defaults: " + S.dump(otherness));
 
         //execute defaults
-        S._for(defaultMids).reverse().each(ctx::insert);
+        S._for(otherness).reverse().each(ctx::insert);
     }
 
     protected String sanitizedBasePath(String basePath) {
@@ -139,10 +147,13 @@ public class Router implements CtxHandler<HttpCtx>, RouterAPI {
     }
 
     protected String buildPathForRoute(String base) {
-        if (this.basePath.endsWith("/")) {
-            return this.basePath.substring(0, this.basePath.length() - 1) + sanitizedBasePath(base);
-        }
-        return this.basePath + sanitizedBasePath(base);
+        var newPath = RouterAPI.sanitisePath(this.basePath, base);
+        S.echo("sanitised", newPath);
+        newPath = newPath.replaceAll(":(\\w+)", "{$1}");
+        newPath = newPath.replaceAll("/\\*$", "");
+        if(newPath.length() == 0) newPath = "/";
+        S.echo("replaced", newPath);
+        return newPath;
     }
 //
 //    void setBasePath(String base){
@@ -232,7 +243,7 @@ public class Router implements CtxHandler<HttpCtx>, RouterAPI {
 
     @Override
     public Router otherwise(CtxHandler... mids) {
-        defaultMids.addAll(Arrays.asList(mids));
+        otherness.addAll(Arrays.asList(mids));
         return this;
     }
 

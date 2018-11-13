@@ -5,6 +5,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
 import pond.common.JSON;
@@ -14,7 +15,7 @@ import pond.common.STRING;
 import pond.common.f.Callback;
 import pond.common.f.Tuple;
 import pond.core.Ctx;
-import pond.core.CtxHandler;
+import pond.core.Entry;
 import pond.net.CtxNet;
 import pond.net.NetServer;
 import pond.web.EndToEndException;
@@ -30,61 +31,63 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 public interface HttpCtx extends CtxNet {
-    class Keys {
-        public static final Entry<HttpConfigBuilder> Config = new Entry<>(HttpCtx.class, "Config");
-        static final Entry<HttpRequest> NettyRequest = new Ctx.Entry<>(HttpCtx.class, "NettyRequest");
-        //static final Entry<HttpResponse> NettyResponse = new Ctx.Entry<>(HttpCtx.class, "NettyResponse");
-        // public static final Ctx.Entry<HttpResponse> NettyResponse = new Ctx.Entry<>(HttpCtx.class, "NettyResponse");
-        static final Entry<ByteBuf> In = new Ctx.Entry<>(HttpCtx.class, "In");
-        static final Entry<ByteBuf> Out = new Ctx.Entry<>(HttpCtx.class, "Out");
-        static final Entry<HttpHeaders> TrailingHeaders = new Ctx.Entry<>(HttpCtx.class, "TrailingHeaders");
-        static final Entry<Map<String, List<String>>> Queries = new Ctx.Entry<>(HttpCtx.class, "Queries");
-        static final Entry<Map<String, List<String>>> InUrlParams = new Ctx.Entry<>(HttpCtx.class, "InUrlParams");
-        static final Entry<String> PATH = new Ctx.Entry<>(HttpCtx.class, "PATH");
-        static final Entry<String> URI = new Ctx.Entry<>(HttpCtx.class, "URI");
+    Entry<HttpConfigBuilder> CONFIG = new Entry<>(HttpCtx.class, "CONFIG");
+    Entry<HttpRequest> NETTY_REQUEST = new Entry<>(HttpCtx.class, "NETTY_REQUEST");
+    //static final Entry<HttpResponse> NettyResponse = new Ctx.Entry<>(HttpCtx.class, "NettyResponse");
+    // public static final Ctx.Entry<HttpResponse> NettyResponse = new Ctx.Entry<>(HttpCtx.class, "NettyResponse");
+    Entry<ByteBuf> IN = new Entry<>(HttpCtx.class, "IN");
+    Entry<ByteBuf> OUT = new Entry<>(HttpCtx.class, "OUT");
+    Entry<HttpHeaders> TRAILING_HEADERS = new Entry<>(HttpCtx.class, "TRAILING_HEADERS");
+
+    Entry<String> PATH = new Entry<>(HttpCtx.class, "PATH");
+    Entry<String> URI = new Entry<>(HttpCtx.class, "URI");
+
+    Entry<Map<String, List<String>>> Queries = new Entry<>(HttpCtx.class, "Queries");
+    Entry<Map<String, List<String>>> IN_URL_PARAMS = new Entry<>(HttpCtx.class, "IN_URL_PARAMS");
+    Entry<Map<String, List<String>>> HEADERS = new Entry<>(HttpCtx.class, "HEADERS");
+    Entry<Set<Cookie>> COOKIES = new Entry<>(HttpCtx.class, "COOKIES");
+    Entry<Body.FormData> FORM_DATA = new Entry<>(HttpCtx.class, "FORM_DATA");
+    Entry<Send.ResponseBuilder> RESPONSE_BUILDER = new Entry<>(HttpCtx.class, "RESPONSE_BUILDER");
+
+//
+    Entry<Request> REQ = new Entry<>(HttpCtx.class, "REQ");
+    Entry<Response> RESP = new Entry<>(HttpCtx.class, "RESP");
+
 
         // static final Ctx.Entry<HttpPostRequestDecoder> PostRequestDecoder = new Ctx.Entry<>(HttpCtx.class, "PostRequestDecoder");
 //        static final Ctx.Entry<Request> Request = new Ctx.Entry<>(HttpCtx.class, "Request");
 //        static final Ctx.Entry<Request> Response = new Ctx.Entry<>(HttpCtx.class, "Response");
 
-        //        static final Ctx.Entry<Boolean> HasCookie = new Ctx.Entry<>(HttpCtx.class,"HasCookie");
-        static final Ctx.Entry<Set<Cookie>> Cookies = new Ctx.Entry<>(HttpCtx.class, "Cookies");
 
-        static final Ctx.Entry<Body.FormData> FormData = new Ctx.Entry<>(HttpCtx.class, "FormData");
-        static final Ctx.Entry<Send.ResponseBuilder> ResponseBuilder =
-            new Ctx.Entry<>(HttpCtx.class, "ResponseBuilder");
-
-
-        //static final Entry<Send.ResponseBuilder> RequestBuilder = new Entry<>(HttpCtx.class, "RequestBuilder");
-    }
+        //static final Entry<Send.RESPONSE_BUILDER> RequestBuilder = new Entry<>(HttpCtx.class, "RequestBuilder");
 
     static ByteBuf str(String string) {
         return Unpooled.wrappedBuffer(string.getBytes(CharsetUtil.UTF_8));
     }
 
     default String method() {
-        return this.get(Keys.NettyRequest).method().toString();
+        return this.get(NETTY_REQUEST).method().toString();
     }
 
     default String uri() {
-        return this.getLazy(Keys.URI, this.get(Keys.NettyRequest).uri());
+        return this.getOrPutDefault(URI, this.get(NETTY_REQUEST).uri());
     }
 
     default String path() {
-        return this.getLazy(Keys.PATH, S._try_ret(() -> new URI(uri()).getPath()));
+        return this.getOrPutDefault(PATH, S._try_ret(() -> new URI(uri()).getPath()));
     }
 
     default Send.ResponseBuilder response(HttpResponseStatus status) {
-        Send.ResponseBuilder builder = this.get(Keys.ResponseBuilder);
+        Send.ResponseBuilder builder = this.get(RESPONSE_BUILDER);
         if (builder == null) {
             builder = new Send.ResponseBuilder(this, status);
-            this.set(Keys.ResponseBuilder, builder);
+            this.set(RESPONSE_BUILDER, builder);
         }
         return builder;
     }
 
     default HttpRequest request() {
-        return this.get(Keys.NettyRequest);
+        return this.get(NETTY_REQUEST);
     }
 
     default Send.ResponseBuilder response() {
@@ -102,53 +105,54 @@ public interface HttpCtx extends CtxNet {
 
 
     /*
-    default Send.ResponseBuilder response(int code) {
+    default Send.RESPONSE_BUILDER response(int code) {
         return response(HttpResponseStatus.valueOf(code));
     }
     */
 //    default ByteBufInputStream in() {
-//        return new ByteBufInputStream(this.get(Keys.In));
+//        return new ByteBufInputStream(this.get(Keys.IN));
 //    }
 //
 //    default ByteBufOutputStream out() {
-//        return new ByteBufOutputStream(this.get(Keys.Out));
+//        return new ByteBufOutputStream(this.get(Keys.OUT));
 //    }
 
     interface Headers extends HttpCtx {
 
         default Tuple<HttpHeaders, HttpHeaders> headerAndTrailing() {
-            return Tuple.pair(this.get(Keys.NettyRequest).headers(), this.get(Keys.TrailingHeaders));
+            return Tuple.pair(this.get(NETTY_REQUEST).headers(), this.get(TRAILING_HEADERS));
         }
 
         default String header(String key) {
-            var reqHeaders = this.get(Keys.NettyRequest).headers();
-            var trailingHeaders = this.get(Keys.TrailingHeaders);
+            var reqHeaders = this.get(NETTY_REQUEST).headers();
+            var trailingHeaders = this.get(TRAILING_HEADERS);
             String ret = reqHeaders.get(key);
             if (ret == null) ret = trailingHeaders.get(key);
             return ret;
         }
 
 
-        default Map<String, List<String>> all() {
-
-            var config = this.get(Keys.Config);
-            var is_case_sensitive = config.isHeaderCaseSensitive();
-            HttpHeaders reqHeaders = this.get(Keys.NettyRequest).headers();
-            HttpHeaders trailingHeaders = this.get(Keys.TrailingHeaders);
-            Map<String, List<String>> ret = new HashMap<>();
-            S._for(reqHeaders.names()).each(name -> {
-                ret.put(name, is_case_sensitive
-                                  ? reqHeaders.getAll(name)
-                                  : S._for(reqHeaders.getAll(name)).map(i -> i.toLowerCase()).toList()
-                );
+        default Map<String, List<String>> headers() {
+            return this.getOrSupplyDefault(HEADERS, () -> {
+                var config = this.get(CONFIG);
+                var is_case_sensitive = config.isHeaderCaseSensitive();
+                HttpHeaders reqHeaders = this.get(NETTY_REQUEST).headers();
+                HttpHeaders trailingHeaders = this.get(TRAILING_HEADERS);
+                Map<String, List<String>> ret = new HashMap<>();
+                S._for(reqHeaders.names()).each(name -> {
+                    ret.put(name, is_case_sensitive
+                                      ? reqHeaders.getAll(name)
+                                      : S._for(reqHeaders.getAll(name)).map(i -> i.toLowerCase()).toList()
+                    );
+                });
+                S._for(trailingHeaders.names()).each(name -> {
+                    ret.put(name, is_case_sensitive
+                                      ? reqHeaders.getAll(name)
+                                      : S._for(reqHeaders.getAll(name)).map(i -> i.toLowerCase()).toList()
+                    );
+                });
+                return ret;
             });
-            S._for(trailingHeaders.names()).each(name -> {
-                ret.put(name, is_case_sensitive
-                                  ? reqHeaders.getAll(name)
-                                  : S._for(reqHeaders.getAll(name)).map(i -> i.toLowerCase()).toList()
-                );
-            });
-            return ret;
         }
 
         default String ContentType() {
@@ -161,19 +165,19 @@ public interface HttpCtx extends CtxNet {
 
     interface Queries extends HttpCtx {
         default Map<String, List<String>> inUrlParams() {
-            return getLazy(Keys.InUrlParams, new LinkedHashMap<>());
+            return getOrPutDefault(IN_URL_PARAMS, new LinkedHashMap<>());
         }
 
-        default List<String> params(String name) {
-            return params().get(name);
+        default List<String> queries(String name) {
+            return queries().get(name);
         }
 
-        default Map<String, List<String>> params() {
-            return this.get(Keys.Queries);
+        default Map<String, List<String>> queries() {
+            return this.get(Queries);
         }
 
-        default String param(String name) {
-            return S._for(S._try_get(params(name), Collections.emptyList())).first();
+        default String query(String name) {
+            return S._for(S._try_get(queries(name), Collections.emptyList())).first();
         }
 
     }
@@ -245,34 +249,39 @@ public interface HttpCtx extends CtxNet {
             }
         }
 
-        default ByteBufInputStream inputStream() {
-            return new ByteBufInputStream(this.get(Keys.In));
+        default ByteBufInputStream bodyAsInputStream() {
+            return new ByteBufInputStream(this.get(IN));
         }
 
-        default ByteBuf raw() {
-            return this.get(Keys.In);
+        default ByteBuf bodyAsRaw() {
+            return this.get(IN);
         }
 
-        default String asString(Charset charset) {
-            return raw().toString(charset);
+        default String bodyAsString(Charset charset) {
+            return bodyAsRaw().toString(charset);
         }
 
-        default boolean isMultipart() {
-            return HttpPostRequestDecoder.isMultipart(this.get(Keys.NettyRequest));
+        default boolean bodyIsMultipart() {
+            return HttpPostRequestDecoder.isMultipart(this.get(NETTY_REQUEST));
         }
 
-        default FormData multipart() throws IllegalAccessException {
-            if (isMultipart()) {
-                return this.get(Keys.FormData);
-            } else throw new IllegalAccessException("Request is not a multipart request");
+        default FormData bodyAsMultipart() throws IllegalAccessException {
+            if (bodyIsMultipart()) {
+                return this.get(FORM_DATA);
+            } else throw new IllegalAccessException("Request is not a bodyAsMultipart request");
+        }
+
+        default Map<String,Object> bodyAsJson() {
+            //TODO refine
+            return JSON.parse(bodyAsString(CharsetUtil.UTF_8));
         }
 
         default Map<String, List<String>> params(Charset charset) {
-            return new QueryStringDecoder(asString(charset)).parameters();
+            return new QueryStringDecoder(bodyAsString(charset)).parameters();
         }
 
         default Map<String, List<String>> params() {
-            return new QueryStringDecoder(asString(CharsetUtil.UTF_8)).parameters();
+            return new QueryStringDecoder(bodyAsString(CharsetUtil.UTF_8)).parameters();
         }
 
     }
@@ -287,8 +296,8 @@ public interface HttpCtx extends CtxNet {
 
             private ResponseBuilder(HttpCtx http, HttpResponseStatus status) {
                 this.http = http;
-                httpRequest = http.get(Keys.NettyRequest);
-                buf = http.get(Keys.Out);
+                httpRequest = http.get(NETTY_REQUEST);
+                buf = http.get(OUT);
                 if (buf == null || buf.writableBytes() == 0) {
                     buf = PooledByteBufAllocator.DEFAULT.heapBuffer();
                 }
@@ -317,7 +326,7 @@ public interface HttpCtx extends CtxNet {
             }
 
             public ResponseBuilder write(String string) {
-                buf.writeCharSequence(string, Charset.defaultCharset());
+                buf.writeCharSequence(string, CharsetUtil.UTF_8);
                 return this;
             }
 
@@ -342,23 +351,42 @@ public interface HttpCtx extends CtxNet {
                     httpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
                 }
                 //remove from HttpCtx, if user called this, we should not add last Flow to the NetServer's flow
-                this.http.set(Keys.ResponseBuilder, null);
+                this.http.set(RESPONSE_BUILDER, null);
 
                 return httpResponse;
             }
         }
 
+        default Send contentType(String contentType) {
+            contentType(contentType, false);
+            return this;
+        }
+
+        default Send contentType(String contentType, boolean override){
+            if(!override) {
+                if(this.response().headers().get(HttpHeaderNames.CONTENT_TYPE) == null) {
+                    this.response().headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
+                }
+            }else {
+                this.response().headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
+            }
+            return this;
+        }
+
+
         default void send(Object t){
             var ctx = this;
             if (t == null) t = "";
-            if (t instanceof FullHttpResponse) {
-                chctx().writeAndFlush(t);
-                terminate();
-            } else if (t instanceof ByteBuf) {
+            if (t instanceof FullHttpResponse
+                || t instanceof ByteBuf
+                || t instanceof byte[]
+                || t instanceof Byte[]
+            ) {
                 chctx().writeAndFlush(t);
                 terminate();
             } else if (t instanceof CharSequence) {
                 ctx.response().write((String) t);
+                contentType(MIME.MIME_TEXT_PLAIN);
             } else if (t instanceof File) {
                 try {
                     ctx.sendFile((File) t);
@@ -368,6 +396,7 @@ public interface HttpCtx extends CtxNet {
             } else if (t instanceof InputStream) {
                 var inputStream = (InputStream) t;
                 try {
+                    contentType(MIME.MIME_APPLICATION_OCTET_STREAM);
                     STREAM.pipe(inputStream, ctx.response().outputStream());
                 } catch (IOException e) {
                     throw new EndToEndException(500, e.getMessage(), e);
@@ -375,8 +404,8 @@ public interface HttpCtx extends CtxNet {
             } else {
                 //TODO
                 //handler DEFAULT json serialization
-
-                S.echo("BEFORE JOSN", t);
+                S.echo("Default send", t.getClass(), t);
+                contentType(MIME.MIME_APPLICATION_JSON);
                 ctx.response().write(JSON.stringify(t));
             }
         }
@@ -390,10 +419,10 @@ public interface HttpCtx extends CtxNet {
                 int dot_pos = filename.lastIndexOf(".");
                 if (dot_pos != -1 && dot_pos < filename.length() - 1) {
                     response.headers().set(HttpHeaderNames.CONTENT_TYPE,
-                        MimeTypes.getMimeType(filename.substring(dot_pos + 1)));
+                        MIME.getMimeType(filename.substring(dot_pos + 1)));
                 } else {
                     response.headers().set(HttpHeaderNames.CONTENT_TYPE,
-                        (MimeTypes.MIME_APPLICATION_OCTET_STREAM));
+                        (MIME.MIME_APPLICATION_OCTET_STREAM));
                 }
             }
             this.chctx().write(response);
@@ -430,7 +459,7 @@ public interface HttpCtx extends CtxNet {
             ChannelFuture lastFuture =
                 this.chctx().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 
-            if (!HttpUtil.isKeepAlive(this.get(Keys.NettyRequest))) {
+            if (!HttpUtil.isKeepAlive(this.get(NETTY_REQUEST))) {
                 lastFuture.addListener(ChannelFutureListener.CLOSE);
             }
             terminate();
@@ -455,7 +484,7 @@ public interface HttpCtx extends CtxNet {
         /*
         Internal Short-hands
          */
-        default void BadRequest() {
+        default void sendBadRequest() {
             this.chctx()
                 .writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                     HttpResponseStatus.BAD_REQUEST))
@@ -464,7 +493,7 @@ public interface HttpCtx extends CtxNet {
             terminate();
         }
 
-        default void Ok(ByteBuf buf) {
+        default void sendOk(ByteBuf buf) {
             this.chctx()
                 .writeAndFlush(new DefaultFullHttpResponse(
                     HttpVersion.HTTP_1_1,
@@ -475,7 +504,7 @@ public interface HttpCtx extends CtxNet {
             terminate();
         }
 
-        default void NotFound(ByteBuf buf) {
+        default void sendNotFound(ByteBuf buf) {
             this.chctx()
                 .writeAndFlush(new DefaultFullHttpResponse(
                     HttpVersion.HTTP_1_1,
@@ -486,7 +515,7 @@ public interface HttpCtx extends CtxNet {
             terminate();
         }
 
-        default void InternalServerError(ByteBuf buf) {
+        default void sendInternalServerError(ByteBuf buf) {
             this.chctx()
                 .writeAndFlush(new DefaultFullHttpResponse(
                     HttpVersion.HTTP_1_1,
@@ -513,9 +542,9 @@ public interface HttpCtx extends CtxNet {
 
     interface Cookies extends HttpCtx {
         default Set<Cookie> cookies() {
-            if (this.get(Keys.Cookies) == null) {
-                var httpRequest = this.get(Keys.NettyRequest);
-                var trailingHeaders = this.get(Keys.TrailingHeaders);
+            if (this.get(COOKIES) == null) {
+                var httpRequest = this.get(NETTY_REQUEST);
+                var trailingHeaders = this.get(TRAILING_HEADERS);
                 //cookies
                 //merge into one
                 var cookie = httpRequest.headers().get(HttpHeaderNames.COOKIE);
@@ -525,12 +554,12 @@ public interface HttpCtx extends CtxNet {
 
                 if (STRING.notBlank(cookie)) {
                     var cookies = ServerCookieDecoder.STRICT.decode(cookie);
-                    this.set(Keys.Cookies, cookies);
+                    this.set(COOKIES, cookies);
                 } else {
-                    this.set(Keys.Cookies, Collections.emptySet());
+                    this.set(COOKIES, Collections.emptySet());
                 }
             }
-            return this.get(Keys.Cookies);
+            return this.get(COOKIES);
         }
 
         default Cookie cookie(String name) {
@@ -538,6 +567,19 @@ public interface HttpCtx extends CtxNet {
             return S._for(cookies()).filter(c -> name.equals(c.name())).first();
         }
 
+        default Cookies addCookie(Cookie cookie) {
+            this.response().headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
+            return this;
+        }
+
+        default Cookies removeCookie(Cookie cookie){
+            if(cookie != null){
+                cookie.setValue(null);
+                cookie.setMaxAge(-1);
+                this.response().headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
+            }
+            return this;
+        }
     }
 
     interface Lazy extends HttpCtx {
@@ -550,8 +592,6 @@ public interface HttpCtx extends CtxNet {
         }
 
     }
-
-
 
 
 }

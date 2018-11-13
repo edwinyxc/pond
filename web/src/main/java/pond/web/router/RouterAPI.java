@@ -1,7 +1,6 @@
 package pond.web.router;
 
 import pond.common.S;
-import pond.core.Ctx;
 import pond.core.CtxHandler;
 import pond.web.Mid;
 
@@ -125,5 +124,18 @@ public interface RouterAPI<ROUTER extends Router> {
 
     default ROUTER otherwise(Mid... mids) {
         return otherwise(S._for(mids).map(Mid::toCtxHandler).joinArray(CtxHandler.EMPTY_ARRAY));
+    }
+
+    static String sanitisePath(String... path){
+        return String.join("/", S._for(path).map(p ->{
+            var ret = p.replaceAll("(/)+", "/");
+            if(!p.startsWith("/")) {
+                ret = "/" +p;
+            }
+            if(ret.endsWith("/") && ret.length() > 1) {
+                ret = ret.substring(0, ret.length() -1);
+            }
+            return ret;
+        })).replaceAll("(/)+", "/");
     }
 }

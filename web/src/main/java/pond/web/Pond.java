@@ -134,7 +134,7 @@
 //   */
 //  private static void init_dbg() {
 //    if ("true".equals(System.getProperty("pond.debug"))) {
-//      //read all debug class message from system properties
+//      //read headers debug class message from system properties
 //      String classes = System.getProperty("pond.debug_classes");
 //      S._debug_on(S._for(classes.split("[:,t ]")).map(cls -> {
 //        try {

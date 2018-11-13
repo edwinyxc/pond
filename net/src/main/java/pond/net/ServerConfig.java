@@ -32,8 +32,8 @@ public interface ServerConfig {
         protected abstract ChannelHandler init();
 
         int _port =  S._tap(Integer.parseInt(S.avoidNull(S.config.get(Server.class, Server.PORT), "8333")),
-            port -> Server.logger.info(String.format("USING PORT %s", port)));
-        public ServerConfigBuilder port(int port){
+            port -> Server.logger.info(String.format("DEFAULT PORT %s", port)));
+        public ServerConfigBuilder  port(int port){
             _port = port;
             return this;
         }

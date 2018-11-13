@@ -244,7 +244,7 @@ public class TinyTree<E> implements Tree<E> {
 
   @Override
   public String[] path() {
-    return S._for(parents()).map(a -> (a.name())).join();
+    return S._for(parents()).map(a -> (a.name())).joinArray(new String[0]);
   }
 
   @Override

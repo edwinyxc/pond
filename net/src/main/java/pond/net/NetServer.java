@@ -8,6 +8,7 @@ import io.netty.handler.logging.LoggingHandler;
 import pond.common.PATH;
 import pond.common.S;
 import pond.common.f.Callback;
+import pond.common.f.Function;
 import pond.core.Ctx;
 import pond.core.CtxFlowProcessor;
 
@@ -18,11 +19,10 @@ public class NetServer implements Server {
 
     final ServerConfig config;
 
+    private Function.F0<Integer> getPort;
 
-    public NetServer(ServerConfig config){
-        this.config = config;
-
-        logger.info("POND:");
+    static {
+        logger.info("STATIC CONFIGURATION:");
 
         String root = PATH.classpathRoot();
         logger.info("CLASS ROOT:" + root);
@@ -37,7 +37,12 @@ public class NetServer implements Server {
         S.config.set(NetServer.class, CONFIG_WEB_ROOT, webroot);
 
         logger.info("root : " + root);
+    }
 
+
+    public NetServer(ServerConfig config){
+        this.config = config;
+        getPort = config::port;
     }
 
     public NetServer(ServerConfig.ServerConfigBuilder builder){
@@ -102,9 +107,12 @@ public class NetServer implements Server {
             .childHandler(config.toChannelHandler());
 
         // Start the server.
-        return S._tap(b.bind(config.port()), f-> new Thread(() -> {
+        int port = getPort.apply();
+        logger.info("USING PORT:" + port);
+        return CompletableFuture.supplyAsync(() -> {
             try {
-                serverChannelFuture = f.sync();
+                serverChannelFuture =  b.bind(port).sync();
+
                 serverChannelFuture.channel().closeFuture().sync();
             } catch (InterruptedException e) {
                 logger.error(e.getMessage(), e);
@@ -113,7 +121,21 @@ public class NetServer implements Server {
                 workerGroup.shutdownGracefully();
                 bossGroup.shutdownGracefully();
             }
-        }).start());
+            return serverChannelFuture;
+        }).handle((f, ex) ->{
+            if(f!= null)return f;
+            else {
+                ex.printStackTrace();
+                return null;
+            }
+        });
+
+    }
+
+    @Override
+    public Future listen(int port) throws InterruptedException {
+        getPort = () -> port;
+        return listen();
     }
 
     @Override

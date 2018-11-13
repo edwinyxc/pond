@@ -60,6 +60,8 @@ public class Convert {
         return sdf.format(date);
     }
 
+    public static SimpleDateFormat defaultSDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
     public static Long dateToLong(String date, String format) throws ParseException {
         if (date == null) return null;
         Date parsed = new SimpleDateFormat(format).parse(date);

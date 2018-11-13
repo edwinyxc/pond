@@ -3,17 +3,13 @@ package pond.web.http;
 import io.netty.buffer.*;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http.cookie.*;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.cookie.Cookie;
-import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.CharsetUtil;
 import pond.common.S;
 import pond.core.Ctx;
 import pond.core.CtxBase;
-import pond.core.CtxFlowProcessor;
 import pond.core.CtxHandler;
 import pond.net.CtxNet;
 import pond.net.NetServer;
@@ -120,10 +116,20 @@ class HttpCtxBuilder {
         ctx.write(response);
     }
 
-    private void sendBadRequest(ChannelHandlerContext ctx) {
-        ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+    private ChannelFuture sendBadRequest(ChannelHandlerContext ctx) {
+        return ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
             HttpResponseStatus.BAD_REQUEST))
             .addListener(ChannelFutureListener.CLOSE);
+    }
+
+    private ChannelFuture sendInternalError(ChannelHandlerContext ctx, Throwable e) {
+        return ctx.writeAndFlush(
+            new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
+            HttpResponseStatus.INTERNAL_SERVER_ERROR,
+            (e instanceof EndToEndException)
+                ? Unpooled.wrappedBuffer(String.valueOf(((EndToEndException) e).message).getBytes())
+                : Unpooled.wrappedBuffer(String.valueOf(e.getMessage()).getBytes())
+            )).addListener(ChannelFutureListener.CLOSE);
     }
 
     static void unwrapRuntimeException(HttpCtx ctx, RuntimeException e) {
@@ -137,7 +143,7 @@ class HttpCtxBuilder {
             send.send(new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1,
                 HttpResponseStatus.valueOf(ete.http_status),
-                Unpooled.wrappedBuffer(ete.message.getBytes(CharsetUtil.UTF_8))
+                Unpooled.wrappedBuffer(String.valueOf(ete.message).getBytes(CharsetUtil.UTF_8))
                 ));
             return;
         }
@@ -148,7 +154,9 @@ class HttpCtxBuilder {
             send.send(new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1,
                 INTERNAL_SERVER_ERROR,
-                Unpooled.wrappedBuffer(e.getMessage().getBytes(CharsetUtil.UTF_8))
+                (e.getMessage() != null)
+                    ? Unpooled.wrappedBuffer(e.getMessage().getBytes(CharsetUtil.UTF_8))
+                    : Unpooled.wrappedBuffer("null".getBytes(CharsetUtil.UTF_8))
             ));
             return;
         }
@@ -160,7 +168,7 @@ class HttpCtxBuilder {
             send.send(new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1,
                 INTERNAL_SERVER_ERROR,
-                Unpooled.wrappedBuffer(e.getMessage().getBytes(CharsetUtil.UTF_8))
+                Unpooled.wrappedBuffer(String.valueOf(e.getMessage()).getBytes(CharsetUtil.UTF_8))
             ));
         }
     }
@@ -252,7 +260,7 @@ class HttpCtxBuilder {
                     return;
                 }
 
-                //merge chunks -- retain at all cases
+                //merge chunks -- retain at headers cases
                 ByteBuf chunk = content.content();
                 assert aggregatedContent != null;
                 if(chunk.isReadable()) {
@@ -279,105 +287,66 @@ class HttpCtxBuilder {
 
                 //compose into fullCtx :)
                 CtxBase base = new CtxBase();
-                HttpCtx http = () -> base;
+                var http = (HttpCtx & HttpCtx.Lazy)() -> base;
                 CtxNet.adapt(http, ctx);
-                http.set(HttpCtx.Keys.NettyRequest, httpRequest);
-                http.set(HttpCtx.Keys.TrailingHeaders, trailingHeaders);
-                http.set(HttpCtx.Keys.FormData, formData);
-                http.set(HttpCtx.Keys.Config, httpConfig);
-                http.set(HttpCtx.Keys.Queries, queries);
+                http.set(HttpCtx.NETTY_REQUEST, httpRequest);
+                http.set(HttpCtx.TRAILING_HEADERS, trailingHeaders);
+                http.set(HttpCtx.FORM_DATA, formData);
+                http.set(HttpCtx.CONFIG, httpConfig);
+                http.set(HttpCtx.Queries, queries);
 
                 //in & out
-                http.set(HttpCtx.Keys.In, aggregatedContent);
-                http.set(HttpCtx.Keys.Out, PooledByteBufAllocator.DEFAULT.heapBuffer());
-                http.flowProcessor().errorHandler( e -> {
+                http.set(HttpCtx.IN, aggregatedContent);
+                http.set(HttpCtx.OUT, PooledByteBufAllocator.DEFAULT.heapBuffer());
+
+                //REQ & RESP
+                http.set(HttpCtx.REQ, http.req());
+                http.set(HttpCtx.RESP, http.resp());
+
+                //inject handlers
+                http.pushAll(handlers);
+                http.flowProcessor().finalHandler(CtxHandler.of(c -> {
+                    var finalHttp = (HttpCtx & HttpCtx.Send) c::bind;
+                    var builder = finalHttp.get(HttpCtx.RESPONSE_BUILDER);
+                    HttpRequest request = finalHttp.request();
+                    // Decide whether to close the connection or not.
+                    boolean close = request.headers() .contains(
+                        HttpHeaderNames.CONNECTION,
+                        HttpHeaderValues.CLOSE,
+                        true
+                    ) || request.protocolVersion().equals(
+                        HttpVersion.HTTP_1_0
+                    ) && !request.headers().contains(
+                        HttpHeaderNames.CONNECTION,
+                        HttpHeaderValues.KEEP_ALIVE,
+                        true
+                    );
+                    if( builder != null ){
+                        FullHttpResponse response = builder.build();
+                        // Write the response.
+                        ChannelFuture future = finalHttp.chctx().writeAndFlush(response);
+                        // Close the connection after the write operation is done if necessary.
+                        if (close) {
+                            NetServer.logger.debug("Ready to close channel");
+                            future.addListener(ChannelFutureListener.CLOSE);
+                        }
+                    }
+                    else {
+                        ctx.flush();
+                        ctx.close();
+                    }
+                })).errorHandler(e -> {
                     if(e instanceof RuntimeException){
                         unwrapRuntimeException(http, (RuntimeException) e);
                     }
                     e.printStackTrace();
+                    //sendInternalError(http.chctx(), e);
+                    clean();
                 });
-                var header_bind = (HttpCtx.Headers) http::bind;
-                String content_type = header_bind.ContentType();
 
 
-
-                //handle httpContent
-
-//                //req & resp
-//                 http.set(HttpCtx.Keys.Request, new Request() {
-//                    final private Map<String, List<String>> _inUrlParams = new LinkedHashMap<>();
-//
-//                    @Override
-//                    public Map<String, List<String>> inUrlParams() {
-//                        return _inUrlParams;
-//                    }
-//
-//                    @Override
-//                    public HttpCtx ctx() {
-//                        return http;
-//                    }
-//                });
-//
-//                http.set(Ctx)
-//
-
-                //inject handlers
-                http.pushAll(handlers);
-                http.flowProcessor()
-                    .finalHandler(CtxHandler.of(c -> {
-                        S.echo("prepare to Send");
-                        var finalHttp = (HttpCtx & HttpCtx.Send) c::bind;
-                        var builder = finalHttp.get(HttpCtx.Keys.ResponseBuilder);
-                        HttpRequest request = finalHttp.request();
-                        // Decide whether to close the connection or not.
-                        boolean close =
-                            request.headers().contains(
-                                HttpHeaderNames.CONNECTION,
-                                HttpHeaderValues.CLOSE, true)
-                            || request.protocolVersion().equals(HttpVersion.HTTP_1_0)
-                            && !request.headers().contains(
-                                HttpHeaderNames.CONNECTION,
-                                HttpHeaderValues.KEEP_ALIVE,
-                                true
-                            );
-
-                        if( builder != null ){
-                            FullHttpResponse response = builder.build();
-                            Set<Cookie> cookies;
-                            String value = request.headers().get(HttpHeaderNames.COOKIE);
-                            if (value == null) {
-                                cookies = Collections.emptySet();
-                            } else {
-                                cookies = ServerCookieDecoder.STRICT.decode(value);
-                            }
-                            if (!cookies.isEmpty()) {
-                                // Reset the cookies if necessary.
-                                for (Cookie cookie : cookies) {
-                                    response
-                                        .headers()
-                                        .add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
-                                }
-                            }
-                            // Write the response.
-                            ChannelFuture future = finalHttp.chctx().writeAndFlush(response);
-                            // Close the connection after the write operation is done if necessary.
-                            if (close) {
-                                future.addListener(ChannelFutureListener.CLOSE);
-                            }
-                        }
-                        else {
-                            ctx.flush();
-                        }
-                    }))
-                    .errorHandler(th -> {
-                        th.printStackTrace();
-                        clean();
-                        sendBadRequest(ctx);
-                    });
-
-
-                    //Server processing CompletionFuture
-                    http.runReactiveFlow(Ctx.ReactiveFlowConfig.DEFAULT);
+                //Server processing CompletionFuture
+                 http.runReactiveFlow(Ctx.ReactiveFlowConfig.DEFAULT);
             }
 
 
@@ -416,7 +385,7 @@ class HttpCtxBuilder {
             @Override
             public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
                 clean();
-                sendBadRequest(ctx);
+                sendInternalError(ctx, cause);
                 super.exceptionCaught(ctx, cause);
             }
         };

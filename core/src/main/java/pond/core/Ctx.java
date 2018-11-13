@@ -3,6 +3,7 @@ package pond.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pond.common.S;
+import pond.common.f.Function;
 import pond.common.f.Tuple;
 
 import java.util.*;
@@ -15,7 +16,9 @@ public interface Ctx {
 
     Logger logger = LoggerFactory.getLogger(Ctx.class);
     Entry<CtxFlowProcessor> CtxFlowProcessor = new Entry<>(Ctx.class, "CtxFlowProcessor");
+
     Entry<? extends Ctx> SELF = new Entry<>(Ctx.class, "_self");
+    Entry<Object> LAST_RESULT = new Entry<>("_LAST_RESULT");
 
     Context delegate();
     /**
@@ -96,8 +99,18 @@ public interface Ctx {
         return this;
     }
 
-    default <T> T getLazy(Entry<T> key, T _default) {
+    @SuppressWarnings("unchecked")
+    default <T> T getOrDefault(Entry<T> key, T _default) {
+        return (T) this.delegate().properties().getOrDefault(key.key, _default);
+    }
+
+    default <T> T getOrPutDefault(Entry<T> key, T _default) {
         if (this.get(key) == null) this.set(key, _default);
+        return this.get(key);
+    }
+
+    default <T> T getOrSupplyDefault(Entry<T> key, Function.F0<T> supplier) {
+        if (this.get(key) == null) this.set(key, supplier.apply());
         return this.get(key);
     }
 
@@ -190,24 +203,6 @@ public interface Ctx {
 
     default void close() {
         this.get(CtxFlowProcessor).close();
-    }
-
-    class Entry<T> {
-        final String key;
-
-        public String name(){
-            return key;
-        }
-
-        public Entry(String key) {
-            this.key = key;
-        }
-
-        public Entry(Class<? extends Ctx> cls, String key) {
-            this.key = cls.getCanonicalName() + "." + key;
-        }
-
-        static Entry<Object> LAST_RESULT = new Entry<>("_LAST_RESULT");
     }
 
 }

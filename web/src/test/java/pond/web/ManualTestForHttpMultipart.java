@@ -12,10 +12,10 @@
 //  public static void main(String[] args){
 //    Pond.init(
 //        p -> {
-//          p.post("/multipart", (req, resp) -> {
+//          p.post("/bodyAsMultipart", (req, resp) -> {
 //            Request.UploadFile f = req.file("content");
 //            try {
-//              STREAM.pipe(f.inputStream(), resp.out());
+//              STREAM.pipe(f.bodyAsInputStream(), resp.out());
 //            } catch (IOException e) {
 //              e.printStackTrace();
 //            }

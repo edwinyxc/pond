@@ -69,7 +69,7 @@
 //    render_text();
 //
 //    //MULTIPART
-//    multipart();
+//    bodyAsMultipart();
 //
 //    //CONTROLLER
 //    controller_bind_controller();
@@ -320,7 +320,7 @@
 //
 //    @Mapping("/add/:_vol")
 //    public void addN(Request req, Response resp) {
-//      String vol = req.param("_vol");
+//      String vol = req.query("_vol");
 //      value.getAndAdd(Integer.valueOf(vol));
 //      resp.render(text(String.valueOf(value.get())));
 //    }
@@ -366,14 +366,14 @@
 //
 //  }
 //
-//  public void multipart() throws IOException {
+//  public void bodyAsMultipart() throws IOException {
 //
 //    app.cleanAndBind(
 //        app ->
-//            app.post("/multipart", (req, resp) -> {
+//            app.post("/bodyAsMultipart", (req, resp) -> {
 //              Request.UploadFile f = req.file("content");
 //              try {
-//                STREAM.pipe(f.inputStream(), resp.out());
+//                STREAM.pipe(f.bodyAsInputStream(), resp.out());
 //              } catch (IOException e) {
 //                e.printStackTrace();
 //              }
@@ -516,7 +516,7 @@
 //    app.cleanAndBind(
 //        app ->
 //            app.get("/", (req, resp) -> resp.send("root"))
-//                .get("/:id", (req, resp) -> resp.send(req.param("id")))
+//                .get("/:id", (req, resp) -> resp.send(req.query("id")))
 //                .get("/:id/text", (req, resp) -> resp.send("text"))
 //                .handler("/user/*", router)
 //    );
@@ -545,10 +545,10 @@
 //    S.echo("Testing min_group_route");
 //    app.cleanAndBind(
 //        app -> {
-//          app.get("/:id/new", (req, resp) -> resp.send(req.param("id") + "/new1"));
-//          app.get("/new/:id", (req, resp) -> resp.send("new2/" + req.param("id")));
+//          app.get("/:id/new", (req, resp) -> resp.send(req.query("id") + "/new1"));
+//          app.get("/new/:id", (req, resp) -> resp.send("new2/" + req.query("id")));
 //          app.get("/new", (req, resp) -> resp.send("new"));
-//          app.get("/:id", (req, resp) -> resp.send("id=" + req.param("id")));
+//          app.get("/:id", (req, resp) -> resp.send("id=" + req.query("id")));
 //        });
 //
 //    try {
@@ -572,10 +572,10 @@
 //
 //  class ClassicRestfulRouter extends Router {
 //    {
-//      app.get("/:id/new", (req, resp) -> resp.send(req.param("id") + "/new1"));
-//      app.get("/new/:id", (req, resp) -> resp.send("new2/" + req.param("id")));
+//      app.get("/:id/new", (req, resp) -> resp.send(req.query("id") + "/new1"));
+//      app.get("/new/:id", (req, resp) -> resp.send("new2/" + req.query("id")));
 //      app.get("/new", (req, resp) -> resp.send("new"));
-//      app.get("/:id", (req, resp) -> resp.send("id=" + req.param("id")));
+//      app.get("/:id", (req, resp) -> resp.send("id=" + req.query("id")));
 //    }
 //  }
 //

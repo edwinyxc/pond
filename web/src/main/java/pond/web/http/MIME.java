@@ -8,7 +8,7 @@ import java.util.HashMap;
  * Map attachment extensions to MIME types. Based on the Apache mime.types attachment.
  * http://www.iana.org/assignments/media-types/
  */
-public class MimeTypes {
+public class MIME {
 
   public static final String MIME_APPLICATION_ANDREW_INSET = "application/andrew-inset";
   public static final String MIME_APPLICATION_JSON = "application/json";

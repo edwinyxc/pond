@@ -18,7 +18,7 @@ public class ArrayTest {
     assertArrayEquals(new int[]{12, 2, 3, 14, 15},
                       (int[]) Convert.toPrimitiveArray(joined));
 
-    joined = S.array(12, 2, 3, 14, 15).joinArray(new Integer[0]);
+    joined = S.array(12, 2, 3, 14, 15).joinArray(0, new Integer[0]);
     assertArrayEquals(new int[]{12, 0, 2, 0, 3, 0, 14, 0, 15},
                       (int[]) Convert.toPrimitiveArray(joined));
   }

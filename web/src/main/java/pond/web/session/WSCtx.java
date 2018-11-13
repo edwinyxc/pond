@@ -9,58 +9,62 @@
 ///**
 // * Created by ed on 21/02/17.
 // */
-//public class WSCtx extends HttpCtx{
+//public class WSCtx extends HttpCtx {
 //
-//  WebSocketServerHandshaker handshaker;
+//    WebSocketServerHandshaker handshaker;
 //
-//  Callback.C2<String, WSCtx> onMessageHandler = (msg, ctx) -> {};
-////  Callback<WSCtx> onOpenHandler =  ctx -> {};
-//  Callback<WSCtx> onCloseHandler = (ctx)-> {};
+//    Callback.C2<String, WSCtx> onMessageHandler = (msg, ctx) -> {
+//    };
+//    //  Callback<WSCtx> onOpenHandler =  ctx -> {};
+//    Callback<WSCtx> onCloseHandler = (ctx) -> {
+//    };
 //
-//  public WSCtx(HttpCtx ctx, WebSocketServerHandshaker handshaker) {
-//    super(ctx.nettyRequest, ctx.context, ctx.isKeepAlive, ctx.isMultipart, ctx.inboundByteBuf);
-//    this.handshaker = handshaker;
-//    //TODO ctx.copyContentTo(this);
-//    //merge all other information
-//  }
+//    public WSCtx(HttpCtx ctx, WebSocketServerHandshaker handshaker) {
+//        super(ctx.nettyRequest, ctx.context, ctx.isKeepAlive, ctx.bodyIsMultipart, ctx.inboundByteBuf);
+//        this.handshaker = handshaker;
+//        //TODO ctx.copyContentTo(this);
+//        //merge headers other information
+//    }
 //
-//  public void onMessage(Callback.C2<String, WSCtx> handler){
-//      onMessageHandler = handler;
-//  }
+//    public void onMessage(Callback.C2<String, WSCtx> handler) {
+//        onMessageHandler = handler;
+//    }
 ////
 ////  public void onOpen(Callback<WSCtx> handler){
 ////    onOpenHandler = handler;
 ////  }
 //
-//  public void onClose(Callback<WSCtx> handler){
-//    onCloseHandler = handler;
-//  }
+//    public void onClose(Callback<WSCtx> handler) {
+//        onCloseHandler = handler;
+//    }
 //
 //
-//  public void close() {
-//    this.onCloseHandler.apply(this);
-//    this.context.close();
-//  }
+//    public void close() {
+//        this.onCloseHandler.apply(this);
+//        this.context.close();
+//    }
 //
-//  /**
-//   * 暂时不考虑半包、黏包和数据过长问题
-//   * @param msg
-//   */
-//  public void sendTextFrame(String msg){
-//    this.context.writeAndFlush(new TextWebSocketFrame(msg));
-//  }
+//    /**
+//     * 暂时不考虑半包、黏包和数据过长问题
+//     *
+//     * @query msg
+//     */
+//    public void sendTextFrame(String msg) {
+//        this.context.writeAndFlush(new TextWebSocketFrame(msg));
+//    }
 //
-//  /**
-//   * 暂时不考虑半包、黏包和数据过长问题
-//   * @param byteBuf
-//   */
-//  public void sendBinaryFrame(ByteBuf byteBuf){
-//    this.context.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
-//  }
+//    /**
+//     * 暂时不考虑半包、黏包和数据过长问题
+//     *
+//     * @query byteBuf
+//     */
+//    public void sendBinaryFrame(ByteBuf byteBuf) {
+//        this.context.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
+//    }
 //
-//  @Override
-//  public void send(String msg) {
-//    this.sendTextFrame(msg);
-//  }
+//    @Override
+//    public void send(String msg) {
+//        this.sendTextFrame(msg);
+//    }
 //
 //}
