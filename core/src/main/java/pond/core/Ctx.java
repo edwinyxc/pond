@@ -11,6 +11,19 @@ import java.util.concurrent.SubmissionPublisher;
 
 import static pond.common.f.Tuple.pair;
 
+/**
+ *
+ * <p>A Context delegation with a lot of helpful methods </p>
+ * <p>
+ *     Stateful Context for Executive-Continuation
+ * </p>
+ * @see Ctx#runReactiveFlow(ReactiveFlowConfig)
+ * @see Ctx#bind()
+ * @see Entry
+ * @see Context
+ * @see Ctx#get(Entry)
+ * @since java11
+ */
 @FunctionalInterface
 public interface Ctx {
 
@@ -22,9 +35,14 @@ public interface Ctx {
 
     Context delegate();
     /**
-     * Short hand for delegate
-     * use like this var x = (Ctx & CtxHttp & CtxXXX.XXX)ctx::bind
-     * @return
+     * Short hand for delegate. A functional interface is
+     * capable to cast to any type of its derived interfaces
+     * or their intersection types, typical usage:
+     *  <p>
+     *      //using functional delegation and intersection types
+     *      {@code var a = (HttpCtx & Ctx & StaticFileServerCtx)ctx::bind}
+     *  </p>
+     * @return the delegated Context usually you don't need
      */
     default Context bind() {
         return delegate();
@@ -91,7 +109,7 @@ public interface Ctx {
     @SuppressWarnings("unchecked")
     default <T> T get(Entry<T> key) {
         if(key == SELF)  return (T) this;
-        return (T) this.delegate().properties().get(key.key);
+        return (T) Optional.ofNullable(this.delegate().properties().get(key.key)).orElse(key.nil);
     }
 
     default <T> Ctx set(Entry<T> key, T value) {
@@ -135,20 +153,33 @@ public interface Ctx {
     }
 
     /**
-     *
+     * <ul>
      * Run this Ctx in a Completion Reactive-Flow thus,
+     * <li>
      * a) Each CtxHandler is converted to a CtxHandler.Flow targeted to Ctx.CtxFlowProcessor by default
-     *    except those has defined already (target to an external Subscriber)
+     * except those has defined already (target to an external Subscriber)
+     * </li>
+     * <li>
      * b) Publish Ctx to CtxFlowProcessor defined in CtxHandler.Flow.target
+     * </li>
+     * <li>
      * c) Run executables synchronously in the current thread UNTIL that
      *    CtxHandler.Flow's target is pointed to another Subscriber.
      *    Then submit the Ctx to it in this case.
      *    The target subscriber MUST BE subscribed to this.flowProcessor and promise to submit Ctx back in same manner.
      *    Consider CtxFlowProcessor be the target as your first choice.
+     * </li>
+     * <li>
      * d) Completion is promised in this pattern, the final state is the Ctx itself.
-     *
-     * PS: This is a Observable-Command combined pattern (Command: CtxHandler; Observable: CtxFlowProcessor(Ctx))
-     * All hail to ReactiveStreams!!!
+     * </li>
+     * <li>
+     * PS: This is a Observable-Command combined pattern
+     * <br/>
+     * (Command -> CtxHandler; Observable -> CtxFlowProcessor(Ctx))
+     * <br/>
+     * <strong>All hail to ReactiveStreams!!!</strong>
+     * </li>
+     * </ul>
      */
     default void runReactiveFlow(ReactiveFlowConfig config) {
         //create a job publisher
@@ -175,6 +206,10 @@ public interface Ctx {
         temp_publisher.close();
     }
 
+    /**
+     * Run Reactiveflow with default config
+     *
+     */
     default void runReactiveFlow() {
         runReactiveFlow(ReactiveFlowConfig.DEFAULT);
     }

@@ -7,6 +7,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Map;
 
 public interface Contract {
 
@@ -142,6 +143,11 @@ public interface Contract {
         }
         @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Number{}
         @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Int{}
+
+        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface JSON{
+            String name();
+            Class<?> type() default Map.class;
+        }
 
     }
 

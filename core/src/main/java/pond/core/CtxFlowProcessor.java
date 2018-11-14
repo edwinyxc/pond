@@ -10,6 +10,11 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.SubmissionPublisher;
 
 
+/**
+ * A Reactive Processor bound ta an Executor,
+ * Taking Ctx and dispatch to the next
+ * @see Ctx#runReactiveFlow(Ctx.ReactiveFlowConfig)
+ */
 public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.util.concurrent.Flow.Processor<Ctx, Ctx>{
 
     private java.util.concurrent.Flow.Subscription subscription;
@@ -17,8 +22,13 @@ public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.u
     private String name;
     private Executor executor = null;
     private Callback<Throwable> onError = Throwable::printStackTrace;
+    private CtxFlowProcessor last;
     private Callback<Ctx> onFinal = ctx -> {
-        S.echo("Last but not least !!!");
+        S.echo("Last but not least !!! Calling Ctx#flowProcessor");
+        if(last != null || (last = ctx.flowProcessor()) != null){
+            S.echo(last);
+            last.onFinal.apply(ctx);
+        }
     };
 
     public CtxFlowProcessor(String name){
@@ -69,6 +79,7 @@ public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.u
         if(exec != null) {
             if(exec instanceof CtxHandler.Flow ){
                 if(((CtxHandler.Flow) exec).targetSubscriber() != this){
+                    last = ((CtxHandler.Flow) exec).targetSubscriber();
                     //rx
                     CtxFlowProcessor target = ((CtxHandler.Flow) exec).targetSubscriber();
                     //prevent ring publishing

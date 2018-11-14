@@ -1,5 +1,15 @@
 package pond.common.f;
 
+/**
+ * Callback function, that is a function consume parameters and return void (not return at all).
+ * Another version of java.utl.function.*, But the author perfer the Scala-like style
+ * -- to put the return type first and using Decimal to represent parameters length.
+ * i.e."Action" "Consumer" "BiConsumer" is now a shorter syntax of C0, Callback, C2
+ *
+ * @see java.util.function.Consumer
+ * @see java.util.concurrent.Callable
+ */
+@FunctionalInterface
 @SuppressWarnings("all")
 public interface Callback<A> {
 

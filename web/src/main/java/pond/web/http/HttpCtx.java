@@ -94,11 +94,15 @@ public interface HttpCtx extends CtxNet {
         return response(HttpResponseStatus.OK);
     }
 
-    default <T> void result(Callback.C2<Ctx, T> result, T value) {
+    default Send.ResponseBuilder response(int code) {
+        return response(HttpResponseStatus.valueOf(code));
+    }
+
+    default <T> void result(Callback.C2<HttpCtx, T> result, T value) {
         result.apply(this, value);
     }
 
-    default void result(Callback.C2<Ctx, Void> result) {
+    default void result(Callback.C2<HttpCtx, Void> result) {
         result.apply(this, null);
     }
 

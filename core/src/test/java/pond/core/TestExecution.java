@@ -96,7 +96,7 @@ public class TestExecution {
 
         CtxFlowProcessor log = new CtxFlowProcessor("log");
         CtxFlowProcessor hello = new CtxFlowProcessor("hello");
-        CtxFlowProcessor another = new CtxFlowProcessor("another");
+        CtxFlowProcessor another = new CtxFlowProcessor("another").executor(Executors.newFixedThreadPool(4));
         CtxBase base = new CtxBase();
         var ctx = (Ctx & CtxRunner & CtxLogger) () -> base;
 

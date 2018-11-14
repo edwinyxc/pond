@@ -17,6 +17,10 @@ public class Convert {
         } else return Boolean.parseBoolean(String.valueOf(obj));
     }
 
+    public static Boolean toBoolean(Object obj){
+        return toBoolean(obj, false);
+    }
+
     public static Integer toInt(Object obj) {
         if (obj == null) return null;
         if (obj instanceof Integer) {

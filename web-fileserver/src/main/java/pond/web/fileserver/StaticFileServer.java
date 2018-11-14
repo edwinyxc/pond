@@ -5,6 +5,9 @@ import org.slf4j.LoggerFactory;
 import pond.core.CtxHandler;
 import pond.web.http.HttpCtx;
 
+/**
+ * !!!Important, for test purpose only, do not use it in production environments
+ */
 public interface StaticFileServer extends CtxHandler<HttpCtx> {
 
   String HTTP_DATE_FORMAT = "http_date_format";

@@ -80,6 +80,7 @@ public class Tuple<A, B> {
     public static <A, B, C, D, E, F, G > T7 < A, B, C, D, E, F, G > t7(A a, B b, C c, D d, E e, F f, G g) {
         return new T7<>(a, b, c, d, e, f, g);
     }
+
     public static class Unit<T> {
         protected T val;
 

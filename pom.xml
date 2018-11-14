@@ -61,7 +61,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <enforcer.plugin.version>3.0.0-M1</enforcer.plugin.version>
-        <javaHome>${env.JAVA_HOME}</javaHome>
         <argLine.common>
             -server
             -XX:+HeapDumpOnOutOfMemoryError

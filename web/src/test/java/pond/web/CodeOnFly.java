@@ -41,7 +41,7 @@ public class CodeOnFly {
     };
 
     public static CtxHandler<HttpCtx> send = ctx -> {
-        var send = (HttpCtx.Send)ctx::bind;
+        var send = (HttpCtx.Send & HttpCtx.Headers)ctx::bind;
         send.send(
             ctx.response(HttpResponseStatus.OK)
             .write("Hello").build()
