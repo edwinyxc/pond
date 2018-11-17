@@ -24,15 +24,15 @@ public enum Criterion {
   BETWEEN("btwn", (k) -> o -> format("(%s BETWEEN ? and ?)", k)),
   IN("in", (k) -> o ->
       o.length > 0
-          ? (k + " IN (" + String.join(",", _for( o ).map(i -> "?").joinArray(String::new)) + ")")
+          ? (k + " IN (" + String.join(",", _for( o ).map(i -> "?").toArray(String[]::new)) + ")")
           : "1 <> 1"
   ),
   IN_OR_NULL("in_or_null", (k) -> o ->
       o.length > 0
-          ? (" ( " + k + " IN (" + String.join(",", _for((String[]) o).map(i -> "?").joinArray(String::new)) + ") OR " + k + " IS NULL ) ")
+          ? (" ( " + k + " IN (" + String.join(",", _for((String[]) o).map(i -> "?").toArray(String[]::new)) + ") OR " + k + " IS NULL ) ")
           : "1 <> 1"
   ),
-  NOT_IN("nin", (k) -> o -> k + " NOT IN (" + String.join(",", _for((String[]) o).map(i -> "?").joinArray(String::new)) + ")");
+  NOT_IN("nin", (k) -> o -> k + " NOT IN (" + String.join(",", _for((String[]) o).map(i -> "?").toArray(String[]::new)) + ")");
   /**
    * URL:
    */

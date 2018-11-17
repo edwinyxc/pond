@@ -82,7 +82,7 @@ public class PerformanceTest {
       Connection conn = cp.getConnection();
       long time_conn = S.now();
       ResultSet rs = conn.
-          prepareStatement("SELECT title, count(*)  percent FROM p_test GROUP BY title")
+          prepareStatement("SELECT title, size(*)  percent FROM p_test GROUP BY title")
           .executeQuery();
       List r = new ArrayList<>();
       while (rs.next()) {

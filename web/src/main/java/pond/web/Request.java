@@ -68,10 +68,10 @@ public interface Request {
         var body = (HttpCtx.Body)ctx()::bind;
         if(body.bodyIsMultipart()){
             try {
-                return body.bodyAsMultipart().params();
+                return body.bodyAsMultipart().attrs();
             } catch (IllegalAccessException ignore) { }
         }
-        return body.params();
+        return body.bodyAsForm();
     }
 
     default Map<String, List<FileUpload>> files(){

@@ -26,6 +26,13 @@ public class MyDummy {
     }
 
     @GET
+    @Route("rename")
+    public Integer test_name_override(HttpCtx ctx, Request req, Response resp) {
+        assert ctx != null && req != null && resp != null;
+        return 0;
+    }
+
+    @GET
     public Integer read(){
         return count;
     }

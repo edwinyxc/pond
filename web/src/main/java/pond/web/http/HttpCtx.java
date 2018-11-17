@@ -14,7 +14,6 @@ import pond.common.STREAM;
 import pond.common.STRING;
 import pond.common.f.Callback;
 import pond.common.f.Tuple;
-import pond.core.Ctx;
 import pond.core.Entry;
 import pond.net.CtxNet;
 import pond.net.NetServer;
@@ -47,6 +46,7 @@ public interface HttpCtx extends CtxNet {
     Entry<Map<String, List<String>>> HEADERS = new Entry<>(HttpCtx.class, "HEADERS");
     Entry<Set<Cookie>> COOKIES = new Entry<>(HttpCtx.class, "COOKIES");
     Entry<Body.FormData> FORM_DATA = new Entry<>(HttpCtx.class, "FORM_DATA");
+    Entry<Map<String, List<String>>> BODY_FORM = new Entry<>(HttpCtx.class, "BODY_FORM");
     Entry<Send.ResponseBuilder> RESPONSE_BUILDER = new Entry<>(HttpCtx.class, "RESPONSE_BUILDER");
 
 //
@@ -196,7 +196,7 @@ public interface HttpCtx extends CtxNet {
                 this.decoder = decoder;
             }
 
-            public Map<String, List<String>> params() {
+            public Map<String, List<String>> attrs() {
                 return _a;
             }
 
@@ -222,7 +222,7 @@ public interface HttpCtx extends CtxNet {
                                         throw new RuntimeException(e);
                                     }
                                 });
-                                appendToMap(params(), attr.getName(), attr.getValue());
+                                appendToMap(attrs(), attr.getName(), attr.getValue());
                                 break;
                             }
                             case FileUpload: {
@@ -280,12 +280,12 @@ public interface HttpCtx extends CtxNet {
             return JSON.parse(bodyAsString(CharsetUtil.UTF_8));
         }
 
-        default Map<String, List<String>> params(Charset charset) {
-            return new QueryStringDecoder(bodyAsString(charset)).parameters();
+        default Map<String, List<String>> bodyAsForm(Charset charset) {
+            return this.getOrPutDefault(BODY_FORM, new QueryStringDecoder(bodyAsString(charset)).parameters());
         }
 
-        default Map<String, List<String>> params() {
-            return new QueryStringDecoder(bodyAsString(CharsetUtil.UTF_8)).parameters();
+        default Map<String, List<String>> bodyAsForm() {
+            return bodyAsForm(CharsetUtil.UTF_8);
         }
 
     }
@@ -588,11 +588,11 @@ public interface HttpCtx extends CtxNet {
 
     interface Lazy extends HttpCtx {
         default Request req() {
-            return () -> this;
+            return getOrPutDefault(REQ,() -> this);
         }
 
         default Response resp() {
-            return () -> this;
+            return getOrPutDefault(RESP, () -> this);
         }
 
     }

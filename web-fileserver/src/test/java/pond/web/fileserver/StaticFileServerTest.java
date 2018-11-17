@@ -1,5 +1,6 @@
 package pond.web.fileserver;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import pond.common.S;
 import pond.net.NetServer;
@@ -13,7 +14,7 @@ import static org.junit.Assert.*;
 
 public class StaticFileServerTest {
 
-    @Test
+    @Test @Ignore
     public void watch() throws ExecutionException, InterruptedException {
         new NetServer(new HttpConfigBuilder()
                           .handler(new Router(app -> {

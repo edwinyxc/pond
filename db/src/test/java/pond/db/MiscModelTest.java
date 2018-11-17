@@ -9,6 +9,8 @@ import pond.db.connpool.ConnectionPool;
 
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static pond.common.S._for;
 
 /**
@@ -40,7 +42,7 @@ public class MiscModelTest {
     Record r = rlist.get(0);
     Integer value = r.get("value");
     S.echo("VALUE", value);
-    Assert.assertEquals(null,value );
+    assertNull(value);
   }
 
   @Test
@@ -52,16 +54,16 @@ public class MiscModelTest {
 
     S.echo(S.dump(rlist));
 
-    Assert.assertEquals(233333, v);
+    assertEquals(233333, v);
 
   }
 
 
   @Test
   public void testExist() {
-    Assert.assertEquals(Boolean.TRUE, db.get(t -> t.recordExists(TestModel.class, "2333")));
-    Assert.assertEquals(Boolean.FALSE, db.get(t -> t.recordExists(TestModel.class, "111")));
-    Assert.assertEquals(Boolean.FALSE, db.get(t -> t.recordExists(TestModel.class, "")));
+    assertEquals(Boolean.TRUE, db.get(t -> t.recordExists(TestModel.class, "2333")));
+    assertEquals(Boolean.FALSE, db.get(t -> t.recordExists(TestModel.class, "111")));
+    assertEquals(Boolean.FALSE, db.get(t -> t.recordExists(TestModel.class, "")));
   }
 
 

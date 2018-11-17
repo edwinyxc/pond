@@ -17,6 +17,12 @@ public class Convert {
         } else return Boolean.parseBoolean(String.valueOf(obj));
     }
 
+    public static Byte toByte(Object obj) {
+        if (obj instanceof Byte) {
+            return (Byte) obj;
+        } else return Byte.parseByte(String.valueOf(obj));
+    }
+
     public static Boolean toBoolean(Object obj){
         return toBoolean(obj, false);
     }

@@ -126,8 +126,8 @@ public class JDBCTmpl implements Closeable {
 //    public <R> Page<R> page(Function<?, ResultSet> mapper,
 //                            Page<R> page ) {
 //        List<R> r = query(rs_mapper, page.querySql());
-//        int count = (Integer) _for(query(counter,page.querySql())).limit();
-//        return page.fulfill(r, count);
+//        int size = (Integer) _for(query(counter,page.querySql())).limit();
+//        return page.fulfill(r, size);
 //    }
 
   public <R extends Record> List<R> query(Class<R> clazz,
@@ -407,7 +407,7 @@ public class JDBCTmpl implements Closeable {
         values.add(Tuple.t2(e.getKey(), e.getValue()));
     });
 
-    String[] keys = _for(values).map(t -> t._a).joinArray(String::new);
+    String[] keys = _for(values).map(t -> t._a).toArray(String[]::new);
 
     //TODO
     SqlInsert sql = Sql.insert().dialect(this.db.dialect);
@@ -442,7 +442,7 @@ public class JDBCTmpl implements Closeable {
     Map<String, Object> db = record.db();
 
     _for(db).each(e -> sets.add(Tuple.t2(e.getKey(), e.getValue())));
-    String[] keys = _for(sets).map(t -> t._a).joinArray(String::new);
+    String[] keys = _for(sets).map(t -> t._a).toArray(String[]::new);
     //TODO
     SqlUpdate sql = Sql.update(record.table()).dialect(this.db.dialect);
     sql.set(ARRAY.of(sets)).where(record.idName(), Criterion.EQ, (String) record.id());

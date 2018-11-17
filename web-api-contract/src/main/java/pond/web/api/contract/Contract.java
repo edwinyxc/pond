@@ -105,49 +105,8 @@ public interface Contract {
     }
 
     interface Parameters {
-        String NAME_AS_DEFAULT = "_";
         @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Name{ String value(); }
         @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Required{ String value(); }
-        enum IN {
-            ANY, QUERIES, PATH, HEADER, COOKIE, BODY_XML, BODY_JSON, BODY_FORM, BODY_RAW, CTX
-        }
-        enum SCHEMA {
-            ANY, STR,STR_DATE, LONG_DATE, INT, BOOL, NUMBER, ARRAY, REQ, RESP, CTX
-        }
-
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Header{
-            String value() default NAME_AS_DEFAULT;
-        }
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Cookie{
-            String value();
-        }
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Query{ String value() default NAME_AS_DEFAULT;}
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Path{ String value() default NAME_AS_DEFAULT;}
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface BodyForm {
-            String value() default NAME_AS_DEFAULT;
-            Class<?> type() default Object.class;
-        }
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface BodyJson {
-            String value() default NAME_AS_DEFAULT;
-            Class<?> type() default Object.class;
-        }
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface BodyXml{
-            String value() default NAME_AS_DEFAULT;
-            Class<?> type() default Object.class;
-        }
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Body{ String value() default NAME_AS_DEFAULT;}
-
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface LongToDate{}
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface StringToDate{
-            String value() default "yyyy-MM-dd HH:mm:ss";
-        }
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Number{}
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Int{}
-
-        @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface JSON{
-            String name();
-            Class<?> type() default Map.class;
-        }
 
     }
 

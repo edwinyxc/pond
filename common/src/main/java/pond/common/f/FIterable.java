@@ -5,6 +5,7 @@ import pond.common.S;
 import pond.common.f.Function.F0;
 
 import java.util.*;
+import java.util.function.IntFunction;
 
 /**
  * Another version of data stream, run on single thread, suitable for small amount of data
@@ -22,15 +23,22 @@ public interface FIterable<E> extends Iterable<E> {
      * @param <R>    Mapped Return Type
      * @return Mapped iterable
      */
+    <R> FIterable<R> map(Function.F3<R, E, Integer, FIterable<E>> mapper);
     default <R> FIterable<R> map(Function<R, E> mapper) {
         return map((e, i, all) -> mapper.apply(e));
     }
-
     default <R> FIterable<R> map(Function.F2<R, E, Integer> mapper) {
         return map((e, i, all) -> mapper.apply(e, i));
     }
 
-    <R> FIterable<R> map(Function.F3<R, E, Integer, FIterable<E>> mapper);
+
+    <R> FIterable<R> flatMap(Function.F3<FIterable<R>, E, Integer, FIterable<E>> mapper);
+    default <R> FIterable<R> flatMap(Function<FIterable<R>, E> mapper){
+        return flatMap((e, i, all) -> mapper.apply(e));
+    }
+    default <R> FIterable<R> flatMap(Function.F2<FIterable<R>, E, Integer> mapper){
+        return flatMap((e, i, all) -> mapper.apply(e, i));
+    }
 
     /**
      * Make a reduction on the iterable items.
@@ -124,11 +132,9 @@ public interface FIterable<E> extends Iterable<E> {
      * @param sgl
      * @return
      */
-    default E[] joinArray(F0<E> sgl) {
-        E e = sgl.apply();
-        return joinArray(
-                (E[]) java.lang.reflect.Array.newInstance(e.getClass(), 0)
-        );
+    default E[] joinArray(F0<E[]> sgl) {
+        E[] e = sgl.apply();
+        return joinArray(e);
     }
 
     /**
@@ -259,13 +265,8 @@ public interface FIterable<E> extends Iterable<E> {
         });
     }
 
-    /**
-     * this method will be delete in the next version
-     */
-    @Deprecated
-    default Iterable<E> val() {
-        return this;
-    }
+    int size();
+
 
     default List<E> toList() {
         return collect(new ArrayList<>());
@@ -275,7 +276,9 @@ public interface FIterable<E> extends Iterable<E> {
         return collect(new HashSet<>());
     }
 
-    default E[] toArray(E[] array) {
-        return collect(new ArrayList<>()).toArray(array);
+    default <A> A[] toArray(IntFunction<A[]> generator) {
+        return toArray(generator.apply(this.size()));
     }
+
+    <A> A[] toArray(A[] array);
 }

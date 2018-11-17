@@ -57,7 +57,7 @@ public class ConcurrentTest {
     }, 10);
 
     try {
-      CompletableFuture.allOf(S._for(futures).joinArray(CompletableFuture::new)).thenRun(() -> {
+      CompletableFuture.allOf(S._for(futures).toArray(CompletableFuture[]::new)).thenRun(() -> {
         long beforeSelect = S.now();
         S._for((List<Record>) db.get(t -> t.query("SELECT * FROM test")));
         S.echo("Query time:" + (S.now() - beforeSelect));

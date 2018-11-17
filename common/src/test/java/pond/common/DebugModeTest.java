@@ -5,6 +5,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  * Created by ed on 15-7-1.
  */
@@ -15,14 +18,14 @@ public class DebugModeTest {
   public void test() {
     S._debug_on(DebugModeTest.class);
     S._debug(logger1, log -> {
-      Assert.assertTrue(true);
+      assertTrue(true);
       S.echo("333");
       log.info("this is debugger output");
     });
 
     S._debug_off(DebugModeTest.class);
     S._debug(logger1, log -> {
-      Assert.assertTrue(false);
+      fail();
       log.info("i mustn't be here");
     });
   }

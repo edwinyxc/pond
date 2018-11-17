@@ -317,6 +317,7 @@ public class S {
    *
    * Create a "for" iteration -- map version
    */
+  @Deprecated
   public static <K, V> ForMap<K, V> _for(Map<K, V> c) {
     return new ForMap<>(c);
   }
@@ -398,6 +399,7 @@ public class S {
    * @param <K>
    * @param <V>
    */
+  @Deprecated
   public final static class ForMap<K, V> {
 
     private final Map<K, V> map;

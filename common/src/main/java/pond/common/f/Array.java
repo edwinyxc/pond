@@ -12,16 +12,16 @@ import java.util.*;
  */
 public class Array<E> implements FIterable<E> {
 
-    private List<Function.F0<E>> supplier = new LinkedList<>();
+    private List<Function.F0<E>> suppliers = new LinkedList<>();
 
     public Array() {
     }
 
     private <F> Array(Array<F> old, Function.F3<E, F, Integer, FIterable<F>> mapper) {
-        for (int i = 0; i < old.supplier.size(); i++) {
-            Function.F0<F> os = old.supplier.get(i);
+        for (int i = 0; i < old.suppliers.size(); i++) {
+            Function.F0<F> os = old.suppliers.get(i);
             int finalIndex = i;
-            this.supplier.add(() -> mapper.apply(os.apply(), finalIndex, old));
+            this.suppliers.add(() -> mapper.apply(os.apply(), finalIndex, old));
         }
     }
 
@@ -29,13 +29,13 @@ public class Array<E> implements FIterable<E> {
     @SafeVarargs
     public Array(E... data) {
         for (E e : data) {
-            supplier.add(() -> e);
+            suppliers.add(() -> e);
         }
     }
 
     public Array(Iterable<E> iterable) {
         for (E e : S.avoidNull(iterable, Collections.<E>emptyList())) {
-            supplier.add(() -> e);
+            suppliers.add(() -> e);
         }
     }
 
@@ -46,10 +46,19 @@ public class Array<E> implements FIterable<E> {
     }
 
     @Override
+    public <R> FIterable<R> flatMap(Function.F3<FIterable<R>, E, Integer, FIterable<E>> mapper) {
+        var ret = new Array<R>();
+        for(int i = 0; i < suppliers.size(); i++ ) {
+            ret.concat(mapper.apply(suppliers.get(i).apply(), i, this));
+        }
+        return ret;
+    }
+
+    @Override
     public FIterable<E> filter(Function.F3<Boolean, E, Integer, FIterable<E>> judgement) {
         int index = 0;
         Function.F0<E> f0;
-        for (Iterator<Function.F0<E>> sp_iter = supplier.iterator(); sp_iter.hasNext(); ) {
+        for (Iterator<Function.F0<E>> sp_iter = suppliers.iterator(); sp_iter.hasNext(); ) {
             f0 = sp_iter.next();
             if (!judgement.apply(f0.apply(), index++, this)) {
                 sp_iter.remove();
@@ -64,7 +73,7 @@ public class Array<E> implements FIterable<E> {
         ACC acc;
         E cur;
         int index;
-        Iterator<Function.F0<E>> sp_iter = supplier.iterator();
+        Iterator<Function.F0<E>> sp_iter = suppliers.iterator();
         if (!sp_iter.hasNext()) return init;
         if (init != null) {
             acc = init;
@@ -93,24 +102,24 @@ public class Array<E> implements FIterable<E> {
 
     @Override
     public E[] joinArray(E[] arr) {
-        var size = this.supplier.size();
+        var size = this.suppliers.size();
         E[] ret = Arrays.copyOf(arr, size);
         for(int i =0; i < size; i ++) {
-            ret[i] = this.supplier.get(i).apply();
+            ret[i] = this.suppliers.get(i).apply();
         }
         return ret;
     }
 
     @Override
     public E[] joinArray(E sep, E[] arr) {
-        var size = this.supplier.size();
+        var size = this.suppliers.size();
         if(size <= 0)return Arrays.copyOf(arr, 0);
         size = size * 2 - 1;
         var ret = Arrays.copyOf(arr, size);
         int ii = 0;
         for(int i = 0; i <size ; i++){
             if(i % 2 == 0)
-                ret[i] = this.supplier.get(ii++).apply();
+                ret[i] = this.suppliers.get(ii++).apply();
             else ret[i] = sep;
         }
         return ret;
@@ -120,20 +129,20 @@ public class Array<E> implements FIterable<E> {
     @Override
     @SuppressWarnings("unchecked")
     public FIterable<E> reverse() {
-        Collections.reverse(supplier);
+        Collections.reverse(suppliers);
         return this;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public FIterable<E> concat(FIterable<E> iterable) {
-        supplier.addAll(((Array<E>) iterable).supplier);
+        suppliers.addAll(((Array<E>) iterable).suppliers);
         return this;
     }
 
     @Override
     public FIterable<E> limit(int i) {
-        supplier = supplier.subList(0, i);
+        suppliers = suppliers.subList(0, i);
         return this;
     }
 
@@ -147,7 +156,7 @@ public class Array<E> implements FIterable<E> {
 
     @Override
     public FIterable<E> slice(int startInclusively) {
-        return slice(startInclusively, this.supplier.size());
+        return slice(startInclusively, this.suppliers.size());
     }
 
     @Override
@@ -157,7 +166,7 @@ public class Array<E> implements FIterable<E> {
         S._assert(startInclusively < endExclusively, "Illegal arguments");
         Array<E> array = new Array<>();
         for (int i = startInclusively; i < endExclusively; i++) {
-            array.supplier.add(this.supplier.get(i));
+            array.suppliers.add(this.suppliers.get(i));
         }
         return array;
     }
@@ -201,11 +210,11 @@ public class Array<E> implements FIterable<E> {
         Array<E> _true = new Array<>();
         Array<E> _false = new Array<>();
         int index = 0;
-        for (Function.F0<E> e : this.supplier) {
+        for (Function.F0<E> e : this.suppliers) {
             if (predicate.apply(e.apply(), index++, this))
-                _true.supplier.add(e);
+                _true.suppliers.add(e);
             else
-                _false.supplier.add(e);
+                _false.suppliers.add(e);
         }
         return new Partition<>(_true, _false);
     }
@@ -219,11 +228,30 @@ public class Array<E> implements FIterable<E> {
         return ret;
     }
 
+    @Override
+    public <A> A[] toArray(A[] array) {
+        A[] ret = array;
+        if(array.length != this.suppliers.size()){
+            ret = Arrays.copyOf(array, suppliers.size());
+        }
+        int i = 0;
+        for(var s : suppliers) {
+            ret[i++] = (A) s.apply();
+        }
+
+        return ret;
+    }
+
+    @Override
+    public int size() {
+        return suppliers.size();
+    }
+
 
     @Override
     public Iterator<E> iterator() {
         return new Iterator<E>() {
-            Iterator<Function.F0<E>> _iter = supplier.iterator();
+            Iterator<Function.F0<E>> _iter = suppliers.iterator();
 
             @Override
             public boolean hasNext() {

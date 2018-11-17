@@ -4,7 +4,10 @@ import org.junit.Test;
 import pond.common.Convert;
 import pond.common.S;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -27,8 +30,8 @@ public class ArrayTest {
   @Test
   public void testMap() throws Exception {
     Array<String> arr = S.array("This", "is", "A", "GOOD", "Day");
-    assertArrayEquals(arr.map(str -> str.toUpperCase()).joinArray(new String[0]),
-                      S.array("THIS", "IS", "A", "GOOD", "DAY").joinArray(new String[0]));
+    assertArrayEquals(arr.map(str -> str.toUpperCase()).toArray(String[]::new),
+                      S.array("THIS", "IS", "A", "GOOD", "DAY").toArray(String[]::new));
   }
 
   @Test
@@ -101,6 +104,21 @@ public class ArrayTest {
     assertEquals(false, arr2.every(x -> x > 4));
     assertEquals(true, arr2.every(x -> x > 0));
   }
+
+  @Test
+  public void testFlatMap() {
+    List<Integer> f,s,t;
+    f = List.of(1,2,3);
+    s = List.of(2,4,6);
+    t = List.of(2,4,8);
+    List<List<Integer>> _2d_array = List.of(f,s,t);
+
+    var ret = S._for(_2d_array).flatMap(S::_for).toArray(Integer[]::new);
+    var ret_java_stream = _2d_array.stream().flatMap(Collection::stream).toArray(Integer[]::new);
+    S.echo("ret", ret);
+    S.echo("ret_java_stream", ret_java_stream);
+    assertArrayEquals(ret, ret_java_stream);
+}
 
   @Test
   public void testPartition() {

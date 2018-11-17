@@ -158,7 +158,7 @@
 //
 //  public void user_add(String uid, String name, JDBCTmpl t) {
 //
-//    if (t.count("SELECT COUNT(*) FROM rbac_user WHERE id = ?", uid) > 0)
+//    if (t.size("SELECT COUNT(*) FROM rbac_user WHERE id = ?", uid) > 0)
 //      throw new RuntimeException("User@" + uid + " already exists");
 //    else
 //      t.exec("INSERT INTO rbac_user VALUES(?,?)", uid, name);
@@ -174,8 +174,8 @@
 //  }
 //
 //  public void user_add_role(String uid, String rid, JDBCTmpl t) {
-//    int count = t.count("SELECT COUNT(*) FROM rbac_user_has_role WHERE user_id = ? and role_id = ?", uid, rid);
-//    if (count > 0) return;
+//    int size = t.size("SELECT COUNT(*) FROM rbac_user_has_role WHERE user_id = ? and role_id = ?", uid, rid);
+//    if (size > 0) return;
 //    t.exec("INSERT INTO rbac_user_has_role VALUES(?,?)", uid, rid);
 //  }
 //
@@ -184,7 +184,7 @@
 //  }
 //
 //  public boolean user_exists(String uid) {
-//    return db.get(t -> t.count("SELECT COUNT(*) FROM rbac_user WHERE id = ?", uid)) > 0;
+//    return db.get(t -> t.size("SELECT COUNT(*) FROM rbac_user WHERE id = ?", uid)) > 0;
 //  }
 //
 //  public void user_upd_name(String uid, String name, JDBCTmpl t) {
@@ -194,7 +194,7 @@
 //  }
 //
 //  public void role_add(String rid, String rolename, JDBCTmpl t) {
-//    if (t.count("SELECT COUNT(*) FROM rbac_role WHERE id = ?", rid) > 0)
+//    if (t.size("SELECT COUNT(*) FROM rbac_role WHERE id = ?", rid) > 0)
 //      throw new RuntimeException("Role@" + rid + " already exists");
 //    else
 //      t.exec("INSERT INTO rbac_role VALUES(?,?)", rid, rolename);
@@ -205,7 +205,7 @@
 //  }
 //
 //  public void role_upd(String rid, String rolename, JDBCTmpl t) {
-//    if (t.count("SELECT COUNT(*) FROM rbac_role WHERE id = ?", rid) > 0)
+//    if (t.size("SELECT COUNT(*) FROM rbac_role WHERE id = ?", rid) > 0)
 //      t.exec("UPDATE rbac_user SET rolename = ? WHERE id = ?", rolename, rid);
 //    else throw new RuntimeException("Role@" + rid + " not found");
 //  }
@@ -413,7 +413,7 @@
 //                           .map(record -> (String) record.get(lb_role_id)).toList());
 //    }
 //
-//    int user_count = db.get(t -> t.count("SELECT COUNT(*) FROM rbac_user_has_role WHERE user_id = ?", user));
+//    int user_count = db.get(t -> t.size("SELECT COUNT(*) FROM rbac_user_has_role WHERE user_id = ?", user));
 //    if (user_count < 1) {
 //      return new Roles(Collections.emptyList());
 //    }

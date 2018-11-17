@@ -25,17 +25,17 @@ public interface Table {
   public Table init(int i, int j, Object initVal) throws IOException;
 
   /**
-   * get columns count
+   * get columns size
    *
-   * @return count
+   * @return size
    */
   //TODO try to optimize to O(1)
   public int cols();
 
   /**
-   * get rows count
+   * get rows size
    *
-   * @return count
+   * @return size
    */
   //TODO try to optimize to O(1)
   public int rows();

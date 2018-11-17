@@ -187,7 +187,7 @@ public class ResultDef<T> implements Callback.C2<HttpCtx, T> {
      * send as application/json
      *
      * @param desc description of this result
-     * @return a lambda takes a Tuple (x-total-count:Integer, rows:T)
+     * @return a lambda takes a Tuple (x-total-size:Integer, rows:T)
      */
     public static <T> ResultDef<Tuple<T, Integer>> page(String desc) {
         return ResultDef
