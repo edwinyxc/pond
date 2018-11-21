@@ -1,4 +1,4 @@
 package pond.web.api.contract;
 
-public class Path {
+public class PathContract {
 }

@@ -15,6 +15,10 @@ public interface ParameterInContract<T extends Annotation> {
 
     String in();
 
+    String name(Annotation a);
+
+    boolean required(Annotation a);
+
     Optional<Object> provide(HttpCtx c, String name, Annotation a);
 
 
@@ -22,48 +26,56 @@ public interface ParameterInContract<T extends Annotation> {
     @Target({ElementType.PARAMETER})
     @interface Header {
         String value() default NAME_AS_DEFAULT;
+        boolean required() default false;
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER})
     @interface Cookie {
         String value();
+        boolean required() default false;
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER})
     @interface Query {
         String value() default NAME_AS_DEFAULT;
+        boolean required() default false;
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER})
     @interface Path {
         String value() default NAME_AS_DEFAULT;
+        boolean required() default true;
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER})
     @interface BodyForm {
         String value() default NAME_AS_DEFAULT;
+        boolean required() default false;
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER})
     @interface BodyMultipartAttribute {
         String value() default NAME_AS_DEFAULT;
+        boolean required() default false;
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER})
     @interface BodyMultipartUploadFile {
         String value() default NAME_AS_DEFAULT;
+        boolean required() default false;
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER})
     @interface BodyJson {
         String value() default NAME_AS_DEFAULT;
+        boolean required() default false;
     }
 
 //    @Retention(RetentionPolicy.RUNTIME)
@@ -96,6 +108,16 @@ public interface ParameterInContract<T extends Annotation> {
             }
 
             @Override
+            public String name(Annotation a) {
+                return ((Header) a).value();
+            }
+
+            @Override
+            public boolean required(Annotation a) {
+                return ((Header) a).required();
+            }
+
+            @Override
             public Optional<Object> provide(HttpCtx c, String name, Annotation a) {
                 assert a instanceof Header;
                 var real = ((Header) a).value().equals(NAME_AS_DEFAULT)
@@ -115,6 +137,16 @@ public interface ParameterInContract<T extends Annotation> {
         @Override
         public String in() {
             return "cookies";
+        }
+
+        @Override
+        public String name(Annotation a) {
+            return ((Cookie) a).value();
+        }
+
+        @Override
+        public boolean required(Annotation a) {
+            return ((Cookie) a).required();
         }
 
         @Override
@@ -139,6 +171,16 @@ public interface ParameterInContract<T extends Annotation> {
         }
 
         @Override
+        public String name(Annotation a) {
+            return ((Query) a).value();
+        }
+
+        @Override
+        public boolean required(Annotation a) {
+            return ((Query) a).required();
+        }
+
+        @Override
         public Optional<Object> provide(HttpCtx c, String name, Annotation a) {
             assert a instanceof Query;
             var real = ((Query) a).value().equals(NAME_AS_DEFAULT)
@@ -157,6 +199,16 @@ public interface ParameterInContract<T extends Annotation> {
         @Override
         public String in() {
             return "path";
+        }
+
+        @Override
+        public String name(Annotation a) {
+            return ((Path)a).value();
+        }
+
+        @Override
+        public boolean required(Annotation a) {
+            return ((Path)a).required();
         }
 
         @Override
@@ -182,6 +234,16 @@ public interface ParameterInContract<T extends Annotation> {
         }
 
         @Override
+        public String name(Annotation a) {
+            return NAME_AS_DEFAULT;
+        }
+
+        @Override
+        public boolean required(Annotation a) {
+            return false;
+        }
+
+        @Override
         public Optional<Object> provide(HttpCtx c, String name, Annotation a) {
             assert a instanceof Body;
             var http = (HttpCtx.Body) c::bind;
@@ -199,6 +261,16 @@ public interface ParameterInContract<T extends Annotation> {
         @Override
         public String in() {
             return "body-form";
+        }
+
+        @Override
+        public String name(Annotation a) {
+            return ((BodyForm) a).value();
+        }
+
+        @Override
+        public boolean required(Annotation a) {
+            return ((BodyForm) a).required();
         }
 
         @Override
@@ -223,6 +295,16 @@ public interface ParameterInContract<T extends Annotation> {
         }
 
         @Override
+        public String name(Annotation a) {
+            return ((BodyJson)a).value();
+        }
+
+        @Override
+        public boolean required(Annotation a) {
+            return ((BodyJson)a).required();
+        }
+
+        @Override
         public Optional<Object> provide(HttpCtx c, String name, Annotation a) {
             assert a instanceof BodyJson;
             var real = ((BodyJson) a).value().equals(NAME_AS_DEFAULT)
@@ -241,6 +323,16 @@ public interface ParameterInContract<T extends Annotation> {
         @Override
         public String in() {
             return "body-multipart-attribute";
+        }
+
+        @Override
+        public String name(Annotation a) {
+            return ((BodyMultipartAttribute)a).value();
+        }
+
+        @Override
+        public boolean required(Annotation a) {
+            return ((BodyMultipartAttribute)a).required();
         }
 
         @Override
@@ -268,6 +360,16 @@ public interface ParameterInContract<T extends Annotation> {
         @Override
         public String in() {
             return "body-multipart-uploadfile";
+        }
+
+        @Override
+        public String name(Annotation a) {
+            return ((BodyMultipartUploadFile)a).value();
+        }
+
+        @Override
+        public boolean required(Annotation a) {
+            return ((BodyMultipartUploadFile)a).required();
         }
 
         @Override

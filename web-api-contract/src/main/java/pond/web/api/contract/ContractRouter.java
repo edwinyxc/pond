@@ -23,9 +23,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static pond.common.f.Tuple.pair;
-import static pond.web.api.contract.Parameter.IN.CTX;
-import static pond.web.api.contract.Parameter.IN.HEADER;
-import static pond.web.api.contract.Parameter.SCHEMA.*;
+import static pond.web.api.contract.ParameterObject.IN.CTX;
+import static pond.web.api.contract.ParameterObject.IN.HEADER;
+import static pond.web.api.contract.ParameterObject.SCHEMA.*;
 
 public class ContractRouter extends Router {
 
@@ -174,11 +174,11 @@ public class ContractRouter extends Router {
 
             var method_params_result = new ArrayList<Tuple.T7<
                     Integer, String, Class<?>,
-                                                                 Parameter.IN,
-                                                                 Parameter.SCHEMA,
+                                                                 ParameterObject.IN,
+                                                                 ParameterObject.SCHEMA,
                     Annotation, Boolean>>();
 
-            //parameters
+            //parameterObjects
             var method_params = method.getParameters();
             for (var param_def : method_params) {
                 String name;
@@ -218,41 +218,41 @@ public class ContractRouter extends Router {
 
                 var anno_param = param_def.getAnnotations();
 
-                Parameter.IN in = null;
-                Parameter.SCHEMA schema = null;
+                ParameterObject.IN in = null;
+                ParameterObject.SCHEMA schema = null;
                 Annotation annotation = null;
 
                 for (var tag : anno_method) {
                     if (tag instanceof ParameterInContract.Path) {
-                        in = Parameter.IN.PATH;
+                        in = ParameterObject.IN.PATH;
                         break;
                     }
                     if (tag instanceof ParameterInContract.Query) {
-                        in = Parameter.IN.QUERIES;
+                        in = ParameterObject.IN.QUERIES;
                         break;
                     }
                     if (tag instanceof ParameterInContract.Header) {
-                        in = Parameter.IN.HEADER;
+                        in = ParameterObject.IN.HEADER;
                         break;
                     }
                     if (tag instanceof ParameterInContract.BodyForm) {
-                        in = Parameter.IN.BODY_FORM;
+                        in = ParameterObject.IN.BODY_FORM;
                         break;
                     }
                     if (tag instanceof ParameterInContract.BodyJson) {
-                        in = Parameter.IN.BODY_JSON;
+                        in = ParameterObject.IN.BODY_JSON;
                         break;
                     }
                     if (tag instanceof ParameterInContract.Body) {
-                        in = Parameter.IN.BODY_RAW;
+                        in = ParameterObject.IN.BODY_RAW;
                         break;
                     }
                     if (tag instanceof ParameterInContract.BodyXml) {
-                        in = Parameter.IN.BODY_XML;
+                        in = ParameterObject.IN.BODY_XML;
                         break;
                     }
                     if (tag instanceof ParameterInContract.Cookie) {
-                        in = Parameter.IN.COOKIE;
+                        in = ParameterObject.IN.COOKIE;
                         annotation = tag;
                         break;
                     }
@@ -260,35 +260,35 @@ public class ContractRouter extends Router {
 
                 if (type.isPrimitive() || S._is_wrapper_type(type)) {
                     if (type.equals(Integer.class) || type.equals(Integer.TYPE)) {
-                        schema = Parameter.SCHEMA.INT;
+                        schema = ParameterObject.SCHEMA.INT;
                     } else if (type.equals(Double.class) || type.equals(Double.TYPE)) {
-                        schema = Parameter.SCHEMA.NUMBER;
+                        schema = ParameterObject.SCHEMA.NUMBER;
                     } else if (type.equals(Float.class) || type.equals(Float.TYPE)) {
-                        schema = Parameter.SCHEMA.NUMBER;
+                        schema = ParameterObject.SCHEMA.NUMBER;
                     } else if (type.equals(Boolean.class) || type.equals(Boolean.TYPE)) {
-                        schema = Parameter.SCHEMA.BOOL;
+                        schema = ParameterObject.SCHEMA.BOOL;
                     } else throw new RuntimeException("UnSupported primitive type" + type);
                 } else if (type.isAssignableFrom(Date.class)) {
                     for (var tag : anno_method) {
                         if (tag instanceof ParameterSchemaContract.LongToDate) {
-                            schema = Parameter.SCHEMA.LONG_DATE;
+                            schema = ParameterObject.SCHEMA.LONG_DATE;
                             break;
                         }
                         if (tag instanceof ParameterSchemaContract.StringToDate) {
-                            schema = Parameter.SCHEMA.STR_DATE;
+                            schema = ParameterObject.SCHEMA.STR_DATE;
                             annotation = tag;
                             break;
                         }
                     }
-                    throw new RuntimeException("Parameter is declared as Date but no annotations provided. use LongToDate or StringToDate");
+                    throw new RuntimeException("ParameterObject is declared as Date but no annotations provided. use LongToDate or StringToDate");
                 } else if (type.isAssignableFrom(String.class)) {
-                    schema = Parameter.SCHEMA.STR;
+                    schema = ParameterObject.SCHEMA.STR;
                 } else {
-                    schema = Parameter.SCHEMA.ANY;
+                    schema = ParameterObject.SCHEMA.ANY;
                 }
 
-                if (in == null) in = Parameter.IN.ANY;
-                if (schema == null) schema = Parameter.SCHEMA.ANY;
+                if (in == null) in = ParameterObject.IN.ANY;
+                if (schema == null) schema = ParameterObject.SCHEMA.ANY;
                 method_params_result.add(pair(mask, name, type, in, schema, annotation, required));
             }
 
@@ -304,8 +304,8 @@ public class ContractRouter extends Router {
             S._for(method_params_result).map(t -> {
                 String name = t._b;
                 Class type = t._c;
-                Parameter.IN in = t._d;
-                Parameter.SCHEMA schema = t._e;
+                ParameterObject.IN in = t._d;
+                ParameterObject.SCHEMA schema = t._e;
                 Annotation a = t._f;
 
                 Function<Object, HttpCtx> valueProvider;
@@ -324,22 +324,22 @@ public class ContractRouter extends Router {
                         return pair(HttpCtx.REQ, null, name, type, schema, a, t._g);
                     } else if (schema == RESP) {
                         return pair(HttpCtx.RESP, null, name, type, schema, a, t._g);
-                    } else if (schema == Parameter.SCHEMA.CTX) {
+                    } else if (schema == ParameterObject.SCHEMA.CTX) {
                         return pair(Ctx.SELF, null, name, type, schema, a, t._g);
                     } else return pair(new Entry(type, name), null, name, type, schema, a, t._g);
                 }
 
-                if (in == Parameter.IN.PATH) {
+                if (in == ParameterObject.IN.PATH) {
                     valueProvider = ctx -> S._for((((HttpCtx.Queries) ctx::bind).inUrlParams().get(name))).first();
-                } else if (in == Parameter.IN.QUERIES) {
+                } else if (in == ParameterObject.IN.QUERIES) {
                     valueProvider = ctx -> (((HttpCtx.Queries) ctx::bind).query(name));
-                } else if (in == Parameter.IN.COOKIE) {
+                } else if (in == ParameterObject.IN.COOKIE) {
                     var CookieName = ((ParameterInContract.Cookie) a).value();
                     valueProvider = ctx -> Optional.of(((HttpCtx.Cookies) ctx::bind).cookie(CookieName))
                             .map(Cookie::value).orElse(null);
                 } else if (in == HEADER) {
                     valueProvider = ctx -> S._for((((HttpCtx.Headers) ctx::bind).headers().get(name))).first();
-                } else if (in == Parameter.IN.BODY_FORM) {
+                } else if (in == ParameterObject.IN.BODY_FORM) {
                     valueProvider = ctx -> {
                         var c = (HttpCtx.Body) ctx::bind;
                         try {
@@ -348,15 +348,15 @@ public class ContractRouter extends Router {
                             throw new RuntimeException(e);
                         }
                     };
-                } else if (in == Parameter.IN.BODY_XML) {
+                } else if (in == ParameterObject.IN.BODY_XML) {
                     //TODO
                     throw new RuntimeException("BODY_XML is not supported yet");
-                } else if (in == Parameter.IN.BODY_JSON) {
+                } else if (in == ParameterObject.IN.BODY_JSON) {
                     valueProvider = ctx -> {
                         var c = (HttpCtx.Body) ctx::bind;
                         return Optional.of(c.bodyAsJson()).map(m -> m.get(name)).orElse(null);
                     };
-                } else if (in == Parameter.IN.BODY_RAW) {
+                } else if (in == ParameterObject.IN.BODY_RAW) {
                     valueProvider = ctx -> {
                         var c = (HttpCtx.Body) ctx::bind;
                         return c.bodyAsRaw();
@@ -377,7 +377,7 @@ public class ContractRouter extends Router {
                 //Function<Object, HttpCtx> provider = tt._b;
                 String name = tt._c;
                 Class type = tt._d;
-                Parameter.SCHEMA schema = tt._e;
+                ParameterObject.SCHEMA schema = tt._e;
                 Annotation a = tt._f;
                 boolean required = tt._g;
                 //data validation and conversion here
@@ -389,16 +389,16 @@ public class ContractRouter extends Router {
                     S.echo("primitive validators", type);
                     required = true;
                     if (type.equals(Integer.class) || type.equals(Integer.TYPE)) {
-                        S._assert(schema == Parameter.SCHEMA.INT, "Schema defined as INT, but actually " + type);
+                        S._assert(schema == ParameterObject.SCHEMA.INT, "Schema defined as INT, but actually " + type);
                         convertFunc = (n, any) -> Convert.toInt(S.avoidNull(any, "0"));
                     } else if (type.equals(Double.class) || type.equals(Double.TYPE)) {
-                        S._assert(schema == Parameter.SCHEMA.NUMBER, "Schema defined as NUMBER, but actually " + type);
+                        S._assert(schema == ParameterObject.SCHEMA.NUMBER, "Schema defined as NUMBER, but actually " + type);
                         convertFunc = (n, any) -> Convert.toDouble(S.avoidNull(any, "0"));
                     } else if (type.equals(Float.class) || type.equals(Float.TYPE)) {
-                        S._assert(schema == Parameter.SCHEMA.NUMBER, "Schema defined as NUMBER, but actually " + type);
+                        S._assert(schema == ParameterObject.SCHEMA.NUMBER, "Schema defined as NUMBER, but actually " + type);
                         convertFunc = (n, any) -> Convert.toDouble(S.avoidNull(any, "0"));
                     } else if (type.equals(Boolean.class) || type.equals(Boolean.TYPE)) {
-                        S._assert(schema == Parameter.SCHEMA.BOOL, "Schema defined as NUMBER, but actually " + type);
+                        S._assert(schema == ParameterObject.SCHEMA.BOOL, "Schema defined as NUMBER, but actually " + type);
                         convertFunc = (n, any) -> Convert.toBoolean(any, false);
                     } else throw new RuntimeException("UnSupported primitive type" + type);
                 } else if (type.isAssignableFrom(Date.class)) {
