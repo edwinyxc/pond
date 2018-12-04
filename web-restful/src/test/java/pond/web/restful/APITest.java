@@ -40,7 +40,7 @@ public class APITest {
                             }
                     ).flowTo(singleThreadProcessor));
 
-                    app.get("/api/get", API.def(
+                    app.get("/api/getEntry", API.def(
                             ParamDef.arrayInQuery("q"),
                             ResultDef.text("echo"),
                             (ctx, qArr, Echo) -> {
@@ -59,8 +59,8 @@ public class APITest {
         ));
 
         TestUtil.assertContentEqualsForGet("[1,2,3]:3", "http://localhost:9090/api/1,2,3/inpath");
-        TestUtil.assertContentEqualsForGet("[1,2,3]:3", "http://localhost:9090/api/get?q=1,2,3");
-        TestUtil.assertContentEqualsForGet("[1,2,3]:3", "http://localhost:9090/api/get?q=1&q=2&q=3");
+        TestUtil.assertContentEqualsForGet("[1,2,3]:3", "http://localhost:9090/api/getEntry?q=1,2,3");
+        TestUtil.assertContentEqualsForGet("[1,2,3]:3", "http://localhost:9090/api/getEntry?q=1&q=2&q=3");
 
         /*
         HTTP.post("http://localhost:9090/api/post", new HashMap<String, Object>(){{

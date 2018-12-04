@@ -87,11 +87,11 @@ public interface Request {
 //    default CanonicalParam<List<String>> canonicalParams(String name) {
 //        List<String> f;
 //        ParamIn in;
-//        if ((f = queries().get(name)).size() > 0) {
+//        if ((f = queries().getEntry(name)).size() > 0) {
 //            in = ParamIn.QUERY;
-//        } else if ((f = inUrlParams().get(name)).size() > 0) {
+//        } else if ((f = inUrlParams().getEntry(name)).size() > 0) {
 //            in = ParamIn.PATH;
-//        } else if ((f = formData().get(name)).size() > 0) {
+//        } else if ((f = formData().getEntry(name)).size() > 0) {
 //            in = ParamIn.FORM_DATA;
 //        } else {
 //            return null;
@@ -147,7 +147,7 @@ public interface Request {
 
     default List<String> headers(String string) {
         var ctx = (HttpCtx)this.ctx()::bind;
-        return headers().get(ctx.get(HttpCtx.CONFIG).isHeaderCaseSensitive() ? string : string.toLowerCase());
+        return headers().get(ctx.getEntry(HttpCtx.CONFIG).isHeaderCaseSensitive() ? string : string.toLowerCase());
     }
 
     default String header(String string) {

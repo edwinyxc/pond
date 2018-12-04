@@ -71,8 +71,8 @@
 //  private RBAC syncRoles(List<Record> roles) {
 //
 //    List<Record> current_all = role_all();
-//    List<String> current_all_ids = S._for(current_all).map(u -> (String) u.get(lb_role_id)).toList();
-//    List<String> roles_ids = S._for(roles).map(u -> (String) u.get(lb_role_id)).toList();
+//    List<String> current_all_ids = S._for(current_all).map(u -> (String) u.getEntry(lb_role_id)).toList();
+//    List<String> roles_ids = S._for(roles).map(u -> (String) u.getEntry(lb_role_id)).toList();
 //
 //    db.post(t -> {
 //      //cut the outer side
@@ -84,8 +84,8 @@
 //
 //      //set brand new
 //      S._for(roles).each(role -> {
-//        if (!current_all_ids.contains((String) role.get(lb_role_id))) {
-//          role_add(role.get(lb_role_id), S.avoidNull(role.get(lb_role_name), ""), t);
+//        if (!current_all_ids.contains((String) role.getEntry(lb_role_id))) {
+//          role_add(role.getEntry(lb_role_id), S.avoidNull(role.getEntry(lb_role_name), ""), t);
 //        }
 //      });
 //
@@ -97,8 +97,8 @@
 //  private RBAC syncUsers(List<Record> users) {
 //
 //    List<Record> current_all = user_all();
-//    List<String> current_all_ids = S._for(current_all).map(u -> (String) u.get(lb_user_id)).toList();
-//    List<String> users_ids = S._for(users).map(u -> (String) u.get(lb_user_id)).toList();
+//    List<String> current_all_ids = S._for(current_all).map(u -> (String) u.getEntry(lb_user_id)).toList();
+//    List<String> users_ids = S._for(users).map(u -> (String) u.getEntry(lb_user_id)).toList();
 //
 //    db.post(t -> {
 //      //cut the outer side
@@ -110,8 +110,8 @@
 //
 //      //set brand new
 //      S._for(users).each(user -> {
-//        if (!current_all_ids.contains((String) user.get(lb_user_id))) {
-//          user_add(user.get(lb_user_id), S.avoidNull(user.get(lb_user_name), ""), t);
+//        if (!current_all_ids.contains((String) user.getEntry(lb_user_id))) {
+//          user_add(user.getEntry(lb_user_id), S.avoidNull(user.getEntry(lb_user_name), ""), t);
 //        }
 //      });
 //
@@ -149,11 +149,11 @@
 //  //user
 //
 //  public List<Record> user_all() {
-//    return db.get(t -> t.query("SELECT id FROM rbac_user"));
+//    return db.getEntry(t -> t.query("SELECT id FROM rbac_user"));
 //  }
 //
 //  public List<Record> role_all() {
-//    return db.get(t -> t.query("SELECT id FROM rbac_role"));
+//    return db.getEntry(t -> t.query("SELECT id FROM rbac_role"));
 //  }
 //
 //  public void user_add(String uid, String name, JDBCTmpl t) {
@@ -184,7 +184,7 @@
 //  }
 //
 //  public boolean user_exists(String uid) {
-//    return db.get(t -> t.size("SELECT COUNT(*) FROM rbac_user WHERE id = ?", uid)) > 0;
+//    return db.getEntry(t -> t.size("SELECT COUNT(*) FROM rbac_user WHERE id = ?", uid)) > 0;
 //  }
 //
 //  public void user_upd_name(String uid, String name, JDBCTmpl t) {
@@ -217,7 +217,7 @@
 //
 //    @Mapping(value = "/roles", methods = HttpMethod.GET)
 //    public void roles_get(Request req, Response resp) {
-//      resp.render(Render.json(RBAC.this.db.get("SELECT * FROM rbac_role")));
+//      resp.render(Render.json(RBAC.this.db.getEntry("SELECT * FROM rbac_role")));
 //    }
 //
 //    @Mapping(value = "/roles", methods = HttpMethod.POST)
@@ -244,19 +244,19 @@
 //        return;
 //      }
 //
-//      List<Record> l = RBAC.this.db.get("SELECT * FROM rbac_role WHERE id = ?", rid);
+//      List<Record> l = RBAC.this.db.getEntry("SELECT * FROM rbac_role WHERE id = ?", rid);
 //
 //      if (l.size() < 1) {
 //        resp.send(404, "not found");
 //        return;
 //      }
-//      resp.render(Render.json(l.get(0)));
+//      resp.render(Render.json(l.getEntry(0)));
 //    }
 //
 //
 //    @Mapping(value = "/users", methods = HttpMethod.GET)
 //    public void users(Request req, Response resp) {
-//      resp.render(Render.json(RBAC.this.db.get("SELECT * FROM rbac_user")));
+//      resp.render(Render.json(RBAC.this.db.getEntry("SELECT * FROM rbac_user")));
 //    }
 //
 //    @Mapping(value = "/users", methods = HttpMethod.POST)
@@ -281,7 +281,7 @@
 //        resp.send(404, "not found");
 //        return;
 //      }
-//      List<Record> l = RBAC.this.db.get("SELECT * FROM rbac_user WHERE id = ?", uid);
+//      List<Record> l = RBAC.this.db.getEntry("SELECT * FROM rbac_user WHERE id = ?", uid);
 ////      String sql = "SELECT u.id,username,ur.role_id,description " +
 ////          "FROM rbac_user u LEFT JOIN rbac_user_has_role ur ON u.id = r.user_id " +
 ////          "LEFT JOIN rbac_role r ON ur.role_id = r.id WHERE u.id = ?";
@@ -289,7 +289,7 @@
 //        resp.send(404, "not found");
 //        return;
 //      }
-//      resp.render(Render.json(l.get(0)));
+//      resp.render(Render.json(l.getEntry(0)));
 //    }
 //
 //    @Mapping(value = "/users/:uid/roles", methods = HttpMethod.GET)
@@ -300,20 +300,20 @@
 //        return;
 //      }
 //
-//      List<Record> l = RBAC.this.db.get("SELECT * FROM rbac_user WHERE id = ?", uid);
+//      List<Record> l = RBAC.this.db.getEntry("SELECT * FROM rbac_user WHERE id = ?", uid);
 //
 //      if (l.size() < 1) {
 //        resp.send(404, "not found");
 //        return;
 //      }
 //
-////      Record user = l.get(0);
+////      Record user = l.getEntry(0);
 //
 //      String sql = "SELECT r.id, rolename " +
 //          "FROM rbac_role r LEFT JOIN rbac_user_has_role ur ON r.id = ur.role_id " +
 //          "WHERE ur.user_id = ? ";
 //
-//      List<Record> roles = RBAC.this.db.get(sql, uid);
+//      List<Record> roles = RBAC.this.db.getEntry(sql, uid);
 //
 ////      user.set("roles", roles);
 //
@@ -324,7 +324,7 @@
 //    public void clean_roles_for_user(Request req, Response resp) {
 //      String uid = req.paramNonBlank("uid");
 //
-//      List<Record> l = RBAC.this.db.get("SELECT * FROM rbac_user WHERE id = ?", uid);
+//      List<Record> l = RBAC.this.db.getEntry("SELECT * FROM rbac_user WHERE id = ?", uid);
 //
 //      if (l.size() < 1) {
 //        resp.send(404, "user not found");
@@ -346,7 +346,7 @@
 //        return;
 //      }
 //
-//      List<Record> l = RBAC.this.db.get("SELECT * FROM rbac_user WHERE id = ?", uid);
+//      List<Record> l = RBAC.this.db.getEntry("SELECT * FROM rbac_user WHERE id = ?", uid);
 //
 //      if (l.size() < 1) {
 //        resp.send(404, "user not found");
@@ -360,7 +360,7 @@
 //        return;
 //      }
 //
-//      List<Record> lr = RBAC.this.db.get("SELECT * FROM rbac_role WHERE id = ?", rid);
+//      List<Record> lr = RBAC.this.db.getEntry("SELECT * FROM rbac_role WHERE id = ?", rid);
 //      if (lr.size() < 1) {
 //        resp.send(404, "role not found");
 //        return;
@@ -380,7 +380,7 @@
 //        return;
 //      }
 //
-//      List<Record> l = RBAC.this.db.get("SELECT * FROM rbac_user WHERE id = ?", uid);
+//      List<Record> l = RBAC.this.db.getEntry("SELECT * FROM rbac_user WHERE id = ?", uid);
 //
 //      if (l.size() < 1) {
 //        resp.send(404, "user not found");
@@ -394,7 +394,7 @@
 //        return;
 //      }
 //
-//      List<Record> lr = RBAC.this.db.get("SELECT * FROM rbac_role WHERE id = ?", rid);
+//      List<Record> lr = RBAC.this.db.getEntry("SELECT * FROM rbac_role WHERE id = ?", rid);
 //      if (lr.size() < 1) {
 //        resp.send(404, "role not found");
 //        return;
@@ -409,17 +409,17 @@
 //  public Roles forUser(String user) {
 //
 //    if (user.equals(ROOT)) {
-//      return new Roles(S._for(db.get("SELECT * FROM rbac_role"))
-//                           .map(record -> (String) record.get(lb_role_id)).toList());
+//      return new Roles(S._for(db.getEntry("SELECT * FROM rbac_role"))
+//                           .map(record -> (String) record.getEntry(lb_role_id)).toList());
 //    }
 //
-//    int user_count = db.get(t -> t.size("SELECT COUNT(*) FROM rbac_user_has_role WHERE user_id = ?", user));
+//    int user_count = db.getEntry(t -> t.size("SELECT COUNT(*) FROM rbac_user_has_role WHERE user_id = ?", user));
 //    if (user_count < 1) {
 //      return new Roles(Collections.emptyList());
 //    }
 //
-//    return new Roles(S._for(db.get("SELECT role_id FROM rbac_user_has_role WHERE user_id = ?", user))
-//                         .map(record -> (String) record.get("role_id")).toList());
+//    return new Roles(S._for(db.getEntry("SELECT role_id FROM rbac_user_has_role WHERE user_id = ?", user))
+//                         .map(record -> (String) record.getEntry("role_id")).toList());
 //  }
 //
 //  public class Roles {

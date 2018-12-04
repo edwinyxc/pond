@@ -15,7 +15,7 @@
 //        );
 //
 //    Pond.init().debug(HttpBasicAuth.class).cleanAndBind(
-//        p -> p.get("/secret", ba.auth, CtxHandler.express((req, resp) -> {
+//        p -> p.getEntry("/secret", ba.auth, CtxHandler.express((req, resp) -> {
 //          resp.send(200, "Welcome " + ba.user(req.ctx()));
 //        }))
 //    ).listen(9090);

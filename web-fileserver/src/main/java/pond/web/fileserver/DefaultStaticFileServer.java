@@ -115,7 +115,7 @@ public class DefaultStaticFileServer implements StaticFileServer {
         var ctx = (HttpCtx.Lazy & RouterCtx) http::bind;
         Request request = ctx.req();
         Response response = ctx.resp();
-        if (!"get".equalsIgnoreCase(request.method())) {
+        if (!"getEntry".equalsIgnoreCase(request.method())) {
             response.sendError(405, "Method Not Allowed");
             return;
         }

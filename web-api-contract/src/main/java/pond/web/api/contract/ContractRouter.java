@@ -98,7 +98,7 @@ public class ContractRouter extends Router {
             ;
             Class<?> responseType = Object.class;
 
-            //get route path
+            //getEntry route path
             for (var tag : anno_method) {
                 if (tag instanceof Contract.RouteConfig.Route) {
                     path = ((Contract.RouteConfig.Route) tag).value();
@@ -481,7 +481,7 @@ public class ContractRouter extends Router {
             CtxHandler invoker = CtxHandler.process(
                     Ctx.SELF, ctx -> {
                         try {
-                            Object[] params = S._for(entries).map(entry -> ctx.get(entry)).joinArray(new Object[entries.size()]);
+                            Object[] params = S._for(entries).map(entry -> ctx.getEntry(entry)).joinArray(new Object[entries.size()]);
                             S.echo("BEFORE EXECUTAION", entries, params);
                             return method.invoke(dummy, params);
                         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -503,7 +503,7 @@ public class ContractRouter extends Router {
                         headers.add(HttpHeaderNames.CONTENT_TYPE, outgoingContentType);
                     }
                 });
-                var result = http.get(Ctx.LAST_RESULT);
+                var result = http.getEntry(Ctx.LAST_RESULT);
                 S.echo("Show me", result);
                 ctx.send(result);
             };

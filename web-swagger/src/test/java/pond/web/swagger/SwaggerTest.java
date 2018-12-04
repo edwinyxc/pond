@@ -27,7 +27,7 @@
 //        );
 //
 //        Pond.init(API.class, p -> {
-//            p.get("/", API.def(
+//            p.getEntry("/", API.def(
 //                    ParamDef.header("X-header"),
 //                    ResultDef.text("X-header echo"),
 //                    (ctx, xheader, echo) -> {
@@ -37,7 +37,7 @@
 //            ));
 //            p.use("/xb/*", auth, new API() {{
 //
-//                get("/", API.def(
+//                getEntry("/", API.def(
 //                        ParamDef.header("X-header"),
 //                        ResultDef.text("X-header echo"),
 //                        (ctx, xheader, echo) -> {
@@ -54,7 +54,7 @@
 //                ));
 //
 //                use("/inner/*", new API() {{
-//                    get("/x", API.def(
+//                    getEntry("/x", API.def(
 //                            ParamDef.header("X-header"),
 //                            ResultDef.text("X-header echo"),
 //                            (ctx, xheader, echo) -> {
@@ -64,28 +64,28 @@
 //                }});
 //
 //            }});
-//            p.get("/x_test_array_1", API.def(
+//            p.getEntry("/x_test_array_1", API.def(
 //                    ParamDef.arrayInQuery("Any String array"),
 //                    ResultDef.text("echo"),
 //                    (ctx, arr, echo) -> {
 //                        ctx.result(echo, S.dump(arr) + "size:" + arr.size());
 //                    }
 //            ));
-//            p.get("/x", auth, API.def(
+//            p.getEntry("/x", auth, API.def(
 //                    ResultDef.text("Normal output of some texts"),
 //                    (ctx, txt) -> {
 //                        ctx.result(txt, "Now, you're safe x!!");
 //                    }
 //            ));
-//            p.get("/b", auth, API.def(
+//            p.getEntry("/b", auth, API.def(
 //                    ResultDef.text("Normal output of some texts"),
 //                    (ctx, txt) -> {
 //                        ctx.result(txt, "Now, you're safe b!!");
 //                    }
 //            ));
 //            //test
-//            p.get("/swagger/api/p", Swagger.swaggerJSON(p.rootRouter));
-//            p.get("/swagger/*", Swagger.server());
+//            p.getEntry("/swagger/api/p", Swagger.swaggerJSON(p.rootRouter));
+//            p.getEntry("/swagger/*", Swagger.server());
 //
 //        }).listen();
 //    }

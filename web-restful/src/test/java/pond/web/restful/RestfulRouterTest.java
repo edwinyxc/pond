@@ -100,7 +100,7 @@
 //    app = Pond.init(p -> {
 //      p.use("/*", new Router() {{
 //
-//        get("/can_i_come_in", (req, resp) -> {
+//        getEntry("/can_i_come_in", (req, resp) -> {
 //          resp.send(200, "OK");
 //        });
 //
@@ -117,7 +117,7 @@
 //
 //
 //  public void test_conflict() throws IOException {
-//    HTTP.get("http://localhost:9091/can_i_come_in", resp -> {
+//    HTTP.getEntry("http://localhost:9091/can_i_come_in", resp -> {
 //      String s = null;
 //      try {
 //        s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
@@ -129,14 +129,14 @@
 //  }
 //
 //  public void test_search_single_item_by_id() throws IOException {
-//    HTTP.get("http://localhost:9091/1", resp -> {
+//    HTTP.getEntry("http://localhost:9091/1", resp -> {
 //      String s = null;
 //      try {
 //        s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
 //        List<Map> arr = JSON.parseArray(s);
 //        S.echo("ARRR", arr);
 //        assertEquals(arr.size(), 1);
-//        assertEquals(arr.get(0).get("name"), "yxc");
+//        assertEquals(arr.getEntry(0).getEntry("name"), "yxc");
 //      } catch (IOException e) {
 //        e.printStackTrace();
 //      }
@@ -155,9 +155,9 @@
 //        s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
 //        S.echo("###", s);
 //        Map obj = JSON.parse(s);
-//        assertEquals(obj.get("name"), "name1");
-//        assertEquals(obj.get("birthday"), "111");
-//        assertEquals(obj.get("type"), "type3");
+//        assertEquals(obj.getEntry("name"), "name1");
+//        assertEquals(obj.getEntry("birthday"), "111");
+//        assertEquals(obj.getEntry("type"), "type3");
 //        S.echo("POST", obj);
 //      } catch (IOException e) {
 //        e.printStackTrace();
@@ -179,7 +179,7 @@
 //      }
 //      Map<String,Object> ret = JSON.parse(s);
 //      S.echo("PUT", ret);
-//      assertEquals(111, Integer.parseInt((String)ret.get("birthday")));
+//      assertEquals(111, Integer.parseInt((String)ret.getEntry("birthday")));
 //    });
 //  }
 //
@@ -190,7 +190,7 @@
 //  }
 //
 //  public void test_unified_search() throws IOException {
-//    HTTP.get("http://localhost:9091/?name=yxc", resp -> {
+//    HTTP.getEntry("http://localhost:9091/?name=yxc", resp -> {
 //      String s = null;
 //      try {
 //        s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
@@ -203,7 +203,7 @@
 //      }
 //    });
 //
-//    HTTP.get("http://localhost:9091/?birthday=btwn,123199,123456", resp -> {
+//    HTTP.getEntry("http://localhost:9091/?birthday=btwn,123199,123456", resp -> {
 //      String s = null;
 //      try {
 //        s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);

@@ -153,7 +153,7 @@ public class Session {
 
     /**
      * Cookie session installer, using "cookie" & "set-cookie" to control the session-id
-     * Put this toCtxHandler into responsibility chain and you will get fully
+     * Put this toCtxHandler into responsibility chain and you will getEntry fully
      * session support then.
      */
     public static CtxHandler<HttpCtx> install() {

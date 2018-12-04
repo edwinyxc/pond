@@ -21,7 +21,7 @@ import static pond.common.f.Tuple.pair;
  * @see Ctx#bind()
  * @see Entry
  * @see Context
- * @see Ctx#get(Entry)
+ * @see Ctx#getEntry(Entry)
  * @since java11
  */
 @FunctionalInterface
@@ -49,7 +49,7 @@ public interface Ctx {
     }
 
     default CtxFlowProcessor flowProcessor(){
-        var ret = this.get(CtxFlowProcessor);
+        var ret = this.getEntry(CtxFlowProcessor);
         if(ret == null){
             ret = new CtxFlowProcessor("Ctx@"+this.delegate().hashCode());
             this.set(CtxFlowProcessor, ret);
@@ -107,7 +107,7 @@ public interface Ctx {
     }
 
     @SuppressWarnings("unchecked")
-    default <T> T get(Entry<T> key) {
+    default <T> T getEntry(Entry<T> key) {
         if(key == SELF)  return (T) this;
         return (T) Optional.ofNullable(this.delegate().properties().get(key.key)).orElse(key.nil);
     }
@@ -123,13 +123,13 @@ public interface Ctx {
     }
 
     default <T> T getOrPutDefault(Entry<T> key, T _default) {
-        if (this.get(key) == null) this.set(key, _default);
-        return this.get(key);
+        if (this.getEntry(key) == null) this.set(key, _default);
+        return this.getEntry(key);
     }
 
     default <T> T getOrSupplyDefault(Entry<T> key, Function.F0<T> supplier) {
-        if (this.get(key) == null) this.set(key, supplier.apply());
-        return this.get(key);
+        if (this.getEntry(key) == null) this.set(key, supplier.apply());
+        return this.getEntry(key);
     }
 
     default void insert(CtxHandler<? extends Ctx> ctxHandler){
@@ -237,7 +237,7 @@ public interface Ctx {
     }
 
     default void close() {
-        this.get(CtxFlowProcessor).close();
+        this.getEntry(CtxFlowProcessor).close();
     }
 
 }

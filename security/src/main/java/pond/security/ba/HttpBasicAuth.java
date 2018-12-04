@@ -35,7 +35,7 @@
 //
 //
 //    public String user(HttpCtx ctx) {
-//        return (String) ctx.get(IN_CTX_USER_ID);
+//        return (String) ctx.getEntry(IN_CTX_USER_ID);
 //    }
 //
 //    public final APIHandler auth = API.def(

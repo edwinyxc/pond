@@ -125,11 +125,11 @@
 //          try {
 //            String s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
 //            Map m = JSON.parse(s);
-//            assertEquals(m.get("username"), "123333");
-//            assertEquals(m.get("pass"), "ioiuda");
-//            assertEquals(m.get("sss"), "909908923");
-//            assertEquals(m.get("aaa"), "nnmn,m");
-//            assertEquals(m.get("ssdaiuouuu"), "ssdaw123kk");
+//            assertEquals(m.getEntry("username"), "123333");
+//            assertEquals(m.getEntry("pass"), "ioiuda");
+//            assertEquals(m.getEntry("sss"), "909908923");
+//            assertEquals(m.getEntry("aaa"), "nnmn,m");
+//            assertEquals(m.getEntry("ssdaiuouuu"), "ssdaw123kk");
 //            finished_count.addAndGet(1);
 //          } catch (IOException e) {
 //            e.printStackTrace();
@@ -151,11 +151,11 @@
 //          try {
 //            String s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
 //            Map m = JSON.parse(s);
-//            assertEquals(m.get("username_b"), "123vvv333");
-//            assertEquals(m.get("pass_b"), "ioiudab");
-//            assertEquals(m.get("sss_b"), "9099089b23");
-//            assertEquals(m.get("aaa_b"), "nnmn,mb");
-//            assertEquals(m.get("ssdaiuouuu_b"), "ssssdaw123kk");
+//            assertEquals(m.getEntry("username_b"), "123vvv333");
+//            assertEquals(m.getEntry("pass_b"), "ioiudab");
+//            assertEquals(m.getEntry("sss_b"), "9099089b23");
+//            assertEquals(m.getEntry("aaa_b"), "nnmn,mb");
+//            assertEquals(m.getEntry("ssdaiuouuu_b"), "ssssdaw123kk");
 //            finished_count.addAndGet(1);
 //          } catch (IOException e) {
 //            e.printStackTrace();
@@ -176,26 +176,26 @@
 //
 //    Collections.shuffle(futures);
 //
-//    CompletableFuture.allOf(S._for(futures).join()).get();
+//    CompletableFuture.allOf(S._for(futures).join()).getEntry();
 //  }
 //
 ////  public void require_test() throws IOException {
 ////    Mid session = Session.install();
 ////    app.cleanAndBind(p -> {
 ////
-////      p.get("/require",
+////      p.getEntry("/require",
 ////            session,
 ////            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(session)
 ////      );
 ////
-////      p.get("/requireFail",
+////      p.getEntry("/requireFail",
 ////            Mid.wrap((req, resp) -> resp.send(200, "pass")).require(session)
 ////      );
 ////
 ////    });
 ////
 ////    TestUtil.assertContentEqualsForGet("pass", "http://localhost:9090/require");
-////    HTTP.get("http://localhost:9090/requireFail", http -> {
+////    HTTP.getEntry("http://localhost:9090/requireFail", http -> {
 ////      assertNotSame(200, http.getStatusLine().getStatusCode());
 ////    });
 ////
@@ -208,16 +208,16 @@
 //
 //    app.cleanAndBind(
 //        app -> {
-//          app.get("/test", session, (req, resp) -> resp.send(200, Session.get(req).id));
-//          app.get("/login", (req, resp) -> resp.send(200, Session.store().create(new HashMap<>())));
+//          app.getEntry("/test", session, (req, resp) -> resp.send(200, Session.getEntry(req).id));
+//          app.getEntry("/login", (req, resp) -> resp.send(200, Session.store().create(new HashMap<>())));
 //        }
 //    );
 //
-//    HTTP.get("http://localhost:9090/login", resp -> {
+//    HTTP.getEntry("http://localhost:9090/login", resp -> {
 //      try {
 //        String sid = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), Charset.defaultCharset());
 //
-//        HTTP.get("http://localhost:9090/test", S._tap(new HashMap<>(), m -> {
+//        HTTP.getEntry("http://localhost:9090/test", S._tap(new HashMap<>(), m -> {
 //          m.put("sessionid-in-header", sid);
 //        }), response -> {
 //          try {
@@ -242,20 +242,20 @@
 //        app -> {
 //          app.handler(Session.install());
 //
-//          app.get("/installSession", (req, resp) -> {
-//            Session ses = Session.get(req);
+//          app.getEntry("/installSession", (req, resp) -> {
+//            Session ses = Session.getEntry(req);
 //            ses.set("name", "user1");
 //            ses.save();
 //            resp.send(200);
 //          });
 //
-//          app.get("/readSession", (req, resp) -> {
-//            Session ses = Session.get(req);
-//            resp.send(200, ses.get("name"));
+//          app.getEntry("/readSession", (req, resp) -> {
+//            Session ses = Session.getEntry(req);
+//            resp.send(200, ses.getEntry("name"));
 //          });
 //
-//          app.get("/invalidate", (req, resp) -> {
-//            Session.get(req).invalidate();
+//          app.getEntry("/invalidate", (req, resp) -> {
+//            Session.getEntry(req).invalidate();
 //            resp.send(200);
 //          });
 //        }
@@ -263,14 +263,14 @@
 //
 //    Holder<String> sessionHolder = new Holder<>();
 //
-//    HTTP.get("http://localhost:9090/installSession", http -> {
+//    HTTP.getEntry("http://localhost:9090/installSession", http -> {
 //      Header cookieHeader = http.getFirstHeader("Set-Cookie");
 //      Cookie cookie = ClientCookieDecoder.decode(cookieHeader.getValue());
 //      sessionHolder.val(cookie.value());
 //    });
 //
 //    //read session
-//    HTTP.get("http://localhost:9090/readSession",
+//    HTTP.getEntry("http://localhost:9090/readSession",
 //             S._tap(new HashMap<>(), h -> h.put("Cookie", ClientCookieEncoder.encode(Session.LABEL_SESSION, sessionHolder.val()))),
 //             resp -> {
 //               String result = S._try_ret(
@@ -280,12 +280,12 @@
 //             }
 //    );
 //
-//    HTTP.get("http://localhost:9090/invalidate", S._tap(new HashMap<String, String>(),
+//    HTTP.getEntry("http://localhost:9090/invalidate", S._tap(new HashMap<String, String>(),
 //            h -> h.put("Cookie", ClientCookieEncoder.encode(Session.LABEL_SESSION, sessionHolder.val())))
 //    );
 //
 //    //read session
-//    HTTP.get("http://localhost:9090/readSession",
+//    HTTP.getEntry("http://localhost:9090/readSession",
 //             S._tap(new HashMap<>(), h -> h.put("Cookie", ClientCookieEncoder.encode(Session.LABEL_SESSION, sessionHolder.val()))),
 //             resp -> {
 //               String result = S._try_ret(
@@ -308,7 +308,7 @@
 //
 //    @Mapping("/read")
 //    public void read(Request req, Response resp) {
-//      resp.render(text(String.valueOf(value.get())));
+//      resp.render(text(String.valueOf(value.getEntry())));
 //    }
 //
 //    //mapping with default name
@@ -322,12 +322,12 @@
 //    public void addN(Request req, Response resp) {
 //      String vol = req.query("_vol");
 //      value.getAndAdd(Integer.valueOf(vol));
-//      resp.render(text(String.valueOf(value.get())));
+//      resp.render(text(String.valueOf(value.getEntry())));
 //    }
 //
 //    @Mapping
 //    public void ctx(Request req, Response resp) {
-//      resp.render(text(String.valueOf(req.ctx().get("k"))));
+//      resp.render(text(String.valueOf(req.ctx().getEntry("k"))));
 //    }
 //
 //  }
@@ -344,11 +344,11 @@
 //
 //    TestUtil.assertContentEqualsForGet("1", "http://localhost:9090/ctrl/read");
 //    TestUtil.assertContentEqualsForGet("root", "http://localhost:9090/ctrl/");
-//    HTTP.get("http://localhost:9090/ctrl/add", Callback.noop());
-//    HTTP.get("http://localhost:9090/ctrl/add", Callback.noop());
-//    HTTP.get("http://localhost:9090/ctrl/add", Callback.noop());
+//    HTTP.getEntry("http://localhost:9090/ctrl/add", Callback.noop());
+//    HTTP.getEntry("http://localhost:9090/ctrl/add", Callback.noop());
+//    HTTP.getEntry("http://localhost:9090/ctrl/add", Callback.noop());
 //    TestUtil.assertContentEqualsForGet("4", "http://localhost:9090/ctrl/read");
-//    HTTP.get("http://localhost:9090/ctrl/add/4", Callback.noop());
+//    HTTP.getEntry("http://localhost:9090/ctrl/add/4", Callback.noop());
 //
 //    TestUtil.assertContentEqualsForGet("8", "http://localhost:9090/ctrl/read");
 //    TestUtil.assertContentEqualsForGet("v", "http://localhost:9090/ctx/ctx");
@@ -383,7 +383,7 @@
 //    );
 //
 //
-//    File wwwroot = new File(S.config.get(Pond.class, Pond.CONFIG_WEB_ROOT), "www");
+//    File wwwroot = new File(S.config.getEntry(Pond.class, Pond.CONFIG_WEB_ROOT), "www");
 //
 //    HTTP.postMultipart(
 //        "http://localhost:9090/multipart",
@@ -423,7 +423,7 @@
 //    Map jsonMap = JSON.parse(json);
 //    app.cleanAndBind(
 //        app ->
-//            app.get("/test_render_json", (req, resp) ->
+//            app.getEntry("/test_render_json", (req, resp) ->
 //                resp.render(Render.json(jsonMap)))
 //    );
 //
@@ -434,7 +434,7 @@
 //    String text = "sdddaaa";
 //    app.cleanAndBind(
 //        app ->
-//            app.get("/test_render_text", (req, resp) ->
+//            app.getEntry("/test_render_text", (req, resp) ->
 //                resp.render(text(text)))
 //    );
 //
@@ -444,7 +444,7 @@
 //
 //
 //  public void static_bind_root() throws IOException {
-//    app.cleanAndBind(app -> app.get("/*", app._static("www")));
+//    app.cleanAndBind(app -> app.getEntry("/*", app._static("www")));
 //
 //    TestUtil.assertContentEqualsForGet(
 //        "app.js", "http://localhost:9090/123.html"
@@ -452,7 +452,7 @@
 //  }
 //
 //  public void static_bind_non_root() throws IOException {
-//    app.cleanAndBind(app -> app.get("/static/*", app._static("www")));
+//    app.cleanAndBind(app -> app.getEntry("/static/*", app._static("www")));
 //
 //    TestUtil.assertContentEqualsForGet(
 //        "app.js", "http://localhost:9090/static/123.html"
@@ -460,7 +460,7 @@
 //  }
 //
 //  public void static_default_index() throws IOException {
-//    app.cleanAndBind(app -> app.get("/*", app._static("www")));
+//    app.cleanAndBind(app -> app.getEntry("/*", app._static("www")));
 //
 //    TestUtil.assertContentEqualsForGet(
 //        "index.html", "http://localhost:9090"
@@ -475,20 +475,20 @@
 //    try {
 //      app.cleanAndBind(
 //          app ->
-//              app.get("/", (req, res) -> {
+//              app.getEntry("/", (req, res) -> {
 //                        HttpCtx ctx = req.ctx();
 //                        ctx.put("user", 1);
 //                      },
 //                      (req, res) -> {
 //                        HttpCtx ctx = req.ctx();
-//                        ctx.put("user", (int) ctx.get("user") + 1);
+//                        ctx.put("user", (int) ctx.getEntry("user") + 1);
 //                      },
 //                      (req, res) -> {
 //                        HttpCtx ctx = req.ctx();
-//                        ctx.put("user", (int) ctx.get("user") + 1);
+//                        ctx.put("user", (int) ctx.getEntry("user") + 1);
 //                      },
 //                      (req, res) -> {
-//                        Integer result = Convert.toInt(req.ctx().get("user"));
+//                        Integer result = Convert.toInt(req.ctx().getEntry("user"));
 //                        res.contentType("application/json;charset=utf8");
 //                        res.send(200, String.valueOf(result));
 //                      }
@@ -496,7 +496,7 @@
 //      );
 //
 //
-//      HTTP.get("http://localhost:9090/", resp ->
+//      HTTP.getEntry("http://localhost:9090/", resp ->
 //          S._try(() -> assertEquals("3", STREAM.readFully(
 //                                        resp.getEntity().getContent(),
 //                                        Charset.forName("UTF-8"))
@@ -510,29 +510,29 @@
 //  public void basic_router() {
 //
 //    Router router = new Router();
-//    router.get("/add", (req, resp) -> resp.send("add"))
-//        .get("/del", (req, resp) -> resp.send("del"));
+//    router.getEntry("/add", (req, resp) -> resp.send("add"))
+//        .getEntry("/del", (req, resp) -> resp.send("del"));
 //
 //    app.cleanAndBind(
 //        app ->
-//            app.get("/", (req, resp) -> resp.send("root"))
-//                .get("/:id", (req, resp) -> resp.send(req.query("id")))
-//                .get("/:id/text", (req, resp) -> resp.send("text"))
+//            app.getEntry("/", (req, resp) -> resp.send("root"))
+//                .getEntry("/:id", (req, resp) -> resp.send(req.query("id")))
+//                .getEntry("/:id/text", (req, resp) -> resp.send("text"))
 //                .handler("/user/*", router)
 //    );
 //
 //    try {
 //
-//      HTTP.get("http://localhost:9090/user/add", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/user/add", null, resp ->
 //          S._try(() -> assertEquals("add", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
-//      HTTP.get("http://localhost:9090/user/del", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/user/del", null, resp ->
 //          S._try(() -> assertEquals("del", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
-//      HTTP.get("http://localhost:9090/123", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/123", null, resp ->
 //          S._try(() -> assertEquals("123", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
-//      HTTP.get("http://localhost:9090/123/text", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/123/text", null, resp ->
 //          S._try(() -> assertEquals("text", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
 //    } catch (IOException e) {
@@ -545,24 +545,24 @@
 //    S.echo("Testing min_group_route");
 //    app.cleanAndBind(
 //        app -> {
-//          app.get("/:id/new", (req, resp) -> resp.send(req.query("id") + "/new1"));
-//          app.get("/new/:id", (req, resp) -> resp.send("new2/" + req.query("id")));
-//          app.get("/new", (req, resp) -> resp.send("new"));
-//          app.get("/:id", (req, resp) -> resp.send("id=" + req.query("id")));
+//          app.getEntry("/:id/new", (req, resp) -> resp.send(req.query("id") + "/new1"));
+//          app.getEntry("/new/:id", (req, resp) -> resp.send("new2/" + req.query("id")));
+//          app.getEntry("/new", (req, resp) -> resp.send("new"));
+//          app.getEntry("/:id", (req, resp) -> resp.send("id=" + req.query("id")));
 //        });
 //
 //    try {
 //
-//      HTTP.get("http://localhost:9090/123/new", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/123/new", null, resp ->
 //          S._try(() -> assertEquals("123/new1", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
-//      HTTP.get("http://localhost:9090/new/123", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/new/123", null, resp ->
 //          S._try(() -> assertEquals("new2/123", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
-//      HTTP.get("http://localhost:9090/new", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/new", null, resp ->
 //          S._try(() -> assertEquals("new", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
-//      HTTP.get("http://localhost:9090/233", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/233", null, resp ->
 //          S._try(() -> assertEquals("id=233", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
 //    } catch (IOException e) {
@@ -572,10 +572,10 @@
 //
 //  class ClassicRestfulRouter extends Router {
 //    {
-//      app.get("/:id/new", (req, resp) -> resp.send(req.query("id") + "/new1"));
-//      app.get("/new/:id", (req, resp) -> resp.send("new2/" + req.query("id")));
-//      app.get("/new", (req, resp) -> resp.send("new"));
-//      app.get("/:id", (req, resp) -> resp.send("id=" + req.query("id")));
+//      app.getEntry("/:id/new", (req, resp) -> resp.send(req.query("id") + "/new1"));
+//      app.getEntry("/new/:id", (req, resp) -> resp.send("new2/" + req.query("id")));
+//      app.getEntry("/new", (req, resp) -> resp.send("new"));
+//      app.getEntry("/:id", (req, resp) -> resp.send("id=" + req.query("id")));
 //    }
 //  }
 //
@@ -588,16 +588,16 @@
 //
 //    try {
 //
-//      HTTP.get("http://localhost:9090/123/new", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/123/new", null, resp ->
 //          S._try(() -> assertEquals("123/new1", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
-//      HTTP.get("http://localhost:9090/new/123", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/new/123", null, resp ->
 //          S._try(() -> assertEquals("new2/123", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
-//      HTTP.get("http://localhost:9090/new", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/new", null, resp ->
 //          S._try(() -> assertEquals("new", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
-//      HTTP.get("http://localhost:9090/233", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/233", null, resp ->
 //          S._try(() -> assertEquals("id=233", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
 //    } catch (IOException e) {
@@ -616,15 +616,15 @@
 //            req.ctx().put("val", 1);
 //          });
 //
-//          app.get("/testCtx", (req, resp) -> {
+//          app.getEntry("/testCtx", (req, resp) -> {
 //            req.ctx().put("a", "a");
-//            resp.send(200, req.ctx().get("a").toString() + req.ctx().get("val"));
+//            resp.send(200, req.ctx().getEntry("a").toString() + req.ctx().getEntry("val"));
 //          });
 //        }
 //    );
 //
 //    try {
-//      HTTP.get("http://localhost:9090/testCtx", null, resp ->
+//      HTTP.getEntry("http://localhost:9090/testCtx", null, resp ->
 //          S._try(() -> assertEquals("a1", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
 //    } catch (IOException e) {
@@ -636,7 +636,7 @@
 //    S.echo("Testing utf8");
 //    app.cleanAndBind(
 //        app ->
-//            app.get("/test", (req, resp) -> {
+//            app.getEntry("/test", (req, resp) -> {
 //              resp.render(text("中文支持"));
 //            })
 //
@@ -653,7 +653,7 @@
 //
 //  public void test_end2end_exception() throws IOException {
 //    app.cleanAndBind(
-//        app -> app.get("/err", (req, resp) -> {
+//        app -> app.getEntry("/err", (req, resp) -> {
 //          throw new EndToEndException(400, "错误");
 //        }).handler("/err_ctrl/*", new err_ctrl())
 //    );
@@ -668,9 +668,9 @@
 //
 //  public void test_nested_router() throws IOException{
 //    app.cleanAndBind(
-//        app -> app.get("/api/*", new Router().handler("/evil/*", new Router()
-//            .get("/a",(req, resp) -> resp.send(200,"OK"))
-//            .get("/",(req, resp) -> resp.send(200,"OK"))
+//        app -> app.getEntry("/api/*", new Router().handler("/evil/*", new Router()
+//            .getEntry("/a",(req, resp) -> resp.send(200,"OK"))
+//            .getEntry("/",(req, resp) -> resp.send(200,"OK"))
 //                       )
 //        )
 //    );
@@ -683,17 +683,17 @@
 //    S.config.set(BaseServer.class, BaseServer.HTTP_PARSER_HEADER_CASE_SENSITIVE, "true");
 //    init();
 //    app.cleanAndBind(
-//            app -> app.get("/", (req, resp) -> {
+//            app -> app.getEntry("/", (req, resp) -> {
 //              resp.send(req.header("IgnoreCase"));
 //            })
 //    );
 //
 //    try {
-//      HTTP.get("http://localhost:9090/", new HashMap<String, String>(){{
+//      HTTP.getEntry("http://localhost:9090/", new HashMap<String, String>(){{
 //        put("IGNORECASE","ABCD");
 //      }}, resp -> S._try(() -> assertEquals("null", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
-//      HTTP.get("http://localhost:9090/", new HashMap<String, String>(){{
+//      HTTP.getEntry("http://localhost:9090/", new HashMap<String, String>(){{
 //        put("IgnoreCase","ABCD");
 //      }}, resp -> S._try(() -> assertEquals("ABCD", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //
@@ -704,13 +704,13 @@
 //    S.config.set(BaseServer.class, BaseServer.HTTP_PARSER_HEADER_CASE_SENSITIVE, "false");
 //    init();
 //    app.cleanAndBind(
-//            app -> app.get("/", (req, resp) -> {
+//            app -> app.getEntry("/", (req, resp) -> {
 //              resp.send(req.header("IgnoreCase"));
 //            })
 //    );
 //
 //    try {
-//      HTTP.get("http://localhost:9090/", new HashMap<String, String>(){{
+//      HTTP.getEntry("http://localhost:9090/", new HashMap<String, String>(){{
 //        put("IGNORECASE","ABCD");
 //      }}, resp -> S._try(() -> assertEquals("ABCD", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 //

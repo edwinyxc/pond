@@ -21,7 +21,7 @@
 //            }
 //
 //            resp.send(200);
-//          }).get("/*",p._static("www"));
+//          }).getEntry("/*",p._static("www"));
 //        }
 //    ).debug().listen();
 //  }

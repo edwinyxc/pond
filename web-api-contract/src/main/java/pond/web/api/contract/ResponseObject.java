@@ -29,13 +29,13 @@ public class ResponseObject<T> {
 //        this.consumer = http -> {
 //                var ctx = (RouterCtx & HttpCtx.Send) http::bind;
 //                var headers = ctx.response().headers();
-//                var contentType = headers.get(HttpHeaderNames.CONTENT_TYPE);
+//                var contentType = headers.getEntry(HttpHeaderNames.CONTENT_TYPE);
 //                S._for(produces).each(outgoingContentType -> {
 //                    if (contentType == null || contentType.contains(outgoingContentType)) {
 //                        headers.add(HttpHeaderNames.CONTENT_TYPE, outgoingContentType);
 //                    }
 //                });
-//                var result = http.get(Ctx.LAST_RESULT);
+//                var result = http.getEntry(Ctx.LAST_RESULT);
 //                Object finalResult = (type != null)? type.consume(result) : result;
 //                S.echo("Result ==> ", result);
 //                ctx.send(result);

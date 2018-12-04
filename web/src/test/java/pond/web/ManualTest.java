@@ -55,11 +55,11 @@
 //                    try {
 //                        String s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
 //                        Map m = JSON.parse(s);
-//                        assertEquals(m.get("username"), "123333");
-//                        assertEquals(m.get("pass"), "ioiuda");
-//                        assertEquals(m.get("sss"), "909908923");
-//                        assertEquals(m.get("aaa"), "nnmn,m");
-//                        assertEquals(m.get("ssdaiuouuu"), "ssdaw123kk");
+//                        assertEquals(m.getEntry("username"), "123333");
+//                        assertEquals(m.getEntry("pass"), "ioiuda");
+//                        assertEquals(m.getEntry("sss"), "909908923");
+//                        assertEquals(m.getEntry("aaa"), "nnmn,m");
+//                        assertEquals(m.getEntry("ssdaiuouuu"), "ssdaw123kk");
 //                        finished.addAndGet(1);
 //                        S.echo(finished);
 //                    } catch (IOException e) {
@@ -82,11 +82,11 @@
 //                    try {
 //                        String s = STREAM.readFully(S._try_ret(() -> resp.getEntity().getContent()), CharsetUtil.UTF_8);
 //                        Map m = JSON.parse(s);
-//                        assertEquals(m.get("username_b"), "123vvv333");
-//                        assertEquals(m.get("pass_b"), "ioiudab");
-//                        assertEquals(m.get("sss_b"), "9099089b23");
-//                        assertEquals(m.get("aaa_b"), "nnmn,mb");
-//                        assertEquals(m.get("ssdaiuouuu_b"), "ssssdaw123kk");
+//                        assertEquals(m.getEntry("username_b"), "123vvv333");
+//                        assertEquals(m.getEntry("pass_b"), "ioiudab");
+//                        assertEquals(m.getEntry("sss_b"), "9099089b23");
+//                        assertEquals(m.getEntry("aaa_b"), "nnmn,mb");
+//                        assertEquals(m.getEntry("ssdaiuouuu_b"), "ssssdaw123kk");
 //                        finished.addAndGet(1);
 //                        S.echo(finished);
 //                    } catch (IOException e) {
@@ -123,9 +123,9 @@
 //            req.ctx().put("val", 1);
 //        });
 //
-//        app.get("/testCtx", (req, resp) -> {
+//        app.getEntry("/testCtx", (req, resp) -> {
 //            req.ctx().put("a", "a");
-//            resp.send(200, req.ctx().get("a").toString() + req.ctx().get("val"));
+//            resp.send(200, req.ctx().getEntry("a").toString() + req.ctx().getEntry("val"));
 //        });
 //
 //        app.otherwise(InternalMids.FORCE_CLOSE);
@@ -154,21 +154,21 @@
 //
 //            p.handler(Session.install());
 //
-//            p.get("/install/${val}", (req, resp) -> {
-//                Session ses = Session.get(req);
+//            p.getEntry("/install/${val}", (req, resp) -> {
+//                Session ses = Session.getEntry(req);
 //                ses.set("name", req.query("val"));
 //                ses.save();
 //                resp.send(200);
 //            });
 //
-//            p.get("/readSession", (req, resp) -> {
-//                Session ses = Session.get(req);
+//            p.getEntry("/readSession", (req, resp) -> {
+//                Session ses = Session.getEntry(req);
 //                S.echo(ses);
-//                resp.send(200, ses.get("name"));
+//                resp.send(200, ses.getEntry("name"));
 //            });
 //
-//            p.get("/invalidate", (req, resp) -> {
-//                Session.get(req).invalidate();
+//            p.getEntry("/invalidate", (req, resp) -> {
+//                Session.getEntry(req).invalidate();
 //                resp.send(200);
 //            });
 //        });
@@ -182,9 +182,9 @@
 //                req.ctx().put("val", 1);
 //            });
 //
-//            app.get("/testCtx", (req, resp) -> {
+//            app.getEntry("/testCtx", (req, resp) -> {
 //                req.ctx().put("a", "a");
-//                resp.send(200, req.ctx().get("a").toString() + req.ctx().get("val"));
+//                resp.send(200, req.ctx().getEntry("a").toString() + req.ctx().getEntry("val"));
 //            });
 //        }).debug().listen(9090);
 //    }
@@ -240,11 +240,11 @@
 //        app.cleanAndBind(p -> p.handler("/ctrl/.*", new DemoController()));
 //
 ////    TestUtil.assertContentEqualsForGet("1", "http://localhost:9090/ctrl/read");
-////    HTTP.get("http://localhost:9090/ctrl/add", null, Callback.noop());
-////    HTTP.get("http://localhost:9090/ctrl/add", null, Callback.noop());
-////    HTTP.get("http://localhost:9090/ctrl/add", null, Callback.noop());
+////    HTTP.getEntry("http://localhost:9090/ctrl/add", null, Callback.noop());
+////    HTTP.getEntry("http://localhost:9090/ctrl/add", null, Callback.noop());
+////    HTTP.getEntry("http://localhost:9090/ctrl/add", null, Callback.noop());
 ////    TestUtil.assertContentEqualsForGet("4", "http://localhost:9090/ctrl/read");
-////    HTTP.get("http://localhost:9090/ctrl/add/4", null, Callback.noop());
+////    HTTP.getEntry("http://localhost:9090/ctrl/add/4", null, Callback.noop());
 ////    TestUtil.assertContentEqualsForGet("8", "http://localhost:9090/ctrl/read");
 ////    app.stop();
 //    }
@@ -261,7 +261,7 @@
 //
 //        Pond app = Pond.init().debug().listen(9090);
 //
-//        app.cleanAndBind(p -> p.get("/too_long", (req, resp) -> {
+//        app.cleanAndBind(p -> p.getEntry("/too_long", (req, resp) -> {
 //            S._for(req.toMap()).each(e -> {
 //                String k = e.getKey();
 //                String v = (String) e.getValue();
@@ -269,13 +269,13 @@
 //            });
 //        }));
 //
-//        HTTP.get(too_long_url.toString());
+//        HTTP.getEntry(too_long_url.toString());
 //
 //    }
 //
 //    public static void echo_server() {
 //        Pond.init(p -> {
-//            p.get("/:msg", (req, resp) -> {
+//            p.getEntry("/:msg", (req, resp) -> {
 //                resp.send(200, req.paramNonBlank("msg"));
 //            });
 //        }).debug().listen(9090);
@@ -284,16 +284,16 @@
 //    public static void basic_router() {
 //
 //        Router router = new Router();
-//        router.get("/add", (req, resp) -> resp.send("add"))
-//                .get("/del", (req, resp) -> resp.send("del"));
+//        router.getEntry("/add", (req, resp) -> resp.send("add"))
+//                .getEntry("/del", (req, resp) -> resp.send("del"));
 //
 //        Pond app = Pond.init().debug().listen(9090);
 //
 //        app.cleanAndBind(
 //                p ->
-//                        p.get("/", (req, resp) -> resp.send("root"))
-//                                .get("/:id", (req, resp) -> resp.send(req.query("id")))
-//                                .get("/:id/text", (req, resp) -> resp.send("text"))
+//                        p.getEntry("/", (req, resp) -> resp.send("root"))
+//                                .getEntry("/:id", (req, resp) -> resp.send(req.query("id")))
+//                                .getEntry("/:id/text", (req, resp) -> resp.send("text"))
 //                                .handler("/user/*", router)
 //                                .otherwise(InternalMids.FORCE_CLOSE)
 //        );
@@ -301,16 +301,16 @@
 //
 ////    try {
 ////
-////      HTTP.get("http://localhost:9090/user/add", null, resp ->
+////      HTTP.getEntry("http://localhost:9090/user/add", null, resp ->
 ////          S._try(() -> assertEquals("add", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 ////
-////      HTTP.get("http://localhost:9090/user/del", null, resp ->
+////      HTTP.getEntry("http://localhost:9090/user/del", null, resp ->
 ////          S._try(() -> assertEquals("del", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 ////
-////      HTTP.get("http://localhost:9090/123", null, resp ->
+////      HTTP.getEntry("http://localhost:9090/123", null, resp ->
 ////          S._try(() -> assertEquals("123", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 ////
-////      HTTP.get("http://localhost:9090/123/text", null, resp ->
+////      HTTP.getEntry("http://localhost:9090/123/text", null, resp ->
 ////          S._try(() -> assertEquals("text", STREAM.readFully(resp.getEntity().getContent(), utf8))));
 ////
 ////    } catch (IOException e) {
@@ -328,7 +328,7 @@
 //
 //    public static void test_end2end_exception() throws IOException {
 //        Pond.init().cleanAndBind(
-//                p -> p.get("/err", (req, resp) -> {
+//                p -> p.getEntry("/err", (req, resp) -> {
 //                    throw new EndToEndException(400, "错误");
 //                }).handler("/err_ctrl/*", new err_ctrl())
 //        ).listen(9090);
@@ -340,7 +340,7 @@
 //
 //    public static void test_file_server() throws IOException {
 //        Pond.init().cleanAndBind(
-//                p -> p.get("/*", p._static("www"))
+//                p -> p.getEntry("/*", p._static("www"))
 //        ).listen();
 //    }
 //
@@ -351,14 +351,14 @@
 //        List<WSCtx> all_wssockets = new ArrayList<>();
 //        Pond.init().cleanAndBind(
 //                p -> {
-//                    p.get("/notifyAll/:msg", (req, resp) -> {
+//                    p.getEntry("/notifyAll/:msg", (req, resp) -> {
 //                        String msg = req.query("msg");
 //                        S._for(all_wssockets).forEach(s -> {
 //                            s.context.writeAndFlush(new TextWebSocketFrame("headers:" + s.nettyRequest.headers()));
 //                        });
 //                        resp.send(200);
 //                    });
-//                    p.get("/websocket", InternalMids.websocket(wsctx -> {
+//                    p.getEntry("/websocket", InternalMids.websocket(wsctx -> {
 //                        all_wssockets.add(wsctx);
 //                        wsctx.onMessage((request, ctx) -> {
 //                            if (request.equalsIgnoreCase("close")) {
@@ -372,7 +372,7 @@
 //                        });
 //                        wsctx.onClose((wsCtx) -> wsCtx.sendTextFrame("CLOSE"));
 //                    }));
-//                    p.get("/", (req, resp) -> {
+//                    p.getEntry("/", (req, resp) -> {
 //                        resp.send(200, "<html><head><title>Web Socket Test</title></head>" + NEWLINE +
 //                                "<body>" + NEWLINE +
 //                                "<script type=\"text/javascript\">" + NEWLINE +
@@ -382,7 +382,7 @@
 //                                '}' + NEWLINE +
 //                                "if (window.WebSocket) {" + NEWLINE +
 //                                "  socket = new WebSocket(\"ws://"
-//                                + req.ctx().nettyRequest.headers().get(HttpHeaderNames.HOST) + "/websocket\");"
+//                                + req.ctx().nettyRequest.headers().getEntry(HttpHeaderNames.HOST) + "/websocket\");"
 //                                + NEWLINE +
 //                                "  socket.onmessage = function(event) {" + NEWLINE +
 //                                "    var ta = document.getElementById('responseText');" + NEWLINE +
@@ -438,7 +438,7 @@
 //
 //        new Thread(() -> {
 //            Pond.init(p -> {
-//                p.get("/*", p._static("www")).otherwise(InternalMids.FORCE_CLOSE);
+//                p.getEntry("/*", p._static("www")).otherwise(InternalMids.FORCE_CLOSE);
 //            }).listen(9333);
 //        }).run();
 //    }
@@ -449,9 +449,9 @@
 //
 ////        form_verify();
 ////          Pond.init(
-////        app -> app.get("/api/*", new Router().handler("/evil/*", new Router()
-////            .get("/a",(req, resp) -> resp.send(200,"OK"))
-////            .get("/",(req, resp) -> resp.send(200,"OK"))
+////        app -> app.getEntry("/api/*", new Router().handler("/evil/*", new Router()
+////            .getEntry("/a",(req, resp) -> resp.send(200,"OK"))
+////            .getEntry("/",(req, resp) -> resp.send(200,"OK"))
 ////                       )
 ////        )
 ////    ).debug(Router.class).listen();

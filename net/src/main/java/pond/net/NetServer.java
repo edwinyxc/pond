@@ -69,7 +69,7 @@ public class NetServer implements Server {
 
 //    private int port() {
 //        return S._tap(
-//            Integer.parseInt(S.avoidNull(S.config.get(Server.class, Server.PORT), "8333")),
+//            Integer.parseInt(S.avoidNull(S.config.getEntry(Server.class, Server.PORT), "8333")),
 //            port -> logger.info(String.format("USING PORT %s", port)));
 //    }
 

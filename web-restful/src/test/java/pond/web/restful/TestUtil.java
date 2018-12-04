@@ -41,7 +41,7 @@ public class TestUtil {
 //
 //    new Thread(() -> {
 //      Pond.init(API.class, p -> {
-//        p.get("/*", p._static("www")).otherwise(InternalMids.FORCE_CLOSE);
+//        p.getEntry("/*", p._static("www")).otherwise(InternalMids.FORCE_CLOSE);
 //      }).listen(9333);
 //    }).run();
 //  }

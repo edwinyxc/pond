@@ -40,7 +40,7 @@
 //    }
 //
 //    public Claims getJwtClaims(HttpCtx ctx) {
-//        return (Claims) ctx.get("jwt_claims");
+//        return (Claims) ctx.getEntry("jwt_claims");
 //    }
 //
 //    public String user(HttpCtx ctx) {

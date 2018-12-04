@@ -30,7 +30,7 @@ public interface RouterCtx extends HttpCtx {
 //    Route currentRoute;
 
     default Route currentRoute() {
-        return this.get(ROUTE);
+        return this.getEntry(ROUTE);
     }
 
     default String routingPath(){
@@ -49,7 +49,7 @@ public interface RouterCtx extends HttpCtx {
     }
 
     default void reRoute(String newPath){
-        this.reRoute(this.get(ROUTER), newPath);
+        this.reRoute(this.getEntry(ROUTER), newPath);
     }
 
     default void reRoute(Router router, String newPath){
@@ -104,7 +104,7 @@ public interface RouterCtx extends HttpCtx {
 //        S._debug(logger, log -> {
 //            log.debug("Main ctx currentRoute:");
 //            super.set("_start_time", S.now());
-//            log.debug("ctx starts at: " + this.get("_start_time"));
+//            log.debug("ctx starts at: " + this.getEntry("_start_time"));
 //            log.debug("method:" + method);
 //            log.debug("uri:" + uri);
 //            log.debug("path:" + path);

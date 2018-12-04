@@ -19,11 +19,11 @@
 //
 //    Pond.init().debug(HttpJwtAuth.class).cleanAndBind(
 //        p -> p
-//            .get("/secret", jwtAuth.auth, CtxHandler.express((req, resp) -> {
+//            .getEntry("/secret", jwtAuth.auth, CtxHandler.express((req, resp) -> {
 //              resp.send(200, "Welcome " + jwtAuth.getJwtClaims(req.ctx()));
 //            }))
 //            .post("/signin", jwtAuth.basicSignIn("username", "password"))
-//            .get("/*", p._static("www"))
+//            .getEntry("/*", p._static("www"))
 //
 //    ).listen(9090);
 //
