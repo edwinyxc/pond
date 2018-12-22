@@ -109,6 +109,8 @@ public class MappingRule {
         return CLOB();
       case Types.ARRAY:
         return ARRAY();
+      case Types.NVARCHAR:
+        return VARCHAR();
     }
     throw new IllegalArgumentException("Unknown type: " + sqlType);
   }
