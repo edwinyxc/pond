@@ -49,7 +49,10 @@ public class CodeOnFly {
     };
 
     public static CtxHandler<HttpCtx> addTwoCookies = ctx -> {
-        var http = (HttpCtx.Send & HttpCtx.Cookies)ctx::bind;
+        var http = (HttpCtx & HttpCtx.Send & HttpCtx.Cookies) ctx::bind;
+
+        http.getEntry(HttpCtx.REQ);
+
         http.removeCookie( http.cookie("pond"));
         http.addCookie(new DefaultCookie("a", "aaa"))
             .addCookie(new DefaultCookie("b", "bbb"));

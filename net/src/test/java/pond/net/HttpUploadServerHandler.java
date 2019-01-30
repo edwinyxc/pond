@@ -149,7 +149,7 @@ public class HttpUploadServerHandler extends SimpleChannelInboundHandler<HttpObj
         }
 
         // check if the decoder was constructed before
-        // if not it handles the form get
+        // if not it handles the form getEntry
         if (decoder != null) {
             if (msg instanceof HttpContent) {
                 // New chunk is received

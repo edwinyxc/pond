@@ -31,7 +31,7 @@ public class RegPathMatcher {
 
     S._assertNotNull(pattern, path);
 
-//    PreCompiledPath preCompiledPath = cache.get(pattern);
+//    PreCompiledPath preCompiledPath = cache.getEntry(pattern);
 //    if (preCompiledPath == null) {
 //      preCompiledPath = compiler.compile(pattern);
 //      cache.put(pattern, preCompiledPath);

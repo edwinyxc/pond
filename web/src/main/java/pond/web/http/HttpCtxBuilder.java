@@ -293,7 +293,7 @@ class HttpCtxBuilder {
                 http.set(HttpCtx.TRAILING_HEADERS, trailingHeaders);
                 http.set(HttpCtx.FORM_DATA, formData);
                 http.set(HttpCtx.CONFIG, httpConfig);
-                http.set(HttpCtx.Queries, queries);
+                http.set(HttpCtx.QUERIES, queries);
 
                 //in & out
                 http.set(HttpCtx.IN, aggregatedContent);
@@ -307,7 +307,7 @@ class HttpCtxBuilder {
                 http.pushAll(handlers);
                 http.flowProcessor().finalHandler(CtxHandler.of(c -> {
                     var finalHttp = (HttpCtx & HttpCtx.Send) c::bind;
-                    var builder = finalHttp.get(HttpCtx.RESPONSE_BUILDER);
+                    var builder = finalHttp.getEntry(HttpCtx.RESPONSE_BUILDER);
                     HttpRequest request = finalHttp.request();
                     // Decide whether to close the connection or not.
                     boolean close = request.headers() .contains(

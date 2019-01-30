@@ -10,20 +10,20 @@ public class OpenAPIObject {
      * specifications and clients to interpret the OpenAPI document.
      * This is  not related to the API info.version string.
      */
-    String openapi;
+    public String openapi;
 
-    InfoObject info;
+    public InfoObject info;
 
-    List<ServerObject> servers;
+    public List<ServerObject> servers;
 
-    PathsObject paths;
+    public PathsObject paths;
 
-    ComponentsObject components;
+    public ComponentsObject components;
 
-    List<SecurityRequirementObject> security;
+    public List<SecurityRequirementObject> security;
 
-    List<TagObject> tags;
+    public List<TagObject> tags;
 
-    ExternalDocumentObject externalDocs;
+    public ExternalDocumentObject externalDocs;
 
 }

@@ -64,7 +64,7 @@
 //                .debug(Router.class, Pond.class)
 //                .cleanAndBind(p -> {
 //
-//                    p.get("/custom_record", API.def(
+//                    p.getEntry("/custom_record", API.def(
 //                            ParamDef.any("order", ctx -> {
 //                                Map ret = new HashMap();
 //                                ret.putAll(((HttpCtx) ctx).req.toMap());
@@ -76,7 +76,7 @@
 //                            }
 //                    ));
 //
-//                    p.get("/complex/", API.def(
+//                    p.getEntry("/complex/", API.def(
 //                            compose("complex", S.array(
 //                                    param("name"),
 //                                    compose("inner", S.array(
@@ -86,21 +86,21 @@
 //                                            ), map -> {
 //                                                S.echo("DEBUG", map);
 //                                                Inner2 inner2 = new Inner2();
-//                                                inner2.name = (String) map.get("inner2_name");
+//                                                inner2.name = (String) map.getEntry("inner2_name");
 //                                                return inner2;
 //                                            })
 //                                    ), map -> {
 //                                        S.echo("DEBUG2", map);
 //                                        Inner inner = new Inner();
-//                                        inner.name = (String) map.get("inner_name");
-//                                        inner.value = (Inner2) map.get("inner2");
+//                                        inner.name = (String) map.getEntry("inner_name");
+//                                        inner.value = (Inner2) map.getEntry("inner2");
 //                                        return inner;
 //                                    })
 //                            ), map -> {
 //                                S.echo("DEBUG3", map);
 //                                DummyComplexRecord record = new DummyComplexRecord();
-//                                record.name = (String) map.get("name");
-//                                record.value = (Inner) map.get("inner");
+//                                record.name = (String) map.getEntry("name");
+//                                record.value = (Inner) map.getEntry("inner");
 //                                record.time = S.now();
 //                                return record;
 //                            }),
@@ -115,7 +115,7 @@
 //                            }
 //                    ));
 //
-//                    p.get("/well", API.def(
+//                    p.getEntry("/well", API.def(
 //                            ParamDef.param("q"),
 //                            ResultDef.ok(),
 //                            ResultDef.error(400, "Not Found"),
@@ -128,7 +128,7 @@
 //                    ));
 //
 //
-////                    p.get("/work/:id", CtxHandler.any(
+////                    p.getEntry("/work/:id", CtxHandler.any(
 ////                            ParamDef.any("name", ctx -> ((HttpCtx) ctx).req.query("name")),
 ////                            (ctx, name) -> {
 ////                                HttpCtx httpCtx = (HttpCtx) ctx;
@@ -145,7 +145,7 @@
 ////                            }
 ////                    ),RenderError(any(400,),any(500)));
 ////
-////                    p.get("/:name", CtxHandler.any(
+////                    p.getEntry("/:name", CtxHandler.any(
 ////                            ParamDef.Int("len"),
 ////                            ParamDef.query("name").required("name must not null"),
 ////                            (ctx, len, name) -> {

@@ -40,7 +40,7 @@ public enum HttpMethod {
   public static HttpMethod of(String _method) {
     String method = _method.trim();
     S._assert(method, "method null");
-    if (method.equalsIgnoreCase("get")) {
+    if (method.equalsIgnoreCase("getEntry")) {
       return GET;
     }
     if (method.equalsIgnoreCase("post")) {

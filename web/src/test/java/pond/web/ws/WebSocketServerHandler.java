@@ -157,6 +157,6 @@
 //    }
 //
 //    private static String getWebSocketLocation(FullHttpRequest req) {
-//        return "ws://" + req.headers().get(HOST) + WEBSOCKET_PATH;
+//        return "ws://" + req.headers().getEntry(HOST) + WEBSOCKET_PATH;
 //    }
 //}

@@ -88,42 +88,42 @@
 //            final String swaggerPrefix = "swagger-ui/";
 //
 //            {
-//                get("/", API.def(
+//                getEntry("/", API.def(
 //                        resourceAsFile("index.html"),
 //                        (ctx, render) ->
 //                                ctx.result(render, pair(swaggerClass, swaggerPrefix + "index.html"))
 //                ));
-//                get("/:file", API.def(
+//                getEntry("/:file", API.def(
 //                        path("file"),
 //                        resourceAsFile("file"),
 //                        (ctx, file, render) ->
 //                                ctx.result(render, pair(swaggerClass, swaggerPrefix + file))
 //                ));
-//                get("/css/:file", API.def(
+//                getEntry("/css/:file", API.def(
 //                        path("file"),
 //                        resourceAsFile("css files"),
 //                        (ctx, file, render) ->
 //                                ctx.result(render, pair(swaggerClass, swaggerPrefix + "css/" + file))
 //                ));
-//                get("/fonts/:file", API.def(
+//                getEntry("/fonts/:file", API.def(
 //                        path("file"),
 //                        resourceAsFile("fonts"),
 //                        (ctx, file, render) ->
 //                                ctx.result(render, pair(swaggerClass, swaggerPrefix + "fonts/" + file))
 //                ));
-//                get("/images/:file", API.def(
+//                getEntry("/images/:file", API.def(
 //                        path("file"),
 //                        resourceAsFile("images"),
 //                        (ctx, file, render) ->
 //                                ctx.result(render, pair(swaggerClass, swaggerPrefix + "images/" + file))
 //                ));
-//                get("/lang/:file", API.def(
+//                getEntry("/lang/:file", API.def(
 //                        path("file"),
 //                        resourceAsFile("lang"),
 //                        (ctx, file, render) ->
 //                                ctx.result(render, pair(swaggerClass, swaggerPrefix + "lang/" + file))
 //                ));
-//                get("/lib/:file", API.def(
+//                getEntry("/lib/:file", API.def(
 //                        path("file"),
 //                        resourceAsFile("lib"),
 //                        (ctx, file, render) ->

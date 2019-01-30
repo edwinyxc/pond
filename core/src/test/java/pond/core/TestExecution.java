@@ -1,3 +1,4 @@
+
 package pond.core;
 
 import org.junit.Ignore;
@@ -87,7 +88,7 @@ public class TestExecution {
             )
         ));
         ctx.run();
-        S.echo(ctx.get(ACC));
+        S.echo(ctx.getEntry(ACC));
     }
 
 

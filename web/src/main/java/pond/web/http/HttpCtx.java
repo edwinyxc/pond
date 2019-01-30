@@ -41,7 +41,7 @@ public interface HttpCtx extends CtxNet {
     Entry<String> PATH = new Entry<>(HttpCtx.class, "PATH");
     Entry<String> URI = new Entry<>(HttpCtx.class, "URI");
 
-    Entry<Map<String, List<String>>> Queries = new Entry<>(HttpCtx.class, "Queries");
+    Entry<Map<String, List<String>>> QUERIES = new Entry<>(HttpCtx.class, "QUERIES");
     Entry<Map<String, List<String>>> IN_URL_PARAMS = new Entry<>(HttpCtx.class, "IN_URL_PARAMS");
     Entry<Map<String, List<String>>> HEADERS = new Entry<>(HttpCtx.class, "HEADERS");
     Entry<Set<Cookie>> COOKIES = new Entry<>(HttpCtx.class, "COOKIES");
@@ -66,11 +66,11 @@ public interface HttpCtx extends CtxNet {
     }
 
     default String method() {
-        return this.get(NETTY_REQUEST).method().toString();
+        return this.getEntry(NETTY_REQUEST).method().toString();
     }
 
     default String uri() {
-        return this.getOrPutDefault(URI, this.get(NETTY_REQUEST).uri());
+        return this.getOrPutDefault(URI, this.getEntry(NETTY_REQUEST).uri());
     }
 
     default String path() {
@@ -78,7 +78,7 @@ public interface HttpCtx extends CtxNet {
     }
 
     default Send.ResponseBuilder response(HttpResponseStatus status) {
-        Send.ResponseBuilder builder = this.get(RESPONSE_BUILDER);
+        Send.ResponseBuilder builder = this.getEntry(RESPONSE_BUILDER);
         if (builder == null) {
             builder = new Send.ResponseBuilder(this, status);
             this.set(RESPONSE_BUILDER, builder);
@@ -87,7 +87,7 @@ public interface HttpCtx extends CtxNet {
     }
 
     default HttpRequest request() {
-        return this.get(NETTY_REQUEST);
+        return this.getEntry(NETTY_REQUEST);
     }
 
     default Send.ResponseBuilder response() {
@@ -114,22 +114,22 @@ public interface HttpCtx extends CtxNet {
     }
     */
 //    default ByteBufInputStream in() {
-//        return new ByteBufInputStream(this.get(Keys.IN));
+//        return new ByteBufInputStream(this.getEntry(Keys.IN));
 //    }
 //
 //    default ByteBufOutputStream out() {
-//        return new ByteBufOutputStream(this.get(Keys.OUT));
+//        return new ByteBufOutputStream(this.getEntry(Keys.OUT));
 //    }
 
     interface Headers extends HttpCtx {
 
         default Tuple<HttpHeaders, HttpHeaders> headerAndTrailing() {
-            return Tuple.pair(this.get(NETTY_REQUEST).headers(), this.get(TRAILING_HEADERS));
+            return Tuple.pair(this.getEntry(NETTY_REQUEST).headers(), this.getEntry(TRAILING_HEADERS));
         }
 
         default String header(String key) {
-            var reqHeaders = this.get(NETTY_REQUEST).headers();
-            var trailingHeaders = this.get(TRAILING_HEADERS);
+            var reqHeaders = this.getEntry(NETTY_REQUEST).headers();
+            var trailingHeaders = this.getEntry(TRAILING_HEADERS);
             String ret = reqHeaders.get(key);
             if (ret == null) ret = trailingHeaders.get(key);
             return ret;
@@ -138,10 +138,10 @@ public interface HttpCtx extends CtxNet {
 
         default Map<String, List<String>> headers() {
             return this.getOrSupplyDefault(HEADERS, () -> {
-                var config = this.get(CONFIG);
+                var config = this.getEntry(CONFIG);
                 var is_case_sensitive = config.isHeaderCaseSensitive();
-                HttpHeaders reqHeaders = this.get(NETTY_REQUEST).headers();
-                HttpHeaders trailingHeaders = this.get(TRAILING_HEADERS);
+                HttpHeaders reqHeaders = this.getEntry(NETTY_REQUEST).headers();
+                HttpHeaders trailingHeaders = this.getEntry(TRAILING_HEADERS);
                 Map<String, List<String>> ret = new HashMap<>();
                 S._for(reqHeaders.names()).each(name -> {
                     ret.put(name, is_case_sensitive
@@ -177,7 +177,7 @@ public interface HttpCtx extends CtxNet {
         }
 
         default Map<String, List<String>> queries() {
-            return this.get(Queries);
+            return this.getEntry(QUERIES);
         }
 
         default String query(String name) {
@@ -254,11 +254,11 @@ public interface HttpCtx extends CtxNet {
         }
 
         default ByteBufInputStream bodyAsInputStream() {
-            return new ByteBufInputStream(this.get(IN));
+            return new ByteBufInputStream(this.getEntry(IN));
         }
 
         default ByteBuf bodyAsRaw() {
-            return this.get(IN);
+            return this.getEntry(IN);
         }
 
         default String bodyAsString(Charset charset) {
@@ -266,12 +266,12 @@ public interface HttpCtx extends CtxNet {
         }
 
         default boolean bodyIsMultipart() {
-            return HttpPostRequestDecoder.isMultipart(this.get(NETTY_REQUEST));
+            return HttpPostRequestDecoder.isMultipart(this.getEntry(NETTY_REQUEST));
         }
 
         default FormData bodyAsMultipart() throws IllegalAccessException {
             if (bodyIsMultipart()) {
-                return this.get(FORM_DATA);
+                return this.getEntry(FORM_DATA);
             } else throw new IllegalAccessException("Request is not a bodyAsMultipart request");
         }
 
@@ -300,8 +300,8 @@ public interface HttpCtx extends CtxNet {
 
             private ResponseBuilder(HttpCtx http, HttpResponseStatus status) {
                 this.http = http;
-                httpRequest = http.get(NETTY_REQUEST);
-                buf = http.get(OUT);
+                httpRequest = http.getEntry(NETTY_REQUEST);
+                buf = http.getEntry(OUT);
                 if (buf == null || buf.writableBytes() == 0) {
                     buf = PooledByteBufAllocator.DEFAULT.heapBuffer();
                 }
@@ -463,7 +463,7 @@ public interface HttpCtx extends CtxNet {
             ChannelFuture lastFuture =
                 this.chctx().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 
-            if (!HttpUtil.isKeepAlive(this.get(NETTY_REQUEST))) {
+            if (!HttpUtil.isKeepAlive(this.getEntry(NETTY_REQUEST))) {
                 lastFuture.addListener(ChannelFutureListener.CLOSE);
             }
             terminate();
@@ -546,9 +546,9 @@ public interface HttpCtx extends CtxNet {
 
     interface Cookies extends HttpCtx {
         default Set<Cookie> cookies() {
-            if (this.get(COOKIES) == null) {
-                var httpRequest = this.get(NETTY_REQUEST);
-                var trailingHeaders = this.get(TRAILING_HEADERS);
+            if (this.getEntry(COOKIES) == null) {
+                var httpRequest = this.getEntry(NETTY_REQUEST);
+                var trailingHeaders = this.getEntry(TRAILING_HEADERS);
                 //cookies
                 //merge into one
                 var cookie = httpRequest.headers().get(HttpHeaderNames.COOKIE);
@@ -563,7 +563,7 @@ public interface HttpCtx extends CtxNet {
                     this.set(COOKIES, Collections.emptySet());
                 }
             }
-            return this.get(COOKIES);
+            return this.getEntry(COOKIES);
         }
 
         default Cookie cookie(String name) {

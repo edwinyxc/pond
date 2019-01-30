@@ -10,22 +10,10 @@ import java.lang.annotation.Target;
 
 public interface Contract {
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.METHOD)
-    @interface Mapping {
-        String value() default "";
-
-        HttpMethod[] methods() default {
-            HttpMethod.GET,
-            HttpMethod.POST
-        };
-    }
-
     @interface Title {String value() default "";}
     @interface Version {String value() default "";}
     @interface Summary{ String value() default "";}
     @interface Description {String value() default "";}
-
     @interface Ignore {}
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -106,8 +94,6 @@ public interface Contract {
     interface Parameters {
         @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Name{ String value(); }
         @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER}) @interface Required{ String value(); }
-
     }
-
 
 }

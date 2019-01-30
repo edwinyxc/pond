@@ -31,7 +31,7 @@ public class ParameterObject {
     public final String name;
     ParameterSchemaContract schema;
     ParameterInContract in;
-    String description;
+     String description;
     boolean required;
     boolean deprecated;
     boolean allowEmptyValue;
@@ -41,8 +41,6 @@ public class ParameterObject {
     SchemaObject schemaObject; //TODO dup-name
     //Object example;
     Map<String, ExampleObject> examples;
-
-
 
     public final CtxHandler provider;
 
@@ -82,7 +80,7 @@ public class ParameterObject {
                 Optional<Object> _param =
                     in != null
                         ? in.provide(httpCtx, name, in_anno)
-                        : Optional.of(httpCtx.get(entry));
+                        : Optional.of(httpCtx.getEntry(entry));
 
                 if(in != null && in.required(in_anno) && _param.isEmpty()){
                     //do required-func TODO default: throw a 400 -required

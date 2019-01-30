@@ -53,7 +53,7 @@ public class Router implements CtxHandler<HttpCtx>, RouterAPI {
 
 
     private String pathRemainder(RouterCtx ctx) {
-        String path = S.avoidNull(ctx.get(RouterCtx.PATH_REMINDER), ctx.routingPath());
+        String path = S.avoidNull(ctx.getEntry(RouterCtx.PATH_REMINDER), ctx.routingPath());
         S.echo("path_reminder", path);
         Route entry_route = ctx.currentRoute();
         return compiler.preparePath(entry_route, path);
@@ -97,7 +97,7 @@ public class Router implements CtxHandler<HttpCtx>, RouterAPI {
 
         RegPathMatchResult matchResult;
         for (Route r : routes) {
-            var lastRoute = ctx.get(RouterCtx.ROUTE);
+            var lastRoute = ctx.getEntry(RouterCtx.ROUTE);
             if(lastRoute != null && lastRoute == r) continue;
 
             //jump out

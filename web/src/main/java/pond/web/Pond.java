@@ -113,7 +113,7 @@
 //    server.registerHandler(ctx -> ctx.execAll(this));
 //
 //    try {
-//      server.listen().get();
+//      server.listen().getEntry();
 //    } catch (Exception e) {
 //      logger.error(e.getMessage());
 //      logger.error(S.dump(e.getStackTrace()));
@@ -201,7 +201,7 @@
 //  public void stop() {
 //    try {
 //      //sync
-//      server.stop(Callback.NOOP).get();
+//      server.stop(Callback.NOOP).getEntry();
 //
 //    } catch (Exception e) {
 //      Pond.logger.error(e.getMessage(), e);

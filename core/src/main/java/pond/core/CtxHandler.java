@@ -1,3 +1,4 @@
+
 package pond.core;
 
 import org.slf4j.Logger;
@@ -35,13 +36,13 @@ public interface CtxHandler<T extends Ctx> extends Callback<T> {
         Callback.C7<A, B, C, D, E, F, G> consumer ){
         return ctx -> {
             consumer.apply(
-                ctx.get(A),
-                ctx.get(B),
-                ctx.get(C),
-                ctx.get(D),
-                ctx.get(E),
-                ctx.get(F),
-                ctx.get(G)
+                ctx.getEntry(A),
+                ctx.getEntry(B),
+                ctx.getEntry(C),
+                ctx.getEntry(D),
+                ctx.getEntry(E),
+                ctx.getEntry(F),
+                ctx.getEntry(G)
             );
         };
     }
@@ -56,12 +57,12 @@ public interface CtxHandler<T extends Ctx> extends Callback<T> {
         C6<A, B, C, D, E, F> consumer) {
         return ctx -> {
             consumer.apply(
-                ctx.get(A),
-                ctx.get(B),
-                ctx.get(C),
-                ctx.get(D),
-                ctx.get(E),
-                ctx.get(F)
+                ctx.getEntry(A),
+                ctx.getEntry(B),
+                ctx.getEntry(C),
+                ctx.getEntry(D),
+                ctx.getEntry(E),
+                ctx.getEntry(F)
             );
         };
     }
@@ -75,11 +76,11 @@ public interface CtxHandler<T extends Ctx> extends Callback<T> {
         Callback.C5<A, B, C, D, E> consumer) {
         return ctx -> {
             consumer.apply(
-                ctx.get(A),
-                ctx.get(B),
-                ctx.get(C),
-                ctx.get(D),
-                ctx.get(E)
+                ctx.getEntry(A),
+                ctx.getEntry(B),
+                ctx.getEntry(C),
+                ctx.getEntry(D),
+                ctx.getEntry(E)
             );
         };
     }
@@ -92,10 +93,10 @@ public interface CtxHandler<T extends Ctx> extends Callback<T> {
         C4<A, B, C, D> consumer ) {
         return ctx -> {
              consumer.apply(
-                ctx.get(A),
-                ctx.get(B),
-                ctx.get(C),
-                ctx.get(D)
+                ctx.getEntry(A),
+                ctx.getEntry(B),
+                ctx.getEntry(C),
+                ctx.getEntry(D)
             );
         };
     }
@@ -106,7 +107,7 @@ public interface CtxHandler<T extends Ctx> extends Callback<T> {
         Entry<C> C,
         C3<A, B, C> consumer) {
         return ctx -> {
-            consumer.apply(ctx.get(A), ctx.get(B), ctx.get(C));
+            consumer.apply(ctx.getEntry(A), ctx.getEntry(B), ctx.getEntry(C));
         };
     }
 
@@ -115,7 +116,7 @@ public interface CtxHandler<T extends Ctx> extends Callback<T> {
         Entry<B> B,
         C2<A, B> consumer) {
         return ctx -> {
-            consumer.apply(ctx.get(A), ctx.get(B));
+            consumer.apply(ctx.getEntry(A), ctx.getEntry(B));
         };
     }
 
@@ -124,7 +125,7 @@ public interface CtxHandler<T extends Ctx> extends Callback<T> {
         Callback<A> consumer
     ){
         return ctx -> {
-            consumer.apply(ctx.get(entry));
+            consumer.apply(ctx.getEntry(entry));
         };
     }
 
@@ -141,13 +142,13 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
        ) {
         return ctx -> {
             ctx.set(Ctx.LAST_RESULT, processor.apply(
-                ctx.get(A),
-                ctx.get(B),
-                ctx.get(C),
-                ctx.get(D),
-                ctx.get(E),
-                ctx.get(F),
-                ctx.get(G)
+                ctx.getEntry(A),
+                ctx.getEntry(B),
+                ctx.getEntry(C),
+                ctx.getEntry(D),
+                ctx.getEntry(E),
+                ctx.getEntry(F),
+                ctx.getEntry(G)
             ));
         };
     }
@@ -162,13 +163,13 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
         Function.F7<R, A, B, C, D, E, F, G> processor, Entry<R> endpoint) {
         return ctx -> {
             ctx.set(endpoint, processor.apply(
-                ctx.get(A),
-                ctx.get(B),
-                ctx.get(C),
-                ctx.get(D),
-                ctx.get(E),
-                ctx.get(F),
-                ctx.get(G)
+                ctx.getEntry(A),
+                ctx.getEntry(B),
+                ctx.getEntry(C),
+                ctx.getEntry(D),
+                ctx.getEntry(E),
+                ctx.getEntry(F),
+                ctx.getEntry(G)
             ));
         };
     }
@@ -182,12 +183,12 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
         Function.F6<R, A, B, C, D, E, F> processor, Entry<R> endpoint) {
         return ctx -> {
             ctx.set(endpoint, processor.apply(
-                ctx.get(A),
-                ctx.get(B),
-                ctx.get(C),
-                ctx.get(D),
-                ctx.get(E),
-                ctx.get(F)
+                ctx.getEntry(A),
+                ctx.getEntry(B),
+                ctx.getEntry(C),
+                ctx.getEntry(D),
+                ctx.getEntry(E),
+                ctx.getEntry(F)
             ));
         };
     }
@@ -202,11 +203,11 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
     ) {
         return ctx -> {
             ctx.set(Ctx.LAST_RESULT, processor.apply(
-                ctx.get(A),
-                ctx.get(B),
-                ctx.get(C),
-                ctx.get(D),
-                ctx.get(E)
+                ctx.getEntry(A),
+                ctx.getEntry(B),
+                ctx.getEntry(C),
+                ctx.getEntry(D),
+                ctx.getEntry(E)
             ));
         };
     }
@@ -219,11 +220,11 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
         Function.F5<R, A, B, C, D, E> processor, Entry<R> endpoint) {
         return ctx -> {
             ctx.set(endpoint, processor.apply(
-                ctx.get(A),
-                ctx.get(B),
-                ctx.get(C),
-                ctx.get(D),
-                ctx.get(E)
+                ctx.getEntry(A),
+                ctx.getEntry(B),
+                ctx.getEntry(C),
+                ctx.getEntry(D),
+                ctx.getEntry(E)
             ));
         };
     }
@@ -237,10 +238,10 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
     ) {
         return ctx -> {
             ctx.set(Ctx.LAST_RESULT, processor.apply(
-                ctx.get(A),
-                ctx.get(B),
-                ctx.get(C),
-                ctx.get(D)
+                ctx.getEntry(A),
+                ctx.getEntry(B),
+                ctx.getEntry(C),
+                ctx.getEntry(D)
             ));
         };
     }
@@ -252,10 +253,10 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
         Function.F4<R, A, B, C, D> processor, Entry<R> endpoint) {
         return ctx -> {
             ctx.set(endpoint, processor.apply(
-                ctx.get(A),
-                ctx.get(B),
-                ctx.get(C),
-                ctx.get(D)
+                ctx.getEntry(A),
+                ctx.getEntry(B),
+                ctx.getEntry(C),
+                ctx.getEntry(D)
             ));
         };
     }
@@ -267,7 +268,7 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
         Function.F3<R, A, B, C> processor
     ) {
         return ctx -> {
-            ctx.set(Ctx.LAST_RESULT, processor.apply(ctx.get(A), ctx.get(B), ctx.get(C)));
+            ctx.set(Ctx.LAST_RESULT, processor.apply(ctx.getEntry(A), ctx.getEntry(B), ctx.getEntry(C)));
         };
     }
 
@@ -279,7 +280,7 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
         Entry<R> endpoint
     ) {
         return ctx -> {
-            ctx.set(endpoint, processor.apply(ctx.get(A), ctx.get(B), ctx.get(C)));
+            ctx.set(endpoint, processor.apply(ctx.getEntry(A), ctx.getEntry(B), ctx.getEntry(C)));
         };
     }
 
@@ -289,7 +290,7 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
         Function.F2<R, A, B> processor
     ) {
         return ctx -> {
-            ctx.set(Ctx.LAST_RESULT, processor.apply(ctx.get(A), ctx.get(B)));
+            ctx.set(Ctx.LAST_RESULT, processor.apply(ctx.getEntry(A), ctx.getEntry(B)));
         };
     }
     static <R, A, B> CtxHandler<? extends Ctx> process(
@@ -297,7 +298,7 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
         Entry<B> B,
         Function.F2<R, A, B> processor, Entry<R> endpoint) {
         return ctx -> {
-            ctx.set(endpoint, processor.apply(ctx.get(A), ctx.get(B)));
+            ctx.set(endpoint, processor.apply(ctx.getEntry(A), ctx.getEntry(B)));
         };
     }
 
@@ -308,7 +309,7 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
             if(!ctx.contains(entry)){
                 ctx.logger.warn("Taking a empty Entry:"+ entry.name()+"");
             }
-            ctx.set(endpoint, processor.apply(ctx.get(entry)));
+            ctx.set(endpoint, processor.apply(ctx.getEntry(entry)));
         };
     }
     static <R, A> CtxHandler<? extends Ctx> process(
@@ -318,7 +319,7 @@ static <R, A, B, C, D, E, F, G> CtxHandler<? extends Ctx> process(
             if(!ctx.contains(entry)){
                 ctx.logger.warn("Taking a empty Entry:"+ entry.name()+"");
             }
-            ctx.set(Ctx.LAST_RESULT, processor.apply(ctx.get(entry)));
+            ctx.set(Ctx.LAST_RESULT, processor.apply(ctx.getEntry(entry)));
         };
     }
 

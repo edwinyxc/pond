@@ -45,8 +45,8 @@
 //                                ResultDef.error(403, "custom 403"),
 //                                ResultDef.json("testModel").schema(Schema.OBJECT(Prototype.proto(TestModel.class))),
 //                                (ctx, email, to, forbidden, json_testModel) -> {
-//                                    String name = (String) ctx.get("name");
-//                                    ctx.result(json_testModel, ctx.get("testModel"));
+//                                    String name = (String) ctx.getEntry("name");
+//                                    ctx.result(json_testModel, ctx.getEntry("testModel"));
 //                                }
 //                        ));
 //
@@ -58,14 +58,14 @@
 //                                }
 //                        ));
 //
-//                        get("/inner2/*", new API() {{
-//                            get("/", API    .def(
+//                        getEntry("/inner2/*", new API() {{
+//                            getEntry("/", API    .def(
 //                                    ParamDef.param("id"),
 //                                    (ctx, id) -> {
 //                                    }
 //                            ));
 //
-//                            get("/complex", API.def(
+//                            getEntry("/complex", API.def(
 //
 //                                    ParamDef.param("name"),
 //                                    ParamDef.param("password"),
@@ -89,7 +89,7 @@
 //                                            }}
 //                                    )),
 //                                    (ctx, email, to, forbidden, json) -> {
-//                                        String name = (String) ctx.get("name");
+//                                        String name = (String) ctx.getEntry("name");
 //                                        ctx.result(json, new HashMap<String, Object>() {{
 //                                            put("name", name);
 //                                            put("email", email);
@@ -103,7 +103,7 @@
 //                    }});
 //
 //
-//            get("/:id", API.def(
+//            getEntry("/:id", API.def(
 //                    ParamDef.path("id"),
 //
 //                    ResultDef.text("id"),
@@ -135,7 +135,7 @@
 //                            }}
 //                    )),
 //                    (ctx, email, to, forbidden, json) -> {
-//                        String name = (String) ctx.get("name");
+//                        String name = (String) ctx.getEntry("name");
 //                        ctx.result(json, new HashMap<String, Object>() {{
 //                            put("name", name);
 //                            put("email", email);
@@ -158,8 +158,8 @@
 ////        S.echo(uri);
 //
 //        Pond.init(API.class, p -> {
-//            p.get("/swagger/api/my", Swagger.swaggerJSON(p.rootRouter));
-//            p.get("/swagger/*", Swagger.server());
+//            p.getEntry("/swagger/api/my", Swagger.swaggerJSON(p.rootRouter));
+//            p.getEntry("/swagger/*", Swagger.server());
 //            p.use("/my/*", new MyAPI());
 //            p.use("/*", new MyAPI());
 //        }).listen(9090);

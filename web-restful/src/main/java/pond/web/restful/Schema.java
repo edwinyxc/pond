@@ -84,13 +84,13 @@ public class Schema extends HashMap<String, Object> {
 //        Record proto = Prototype.proto(type);
 //        String tableName = proto.table();
 //        Map<String, Map<String, Integer>> dbStruct = db.getDbStructures();
-//        Map<String, Integer> tableStruct = dbStruct.get(tableName);
+//        Map<String, Integer> tableStruct = dbStruct.getEntry(tableName);
 //        S._assert(tableStruct != null, "No such table found : " + tableName);
 //        return S._tap(new Schema(), s -> {
 //            s.put("type", "object");
 //            s.put("properties", S._tap(new HashMap(), m -> {
 //                S._for(proto.declaredFields()).each(f -> {
-//                    int type_int = tableStruct.get(f.name());
+//                    int type_int = tableStruct.getEntry(f.name());
 //                    //insert new schema entry
 //                    s.put(f.name(), )
 //                });
