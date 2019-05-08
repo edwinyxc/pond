@@ -82,7 +82,7 @@
         <module>web-restful</module>
         <module>web-swagger</module>
         <module>web-fileserver</module>
-        <module>web-api-contract</module>
+        <module>net-mqtt</module>
     </modules>
 
     <dependencies>

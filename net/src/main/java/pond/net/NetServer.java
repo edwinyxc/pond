@@ -13,6 +13,7 @@ import pond.core.Ctx;
 import pond.core.CtxFlowProcessor;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class NetServer implements Server {
@@ -151,5 +152,14 @@ public class NetServer implements Server {
 
         workerGroup.shutdownGracefully();
         return bossGroup.shutdownGracefully();
+    }
+
+    @Override
+    public void run() {
+        try {
+            listen().get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
     }
 }

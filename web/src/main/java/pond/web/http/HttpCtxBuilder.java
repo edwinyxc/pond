@@ -11,7 +11,7 @@ import pond.common.S;
 import pond.core.Ctx;
 import pond.core.CtxBase;
 import pond.core.CtxHandler;
-import pond.net.CtxNet;
+import pond.net.NetCtx;
 import pond.net.NetServer;
 import pond.web.EndToEndException;
 
@@ -288,7 +288,7 @@ class HttpCtxBuilder {
                 //compose into fullCtx :)
                 CtxBase base = new CtxBase();
                 var http = (HttpCtx & HttpCtx.Lazy)() -> base;
-                CtxNet.adapt(http, ctx);
+                NetCtx.adapt(http, ctx);
                 http.set(HttpCtx.NETTY_REQUEST, httpRequest);
                 http.set(HttpCtx.TRAILING_HEADERS, trailingHeaders);
                 http.set(HttpCtx.FORM_DATA, formData);

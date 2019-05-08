@@ -15,7 +15,7 @@ import pond.common.STRING;
 import pond.common.f.Callback;
 import pond.common.f.Tuple;
 import pond.core.Entry;
-import pond.net.CtxNet;
+import pond.net.NetCtx;
 import pond.net.NetServer;
 import pond.web.EndToEndException;
 import pond.web.Request;
@@ -29,7 +29,7 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.*;
 
-public interface HttpCtx extends CtxNet {
+public interface HttpCtx extends NetCtx {
     Entry<HttpConfigBuilder> CONFIG = new Entry<>(HttpCtx.class, "CONFIG");
     Entry<HttpRequest> NETTY_REQUEST = new Entry<>(HttpCtx.class, "NETTY_REQUEST");
     //static final Entry<HttpResponse> NettyResponse = new Ctx.Entry<>(HttpCtx.class, "NettyResponse");

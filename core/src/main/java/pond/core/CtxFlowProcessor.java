@@ -1,5 +1,7 @@
 package pond.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pond.common.S;
 import pond.common.f.Callback;
 
@@ -16,6 +18,7 @@ import java.util.concurrent.SubmissionPublisher;
  * @see Ctx#runReactiveFlow(Ctx.ReactiveFlowConfig)
  */
 public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.util.concurrent.Flow.Processor<Ctx, Ctx>{
+    public static Logger LOG = LoggerFactory.getLogger(CtxFlowProcessor.class);
 
     private java.util.concurrent.Flow.Subscription subscription;
     public final List<CtxHandler> handled = new LinkedList<>();
@@ -24,9 +27,9 @@ public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.u
     private Callback<Throwable> onError = Throwable::printStackTrace;
     private CtxFlowProcessor last;
     private Callback<Ctx> onFinal = ctx -> {
-        S.echo("Last but not least !!! Calling Ctx#flowProcessor");
+        LOG.trace("Last but not least !!! Calling Ctx#flowProcessor");
         if(last != null || (last = ctx.flowProcessor()) != null){
-            S.echo(last);
+            LOG.trace(String.format("null last obj: %s", S.dump(last)));
             last.onFinal.apply(ctx);
         }
     };
@@ -63,7 +66,7 @@ public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.u
 
     @Override
     public void onSubscribe(java.util.concurrent.Flow.Subscription subscription) {
-        Ctx.logger.debug("FLOW(" + this.name + ")------------");
+        Ctx.logger.trace("FLOW(" + this.name + ")------------");
         if(this.getSubscribers().contains(this)){
             throw new IllegalArgumentException("Can not subscribe on self");
         }
@@ -74,7 +77,7 @@ public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.u
     @Override
     @SuppressWarnings("unchecked")
     public void onNext(Ctx c) {
-        Ctx.logger.debug("FLOW("+this.name()+ ")<<<" + c.current() + " On " + Thread.currentThread());
+        Ctx.logger.trace("FLOW("+this.name()+ ")<<<" + c.current() + " On " + Thread.currentThread());
         CtxHandler exec = c.current();
         if(exec != null) {
             if(exec instanceof CtxHandler.Flow ){
@@ -87,7 +90,7 @@ public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.u
                     if(!this.getSubscribers().contains(target)){
                         this.subscribe(target);
                     }
-                    Ctx.logger.debug("FLOW(" + this.name()+")>>>" + target.name());
+                    Ctx.logger.trace("FLOW(" + this.name()+")>>>" + target.name());
                     submit(c);
                     //submit and wait the message
                     subscription.request(1);
@@ -95,7 +98,7 @@ public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.u
                 }
                 else {
                     if(executor == null){ //sync mode
-                        Ctx.logger.debug("FLOW("+this.name()+")=||" + exec + " On " + Thread.currentThread() );
+                        Ctx.logger.trace("FLOW("+this.name()+")=||" + exec + " On " + Thread.currentThread() );
                         try {
                             exec.apply(c);
                             handled.add(exec);
@@ -107,7 +110,7 @@ public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.u
                         }
                     }else {
                         CompletableFuture.supplyAsync(() -> {
-                            Ctx.logger.debug("FLOW(" + this.name() + ")~||" + exec + " On " + Thread.currentThread());
+                            Ctx.logger.trace("FLOW(" + this.name() + ")~||" + exec + " On " + Thread.currentThread());
                             exec.apply(c);
                             handled.add(exec);
                             return true;
@@ -125,8 +128,8 @@ public class CtxFlowProcessor extends SubmissionPublisher<Ctx> implements java.u
                 }
             }
             else {
-                Ctx.logger.debug("FLOW("+this.name()+")UNEXPECTED!!");
-                Ctx.logger.debug("FLOW("+this.name()+")==>" + exec + " On " + Thread.currentThread() );
+                Ctx.logger.warn("FLOW("+this.name()+")UNEXPECTED!!");
+                Ctx.logger.warn("FLOW("+this.name()+")==>" + exec + " On " + Thread.currentThread() );
                 exec.apply(c);
                 handled.add(exec);
                 if(c.next() != null) onNext(c);

@@ -7,7 +7,7 @@ import pond.core.Ctx;
 
 import java.net.SocketAddress;
 
-public interface CtxNet extends Ctx {
+public interface NetCtx extends Ctx {
 
     default ChannelHandlerContext chctx(){
         return (ChannelHandlerContext) this.properties().get("chctx");
@@ -25,12 +25,12 @@ public interface CtxNet extends Ctx {
         return chctx().channel().remoteAddress();
     }
 
-    default <T extends CtxNet> T flush(){
+    default <T extends NetCtx> T flush(){
         chctx().flush();
         return (T) this;
     }
 
-    static <T extends CtxNet> T adapt(T ctx, ChannelHandlerContext channelHandlerContext){
+    static <T extends NetCtx> T adapt(T ctx, ChannelHandlerContext channelHandlerContext){
         ctx.delegate().properties().put("chctx", channelHandlerContext);
         return ctx;
     }

@@ -5,7 +5,7 @@ import pond.common.f.Callback;
 
 import java.util.concurrent.Future;
 
-public interface Server {
+public interface Server extends Runnable{
 
     Logger logger = org.slf4j.LoggerFactory.getLogger(Server.class);
 
