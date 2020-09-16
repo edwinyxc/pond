@@ -31,6 +31,7 @@ public interface ConnectionPool extends DataSource {
   void setMaxSize(Integer maxSize);
 
   Dialect dialect();
+  ConnectionPool dialect(Dialect d);
 
   ConnectionPool loadConfig(Properties p);
 

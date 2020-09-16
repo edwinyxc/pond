@@ -63,6 +63,11 @@ abstract class AbstractConnectionPool<T extends AbstractConnectionPool> implemen
   }
 
   @Override
+  public ConnectionPool dialect(Dialect d) {
+    this.dialect = d;
+    return this;
+  }
+  @Override
   public ConnectionPool loadConfig(Properties p) {
 
     this.jdbc_driver = p.getProperty(DRIVER);

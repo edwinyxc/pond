@@ -5,3 +5,11 @@ target/
 *.project
 *.settings/
 .vscode/
+
+*.swp
+*.swo
+
+tags
+tags/
+tag
+tag/
