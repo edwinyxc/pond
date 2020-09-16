@@ -77,6 +77,7 @@ abstract class AbstractConnectionPool<T extends AbstractConnectionPool> implemen
       switch (jdbc_driver) {
         case "com.mysql.jdbc.Driver": this.dialect = Dialect.mysql;break;
         case "org.h2.Driver": this.dialect = Dialect.h2;break;
+        default: DB.logger.warn("No dialect selected. Please specify it manually.");
       }
     } catch (ClassNotFoundException e) {
       DB.logger.error("ClassNotFound", e);
